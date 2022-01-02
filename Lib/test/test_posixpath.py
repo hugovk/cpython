@@ -336,6 +336,7 @@ class PosixPathTest(unittest.TestCase):
         ("/../foo/../bar", "/bar"),
         ("/../../foo/../bar/./baz/boom/..", "/bar/baz"),
         ("/../../foo/../bar/./baz/boom/.", "/bar/baz/boom"),
+        ("handbook/../../Tests/image.png", "../Tests/image.png")
     ]
 
     def test_normpath(self):
