@@ -608,9 +608,8 @@ class PyBuildExt(build_ext):
 
         if self.missing:
             print()
-            print("Python build finished successfully!")
-            print("The necessary bits to build these optional modules were not "
-                  "found:")
+            print("Python build finished very nice!")
+            print("We prevent you from building these modules:")
             print_three_column(self.missing)
             print("To find the necessary bits, look in setup.py in"
                   " detect_modules() for the module's name.")
