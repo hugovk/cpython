@@ -16,18 +16,18 @@ jobs:
     - uses: actions/stale@v4
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        exempt-pr-labels: 'CLA not signed'
+        exempt-pr-labels: 'fake CLA not signed'
         stale-pr-message: 'This PR is stale because it has been open for 30 days with no activity.'
         stale-pr-label: 'stale'
-        days-before-stale: 30
+        days-before-stale: 1
         days-before-close: -1
 
     - uses: actions/stale@v4
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        only-pr-labels: 'CLA not signed'
+        only-pr-labels: 'fake CLA not signed'
         stale-pr-message: 'This PR is stale because it has been open for 30 days with no activity. If the CLA is not signed within 14 days, it will be closed. See also https://devguide.python.org/pullrequest/#licensing'
         stale-pr-label: 'stale'
         close-pr-message: 'Closing this stale PR because the CLA is still not signed.'
-        days-before-stale: 30
-        days-before-close: 14
+        days-before-stale: 1
+        days-before-close: 1
