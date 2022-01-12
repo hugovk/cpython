@@ -22,13 +22,13 @@ jobs:
         touch to-github/.nojekyll
       working-directory: Doc
     - name: Deploy to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@4.2.2
+      uses: JamesIves/github-pages-deploy-action@v4.2.2
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BRANCH: gh-pages
         FOLDER: Doc/to-github
     - name: Comment Deploy Preview Link
-      uses: thollander/actions-comment-pull-request@1
+      uses: thollander/actions-comment-pull-request@v1
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         message: Deploy preview available at https://hugovk.github.io/cpython/${{ github.sha }}
