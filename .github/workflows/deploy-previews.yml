@@ -31,4 +31,4 @@ jobs:
       uses: thollander/actions-comment-pull-request@1
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        message: Deploy preview available at https://python.github.io/cpython/${{ github.sha }}
+        message: Deploy preview available at https://hugovk.github.io/cpython/${{ github.sha }}
