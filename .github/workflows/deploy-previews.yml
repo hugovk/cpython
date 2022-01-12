@@ -18,7 +18,7 @@ jobs:
         make venv
         make html
         mkdir to-github
-        mv build/html to-github/${{ github.sha }}
+        mv build/html to-github/pr-${{ github.event.number }}
         touch to-github/.nojekyll
       working-directory: Doc
     - name: Deploy to GitHub Pages
@@ -31,4 +31,4 @@ jobs:
       uses: thollander/actions-comment-pull-request@v1
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        message: Deploy preview available at https://hugovk.github.io/cpython/${{ github.sha }}
+        message: Deploy preview available at https://hugovk.github.io/cpython/pr-${{ github.event.number }}
