@@ -4,3 +4,4 @@ repos:
     hooks:
       - id: check-yaml
       - id: trailing-whitespace
+        types_or: [c, python]
