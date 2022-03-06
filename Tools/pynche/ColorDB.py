@@ -32,7 +32,7 @@ SPACE = ' '
 COMMASPACE = ', '
 
 
-
+
 # generic class
 class ColorDB:
     def __init__(self, fp):
@@ -131,7 +131,7 @@ class ColorDB:
             raise BadColor((red, green, blue)) from None
         return [name] + aliases
 
-
+
 class RGBColorDB(ColorDB):
     _re = re.compile(
         r'\s*(?P<red>\d+)\s+(?P<green>\d+)\s+(?P<blue>\d+)\s+(?P<name>.*)')
@@ -159,7 +159,7 @@ class WebsafeDB(ColorDB):
         return mo.group('hexrgb').upper()
 
 
-
+
 # format is a tuple (RE, SCANLINES, CLASS) where RE is a compiled regular
 # expression, SCANLINES is the number of header lines to scan, and CLASS is
 # the class to instantiate if a match is found
@@ -201,7 +201,7 @@ def get_colordb(file, filetype=None):
     return colordb
 
 
-
+
 _namedict = {}
 
 def rrggbb_to_triplet(color):
@@ -242,7 +242,7 @@ def triplet_to_brightness(rgbtuple):
     return r*rgbtuple[0] + g*rgbtuple[1] + b*rgbtuple[2]
 
 
-
+
 if __name__ == '__main__':
     colordb = get_colordb('/usr/openwin/lib/rgb.txt')
     if not colordb:

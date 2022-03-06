@@ -16,7 +16,7 @@ selected and nearest ChipWidgets.
 from tkinter import *
 import ColorDB
 
-
+
 class ChipWidget:
     _WIDTH = 150
     _HEIGHT = 80
@@ -76,7 +76,7 @@ class ChipWidget:
         self.__chip.configure(relief=RAISED)
 
 
-
+
 class ChipViewer:
     def __init__(self, switchboard, master=None):
         self.__sb = switchboard

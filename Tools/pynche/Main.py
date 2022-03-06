@@ -60,7 +60,7 @@ from ChipViewer import ChipViewer
 from TypeinViewer import TypeinViewer
 
 
-
+
 PROGRAM = sys.argv[0]
 AUTHNAME = 'Barry Warsaw'
 AUTHEMAIL = 'barry@python.org'
@@ -77,7 +77,7 @@ RGB_TXT = [
     ]
 
 
-
+
 # Do this because PyncheWidget.py wants to get at the interpolated docstring
 # too, for its Help menu.
 def docstring():
@@ -91,7 +91,7 @@ def usage(code, msg=''):
     sys.exit(code)
 
 
-
+
 def initial_color(s, colordb):
     # function called on every color
     def scan_color(s, colordb=colordb):
@@ -119,7 +119,7 @@ def initial_color(s, colordb):
     return r, g, b
 
 
-
+
 def build(master=None, initialcolor=None, initfile=None, ignore=None,
           dbfile=None):
     # create all output widgets
@@ -179,7 +179,7 @@ def run(app, s):
         pass
 
 
-
+
 def main():
     try:
         opts, args = getopt.getopt(
@@ -224,6 +224,6 @@ Version: %(__version__)s""" % globals())
     sb.save_views()
 
 
-
+
 if __name__ == '__main__':
     main()

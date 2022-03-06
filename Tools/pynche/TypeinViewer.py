@@ -15,7 +15,7 @@ you must hit Return or Tab to select the color.
 from tkinter import *
 
 
-
+
 class TypeinViewer:
     def __init__(self, switchboard, master=None):
         # non-gui ivars

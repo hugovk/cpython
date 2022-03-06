@@ -45,7 +45,7 @@ import sys
 import marshal
 
 
-
+
 class Switchboard:
     def __init__(self, initfile):
         self.__initfile = initfile

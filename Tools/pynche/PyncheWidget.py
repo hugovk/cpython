@@ -14,7 +14,7 @@ import ColorDB
 KEEPALIVE_TIMER = 500
 
 
-
+
 class PyncheWidget:
     def __init__(self, version, switchboard, master=None, extrapath=[]):
         self.__sb = switchboard
@@ -194,7 +194,7 @@ Unrecognized color file type in file:
         self.__root.deiconify()
 
 
-
+
 class Helpwin:
     def __init__(self, master, quitfunc):
         from Main import docstring
@@ -243,7 +243,7 @@ class Helpwin:
         self.__root.deiconify()
 
 
-
+
 import functools
 @functools.total_ordering
 class PopupViewer:

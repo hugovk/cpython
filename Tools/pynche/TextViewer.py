@@ -21,7 +21,7 @@ import ColorDB
 ADDTOVIEW = 'Text Window...'
 
 
-
+
 class TextViewer:
     def __init__(self, switchboard, master=None):
         self.__sb = switchboard

@@ -6,7 +6,7 @@ import Main
 import ColorDB
 
 
-
+
 class Chooser:
     """Ask for a color"""
     def __init__(self,
@@ -73,7 +73,7 @@ class Chooser:
         if self.__sb:
             self.__sb.save_views()
 
-
+
 # convenience stuff
 _chooser = None
 
@@ -89,7 +89,7 @@ def save():
     if _chooser:
         _chooser.save()
 
-
+
 # test stuff
 if __name__ == '__main__':
     from tkinter import *

@@ -48,7 +48,7 @@ BTNDRAG = 6
 SPACE = ' '
 
 
-
+
 def constant(numchips):
     step = 255.0 / (numchips - 1)
     start = 0.0
@@ -90,7 +90,7 @@ def constant_yellow_generator(numchips, red, green, blue):
     return list(zip([red] * numchips, [green] * numchips, seq))
 
 
-
+
 class LeftArrow:
     _ARROWWIDTH = 30
     _ARROWHEIGHT = 15
@@ -156,7 +156,7 @@ class RightArrow(LeftArrow):
         return coords[0] + self._ARROWWIDTH
 
 
-
+
 class StripWidget:
     _CHIPHEIGHT = 50
     _CHIPWIDTH = 10
@@ -312,7 +312,7 @@ class StripWidget:
         self.__canvas.itemconfigure(self.__label, text=label)
         self.__generator = generator
 
-
+
 class StripViewer:
     def __init__(self, switchboard, master=None):
         self.__sb = switchboard

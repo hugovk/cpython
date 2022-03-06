@@ -61,7 +61,7 @@ GRAV = 'Squash'
 
 ADDTOVIEW = 'Details Window...'
 
-
+
 class DetailsViewer:
     def __init__(self, switchboard, master=None):
         self.__sb = switchboard
