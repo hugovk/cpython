@@ -2259,13 +2259,15 @@ class TestAddSubparsers(TestCase):
         parser.add_argument(
             'foo',
             help='    ')
+        # Docstring is in two parts because it has trailing whitespace
+        # from the empty help, and we don't want the linter to trim it
         self.assertEqual(parser.format_help(), textwrap.dedent('''\
             usage: PROG [-h] foo
 
             main description
 
             positional arguments:
-              foo         
+              foo         ''' + '''
 
             options:
               -h, --help  show this help message and exit
@@ -2276,13 +2278,15 @@ class TestAddSubparsers(TestCase):
         parser.add_argument(
             'foo', choices=[],
             help='%(choices)s')
+        # Docstring is in two parts because it has trailing whitespace
+        # from the empty help, and we don't want the linter to trim it
         self.assertEqual(parser.format_help(), textwrap.dedent('''\
             usage: PROG [-h] {}
 
             main description
 
             positional arguments:
-              {}          
+              {}          ''' + '''
 
             options:
               -h, --help  show this help message and exit
