@@ -1,5 +1,7 @@
 """Record of phased-in incompatible language changes.
 
+DO NOT MERGE - testing PY change
+
 Each line is of the form:
 
     FeatureName = "_Feature(" OptionalRelease "," MandatoryRelease ","
