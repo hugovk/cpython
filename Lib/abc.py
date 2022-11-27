@@ -7,6 +7,8 @@
 def abstractmethod(funcobj):
     """A decorator indicating abstract methods.
 
+    DO NOT MERGE - testing PY change
+
     Requires that the metaclass is ABCMeta or derived from it.  A
     class that has a metaclass derived from ABCMeta cannot be
     instantiated unless all of its abstract methods are overridden.
