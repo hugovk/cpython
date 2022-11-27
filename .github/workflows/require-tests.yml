@@ -21,9 +21,7 @@ jobs:
       - name: "Check for tests"
         uses: brettcannon/check-for-changed-files@v1
         with:
-          prereq-pattern: |
-            Lib/**/*.py
-            Modules/*
+          prereq-pattern: "Lib/**/*.py"
           file-pattern: "Lib/test/**.py"
           skip-label: "skip tests"
           failure-message: "Missing tests in ${file-pattern}; please add one or apply the ${skip-label} label to the pull request"
