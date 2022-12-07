@@ -6,3 +6,7 @@
 [build.environment]
   PYTHON_VERSION = "3.8"
   IS_DEPLOYMENT_PREVIEW = "true"
+
+# Do not trigger netlify builds if docs were not changed.
+# Changed files should be in sync with `.github/workflows/doc.yml`
+ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./Doc ./Misc ./netlify.toml"
