@@ -1,8 +1,5 @@
 r"""HTTP/1.1 client library
 
-<intro stuff goes here>
-<other stuff, too>
-
 HTTPConnection goes through a number of "states", which define when a client
 may legally make another request or fetch the response for a particular
 request. This diagram details these state transitions:
@@ -77,6 +74,7 @@ import re
 import socket
 import sys
 import collections.abc
+import warnings
 from urllib.parse import urlsplit
 
 # HTTPMessage, parse_headers(), and the HTTP status code constants are
@@ -761,6 +759,9 @@ class HTTPResponse(io.BufferedIOBase):
         description of the mimetools module.
 
         '''
+        warnings.warn("HTTPResponse.info() is deprecated"
+                      "use HTTPResponse.headers instead",
+                      DeprecationWarning, stacklevel=2)
         return self.headers
 
     def geturl(self):
@@ -773,6 +774,9 @@ class HTTPResponse(io.BufferedIOBase):
         redirected URL.
 
         '''
+        warnings.warn("HTTPResponse.geturl() is deprecated"
+                      "use HTTPResponse.url instead",
+                      DeprecationWarning, stacklevel=2)
         return self.url
 
     def getcode(self):
@@ -780,6 +784,9 @@ class HTTPResponse(io.BufferedIOBase):
         or None if the URL is not an HTTP URL.
 
         '''
+        warnings.warn("HTTPResponse.getcode() is deprecated"
+                      "use HTTPResponse.code instead",
+                      DeprecationWarning, stacklevel=2)
         return self.status
 
 

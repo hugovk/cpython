@@ -47,6 +47,7 @@ class TestResponse(unittest.TestCase):
     def test_addinfo(self):
         info = urllib.response.addinfo(self.fp, self.test_headers)
         self.assertEqual(info.info(), self.test_headers)
+        self.assertEqual(info.info, self.test_headers)
         self.assertEqual(info.headers, self.test_headers)
 
     def test_addinfourl(self):
@@ -55,10 +56,12 @@ class TestResponse(unittest.TestCase):
         infourl = urllib.response.addinfourl(self.fp, self.test_headers,
                                              url, code)
         self.assertEqual(infourl.info(), self.test_headers)
-        self.assertEqual(infourl.geturl(), url)
-        self.assertEqual(infourl.getcode(), code)
         self.assertEqual(infourl.headers, self.test_headers)
+        self.assertEqual(infourl.info, self.test_headers)
+        self.assertEqual(infourl.geturl(), url)
         self.assertEqual(infourl.url, url)
+        self.assertEqual(infourl.getcode(), code)
+        self.assertEqual(infourl.code, code)
         self.assertEqual(infourl.status, code)
 
     def tearDown(self):

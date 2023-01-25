@@ -7,6 +7,7 @@ headers and a geturl() method that returns the url.
 """
 
 import tempfile
+import warnings
 
 __all__ = ['addbase', 'addclosehook', 'addinfo', 'addinfourl']
 
@@ -62,6 +63,9 @@ class addinfo(addbase):
         self.headers = headers
 
     def info(self):
+        warnings.warn("addinfo.info() is deprecated"
+                      "use addinfo.headers instead",
+                      DeprecationWarning, stacklevel=2)
         return self.headers
 
 
@@ -78,7 +82,13 @@ class addinfourl(addinfo):
         return self.code
 
     def getcode(self):
+        warnings.warn("addinfourl.getcode() is deprecated"
+                      "use addinfourl.code instead",
+                      DeprecationWarning, stacklevel=2)
         return self.code
 
     def geturl(self):
+        warnings.warn("addinfourl.geturl() is deprecated"
+                      "use addinfourl.url instead",
+                      DeprecationWarning, stacklevel=2)
         return self.url
