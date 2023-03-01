@@ -1,5 +1,6 @@
 name: Read the Docs PR preview
 on:
+  push:
   pull_request_target:
     types:
       - opened
@@ -19,3 +20,4 @@ jobs:
         with:
           project-slug: "hugovk-cpython"
           platform: "netlify"
+          single-version: "true"
