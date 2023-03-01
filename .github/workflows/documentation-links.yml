@@ -3,6 +3,7 @@ on:
   pull_request_target:
     types:
       - opened
+      - reopened
     paths:
     - 'Doc/**'
     - 'Misc/**'
@@ -19,3 +20,4 @@ jobs:
         with:
           project-slug: "hugovk-cpython"
           platform: "netlify"
+          single-version: "true"
