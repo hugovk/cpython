@@ -19,3 +19,4 @@ for filename in CLEAN:
     if filename:
         print(filename)
         Path(filename).touch()
+print(f"Touched {len(CLEAN)} files")
