@@ -77,6 +77,9 @@ jobs:
         # Build docs with the '-n' (nit-picky) option, convert warnings to errors (-W)
         make -C Doc/ PYTHON=../python SPHINXOPTS="-q -n -W --keep-going" html 2>&1
 
+    - name: linkcheck
+      run: make -C Doc linkcheck SPHINXOPTS="--keep-going"
+
   # Run "doctest" on HEAD as new syntax doesn't exist in the latest stable release
   doctest:
     name: 'Doctest'
