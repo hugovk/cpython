@@ -27,4 +27,5 @@
 .. toctree::
    :hidden:
 
+   admonitions.rst
    install/index.rst
