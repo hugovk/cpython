@@ -2,6 +2,7 @@
 About these documents
 =====================
 
+Demo edit. This will be reverted.
 
 These documents are generated from `reStructuredText`_ sources by `Sphinx`_, a
 document processor specifically written for the Python documentation.
