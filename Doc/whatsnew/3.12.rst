@@ -8,6 +8,7 @@
 
 TEMP: example reference with a warning:
 :c:func:`PyFrame_BlockSetup`
+TEMP end
 
 .. Rules for maintenance:
 
