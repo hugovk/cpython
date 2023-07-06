@@ -129,9 +129,6 @@ def main() -> int:
             if filename.strip() and not filename.startswith("#")
         }
 
-    if args.check_and_annotate:
-        check_and_annotate(warnings, args.check_and_annotate)
-
     if args.fail_if_regression:
         exit_code += fail_if_regression(
             warnings, files_with_expected_nits, files_with_nits
@@ -139,6 +136,9 @@ def main() -> int:
 
     if args.fail_if_improved:
         exit_code += fail_if_improved(files_with_expected_nits, files_with_nits)
+
+    if args.check_and_annotate:
+        check_and_annotate(warnings, args.check_and_annotate)
 
     return exit_code
 

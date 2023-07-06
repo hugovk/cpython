@@ -47,9 +47,9 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         python Doc/tools/check-warnings.py \
-          --check-and-annotate '${{ steps.changed_files.outputs.added_modified }}'
-#          --fail-if-regression \
-#          --fail-if-improved
+          --check-and-annotate '${{ steps.changed_files.outputs.added_modified }}' \
+          --fail-if-regression \
+          --fail-if-improved
 
   # This build doesn't use problem matchers or check annotations
   build_doc_oldest_supported_sphinx:
