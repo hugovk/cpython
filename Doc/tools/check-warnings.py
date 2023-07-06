@@ -24,6 +24,8 @@ EXCLUDE_SUBDIRS = {
     "venv",
 }
 
+PATTERN = re.compile(r"(?P<file>[^:]+):(?P<line>\d+): WARNING: (?P<msg>.+)")
+
 
 def check_and_annotate(warnings: list[str], files_to_check: str) -> None:
     """
@@ -39,11 +41,10 @@ def check_and_annotate(warnings: list[str], files_to_check: str) -> None:
     see:
     https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-a-warning-message
     """
-    pattern = re.compile(r"(?P<file>[^:]+):(?P<line>\d+): WARNING: (?P<msg>.+)")
     files_to_check = next(csv.reader([files_to_check]))
     for warning in warnings:
         if any(filename in warning for filename in files_to_check):
-            if match := pattern.fullmatch(warning):
+            if match := PATTERN.fullmatch(warning):
                 print("::warning file={file},line={line}::{msg}".format_map(match))
 
 
@@ -67,7 +68,8 @@ def fail_if_regression(
             print(filename)
             for warning in warnings:
                 if filename in warning:
-                    print(warning)
+                    if match := PATTERN.fullmatch(warning):
+                        print("  {line}: {msg}".format_map(match))
         return -1
     return 0
 
@@ -129,6 +131,9 @@ def main() -> int:
             if filename.strip() and not filename.startswith("#")
         }
 
+    if args.check_and_annotate:
+        check_and_annotate(warnings, args.check_and_annotate)
+
     if args.fail_if_regression:
         exit_code += fail_if_regression(
             warnings, files_with_expected_nits, files_with_nits
@@ -136,9 +141,6 @@ def main() -> int:
 
     if args.fail_if_improved:
         exit_code += fail_if_improved(files_with_expected_nits, files_with_nits)
-
-    if args.check_and_annotate:
-        check_and_annotate(warnings, args.check_and_annotate)
 
     return exit_code
 
