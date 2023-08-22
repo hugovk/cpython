@@ -24,4 +24,4 @@ jobs:
       - uses: pre-commit/action@v3.0.0
 
       - run: |
-          ./python Tools/patchcheck/patchcheck.py --ci true
+          python Tools/patchcheck/patchcheck.py --ci true
