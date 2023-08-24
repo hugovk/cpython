@@ -173,6 +173,10 @@ jobs:
     if: needs.check_source.outputs.run_tests == 'true'
     env:
        IncludeUwp: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        jobs: [0, 1, 2, 3, 4, 6, 8, 10, 12]
     steps:
     - uses: actions/checkout@v3
     - name: Build CPython
@@ -180,7 +184,7 @@ jobs:
     - name: Display build info
       run: .\python.bat -m test.pythoninfo
     - name: Tests
-      run: .\PCbuild\rt.bat -p Win32 -d -q -uall -u-cpu -rwW --slowest --timeout=1200 -j0
+      run: .\PCbuild\rt.bat -p Win32 -d -q -uall -u-cpu -rwW --slowest --timeout=1200 -j${{ matrix.jobs }}
 
   build_win_amd64:
     name: 'Windows (x64)'
@@ -190,6 +194,10 @@ jobs:
     if: needs.check_source.outputs.run_tests == 'true'
     env:
        IncludeUwp: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        jobs: [0, 1, 2, 3, 4, 6, 8, 10, 12]
     steps:
     - uses: actions/checkout@v3
     - name: Register MSVC problem matcher
@@ -199,7 +207,7 @@ jobs:
     - name: Display build info
       run: .\python.bat -m test.pythoninfo
     - name: Tests
-      run: .\PCbuild\rt.bat -p x64 -d -q -uall -u-cpu -rwW --slowest --timeout=1200 -j0
+      run: .\PCbuild\rt.bat -p x64 -d -q -uall -u-cpu -rwW --slowest --timeout=1200 -j${{ matrix.jobs }}
 
   all-required-green:  # This job does nothing and is only used for the branch protection
     name: All required checks pass
