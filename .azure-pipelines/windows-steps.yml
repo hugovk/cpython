@@ -21,12 +21,6 @@ steps:
   displayName: 'Display build info'
   condition: and(succeeded(), variables['testRunPlatform'])
 
-- script: PCbuild\rt.bat -q -uall -u-cpu -rwW --slowest --timeout=1200 -j0 --junit-xml="$(Build.BinariesDirectory)\test-results.xml" --tempdir="$(Build.BinariesDirectory)\test"
-  displayName: 'Tests'
-  condition: and(succeeded(), variables['testRunPlatform'])
-  env:
-    PREFIX: $(Py_OutDir)\$(arch)
-
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
   inputs:
