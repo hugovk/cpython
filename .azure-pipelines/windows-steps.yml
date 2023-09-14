@@ -20,12 +20,3 @@ steps:
 - script: python.bat -m test.pythoninfo
   displayName: 'Display build info'
   condition: and(succeeded(), variables['testRunPlatform'])
-
-- task: PublishTestResults@2
-  displayName: 'Publish Test Results'
-  inputs:
-    testResultsFiles: '$(Build.BinariesDirectory)\test-results.xml'
-    mergeTestResults: true
-    testRunTitle: $(testRunTitle)
-    platform: $(testRunPlatform)
-  condition: and(succeededOrFailed(), variables['testRunPlatform'])
