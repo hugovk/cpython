@@ -56,10 +56,7 @@ jobs:
   dependsOn: Prebuild
   condition: |
     and(
-        and(
-            succeeded(),
-            eq(variables['coverage'], 'true')
-        ),
+        succeeded(),
         eq(dependencies.Prebuild.outputs['tests.run'], 'true')
     )
 
