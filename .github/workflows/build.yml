@@ -213,6 +213,8 @@ jobs:
        IncludeUwp: 'true'
     steps:
     - uses: actions/checkout@v4
+    - name: TEMP simulate failure
+      run: false
     - name: Register MSVC problem matcher
       run: echo "::add-matcher::.github/problem-matchers/msvc.json"
     - name: Build CPython
