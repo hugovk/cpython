@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jobs: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        jobs: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     timeout-minutes: 60
     needs: check_source
     if: needs.check_source.outputs.run_tests == 'true'
@@ -101,4 +101,4 @@ jobs:
     - name: Display build info
       run: make pythoninfo
     - name: Tests
-      run: make buildbottest TESTOPTS="-j4 -uall,-cpu"
+      run: make buildbottest TESTOPTS="-j${{ matrix.jobs }} -uall,-cpu"
