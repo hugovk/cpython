@@ -97,7 +97,7 @@ jobs:
           --prefix=/opt/python-dev \
           --with-openssl="$(brew --prefix openssl@1.1)"
     - name: Build CPython (${{ matrix.jobs }})
-      run: make -j${{ matrix.jobs }}
+      run: make -j0
     - name: Display build info
       run: make pythoninfo
     - name: Tests
