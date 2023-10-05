@@ -299,6 +299,7 @@ def _create_parser():
                             'very slow).' + more_details)
     group.add_argument('-j', '--multiprocess', metavar='PROCESSES',
                        dest='use_mp', type=int,
+                       nargs='?', const=0,
                        help='run PROCESSES processes at once')
     group.add_argument('-T', '--coverage', action='store_true',
                        dest='trace',
