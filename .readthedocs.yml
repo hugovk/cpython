@@ -26,7 +26,7 @@ build:
         exit 183;
       fi
 
-    - make -C Doc venv html
+    - make -C Doc venv html htmlhelp latex text texinfo epub
     - mkdir _readthedocs
     - mv Doc/build/html _readthedocs/html
 
