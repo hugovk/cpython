@@ -30,7 +30,7 @@ Features and minimum versions required to build CPython:
 * Autoconf 2.71 and aclocal 1.16.4 are required to regenerate the
   :file:`configure` script.
 
-.. versionchanged:: 3.13:
+.. versionchanged:: 3.13
    Autoconf 2.71, aclocal 1.16.4 and SQLite 3.15.2 are now required.
 
 .. versionchanged:: 3.11
@@ -981,7 +981,7 @@ Main Makefile targets
 ---------------------
 
 * ``make``: Build Python with the standard library.
-* ``make platform:``: build the ``python`` program, but don't build the
+* ``make platform``: build the ``python`` program, but don't build the
   standard library extension modules.
 * ``make profile-opt``: build Python using Profile Guided Optimization (PGO).
   You can use the configure :option:`--enable-optimizations` option to make
