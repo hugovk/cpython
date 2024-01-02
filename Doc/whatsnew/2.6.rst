@@ -2925,7 +2925,7 @@ Deprecations and Removals
   when they are imported.
 
   The list of deprecated modules is:
-  :mod:`audiodev`,
+  :mod:`!audiodev`,
   :mod:`bgenlocations`,
   :mod:`buildtools`,
   :mod:`bundlebuilder`,
@@ -2938,14 +2938,14 @@ Deprecations and Removals
   :mod:`ihooks`,
   :mod:`imageop`,
   :mod:`imgfile`,
-  :mod:`linuxaudiodev`,
+  :mod:`!linuxaudiodev`,
   :mod:`mhlib`,
   :mod:`mimetools`,
   :mod:`multifile`,
   :mod:`new`,
   :mod:`pure`,
   :mod:`statvfs`,
-  :mod:`sunaudiodev`,
+  :mod:`!sunaudiodev`,
   :mod:`test.testall`, and
   :mod:`toaiff`.
 
