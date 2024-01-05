@@ -1044,7 +1044,7 @@ changes, or look through the Subversion logs for all the details.
   used with :class:`memoryview` instances and other similar buffer objects.
   (Backported from 3.x by Florent Xicluna; :issue:`7703`.)
 
-* Updated module: the :mod:`bsddb` module has been updated from 4.7.2devel9
+* Updated module: the :mod:`!bsddb` module has been updated from 4.7.2devel9
   to version 4.8.4 of
   `the pybsddb package <https://www.jcea.es/programacion/pybsddb.htm>`__.
   The new version features better Python 3.x compatibility, various bug fixes,
@@ -1271,7 +1271,7 @@ changes, or look through the Subversion logs for all the details.
   module takes a class that defines an :meth:`__eq__` method and one of
   :meth:`__lt__`, :meth:`__le__`, :meth:`__gt__`, or :meth:`__ge__`,
   and generates the missing comparison methods.  Since the
-  :meth:`__cmp__` method is being deprecated in Python 3.x,
+  :meth:`!__cmp__` method is being deprecated in Python 3.x,
   this decorator makes it easier to define ordered classes.
   (Added by Raymond Hettinger; :issue:`5479`.)
 
@@ -1310,7 +1310,7 @@ changes, or look through the Subversion logs for all the details.
   supports buffering, resulting in much faster reading of HTTP responses.
   (Contributed by Kristján Valur Jónsson; :issue:`4879`.)
 
-  The :class:`~httplib.HTTPConnection` and :class:`~httplib.HTTPSConnection` classes
+  The :class:`HTTPConnection <http.client.HTTPConnection>` and :class:`HTTPSConnection <http.client.HTTPConnection>` classes
   now support a *source_address* parameter, a ``(host, port)`` 2-tuple
   giving the source address that will be used for the connection.
   (Contributed by Eldon Ziegler; :issue:`3972`.)

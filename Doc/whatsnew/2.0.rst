@@ -562,7 +562,7 @@ the python-dev mailing list for the discussion leading up to this
 implementation, and some useful relevant links.    Note that comparisons can now
 also raise exceptions. In earlier versions of Python, a comparison operation
 such as ``cmp(a,b)`` would always produce an answer, even if a user-defined
-:meth:`__cmp__` method encountered an error, since the resulting exception would
+:meth:`!__cmp__` method encountered an error, since the resulting exception would
 simply be silently swallowed.
 
 .. Starting URL:

@@ -161,7 +161,7 @@ PEP 207: Rich Comparisons
 
 In earlier versions, Python's support for implementing comparisons on user-defined
 classes and extension types was quite simple. Classes could implement a
-:meth:`__cmp__` method that was given two instances of a class, and could only
+:meth:`!__cmp__` method that was given two instances of a class, and could only
 return 0 if they were equal or +1 or -1 if they weren't; the method couldn't
 raise an exception or return anything other than a Boolean value.  Users of
 Numeric Python often found this model too weak and restrictive, because in the
@@ -208,7 +208,7 @@ The built-in ``cmp(A,B)`` function can use the rich comparison machinery,
 and now accepts an optional argument specifying which comparison operation to
 use; this is given as one of the strings ``"<"``, ``"<="``, ``">"``, ``">="``,
 ``"=="``, or ``"!="``.  If called without the optional third argument,
-:func:`cmp` will only return -1, 0, or +1 as in previous versions of Python;
+:func:`!cmp` will only return -1, 0, or +1 as in previous versions of Python;
 otherwise it will call the appropriate method and can return any Python object.
 
 There are also corresponding changes of interest to C programmers; there's a new
