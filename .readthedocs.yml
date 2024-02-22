@@ -7,6 +7,8 @@ version: 2
 sphinx:
    configuration: Doc/conf.py
 
+formats: [epub, pdf]
+
 build:
   os: ubuntu-22.04
   tools:
