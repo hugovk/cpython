@@ -27,7 +27,7 @@ def process_glossary_nodes(app, doctree, fromdocname):
 
     for node in doctree.traverse(glossary):
         for glossary_item in node.traverse(definition_list_item):
-            term = glossary_item[0].astext().lower()
+            term = glossary_item[0].astext()
             definition = glossary_item[1]
 
             rendered = app.builder.render_partial(definition)
