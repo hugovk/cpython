@@ -43,6 +43,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         save: ${{ github.event_name == 'push' }}
+        key: ${{ github.workflow }}-${{ github.job }}
         max-size: "200M"
     - name: Setup directory envs for out-of-tree builds
       run: |

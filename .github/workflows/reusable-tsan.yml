@@ -40,6 +40,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         save: ${{ github.event_name == 'push' }}
+        key: ${{ github.workflow }}-${{ github.job }}
         max-size: "200M"
     - name: Configure CPython
       run: ${{ inputs.options }}
