@@ -124,9 +124,9 @@ And so on, eventually ending with:
    ok
    2 items passed all tests:
       1 tests in __main__
-      8 tests in __main__.factorial
-   9 tests in 2 items.
-   9 passed and 0 failed.
+      6 tests in __main__.factorial
+   7 tests in 2 items.
+   7 passed.
    Test passed.
    $
 
@@ -1933,7 +1933,7 @@ such a test runner::
                                            optionflags=flags)
         else:
             fail, total = doctest.testmod(optionflags=flags)
-            print("{} failures out of {} tests".format(fail, total))
+            print(f"{fail} failures out of {total} tests")
 
 
 .. rubric:: Footnotes
