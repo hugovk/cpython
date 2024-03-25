@@ -438,7 +438,7 @@ attributes (see :ref:`import-mod-attrs` for module attributes):
       ...     yield 1
       ...
       >>> inspect.isasyncgenfunction(agen)
-      True
+      False
 
    .. versionadded:: 3.6
 

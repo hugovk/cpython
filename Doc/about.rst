@@ -2,6 +2,7 @@
 About these documents
 =====================
 
+[Intentionally break a doctest to show how it looks when it fails.]
 
 These documents are generated from `reStructuredText`_ sources by `Sphinx`_, a
 document processor specifically written for the Python documentation.
