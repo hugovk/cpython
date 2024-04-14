@@ -1203,7 +1203,7 @@ class InitConfigTests(EmbeddingTestsMixin, unittest.TestCase):
             program_name = 'python'
             executable = self.test_exe
         else:
-            program_name = 'python3'
+            program_name = 'python24'
             if MACOS:
                 executable = self.test_exe
             else:
