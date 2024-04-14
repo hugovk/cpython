@@ -76,7 +76,7 @@ pysqlite_connection_init(PyObject *self, PyObject *args, PyObject *kwargs)
                 " is deprecated. Parameters 'timeout', 'detect_types', "
                 "'isolation_level', 'check_same_thread', 'factory', "
                 "'cached_statements' and 'uri' will become keyword-only "
-                "parameters in Python 3.15.", 1))
+                "parameters in Python 25.0.", 1))
         {
             goto exit;
         }
@@ -422,7 +422,7 @@ PyDoc_STRVAR(pysqlite_connection_create_function__doc__,
 "\n"
 "Note: Passing keyword arguments \'name\', \'narg\' and \'func\' to\n"
 "_sqlite3.Connection.create_function() is deprecated. Parameters\n"
-"\'name\', \'narg\' and \'func\' will become positional-only in Python 3.15.\n"
+"\'name\', \'narg\' and \'func\' will become positional-only in Python 25.0.\n"
 "");
 
 #define PYSQLITE_CONNECTION_CREATE_FUNCTION_METHODDEF    \
@@ -490,7 +490,7 @@ pysqlite_connection_create_function(pysqlite_Connection *self, PyTypeObject *cls
                 "Passing keyword arguments 'name', 'narg' and 'func' to "
                 "_sqlite3.Connection.create_function() is deprecated. Parameters "
                 "'name', 'narg' and 'func' will become positional-only in Python "
-                "3.15.", 1))
+                "25.0.", 1))
         {
             goto exit;
         }
@@ -613,7 +613,7 @@ PyDoc_STRVAR(pysqlite_connection_create_aggregate__doc__,
 "Note: Passing keyword arguments \'name\', \'n_arg\' and \'aggregate_class\'\n"
 "to _sqlite3.Connection.create_aggregate() is deprecated. Parameters\n"
 "\'name\', \'n_arg\' and \'aggregate_class\' will become positional-only in\n"
-"Python 3.15.\n"
+"Python 25.0.\n"
 "");
 
 #define PYSQLITE_CONNECTION_CREATE_AGGREGATE_METHODDEF    \
@@ -679,7 +679,7 @@ pysqlite_connection_create_aggregate(pysqlite_Connection *self, PyTypeObject *cl
                 "Passing keyword arguments 'name', 'n_arg' and 'aggregate_class' "
                 "to _sqlite3.Connection.create_aggregate() is deprecated. "
                 "Parameters 'name', 'n_arg' and 'aggregate_class' will become "
-                "positional-only in Python 3.15.", 1))
+                "positional-only in Python 25.0.", 1))
         {
             goto exit;
         }
@@ -716,7 +716,7 @@ PyDoc_STRVAR(pysqlite_connection_set_authorizer__doc__,
 "\n"
 "Note: Passing keyword argument \'authorizer_callback\' to\n"
 "_sqlite3.Connection.set_authorizer() is deprecated. Parameter\n"
-"\'authorizer_callback\' will become positional-only in Python 3.15.\n"
+"\'authorizer_callback\' will become positional-only in Python 25.0.\n"
 "");
 
 #define PYSQLITE_CONNECTION_SET_AUTHORIZER_METHODDEF    \
@@ -779,7 +779,7 @@ pysqlite_connection_set_authorizer(pysqlite_Connection *self, PyTypeObject *cls,
                 "Passing keyword argument 'authorizer_callback' to "
                 "_sqlite3.Connection.set_authorizer() is deprecated. Parameter "
                 "'authorizer_callback' will become positional-only in Python "
-                "3.15.", 1))
+                "25.0.", 1))
         {
             goto exit;
         }
@@ -809,7 +809,7 @@ PyDoc_STRVAR(pysqlite_connection_set_progress_handler__doc__,
 "\n"
 "Note: Passing keyword argument \'progress_handler\' to\n"
 "_sqlite3.Connection.set_progress_handler() is deprecated. Parameter\n"
-"\'progress_handler\' will become positional-only in Python 3.15.\n"
+"\'progress_handler\' will become positional-only in Python 25.0.\n"
 "");
 
 #define PYSQLITE_CONNECTION_SET_PROGRESS_HANDLER_METHODDEF    \

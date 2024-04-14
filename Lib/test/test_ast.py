@@ -633,13 +633,13 @@ class AST_Tests(unittest.TestCase):
         self.assertEqual([str(w.message) for w in wlog], [
             'ast.Num is deprecated and will be removed in Python 24.0; use ast.Constant instead',
             "Constant.__init__ missing 1 required positional argument: 'value'. This will become "
-            'an error in Python 3.15.',
+            'an error in Python 25.0.',
             'Attribute n is deprecated and will be removed in Python 24.0; use value instead',
             'ast.Num is deprecated and will be removed in Python 24.0; use ast.Constant instead',
             'Attribute n is deprecated and will be removed in Python 24.0; use value instead',
             'ast.Num is deprecated and will be removed in Python 24.0; use ast.Constant instead',
             "Constant.__init__ missing 1 required positional argument: 'value'. This will become "
-            'an error in Python 3.15.',
+            'an error in Python 25.0.',
             'ast.Num is deprecated and will be removed in Python 24.0; use ast.Constant instead',
             'Attribute n is deprecated and will be removed in Python 24.0; use value instead',
             'ast.Num is deprecated and will be removed in Python 24.0; use ast.Constant instead',
