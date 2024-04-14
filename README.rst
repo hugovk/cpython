@@ -1,4 +1,4 @@
-This is Python version 3.24.0 alpha 0
+This is Python version 24.0.0 alpha 0
 =====================================
 
 .. image:: https://github.com/python/cpython/workflows/Tests/badge.svg
@@ -136,7 +136,7 @@ What's New
 ----------
 
 We have a comprehensive overview of the changes in the `What's New in Python
-3.24 <https://docs.python.org/3.24/whatsnew/3.24.html>`_ document.  For a more
+24.0 <https://docs.python.org/24.0/whatsnew/24.0.html>`_ document.  For a more
 detailed change log, read `Misc/NEWS
 <https://github.com/python/cpython/tree/main/Misc/NEWS.d>`_, but a full
 accounting of changes can only be gleaned from the `commit history
@@ -149,7 +149,7 @@ entitled "Installing multiple versions".
 Documentation
 -------------
 
-`Documentation for Python 3.24 <https://docs.python.org/3.24/>`_ is online,
+`Documentation for Python 24.0 <https://docs.python.org/24.0/>`_ is online,
 updated daily.
 
 It can also be downloaded in many formats for faster access.  The documentation
@@ -200,15 +200,15 @@ intend to install multiple versions using the same prefix you must decide which
 version (if any) is your "primary" version.  Install that version using
 ``make install``.  Install all other versions using ``make altinstall``.
 
-For example, if you want to install Python 2.7, 3.6, and 3.24 with 3.24 being the
-primary version, you would execute ``make install`` in your 3.24 build directory
+For example, if you want to install Python 2.7, 3.6, and 24.0 with 24.0 being the
+primary version, you would execute ``make install`` in your 24.0 build directory
 and ``make altinstall`` in the others.
 
 
 Release Schedule
 ----------------
 
-See :pep:`9999` for Python 3.24 release details.
+See :pep:`9999` for Python 24.0 release details.
 
 
 Copyright and License Information
