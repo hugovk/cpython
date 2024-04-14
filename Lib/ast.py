@@ -517,14 +517,14 @@ if not hasattr(Constant, 'n'):
         """Deprecated. Use value instead."""
         import warnings
         warnings._deprecated(
-            "Attribute n", message=_DEPRECATED_VALUE_ALIAS_MESSAGE, remove=(3, 14)
+            "Attribute n", message=_DEPRECATED_VALUE_ALIAS_MESSAGE, remove=(3, 24)
         )
         return self.value
 
     def _n_setter(self, value):
         import warnings
         warnings._deprecated(
-            "Attribute n", message=_DEPRECATED_VALUE_ALIAS_MESSAGE, remove=(3, 14)
+            "Attribute n", message=_DEPRECATED_VALUE_ALIAS_MESSAGE, remove=(3, 24)
         )
         self.value = value
 
@@ -532,14 +532,14 @@ if not hasattr(Constant, 'n'):
         """Deprecated. Use value instead."""
         import warnings
         warnings._deprecated(
-            "Attribute s", message=_DEPRECATED_VALUE_ALIAS_MESSAGE, remove=(3, 14)
+            "Attribute s", message=_DEPRECATED_VALUE_ALIAS_MESSAGE, remove=(3, 24)
         )
         return self.value
 
     def _s_setter(self, value):
         import warnings
         warnings._deprecated(
-            "Attribute s", message=_DEPRECATED_VALUE_ALIAS_MESSAGE, remove=(3, 14)
+            "Attribute s", message=_DEPRECATED_VALUE_ALIAS_MESSAGE, remove=(3, 24)
         )
         self.value = value
 
@@ -557,7 +557,7 @@ class _ABC(type):
             warnings._deprecated(
                 f"ast.{cls.__qualname__}",
                 message=_DEPRECATED_CLASS_MESSAGE,
-                remove=(3, 14)
+                remove=(3, 24)
             )
         if not isinstance(inst, Constant):
             return False
@@ -584,7 +584,7 @@ def _new(cls, *args, **kwargs):
     if cls in _const_types:
         import warnings
         warnings._deprecated(
-            f"ast.{cls.__qualname__}", message=_DEPRECATED_CLASS_MESSAGE, remove=(3, 14)
+            f"ast.{cls.__qualname__}", message=_DEPRECATED_CLASS_MESSAGE, remove=(3, 24)
         )
         return Constant(*args, **kwargs)
     return Constant.__new__(cls, *args, **kwargs)
@@ -611,7 +611,7 @@ class Ellipsis(Constant, metaclass=_ABC):
         if cls is _ast_Ellipsis:
             import warnings
             warnings._deprecated(
-                "ast.Ellipsis", message=_DEPRECATED_CLASS_MESSAGE, remove=(3, 14)
+                "ast.Ellipsis", message=_DEPRECATED_CLASS_MESSAGE, remove=(3, 24)
             )
             return Constant(..., *args, **kwargs)
         return Constant.__new__(cls, *args, **kwargs)
@@ -1800,7 +1800,7 @@ def __getattr__(name):
         globals()[name] = value = _deprecated_globals[name]
         import warnings
         warnings._deprecated(
-            f"ast.{name}", message=_DEPRECATED_CLASS_MESSAGE, remove=(3, 14)
+            f"ast.{name}", message=_DEPRECATED_CLASS_MESSAGE, remove=(3, 24)
         )
         return value
     raise AttributeError(f"module 'ast' has no attribute '{name}'")

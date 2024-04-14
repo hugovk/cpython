@@ -908,7 +908,7 @@ class BooleanOptionalAction(Action):
                     field_name,
                     "{name!r} is deprecated as of Python 3.12 and will be "
                     "removed in Python {remove}.",
-                    remove=(3, 14))
+                    remove=(3, 24))
 
         if type is _deprecated_default:
             type = None

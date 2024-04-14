@@ -48,7 +48,7 @@ class ModuleTests(unittest.TestCase):
                          "apilevel is %s, should be 2.0" % sqlite.apilevel)
 
     def test_deprecated_version(self):
-        msg = "deprecated and will be removed in Python 3.14"
+        msg = "deprecated and will be removed in Python 3.24"
         for attr in "version", "version_info":
             with self.subTest(attr=attr):
                 with self.assertWarnsRegex(DeprecationWarning, msg) as cm:
