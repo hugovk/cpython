@@ -17,9 +17,9 @@ pysqlite_connection_init_impl(pysqlite_Connection *self, PyObject *database,
                               enum autocommit_mode autocommit);
 
 // Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+#if PY_VERSION_HEX >= 0x031900C0
 #  error "Update the clinic input of '_sqlite3.Connection.__init__'."
-#elif PY_VERSION_HEX >= 0x030f00A0
+#elif PY_VERSION_HEX >= 0x031900A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.__init__'.")
 #  else
@@ -435,9 +435,9 @@ pysqlite_connection_create_function_impl(pysqlite_Connection *self,
                                          int deterministic);
 
 // Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+#if PY_VERSION_HEX >= 0x031900C0
 #  error "Update the clinic input of '_sqlite3.Connection.create_function'."
-#elif PY_VERSION_HEX >= 0x030f00A0
+#elif PY_VERSION_HEX >= 0x031900A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.create_function'.")
 #  else
@@ -626,9 +626,9 @@ pysqlite_connection_create_aggregate_impl(pysqlite_Connection *self,
                                           PyObject *aggregate_class);
 
 // Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+#if PY_VERSION_HEX >= 0x031900C0
 #  error "Update the clinic input of '_sqlite3.Connection.create_aggregate'."
-#elif PY_VERSION_HEX >= 0x030f00A0
+#elif PY_VERSION_HEX >= 0x031900A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.create_aggregate'.")
 #  else
@@ -728,9 +728,9 @@ pysqlite_connection_set_authorizer_impl(pysqlite_Connection *self,
                                         PyObject *callable);
 
 // Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+#if PY_VERSION_HEX >= 0x031900C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_authorizer'."
-#elif PY_VERSION_HEX >= 0x030f00A0
+#elif PY_VERSION_HEX >= 0x031900A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.set_authorizer'.")
 #  else
@@ -821,9 +821,9 @@ pysqlite_connection_set_progress_handler_impl(pysqlite_Connection *self,
                                               PyObject *callable, int n);
 
 // Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+#if PY_VERSION_HEX >= 0x031900C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_progress_handler'."
-#elif PY_VERSION_HEX >= 0x030f00A0
+#elif PY_VERSION_HEX >= 0x031900A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.set_progress_handler'.")
 #  else
@@ -909,9 +909,9 @@ pysqlite_connection_set_trace_callback_impl(pysqlite_Connection *self,
                                             PyObject *callable);
 
 // Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+#if PY_VERSION_HEX >= 0x031900C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_trace_callback'."
-#elif PY_VERSION_HEX >= 0x030f00A0
+#elif PY_VERSION_HEX >= 0x031900A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.set_trace_callback'.")
 #  else
