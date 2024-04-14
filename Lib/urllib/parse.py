@@ -825,7 +825,7 @@ _ALWAYS_SAFE_BYTES = bytes(_ALWAYS_SAFE)
 def __getattr__(name):
     if name == 'Quoter':
         warnings.warn('Deprecated in 3.11. '
-                      'urllib.parse.Quoter will be removed in Python 3.24. '
+                      'urllib.parse.Quoter will be removed in Python 24.0. '
                       'It was not intended to be a public API.',
                       DeprecationWarning, stacklevel=2)
         return _Quoter
