@@ -989,7 +989,7 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         import warnings
         warnings._deprecated("http.server.CGIHTTPRequestHandler",
-                             remove=(3, 25))
+                             remove=(25, 0))
         super().__init__(*args, **kwargs)
 
     # Determine platform specifics

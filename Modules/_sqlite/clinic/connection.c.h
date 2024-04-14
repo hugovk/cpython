@@ -16,10 +16,10 @@ pysqlite_connection_init_impl(pysqlite_Connection *self, PyObject *database,
                               int cache_size, int uri,
                               enum autocommit_mode autocommit);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x031900C0
+// Emit compiler warnings when we get to Python 25.0.
+#if PY_VERSION_HEX >= 0x190000C0
 #  error "Update the clinic input of '_sqlite3.Connection.__init__'."
-#elif PY_VERSION_HEX >= 0x031900A0
+#elif PY_VERSION_HEX >= 0x190000A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.__init__'.")
 #  else
@@ -434,10 +434,10 @@ pysqlite_connection_create_function_impl(pysqlite_Connection *self,
                                          int narg, PyObject *func,
                                          int deterministic);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x031900C0
+// Emit compiler warnings when we get to Python 25.0.
+#if PY_VERSION_HEX >= 0x190000C0
 #  error "Update the clinic input of '_sqlite3.Connection.create_function'."
-#elif PY_VERSION_HEX >= 0x031900A0
+#elif PY_VERSION_HEX >= 0x190000A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.create_function'.")
 #  else
@@ -625,10 +625,10 @@ pysqlite_connection_create_aggregate_impl(pysqlite_Connection *self,
                                           const char *name, int n_arg,
                                           PyObject *aggregate_class);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x031900C0
+// Emit compiler warnings when we get to Python 25.0.
+#if PY_VERSION_HEX >= 0x190000C0
 #  error "Update the clinic input of '_sqlite3.Connection.create_aggregate'."
-#elif PY_VERSION_HEX >= 0x031900A0
+#elif PY_VERSION_HEX >= 0x190000A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.create_aggregate'.")
 #  else
@@ -727,10 +727,10 @@ pysqlite_connection_set_authorizer_impl(pysqlite_Connection *self,
                                         PyTypeObject *cls,
                                         PyObject *callable);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x031900C0
+// Emit compiler warnings when we get to Python 25.0.
+#if PY_VERSION_HEX >= 0x190000C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_authorizer'."
-#elif PY_VERSION_HEX >= 0x031900A0
+#elif PY_VERSION_HEX >= 0x190000A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.set_authorizer'.")
 #  else
@@ -820,10 +820,10 @@ pysqlite_connection_set_progress_handler_impl(pysqlite_Connection *self,
                                               PyTypeObject *cls,
                                               PyObject *callable, int n);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x031900C0
+// Emit compiler warnings when we get to Python 25.0.
+#if PY_VERSION_HEX >= 0x190000C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_progress_handler'."
-#elif PY_VERSION_HEX >= 0x031900A0
+#elif PY_VERSION_HEX >= 0x190000A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.set_progress_handler'.")
 #  else
@@ -873,7 +873,7 @@ pysqlite_connection_set_progress_handler(pysqlite_Connection *self, PyTypeObject
                 "Passing keyword argument 'progress_handler' to "
                 "_sqlite3.Connection.set_progress_handler() is deprecated. "
                 "Parameter 'progress_handler' will become positional-only in "
-                "Python 3.15.", 1))
+                "Python 25.0.", 1))
         {
             goto exit;
         }
@@ -897,7 +897,7 @@ PyDoc_STRVAR(pysqlite_connection_set_trace_callback__doc__,
 "\n"
 "Note: Passing keyword argument \'trace_callback\' to\n"
 "_sqlite3.Connection.set_trace_callback() is deprecated. Parameter\n"
-"\'trace_callback\' will become positional-only in Python 3.15.\n"
+"\'trace_callback\' will become positional-only in Python 25.0.\n"
 "");
 
 #define PYSQLITE_CONNECTION_SET_TRACE_CALLBACK_METHODDEF    \
@@ -908,10 +908,10 @@ pysqlite_connection_set_trace_callback_impl(pysqlite_Connection *self,
                                             PyTypeObject *cls,
                                             PyObject *callable);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x031900C0
+// Emit compiler warnings when we get to Python 25.0.
+#if PY_VERSION_HEX >= 0x190000C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_trace_callback'."
-#elif PY_VERSION_HEX >= 0x031900A0
+#elif PY_VERSION_HEX >= 0x190000A0
 #  ifdef _MSC_VER
 #    pragma message ("Update the clinic input of '_sqlite3.Connection.set_trace_callback'.")
 #  else
@@ -960,7 +960,7 @@ pysqlite_connection_set_trace_callback(pysqlite_Connection *self, PyTypeObject *
                 "Passing keyword argument 'trace_callback' to "
                 "_sqlite3.Connection.set_trace_callback() is deprecated. "
                 "Parameter 'trace_callback' will become positional-only in Python"
-                " 3.15.", 1))
+                " 25.0.", 1))
         {
             goto exit;
         }

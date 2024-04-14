@@ -128,12 +128,12 @@ _deprecated_function_message = (
 
 def glob0(dirname, pattern):
     import warnings
-    warnings._deprecated("glob.glob0", _deprecated_function_message, remove=(3, 25))
+    warnings._deprecated("glob.glob0", _deprecated_function_message, remove=(25, 0))
     return _glob0(dirname, pattern, None, False)
 
 def glob1(dirname, pattern):
     import warnings
-    warnings._deprecated("glob.glob1", _deprecated_function_message, remove=(3, 25))
+    warnings._deprecated("glob.glob1", _deprecated_function_message, remove=(25, 0))
     return _glob1(dirname, pattern, None, False)
 
 # This helper function recursively yields relative pathnames inside a literal
