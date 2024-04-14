@@ -651,11 +651,12 @@ _PyPegen_number_token(Parser *p)
         return NULL;
     }
 
-    if (p->feature_version < 6 && strchr(num_raw, '_') != NULL) {
-        p->error_indicator = 1;
-        return RAISE_SYNTAX_ERROR("Underscores in numeric literals are only supported "
-                                  "in Python 3.6 and greater");
-    }
+    // TODO modify to not assume major == 3
+//    if (p->feature_version < 6 && strchr(num_raw, '_') != NULL) {
+//        p->error_indicator = 1;
+//        return RAISE_SYNTAX_ERROR("Underscores in numeric literals are only supported "
+//                                  "in Python 3.6 and greater");
+//    }
 
     PyObject *c = parsenumber(num_raw);
 

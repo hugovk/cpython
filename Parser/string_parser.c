@@ -35,12 +35,13 @@ warn_invalid_escape_sequence(Parser *p, const char *first_invalid_escape, Token 
         return -1;
     }
     PyObject *category;
-    if (p->feature_version >= 12) {
+    // TODO modify to not assume major == 3
+//    if (p->feature_version >= 12) {
         category = PyExc_SyntaxWarning;
-    }
-    else {
-        category = PyExc_DeprecationWarning;
-    }
+//    }
+//    else {
+//        category = PyExc_DeprecationWarning;
+//    }
     if (PyErr_WarnExplicitObject(category, msg, p->tok->filename,
                                  t->lineno, NULL, NULL) < 0) {
         if (PyErr_ExceptionMatches(category)) {

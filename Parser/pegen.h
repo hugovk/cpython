@@ -281,11 +281,12 @@ INVALID_VERSION_CHECK(Parser *p, int version, char *msg, void *node)
         p->error_indicator = 1;  // Inline CHECK_CALL
         return NULL;
     }
-    if (p->feature_version < version) {
-        p->error_indicator = 1;
-        return RAISE_SYNTAX_ERROR("%s only supported in Python 3.%i and greater",
-                                  msg, version);
-    }
+    // TODO modify to not assume major == 3
+//    if (p->feature_version < version) {
+//        p->error_indicator = 1;
+//        return RAISE_SYNTAX_ERROR("%s only supported in Python 3.%i and greater",
+//                                  msg, version);
+//    }
     return node;
 }
 

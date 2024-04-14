@@ -47,7 +47,7 @@ def parse(source, filename='<unknown>', mode='exec', *,
         feature_version = -1
     elif isinstance(feature_version, tuple):
         major, minor = feature_version  # Should be a 2-tuple.
-        if major != 3:
+        if major < 3:
             raise ValueError(f"Unsupported major version: {major}")
         feature_version = minor
     # Else it should be an int giving the minor version for 3.x.
