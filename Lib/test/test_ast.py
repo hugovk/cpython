@@ -647,7 +647,7 @@ class AST_Tests(unittest.TestCase):
             'ast.Num is deprecated and will be removed in Python 24.0; use ast.Constant instead',
             "Constant.__init__ got an unexpected keyword argument 'foo'. Support for "
             'arbitrary keyword arguments is deprecated and will be removed in Python '
-            '3.15.',
+            '25.0.',
             'ast.Num is deprecated and will be removed in Python 24.0; use ast.Constant instead',
             'Attribute n is deprecated and will be removed in Python 24.0; use value instead',
             'ast.Num is deprecated and will be removed in Python 24.0; use ast.Constant instead',
