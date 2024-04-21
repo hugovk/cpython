@@ -21,3 +21,12 @@ jobs:
           mode: exactly
           count: 0
           labels: "DO-NOT-MERGE, awaiting changes, awaiting change review"
+
+      - name: "Code changes require tests or skip label"
+        uses: brettcannon/check-for-changed-files@v1
+        with:
+          prereq-pattern: Lib/**/*
+          file-pattern: |
+            Lib/test/**/*
+          skip-label: "skip tests"
+          failure-message: 'Code was edited without also editing a ${file-pattern} file; see https://devguide.python.org/getting-started/pull-request-lifecycle/#making-good-prs (or add the ${skip-label} label to pass this check)'
