@@ -1435,6 +1435,10 @@ class CommandLineTest(unittest.TestCase):
             ("5", 4),
             ("--float 2.5", 2.266632777287572),
             ("2.5", 2.266632777287572),
+            ("--xkcd", 4),
+            ("a b c --xkcd", 4),
+            ("6 --xkcd", 4),
+            ("2.5 --xkcd", 4),
         ]:
             random.seed(0)
             self.assertEqual(random.main(shlex.split(command)), expected)

@@ -1017,6 +1017,9 @@ def parse_args(arg_list: list[str] | None):
     group.add_argument(
         "--test", type=int, const=10_000, nargs="?",
         help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--xkcd", action="store_true",
+        help=argparse.SUPPRESS)
     parser.add_argument("input", nargs="*",
                         help="""\
 if no options given, output depends on the input
@@ -1031,6 +1034,9 @@ def main(arg_list: list[str] | None = None) -> int | str:
     args, help_text = parse_args(arg_list)
 
     # Explicit arguments
+    if args.xkcd:
+        return 4  # chosen by fair dice roll. guaranteed to be random.
+
     if args.choice:
         return choice(args.choice)
 
