@@ -224,7 +224,7 @@ class ProgressTests(MemoryDatabaseMixin, unittest.TestCase):
             r"Passing keyword argument 'progress_handler' to "
             r"_sqlite3.Connection.set_progress_handler\(\) is deprecated. "
             r"Parameter 'progress_handler' will become positional-only in "
-            r"Python 3.15."
+            r"Python 3.26."
         )
 
         with self.assertWarnsRegex(DeprecationWarning, regex) as cm:
@@ -357,7 +357,7 @@ class TraceCallbackTests(MemoryDatabaseMixin, unittest.TestCase):
             r"Passing keyword argument 'trace_callback' to "
             r"_sqlite3.Connection.set_trace_callback\(\) is deprecated. "
             r"Parameter 'trace_callback' will become positional-only in "
-            r"Python 3.15."
+            r"Python 3.26."
         )
 
         with self.assertWarnsRegex(DeprecationWarning, regex) as cm:

@@ -52,7 +52,7 @@ Python:
       whether you selected a "narrow" or "wide" Unicode version of Python at
       build time.
 
-   .. deprecated-removed:: 3.13 3.15
+   .. deprecated-removed:: 3.13 3.26
 
 
 .. c:type:: PyASCIIObject

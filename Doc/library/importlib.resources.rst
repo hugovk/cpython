@@ -163,7 +163,7 @@ For all the following functions:
 
     For backward compatibility reasons, the *encoding* argument must be given
     explicitly if there are multiple *path_names*.
-    This limitation is scheduled to be removed in Python 3.15.
+    This limitation is scheduled to be removed in Python 3.26.
 
     This function returns a :class:`~typing.TextIO` object,
     that is, a text stream open for reading.
@@ -203,7 +203,7 @@ For all the following functions:
 
     For backward compatibility reasons, the *encoding* argument must be given
     explicitly if there are multiple *path_names*.
-    This limitation is scheduled to be removed in Python 3.15.
+    This limitation is scheduled to be removed in Python 3.26.
 
     This function is roughly equivalent to::
 

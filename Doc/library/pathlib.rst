@@ -546,7 +546,7 @@ Pure paths provide the following methods and properties:
       Windows path names that contain a colon, or end with a dot or a space,
       are considered reserved. UNC paths may be reserved.
 
-   .. deprecated-removed:: 3.13 3.15
+   .. deprecated-removed:: 3.13 3.26
       This method is deprecated; use :func:`os.path.isreserved` to detect
       reserved paths on Windows.
 

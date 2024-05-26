@@ -1446,11 +1446,11 @@ and will be removed in Python 3.14.
 
 * The :attr:`~codeobject.co_lnotab` attribute of code objects.
 
-Pending Removal in Python 3.15
+Pending Removal in Python 3.26
 ------------------------------
 
 The following APIs have been deprecated
-and will be removed in Python 3.15.
+and will be removed in Python 3.26.
 
 APIs:
 
@@ -2384,7 +2384,7 @@ Pending Removal in Python 3.14
 * Creating :c:data:`immutable types <Py_TPFLAGS_IMMUTABLETYPE>` with mutable
   bases (:gh:`95388`).
 
-Pending Removal in Python 3.15
+Pending Removal in Python 3.26
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * :c:func:`PyImport_ImportModuleNoBlock`: use :c:func:`PyImport_ImportModule`

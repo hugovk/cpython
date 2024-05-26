@@ -1085,7 +1085,7 @@ Other constructors, all class methods:
       :exc:`DeprecationWarning` is now emitted.  This is to avoid a quadrennial
       leap year bug in code seeking to parse only a month and day as the
       default year used in absence of one in the format is not a leap year.
-      Such *format* values may raise an error as of Python 3.15.  The
+      Such *format* values may raise an error as of Python 3.26.  The
       workaround is to always include a year in your *format*.  If parsing
       *date_string* values that do not have a year, explicitly add a year that
       is a leap year before parsing:
@@ -2688,10 +2688,10 @@ Notes:
       >>> datetime.strptime(f"{month_day};1984", "%m/%d;%Y")  # No leap year bug.
       datetime.datetime(1984, 2, 29, 0, 0)
 
-   .. deprecated-removed:: 3.13 3.15
+   .. deprecated-removed:: 3.13 3.26
       :meth:`~.datetime.strptime` calls using a format string containing
       a day of month without a year now emit a
-      :exc:`DeprecationWarning`. In 3.15 or later we may change this into
+      :exc:`DeprecationWarning`. In 3.26 or later we may change this into
       an error or change the default year to a leap year. See :gh:`70647`.
 
 .. rubric:: Footnotes

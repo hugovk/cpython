@@ -566,7 +566,7 @@ class ConnectionTests(unittest.TestCase):
             " is deprecated. Parameters 'timeout', 'detect_types', "
             "'isolation_level', 'check_same_thread', 'factory', "
             "'cached_statements' and 'uri' will become keyword-only "
-            "parameters in Python 3.15."
+            "parameters in Python 3.26."
         )
         with self.assertWarnsRegex(DeprecationWarning, regex) as cm:
             cx = sqlite.connect(":memory:", 1.0)

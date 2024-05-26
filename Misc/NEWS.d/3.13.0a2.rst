@@ -814,7 +814,7 @@ BytesIO.
 .. nonce: _W11Ab
 .. section: Library
 
-Postpone removal version for locale.getdefaultlocale() to Python 3.15.
+Postpone removal version for locale.getdefaultlocale() to Python 3.26.
 
 ..
 

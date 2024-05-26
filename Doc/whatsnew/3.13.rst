@@ -561,9 +561,9 @@ ast
   constructed AST node instance.)
 
   If other arguments are omitted, a :exc:`DeprecationWarning` is emitted.
-  This will cause an exception in Python 3.15. Similarly, passing a keyword
+  This will cause an exception in Python 3.26. Similarly, passing a keyword
   argument that does not map to a field on the AST node is now deprecated,
-  and will raise an exception in Python 3.15.
+  and will raise an exception in Python 3.26.
 
   These changes do not apply to user-defined subclasses of :class:`ast.AST`,
   unless the class opts in to the new behavior by setting the attribute
@@ -1485,11 +1485,11 @@ New Deprecations
   (Contributed by Barney Gale in :gh:`117337`.)
 
 * :mod:`http.server`: :class:`http.server.CGIHTTPRequestHandler` now emits a
-  :exc:`DeprecationWarning` as it will be removed in 3.15.  Process-based CGI
+  :exc:`DeprecationWarning` as it will be removed in 3.26.  Process-based CGI
   HTTP servers have been out of favor for a very long time.  This code was
   outdated, unmaintained, and rarely used.  It has a high potential for both
   security and functionality bugs.  This includes removal of the ``--cgi``
-  flag to the ``python -m http.server`` command line in 3.15.
+  flag to the ``python -m http.server`` command line in 3.26.
 
 * :mod:`mimetypes`: Passing file path instead of URL in :func:`~mimetypes.guess_type` is
   :term:`soft deprecated`. Use :func:`~mimetypes.guess_file_type` instead.
@@ -1503,11 +1503,11 @@ New Deprecations
 
 * :mod:`pathlib`:
   :meth:`pathlib.PurePath.is_reserved` is deprecated and scheduled for
-  removal in Python 3.15. Use :func:`os.path.isreserved` to detect reserved
+  removal in Python 3.26. Use :func:`os.path.isreserved` to detect reserved
   paths on Windows.
 
 * :mod:`platform`:
-  :func:`~platform.java_ver` is deprecated and will be removed in 3.15.
+  :func:`~platform.java_ver` is deprecated and will be removed in 3.26.
   It was largely untested, had a confusing API,
   and was only useful for Jython support.
   (Contributed by Nikita Sobolev in :gh:`116349`.)
@@ -1517,7 +1517,7 @@ New Deprecations
 
 * :mod:`sqlite3`: Passing more than one positional argument to
   :func:`sqlite3.connect` and the :class:`sqlite3.Connection` constructor is
-  deprecated. The remaining parameters will become keyword-only in Python 3.15.
+  deprecated. The remaining parameters will become keyword-only in Python 3.26.
 
   Deprecate passing name, number of arguments, and the callable as keyword
   arguments for the following :class:`sqlite3.Connection` APIs:
@@ -1532,7 +1532,7 @@ New Deprecations
   * :meth:`~sqlite3.Connection.set_progress_handler`
   * :meth:`~sqlite3.Connection.set_trace_callback`
 
-  The affected parameters will become positional-only in Python 3.15.
+  The affected parameters will become positional-only in Python 3.26.
 
   (Contributed by Erlend E. Aasland in :gh:`107948` and :gh:`108278`.)
 
@@ -1551,7 +1551,7 @@ New Deprecations
 
   * Creating a :class:`typing.NamedTuple` class using keyword arguments to denote
     the fields (``NT = NamedTuple("NT", x=int, y=int)``) is deprecated, and will
-    be disallowed in Python 3.15. Use the class-based syntax or the functional
+    be disallowed in Python 3.26. Use the class-based syntax or the functional
     syntax instead. (Contributed by Alex Waygood in :gh:`105566`.)
 
   * When using the functional syntax to create a :class:`typing.NamedTuple`
@@ -1559,14 +1559,14 @@ New Deprecations
     'fields' parameter (``NT = NamedTuple("NT")`` or ``TD = TypedDict("TD")``) is
     deprecated. Passing ``None`` to the 'fields' parameter
     (``NT = NamedTuple("NT", None)`` or ``TD = TypedDict("TD", None)``) is also
-    deprecated. Both will be disallowed in Python 3.15. To create a NamedTuple
+    deprecated. Both will be disallowed in Python 3.26. To create a NamedTuple
     class with 0 fields, use ``class NT(NamedTuple): pass`` or
     ``NT = NamedTuple("NT", [])``. To create a TypedDict class with 0 fields, use
     ``class TD(TypedDict): pass`` or ``TD = TypedDict("TD", {})``.
     (Contributed by Alex Waygood in :gh:`105566` and :gh:`105570`.)
 
   * :func:`typing.no_type_check_decorator` is deprecated, and scheduled for
-    removal in Python 3.15. After eight years in the :mod:`typing` module, it
+    removal in Python 3.26. After eight years in the :mod:`typing` module, it
     has yet to be supported by any major type checkers.
     (Contributed by Alex Waygood in :gh:`106309`.)
 
@@ -1585,7 +1585,7 @@ New Deprecations
 
 * :mod:`wave`: Deprecate the ``getmark()``, ``setmark()`` and ``getmarkers()``
   methods of the :class:`wave.Wave_read` and :class:`wave.Wave_write` classes.
-  They will be removed in Python 3.15.
+  They will be removed in Python 3.26.
   (Contributed by Victor Stinner in :gh:`105096`.)
 
 .. Add deprecations above alphabetically, not here at the end.
@@ -1698,7 +1698,7 @@ Pending Removal in Python 3.14
   exception in Python 3.14.
 
 
-Pending Removal in Python 3.15
+Pending Removal in Python 3.26
 ------------------------------
 
 * :class:`http.server.CGIHTTPRequestHandler` will be removed along with its
@@ -1708,18 +1708,18 @@ Pending Removal in Python 3.15
 
 * :class:`locale`: :func:`locale.getdefaultlocale` was deprecated in Python 3.11
   and originally planned for removal in Python 3.13 (:gh:`90817`),
-  but removal has been postponed to Python 3.15.
+  but removal has been postponed to Python 3.26.
   Use :func:`locale.setlocale()`, :func:`locale.getencoding()` and
   :func:`locale.getlocale()` instead.
   (Contributed by Hugo van Kemenade in :gh:`111187`.)
 
 * :mod:`pathlib`:
   :meth:`pathlib.PurePath.is_reserved` is deprecated and scheduled for
-  removal in Python 3.15. Use :func:`os.path.isreserved` to detect reserved
+  removal in Python 3.26. Use :func:`os.path.isreserved` to detect reserved
   paths on Windows.
 
 * :mod:`platform`:
-  :func:`~platform.java_ver` is deprecated and will be removed in 3.15.
+  :func:`~platform.java_ver` is deprecated and will be removed in 3.26.
   It was largely untested, had a confusing API,
   and was only useful for Jython support.
   (Contributed by Nikita Sobolev in :gh:`116349`.)
@@ -1728,32 +1728,32 @@ Pending Removal in Python 3.15
   Passing any arguments to :func:`threading.RLock` is now deprecated.
   C version allows any numbers of args and kwargs,
   but they are just ignored. Python version does not allow any arguments.
-  All arguments will be removed from :func:`threading.RLock` in Python 3.15.
+  All arguments will be removed from :func:`threading.RLock` in Python 3.26.
   (Contributed by Nikita Sobolev in :gh:`102029`.)
 
 * :class:`typing.NamedTuple`:
 
   * The undocumented keyword argument syntax for creating :class:`!NamedTuple` classes
     (``NT = NamedTuple("NT", x=int)``) is deprecated, and will be disallowed in
-    3.15. Use the class-based syntax or the functional syntax instead.
+    3.26. Use the class-based syntax or the functional syntax instead.
 
   * When using the functional syntax to create a :class:`!NamedTuple` class, failing to
     pass a value to the *fields* parameter (``NT = NamedTuple("NT")``) is
     deprecated. Passing ``None`` to the *fields* parameter
     (``NT = NamedTuple("NT", None)``) is also deprecated. Both will be
-    disallowed in Python 3.15. To create a :class:`!NamedTuple` class with 0 fields, use
+    disallowed in Python 3.26. To create a :class:`!NamedTuple` class with 0 fields, use
     ``class NT(NamedTuple): pass`` or ``NT = NamedTuple("NT", [])``.
 
 * :class:`typing.TypedDict`: When using the functional syntax to create a
   :class:`!TypedDict` class, failing to pass a value to the *fields* parameter (``TD =
   TypedDict("TD")``) is deprecated. Passing ``None`` to the *fields* parameter
   (``TD = TypedDict("TD", None)``) is also deprecated. Both will be disallowed
-  in Python 3.15. To create a :class:`!TypedDict` class with 0 fields, use ``class
+  in Python 3.26. To create a :class:`!TypedDict` class with 0 fields, use ``class
   TD(TypedDict): pass`` or ``TD = TypedDict("TD", {})``.
 
 * :mod:`wave`: Deprecate the ``getmark()``, ``setmark()`` and ``getmarkers()``
   methods of the :class:`wave.Wave_read` and :class:`wave.Wave_write` classes.
-  They will be removed in Python 3.15.
+  They will be removed in Python 3.26.
   (Contributed by Victor Stinner in :gh:`105096`.)
 
 Pending Removal in Python 3.16
@@ -2134,7 +2134,7 @@ Build Changes
 
 * The :file:`configure` option :option:`--with-system-libmpdec` now defaults
   to ``yes``. The bundled copy of ``libmpdecimal`` will be removed in Python
-  3.15.
+  3.26.
 
 * Autoconf 2.71 and aclocal 1.16.4 are now required to regenerate
   the :file:`configure` script.
@@ -2436,12 +2436,12 @@ Deprecated C APIs
   * :c:func:`Py_GetPythonHome`: get :c:member:`PyConfig.home` or
     :envvar:`PYTHONHOME` environment variable instead.
 
-  Functions scheduled for removal in Python 3.15.
+  Functions scheduled for removal in Python 3.26.
   (Contributed by Victor Stinner in :gh:`105145`.)
 
 * Deprecate the :c:func:`PyImport_ImportModuleNoBlock` function which is just
   an alias to :c:func:`PyImport_ImportModule` since Python 3.3.
-  Scheduled for removal in Python 3.15.
+  Scheduled for removal in Python 3.26.
   (Contributed by Victor Stinner in :gh:`105396`.)
 
 * Deprecate the :c:func:`PyWeakref_GetObject` and
@@ -2496,7 +2496,7 @@ Pending Removal in Python 3.14
   The :c:func:`Py_InitializeFromConfig` API should be used with
   :c:type:`PyConfig` instead.
 
-Pending Removal in Python 3.15
+Pending Removal in Python 3.26
 ------------------------------
 
 * The bundled copy of ``libmpdecimal``.

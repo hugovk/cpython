@@ -522,7 +522,7 @@ def ios_ver(system="", release="", model="", is_simulator=False):
 
 
 def _java_getprop(name, default):
-    """This private helper is deprecated in 3.13 and will be removed in 3.15"""
+    """This private helper is deprecated in 3.13 and will be removed in 3.26"""
     from java.lang import System
     try:
         value = System.getProperty(name)

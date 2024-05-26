@@ -76,7 +76,7 @@ class ConnectionFactoryTests(unittest.TestCase):
             r"is deprecated. Parameters 'timeout', 'detect_types', "
             r"'isolation_level', 'check_same_thread', 'factory', "
             r"'cached_statements' and 'uri' will become keyword-only "
-            r"parameters in Python 3.15."
+            r"parameters in Python 3.26."
         )
         with self.assertWarnsRegex(DeprecationWarning, regex) as cm:
             with memory_database(5.0, 0, None, True, Factory) as con:

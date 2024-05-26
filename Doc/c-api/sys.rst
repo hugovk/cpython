@@ -242,7 +242,7 @@ accessible to C code.  They all work with the current interpreter thread's
    Reset :data:`sys.warnoptions` to an empty list. This function may be
    called prior to :c:func:`Py_Initialize`.
 
-   .. deprecated-removed:: 3.13 3.15
+   .. deprecated-removed:: 3.13 3.26
       Clear :data:`sys.warnoptions` and :data:`!warnings.filters` instead.
 
 .. c:function:: void PySys_WriteStdout(const char *format, ...)

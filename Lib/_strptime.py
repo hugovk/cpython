@@ -269,7 +269,7 @@ class TimeRE(dict):
             import warnings
             warnings.warn("""\
 Parsing dates involving a day of month without a year specified is ambiguious
-and fails to parse leap day. The default behavior will change in Python 3.15
+and fails to parse leap day. The default behavior will change in Python 3.26
 to either always raise an exception or to use a different default year (TBD).
 To avoid trouble, add a specific year to the input & format.
 See https://github.com/python/cpython/issues/70647.""",
