@@ -1776,7 +1776,7 @@ always available.
    .. versionadded:: 3.6
       See :pep:`529` for more details.
 
-   .. deprecated-removed:: 3.13 3.16
+   .. deprecated-removed:: 3.13 3.27
       Use :envvar:`PYTHONLEGACYWINDOWSFSENCODING` instead.
 
 .. data:: stdin
