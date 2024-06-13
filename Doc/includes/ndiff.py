@@ -35,7 +35,9 @@ recovered by piping the output through
 
 __version__ = 1, 7, 0
 
-import difflib, sys
+import difflib
+import sys
+
 
 def fail(msg):
     out = sys.stderr.write
@@ -43,13 +45,15 @@ def fail(msg):
     out(__doc__)
     return 0
 
+
 # open a file & return the file object; gripe and return 0 if it
 # couldn't be opened
 def fopen(fname):
     try:
         return open(fname)
-    except IOError as detail:
+    except OSError as detail:
         return fail("couldn't open " + fname + ": " + str(detail))
+
 
 # open two files & spray the diff to stdout; return false iff a problem
 def fcompare(f1name, f2name):
@@ -64,6 +68,7 @@ def fcompare(f1name, f2name):
         print(line, end=' ')
 
     return 1
+
 
 # crack args (sys.argv[1:] is normal) & compare;
 # return false iff a problem
@@ -103,9 +108,11 @@ def main(args):
 # read ndiff output from stdin, and print file1 (which=='1') or
 # file2 (which=='2') to stdout
 
+
 def restore(which):
     restored = difflib.restore(sys.stdin.readlines(), which)
     sys.stdout.writelines(restored)
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

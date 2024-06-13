@@ -31,13 +31,13 @@ extensions = [
 
 # Skip if downstream redistributors haven't installed them
 try:
-    import notfound.extension
+    import notfound.extension  # noqa: F401
 except ImportError:
     pass
 else:
     extensions.append('notfound.extension')
 try:
-    import sphinxext.opengraph
+    import sphinxext.opengraph  # noqa: F401
 except ImportError:
     pass
 else:

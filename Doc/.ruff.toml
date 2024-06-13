@@ -1,0 +1,9 @@
+fix = true
+
+[lint]
+select = [
+    "F",  # Enable all pyflakes rules
+    "UP",  # Enable all pyupgrade rules by default
+    "RUF100",  # Ban unused `# noqa` comments
+    "PGH004",  # Ban blanket `# noqa` comments (only ignore specific error codes)
+]

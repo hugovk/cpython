@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     patchlevel.py
     ~~~~~~~~~~~~~
@@ -10,11 +9,10 @@
     :license: Python license.
 """
 
-from __future__ import print_function
-
 import os
 import re
 import sys
+
 
 def get_header_version_info(srcdir):
     patchlevel_h = os.path.join(srcdir, '..', 'Include', 'patchlevel.h')
@@ -31,7 +29,7 @@ def get_header_version_info(srcdir):
                 name, value = m.group(1, 2)
                 d[name] = value
 
-    release = version = '%s.%s' % (d['PY_MAJOR_VERSION'], d['PY_MINOR_VERSION'])
+    release = version = f"{d['PY_MAJOR_VERSION']}.{d['PY_MINOR_VERSION']}"
     micro = int(d['PY_MICRO_VERSION'])
     release += '.' + str(micro)
 
@@ -48,21 +46,25 @@ def get_header_version_info(srcdir):
 
 def get_sys_version_info():
     major, minor, micro, level, serial = sys.version_info
-    release = version = '%s.%s' % (major, minor)
-    release += '.%s' % micro
+    release = version = f'{major}.{minor}'
+    release += f'.{micro}'
     if level != 'final':
-        release += '%s%s' % (level[0], serial)
+        release += f'{level[0]}{serial}'
     return version, release
 
 
 def get_version_info():
     try:
         return get_header_version_info('.')
-    except (IOError, OSError):
+    except OSError:
         version, release = get_sys_version_info()
-        print('Can\'t get version info from Include/patchlevel.h, ' \
-              'using version of this interpreter (%s).' % release, file=sys.stderr)
+        print(
+            "Can't get version info from Include/patchlevel.h, "
+            f"using version of this interpreter ({release}).",
+            file=sys.stderr,
+        )
         return version, release
+
 
 if __name__ == '__main__':
     print(get_header_version_info('.')[1])

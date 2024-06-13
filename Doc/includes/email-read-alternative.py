@@ -51,10 +51,10 @@ if richest['content-type'].maintype == 'text':
     elif richest['content-type'].subtype == 'html':
         body = richest
     else:
-        print("Don't know how to display {}".format(richest.get_content_type()))
+        print(f"Don't know how to display {richest.get_content_type()}")
         sys.exit()
 elif richest['content-type'].content_type == 'multipart/related':
-    body = richest.get_body(preferencelist=('html'))
+    body = richest.get_body(preferencelist='html')
     for part in richest.iter_attachments():
         fn = part.get_filename()
         if fn:
@@ -66,7 +66,7 @@ elif richest['content-type'].content_type == 'multipart/related':
             # again strip the <> to go from email form of cid to html form.
             partfiles[part['content-id'][1:-1]] = f.name
 else:
-    print("Don't know how to display {}".format(richest.get_content_type()))
+    print(f"Don't know how to display {richest.get_content_type()}")
     sys.exit()
 with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
     f.write(magic_html_parser(body.get_content(), partfiles))

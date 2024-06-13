@@ -26,7 +26,7 @@ Cette recette [1] sera sûrement un très bon repas.
 # container, with the original text message as the first part and the new html
 # message as the second part.
 asparagus_cid = make_msgid()
-msg.add_alternative("""\
+msg.add_alternative(f"""\
 <html>
   <head></head>
   <body>
@@ -36,10 +36,10 @@ msg.add_alternative("""\
             recette
         </a> sera sûrement un très bon repas.
     </p>
-    <img src="cid:{asparagus_cid}" />
+    <img src="cid:{asparagus_cid[1:-1]}" />
   </body>
 </html>
-""".format(asparagus_cid=asparagus_cid[1:-1]), subtype='html')
+""", subtype='html')
 # note that we needed to peel the <> off the msgid for use in the html.
 
 # Now add the related image to the html part.

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     glossary_search.py
     ~~~~~~~~~~~~~~~~
@@ -40,6 +39,7 @@ def process_glossary_nodes(app, doctree, fromdocname):
         app.env.glossary_terms.update(terms)
     else:
         app.env.glossary_terms = terms
+
 
 def on_build_finish(app, exc):
     if not hasattr(app.env, 'glossary_terms'):
