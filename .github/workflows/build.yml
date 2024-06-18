@@ -34,6 +34,8 @@ jobs:
       config_hash: ${{ steps.config_hash.outputs.hash }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          progress: false
       - name: Check for source changes
         id: check
         run: |
@@ -120,6 +122,8 @@ jobs:
     if: needs.check_source.outputs.run_tests == 'true'
     steps:
       - uses: actions/checkout@v4
+        with:
+          progress: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
@@ -259,6 +263,8 @@ jobs:
       LD_LIBRARY_PATH: ${{ github.workspace }}/multissl/openssl/${{ matrix.openssl_ver }}/lib
     steps:
     - uses: actions/checkout@v4
+      with:
+        progress: false
     - name: Runner image version
       run: echo "IMAGE_VERSION=${ImageVersion}" >> $GITHUB_ENV
     - name: Restore config.cache
@@ -319,6 +325,8 @@ jobs:
       PYTHONSTRICTEXTENSIONBUILD: 1
     steps:
     - uses: actions/checkout@v4
+      with:
+        progress: false
     - name: Register gcc problem matcher
       run: echo "::add-matcher::.github/problem-matchers/gcc.json"
     - name: Install Dependencies
@@ -433,6 +441,8 @@ jobs:
       ASAN_OPTIONS: detect_leaks=0:allocator_may_return_null=1:handle_segv=0
     steps:
     - uses: actions/checkout@v4
+      with:
+        progress: false
     - name: Runner image version
       run: echo "IMAGE_VERSION=${ImageVersion}" >> $GITHUB_ENV
     - name: Restore config.cache
