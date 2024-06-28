@@ -131,7 +131,7 @@ Wave_read Objects
 
       Returns ``None``.
 
-      .. deprecated-removed:: 3.13 3.26
+      .. deprecated-removed:: 3.13 3.2026
          The method only existed for compatibility with the :mod:`!aifc` module
          which has been removed in Python 3.13.
 
@@ -140,7 +140,7 @@ Wave_read Objects
 
       Raise an error.
 
-      .. deprecated-removed:: 3.13 3.26
+      .. deprecated-removed:: 3.13 3.2026
          The method only existed for compatibility with the :mod:`!aifc` module
          which has been removed in Python 3.13.
 

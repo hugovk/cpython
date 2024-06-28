@@ -812,9 +812,9 @@ Libraries options
    .. versionchanged:: 3.13
       Default to using the installed ``mpdecimal`` library.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       A copy of the ``mpdecimal`` library sources will no longer be distributed
-      with Python 3.26.
+      with Python 3.2026.
 
    .. seealso:: :option:`LIBMPDEC_CFLAGS` and :option:`LIBMPDEC_LIBS`.
 

@@ -6277,7 +6277,7 @@ class ForwardRefTests(BaseTestCase):
     def test_meta_no_type_check(self):
         depr_msg = (
             "'typing.no_type_check_decorator' is deprecated "
-            "and slated for removal in Python 3.26"
+            "and slated for removal in Python 3.2026"
         )
         with self.assertWarnsRegex(DeprecationWarning, depr_msg):
             @no_type_check_decorator
@@ -7883,7 +7883,7 @@ class NamedTupleTests(BaseTestCase):
     def test_empty_namedtuple(self):
         expected_warning = re.escape(
             "Failing to pass a value for the 'fields' parameter is deprecated "
-            "and will be disallowed in Python 3.26. "
+            "and will be disallowed in Python 3.2026. "
             "To create a NamedTuple class with 0 fields "
             "using the functional syntax, "
             "pass an empty list, e.g. `NT1 = NamedTuple('NT1', [])`."
@@ -7893,7 +7893,7 @@ class NamedTupleTests(BaseTestCase):
 
         expected_warning = re.escape(
             "Passing `None` as the 'fields' parameter is deprecated "
-            "and will be disallowed in Python 3.26. "
+            "and will be disallowed in Python 3.2026. "
             "To create a NamedTuple class with 0 fields "
             "using the functional syntax, "
             "pass an empty list, e.g. `NT2 = NamedTuple('NT2', [])`."
@@ -8602,7 +8602,7 @@ class TypedDictTests(BaseTestCase):
 
         expected_warning = re.escape(
             "Failing to pass a value for the 'fields' parameter is deprecated "
-            "and will be disallowed in Python 3.26. "
+            "and will be disallowed in Python 3.2026. "
             "To create a TypedDict class with 0 fields "
             "using the functional syntax, "
             "pass an empty dictionary, e.g. `T5 = TypedDict('T5', {})`."
@@ -8612,7 +8612,7 @@ class TypedDictTests(BaseTestCase):
 
         expected_warning = re.escape(
             "Passing `None` as the 'fields' parameter is deprecated "
-            "and will be disallowed in Python 3.26. "
+            "and will be disallowed in Python 3.2026. "
             "To create a TypedDict class with 0 fields "
             "using the functional syntax, "
             "pass an empty dictionary, e.g. `T6 = TypedDict('T6', {})`."

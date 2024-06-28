@@ -561,9 +561,9 @@ ast
   constructed AST node instance.)
 
   If other arguments are omitted, a :exc:`DeprecationWarning` is emitted.
-  This will cause an exception in Python 3.26. Similarly, passing a keyword
+  This will cause an exception in Python 3.2026. Similarly, passing a keyword
   argument that does not map to a field on the AST node is now deprecated,
-  and will raise an exception in Python 3.26.
+  and will raise an exception in Python 3.2026.
 
   These changes do not apply to user-defined subclasses of :class:`ast.AST`,
   unless the class opts in to the new behavior by setting the attribute

@@ -26,7 +26,7 @@ Importing Modules
       to per-module locks for most purposes, so this function's special
       behaviour isn't needed anymore.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       Use :c:func:`PyImport_ImportModule` instead.
 
 

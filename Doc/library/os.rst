@@ -162,7 +162,7 @@ and the :term:`filesystem encoding and error handler`.
 .. seealso::
 
    :pep:`686`
-      Python 3.26 will make :ref:`utf8-mode` default.
+      Python 3.2026 will make :ref:`utf8-mode` default.
 
 
 .. _os-procinfo:

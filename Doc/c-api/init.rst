@@ -468,7 +468,7 @@ Process-wide parameters
    .. versionchanged:: 3.10
       It now returns ``NULL`` if called before :c:func:`Py_Initialize`.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       Get :data:`sys.executable` instead.
 
 
@@ -490,7 +490,7 @@ Process-wide parameters
    .. versionchanged:: 3.10
       It now returns ``NULL`` if called before :c:func:`Py_Initialize`.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       Get :data:`sys.prefix` instead.
 
 
@@ -534,7 +534,7 @@ Process-wide parameters
    .. versionchanged:: 3.10
       It now returns ``NULL`` if called before :c:func:`Py_Initialize`.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       Get :data:`sys.exec_prefix` instead.
 
 
@@ -555,7 +555,7 @@ Process-wide parameters
    .. versionchanged:: 3.10
       It now returns ``NULL`` if called before :c:func:`Py_Initialize`.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       Get :data:`sys.executable` instead.
 
 
@@ -583,7 +583,7 @@ Process-wide parameters
    .. versionchanged:: 3.10
       It now returns ``NULL`` if called before :c:func:`Py_Initialize`.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       Get :data:`sys.path` instead.
 
 

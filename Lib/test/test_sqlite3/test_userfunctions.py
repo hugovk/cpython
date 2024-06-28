@@ -426,7 +426,7 @@ class FunctionTests(unittest.TestCase):
             r"Passing keyword arguments 'name', 'narg' and 'func' to "
             r"_sqlite3.Connection.create_function\(\) is deprecated. "
             r"Parameters 'name', 'narg' and 'func' will become "
-            r"positional-only in Python 3.26."
+            r"positional-only in Python 3.2026."
         )
 
         def noop():
@@ -742,7 +742,7 @@ class AggregateTests(unittest.TestCase):
             r"Passing keyword arguments 'name', 'n_arg' and 'aggregate_class' to "
             r"_sqlite3.Connection.create_aggregate\(\) is deprecated. "
             r"Parameters 'name', 'n_arg' and 'aggregate_class' will become "
-            r"positional-only in Python 3.26."
+            r"positional-only in Python 3.2026."
         )
 
         with self.assertWarnsRegex(DeprecationWarning, regex) as cm:
@@ -805,7 +805,7 @@ class AuthorizerTests(unittest.TestCase):
             r"Passing keyword argument 'authorizer_callback' to "
             r"_sqlite3.Connection.set_authorizer\(\) is deprecated. "
             r"Parameter 'authorizer_callback' will become positional-only in "
-            r"Python 3.26."
+            r"Python 3.2026."
         )
 
         with self.assertWarnsRegex(DeprecationWarning, regex) as cm:

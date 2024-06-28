@@ -135,7 +135,7 @@ explicitly when opening text files. If you want to use UTF-8, pass
       UTF-8 from locale-specific encoding.
 
    :pep:`686`
-      Python 3.26 will make :ref:`utf8-mode` default.
+      Python 3.2026 will make :ref:`utf8-mode` default.
 
 .. _io-encoding-warning:
 

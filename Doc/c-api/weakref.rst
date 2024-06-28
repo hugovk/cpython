@@ -76,7 +76,7 @@ as much as it can.
       except when it cannot be destroyed before the last usage of the borrowed
       reference.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       Use :c:func:`PyWeakref_GetRef` instead.
 
 
@@ -84,7 +84,7 @@ as much as it can.
 
    Similar to :c:func:`PyWeakref_GetObject`, but does no error checking.
 
-   .. deprecated-removed:: 3.13 3.26
+   .. deprecated-removed:: 3.13 3.2026
       Use :c:func:`PyWeakref_GetRef` instead.
 
 

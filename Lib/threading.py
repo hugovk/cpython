@@ -130,7 +130,7 @@ def RLock(*args, **kwargs):
     """
     if args or kwargs:
         warnings.warn(
-            'Passing arguments to RLock is deprecated and will be removed in 3.26',
+            'Passing arguments to RLock is deprecated and will be removed in 3.2026',
             DeprecationWarning,
             stacklevel=2,
         )

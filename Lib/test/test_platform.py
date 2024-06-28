@@ -352,7 +352,7 @@ class PlatformTest(unittest.TestCase):
     def test_java_ver(self):
         import re
         msg = re.escape(
-            "'java_ver' is deprecated and slated for removal in Python 3.26"
+            "'java_ver' is deprecated and slated for removal in Python 3.2026"
         )
         with self.assertWarnsRegex(DeprecationWarning, msg):
             res = platform.java_ver()

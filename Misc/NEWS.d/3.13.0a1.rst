@@ -2295,7 +2295,7 @@ superclass. Patch by James Hilton-Balfe
 .. section: Library
 
 :class:`http.server.CGIHTTPRequestHandler` has been deprecated for removal
-in 3.26.  Its design is old and the web world has long since moved beyond
+in 3.2026.  Its design is old and the web world has long since moved beyond
 CGI.
 
 ..

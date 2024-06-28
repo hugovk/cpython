@@ -362,7 +362,7 @@ Module functions
       Positional use of the parameters *timeout*, *detect_types*,
       *isolation_level*, *check_same_thread*, *factory*, *cached_statements*,
       and *uri* is deprecated.
-      They will become keyword-only parameters in Python 3.26.
+      They will become keyword-only parameters in Python 3.2026.
 
 .. function:: complete_statement(statement)
 
@@ -734,7 +734,7 @@ Connection objects
       .. versionchanged:: 3.13
 
          Passing *name*, *narg*, and *func* as keyword arguments is deprecated.
-         These parameters will become positional-only in Python 3.26.
+         These parameters will become positional-only in Python 3.2026.
 
 
    .. method:: create_aggregate(name, n_arg, aggregate_class)
@@ -793,7 +793,7 @@ Connection objects
       .. versionchanged:: 3.13
 
          Passing *name*, *n_arg*, and *aggregate_class* as keyword arguments is deprecated.
-         These parameters will become positional-only in Python 3.26.
+         These parameters will become positional-only in Python 3.2026.
 
 
    .. method:: create_window_function(name, num_params, aggregate_class, /)
@@ -962,7 +962,7 @@ Connection objects
 
       .. versionchanged:: 3.13
          Passing *authorizer_callback* as a keyword argument is deprecated.
-         The parameter will become positional-only in Python 3.26.
+         The parameter will become positional-only in Python 3.2026.
 
 
    .. method:: set_progress_handler(progress_handler, n)
@@ -981,7 +981,7 @@ Connection objects
 
       .. versionchanged:: 3.13
          Passing *progress_handler* as a keyword argument is deprecated.
-         The parameter will become positional-only in Python 3.26.
+         The parameter will become positional-only in Python 3.2026.
 
 
    .. method:: set_trace_callback(trace_callback)
@@ -1009,7 +1009,7 @@ Connection objects
 
       .. versionchanged:: 3.13
          Passing *trace_callback* as a keyword argument is deprecated.
-         The parameter will become positional-only in Python 3.26.
+         The parameter will become positional-only in Python 3.2026.
 
 
    .. method:: enable_load_extension(enabled, /)

@@ -3608,7 +3608,7 @@ class ClinicFunctionalTest(unittest.TestCase):
         errmsg = (
             "Passing more than 1 positional argument to depr_star_multi() is deprecated. "
             "Parameter 'b' will become a keyword-only parameter in Python 3.16. "
-            "Parameters 'c' and 'd' will become keyword-only parameters in Python 3.26. "
+            "Parameters 'c' and 'd' will become keyword-only parameters in Python 3.2026. "
             "Parameters 'e', 'f' and 'g' will become keyword-only parameters in Python 3.14.")
         check = partial(self.check_depr, re.escape(errmsg), fn)
         check("a", "b", c="c", d="d", e="e", f="f", g="g", h="h")
@@ -3709,7 +3709,7 @@ class ClinicFunctionalTest(unittest.TestCase):
         errmsg = (
             "Passing keyword arguments 'b', 'c', 'd', 'e', 'f' and 'g' to depr_kwd_multi() is deprecated. "
             "Parameter 'b' will become positional-only in Python 3.14. "
-            "Parameters 'c' and 'd' will become positional-only in Python 3.26. "
+            "Parameters 'c' and 'd' will become positional-only in Python 3.2026. "
             "Parameters 'e', 'f' and 'g' will become positional-only in Python 3.16.")
         check = partial(self.check_depr, re.escape(errmsg), fn)
         check("a", "b", "c", "d", "e", "f", g="g", h="h")
@@ -3725,7 +3725,7 @@ class ClinicFunctionalTest(unittest.TestCase):
         self.assertRaises(TypeError, fn, "a", "b", "c", "d", "e", "f", "g")
         errmsg = (
             "Passing more than 4 positional arguments to depr_multi() is deprecated. "
-            "Parameter 'e' will become a keyword-only parameter in Python 3.26. "
+            "Parameter 'e' will become a keyword-only parameter in Python 3.2026. "
             "Parameter 'f' will become a keyword-only parameter in Python 3.14.")
         check = partial(self.check_depr, re.escape(errmsg), fn)
         check("a", "b", "c", "d", "e", "f", g="g")
@@ -3735,7 +3735,7 @@ class ClinicFunctionalTest(unittest.TestCase):
         errmsg = (
             "Passing keyword arguments 'b' and 'c' to depr_multi() is deprecated. "
             "Parameter 'b' will become positional-only in Python 3.14. "
-            "Parameter 'c' will become positional-only in Python 3.26.")
+            "Parameter 'c' will become positional-only in Python 3.2026.")
         check = partial(self.check_depr, re.escape(errmsg), fn)
         check("a", "b", c="c", d="d", e="e", f="f", g="g")
         check("a", b="b", c="c", d="d", e="e", f="f", g="g")

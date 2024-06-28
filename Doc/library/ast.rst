@@ -122,7 +122,7 @@ Node classes
    it defaults to ``None``. If a list field is omitted, it defaults to the empty
    list. If a field of type :class:`!ast.expr_context` is omitted, it defaults to
    :class:`Load() <ast.Load>`. If any other field is omitted, a :exc:`DeprecationWarning` is raised
-   and the AST node will not have this field. In Python 3.26, this condition will
+   and the AST node will not have this field. In Python 3.2026, this condition will
    raise an error.
 
 .. versionchanged:: 3.8
@@ -148,13 +148,13 @@ Node classes
    In the meantime, instantiating them will return an instance of
    a different class.
 
-.. deprecated-removed:: 3.13 3.26
+.. deprecated-removed:: 3.13 3.2026
 
    Previous versions of Python allowed the creation of AST nodes that were missing
    required fields. Similarly, AST node constructors allowed arbitrary keyword
    arguments that were set as attributes of the AST node, even if they did not
    match any of the fields of the AST node. This behavior is deprecated and will
-   be removed in Python 3.26.
+   be removed in Python 3.2026.
 
 .. note::
     The descriptions of the specific node classes displayed here
