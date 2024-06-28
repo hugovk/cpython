@@ -3864,7 +3864,7 @@ rm confdefs.h
 mv confdefs.h.new confdefs.h
 
 
-VERSION=3.26
+VERSION=3.2026
 
 # Version number of Python's own shared library file.
 
