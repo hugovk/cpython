@@ -2298,7 +2298,7 @@ PyDoc_STRVAR(depr_multi__doc__,
 "\n"
 "Note: Passing more than 4 positional arguments to depr_multi() is\n"
 "deprecated. Parameter \'e\' will become a keyword-only parameter in\n"
-"Python 3.15. Parameter \'f\' will become a keyword-only parameter in\n"
+" Python 3.2026. Parameter \'f\' will become a keyword-only parameter in\n"
 "Python 3.14.\n"
 "");
 

@@ -613,7 +613,7 @@ PyDoc_STRVAR(pysqlite_connection_create_aggregate__doc__,
 "Note: Passing keyword arguments \'name\', \'n_arg\' and \'aggregate_class\'\n"
 "to _sqlite3.Connection.create_aggregate() is deprecated. Parameters\n"
 "\'name\', \'n_arg\' and \'aggregate_class\' will become positional-only in\n"
-"Python 3.15.\n"
+" Python 3.2026.\n"
 "");
 
 #define PYSQLITE_CONNECTION_CREATE_AGGREGATE_METHODDEF    \
@@ -873,7 +873,7 @@ pysqlite_connection_set_progress_handler(pysqlite_Connection *self, PyTypeObject
                 "Passing keyword argument 'progress_handler' to "
                 "_sqlite3.Connection.set_progress_handler() is deprecated. "
                 "Parameter 'progress_handler' will become positional-only in "
-                "Python 3.15.", 1))
+                "Python 3.2026.", 1))
         {
             goto exit;
         }
