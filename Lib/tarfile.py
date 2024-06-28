@@ -910,7 +910,7 @@ class TarInfo(object):
         import warnings
         warnings.warn(
             'The undocumented "tarfile" attribute of TarInfo objects '
-            + 'is deprecated and will be removed in Python 3.16',
+            + 'is deprecated and will be removed in Python 3.2027',
             DeprecationWarning, stacklevel=2)
         return self._tarfile
 
@@ -919,7 +919,7 @@ class TarInfo(object):
         import warnings
         warnings.warn(
             'The undocumented "tarfile" attribute of TarInfo objects '
-            + 'is deprecated and will be removed in Python 3.16',
+            + 'is deprecated and will be removed in Python 3.2027',
             DeprecationWarning, stacklevel=2)
         self._tarfile = tarfile
 

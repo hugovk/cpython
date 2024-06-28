@@ -3607,7 +3607,7 @@ class ClinicFunctionalTest(unittest.TestCase):
         fn("a", b="b", c="c", d="d", e="e", f="f", g="g", h="h")
         errmsg = (
             "Passing more than 1 positional argument to depr_star_multi() is deprecated. "
-            "Parameter 'b' will become a keyword-only parameter in Python 3.16. "
+            "Parameter 'b' will become a keyword-only parameter in Python 3.2027. "
             "Parameters 'c' and 'd' will become keyword-only parameters in Python 3.2026. "
             "Parameters 'e', 'f' and 'g' will become keyword-only parameters in Python 3.14.")
         check = partial(self.check_depr, re.escape(errmsg), fn)
@@ -3710,7 +3710,7 @@ class ClinicFunctionalTest(unittest.TestCase):
             "Passing keyword arguments 'b', 'c', 'd', 'e', 'f' and 'g' to depr_kwd_multi() is deprecated. "
             "Parameter 'b' will become positional-only in Python 3.14. "
             "Parameters 'c' and 'd' will become positional-only in Python 3.2026. "
-            "Parameters 'e', 'f' and 'g' will become positional-only in Python 3.16.")
+            "Parameters 'e', 'f' and 'g' will become positional-only in Python 3.2027.")
         check = partial(self.check_depr, re.escape(errmsg), fn)
         check("a", "b", "c", "d", "e", "f", g="g", h="h")
         check("a", "b", "c", "d", "e", f="f", g="g", h="h")

@@ -1749,7 +1749,7 @@ sys__enablelegacywindowsfsencoding_impl(PyObject *module)
 {
     if (PyErr_WarnEx(PyExc_DeprecationWarning,
         "sys._enablelegacywindowsfsencoding() is deprecated and will be "
-        "removed in Python 3.16. Use PYTHONLEGACYWINDOWSFSENCODING "
+        "removed in Python 3.2027. Use PYTHONLEGACYWINDOWSFSENCODING "
         "instead.", 1))
     {
         return NULL;

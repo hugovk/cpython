@@ -1555,7 +1555,7 @@ depr_star_multi(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObj
         if (PyErr_WarnEx(PyExc_DeprecationWarning,
                 "Passing more than 1 positional argument to depr_star_multi() is "
                 "deprecated. Parameter 'b' will become a keyword-only parameter "
-                "in Python 3.16. Parameters 'c' and 'd' will become keyword-only "
+                "in Python 3.2027. Parameters 'c' and 'd' will become keyword-only "
                 "parameters in Python 3.2026. Parameters 'e', 'f' and 'g' will "
                 "become keyword-only parameters in Python 3.14.", 1))
         {
@@ -2197,7 +2197,7 @@ PyDoc_STRVAR(depr_kwd_multi__doc__,
 "depr_kwd_multi() is deprecated. Parameter \'b\' will become positional-\n"
 "only in Python 3.14. Parameters \'c\' and \'d\' will become positional-\n"
 "only in Python 3.2026. Parameters \'e\', \'f\' and \'g\' will become\n"
-"positional-only in Python 3.16.\n"
+"positional-only in Python 3.2027.\n"
 "");
 
 #define DEPR_KWD_MULTI_METHODDEF    \
@@ -2268,7 +2268,7 @@ depr_kwd_multi(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObje
                 "depr_kwd_multi() is deprecated. Parameter 'b' will become "
                 "positional-only in Python 3.14. Parameters 'c' and 'd' will "
                 "become positional-only in Python 3.2026. Parameters 'e', 'f' and "
-                "'g' will become positional-only in Python 3.16.", 1))
+                "'g' will become positional-only in Python 3.2027.", 1))
         {
             goto exit;
         }

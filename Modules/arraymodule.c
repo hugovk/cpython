@@ -2702,7 +2702,7 @@ array_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (c == 'u') {
         if (PyErr_WarnEx(PyExc_DeprecationWarning,
                          "The 'u' type code is deprecated and "
-                         "will be removed in Python 3.16",
+                         "will be removed in Python 3.2027",
                          1)) {
             return NULL;
         }
