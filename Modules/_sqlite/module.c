@@ -70,7 +70,7 @@ pysqlite_connect(PyObject *module, PyObject *const *args, Py_ssize_t nargsf,
                 " is deprecated. Parameters 'timeout', 'detect_types', "
                 "'isolation_level', 'check_same_thread', 'factory', "
                 "'cached_statements' and 'uri' will become keyword-only "
-                "parameters in Python 3.15.", 1))
+                "parameters in Python 3.2026.", 1))
         {
                 return NULL;
         }

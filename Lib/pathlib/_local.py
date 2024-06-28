@@ -440,7 +440,7 @@ class PurePath(PurePathBase):
         by the system, if any."""
         import warnings
         msg = ("pathlib.PurePath.is_reserved() is deprecated and scheduled "
-               "for removal in Python 3.15. Use os.path.isreserved() to "
+               "for removal in Python 3.2026. Use os.path.isreserved() to "
                "detect reserved paths on Windows.")
         warnings.warn(msg, DeprecationWarning, stacklevel=2)
         if self.parser is ntpath:

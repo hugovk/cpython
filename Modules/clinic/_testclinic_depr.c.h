@@ -1489,7 +1489,7 @@ PyDoc_STRVAR(depr_star_multi__doc__,
 "Note: Passing more than 1 positional argument to depr_star_multi() is\n"
 "deprecated. Parameter \'b\' will become a keyword-only parameter in\n"
 "Python 3.16. Parameters \'c\' and \'d\' will become keyword-only\n"
-"parameters in Python 3.15. Parameters \'e\', \'f\' and \'g\' will become\n"
+"parameters in Python 3.2026. Parameters \'e\', \'f\' and \'g\' will become\n"
 "keyword-only parameters in Python 3.14.\n"
 "");
 
@@ -1556,7 +1556,7 @@ depr_star_multi(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObj
                 "Passing more than 1 positional argument to depr_star_multi() is "
                 "deprecated. Parameter 'b' will become a keyword-only parameter "
                 "in Python 3.16. Parameters 'c' and 'd' will become keyword-only "
-                "parameters in Python 3.15. Parameters 'e', 'f' and 'g' will "
+                "parameters in Python 3.2026. Parameters 'e', 'f' and 'g' will "
                 "become keyword-only parameters in Python 3.14.", 1))
         {
             goto exit;
@@ -2196,7 +2196,7 @@ PyDoc_STRVAR(depr_kwd_multi__doc__,
 "Note: Passing keyword arguments \'b\', \'c\', \'d\', \'e\', \'f\' and \'g\' to\n"
 "depr_kwd_multi() is deprecated. Parameter \'b\' will become positional-\n"
 "only in Python 3.14. Parameters \'c\' and \'d\' will become positional-\n"
-"only in Python 3.15. Parameters \'e\', \'f\' and \'g\' will become\n"
+"only in Python 3.2026. Parameters \'e\', \'f\' and \'g\' will become\n"
 "positional-only in Python 3.16.\n"
 "");
 
@@ -2267,7 +2267,7 @@ depr_kwd_multi(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObje
                 "Passing keyword arguments 'b', 'c', 'd', 'e', 'f' and 'g' to "
                 "depr_kwd_multi() is deprecated. Parameter 'b' will become "
                 "positional-only in Python 3.14. Parameters 'c' and 'd' will "
-                "become positional-only in Python 3.15. Parameters 'e', 'f' and "
+                "become positional-only in Python 3.2026. Parameters 'e', 'f' and "
                 "'g' will become positional-only in Python 3.16.", 1))
         {
             goto exit;
@@ -2293,7 +2293,7 @@ PyDoc_STRVAR(depr_multi__doc__,
 "\n"
 "Note: Passing keyword arguments \'b\' and \'c\' to depr_multi() is\n"
 "deprecated. Parameter \'b\' will become positional-only in Python 3.14.\n"
-"Parameter \'c\' will become positional-only in Python 3.15.\n"
+"Parameter \'c\' will become positional-only in Python 3.2026.\n"
 "\n"
 "\n"
 "Note: Passing more than 4 positional arguments to depr_multi() is\n"
@@ -2362,7 +2362,7 @@ depr_multi(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *
         if (PyErr_WarnEx(PyExc_DeprecationWarning,
                 "Passing more than 4 positional arguments to depr_multi() is "
                 "deprecated. Parameter 'e' will become a keyword-only parameter "
-                "in Python 3.15. Parameter 'f' will become a keyword-only "
+                "in Python 3.2026. Parameter 'f' will become a keyword-only "
                 "parameter in Python 3.14.", 1))
         {
             goto exit;
@@ -2376,7 +2376,7 @@ depr_multi(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *
         if (PyErr_WarnEx(PyExc_DeprecationWarning,
                 "Passing keyword arguments 'b' and 'c' to depr_multi() is "
                 "deprecated. Parameter 'b' will become positional-only in Python "
-                "3.14. Parameter 'c' will become positional-only in Python 3.15.", 1))
+                "3.14. Parameter 'c' will become positional-only in Python 3.2026.", 1))
         {
             goto exit;
         }

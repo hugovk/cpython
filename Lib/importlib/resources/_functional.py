@@ -68,7 +68,7 @@ def _get_encoding_arg(path_names, encoding):
     # For compatibility with versions where *encoding* was a positional
     # argument, it needs to be given explicitly when there are multiple
     # *path_names*.
-    # This limitation can be removed in Python 3.15.
+    # This limitation can be removed in Python 3.2026.
     if encoding is _MISSING:
         if len(path_names) > 1:
             raise TypeError(

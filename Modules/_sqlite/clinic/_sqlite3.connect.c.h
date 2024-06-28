@@ -23,7 +23,7 @@ PyDoc_STRVAR(pysqlite_connect__doc__,
 "Note: Passing more than 1 positional argument to _sqlite3.connect() is\n"
 "deprecated. Parameters \'timeout\', \'detect_types\', \'isolation_level\',\n"
 "\'check_same_thread\', \'factory\', \'cached_statements\' and \'uri\' will\n"
-"become keyword-only parameters in Python 3.15.\n"
+"become keyword-only parameters in Python 3.2026.\n"
 "");
 
 #define PYSQLITE_CONNECT_METHODDEF    \

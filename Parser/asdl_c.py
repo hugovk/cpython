@@ -957,7 +957,7 @@ ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
                     PyExc_DeprecationWarning, 1,
                     "%.400s.__init__ got an unexpected keyword argument '%U'. "
                     "Support for arbitrary keyword arguments is deprecated "
-                    "and will be removed in Python 3.15.",
+                    "and will be removed in Python 3.2026.",
                     Py_TYPE(self)->tp_name, key
                 ) < 0) {
                     res = -1;
@@ -999,7 +999,7 @@ ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
                     if (PyErr_WarnFormat(
                         PyExc_DeprecationWarning, 1,
                         "Field '%U' is missing from %.400s._field_types. "
-                        "This will become an error in Python 3.15.",
+                        "This will become an error in Python 3.2026.",
                         name, Py_TYPE(self)->tp_name
                     ) < 0) {
                         goto set_remaining_cleanup;
@@ -1034,7 +1034,7 @@ ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
                 if (PyErr_WarnFormat(
                     PyExc_DeprecationWarning, 1,
                     "%.400s.__init__ missing 1 required positional argument: '%U'. "
-                    "This will become an error in Python 3.15.",
+                    "This will become an error in Python 3.2026.",
                     Py_TYPE(self)->tp_name, name
                 ) < 0) {
                     goto set_remaining_cleanup;

@@ -3427,7 +3427,7 @@ PyImport_ImportModuleNoBlock(const char *name)
 {
     if (PyErr_WarnEx(PyExc_DeprecationWarning,
         "PyImport_ImportModuleNoBlock() is deprecated and scheduled for "
-        "removal in Python 3.15. Use PyImport_ImportModule() instead.", 1))
+        "removal in Python 3.2026. Use PyImport_ImportModule() instead.", 1))
     {
         return NULL;
     }
