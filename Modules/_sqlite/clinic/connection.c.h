@@ -16,8 +16,8 @@ pysqlite_connection_init_impl(pysqlite_Connection *self, PyObject *database,
                               int cache_size, int uri,
                               enum autocommit_mode autocommit);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+// Emit compiler warnings when we get to Python 3.2026.
+#if PY_VERSION_HEX >= 0x0307E200C0
 #  error "Update the clinic input of '_sqlite3.Connection.__init__'."
 #elif PY_VERSION_HEX >= 0x030f00A0
 #  ifdef _MSC_VER
@@ -434,8 +434,8 @@ pysqlite_connection_create_function_impl(pysqlite_Connection *self,
                                          int narg, PyObject *func,
                                          int deterministic);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+// Emit compiler warnings when we get to Python 3.2026.
+#if PY_VERSION_HEX >= 0x0307E200C0
 #  error "Update the clinic input of '_sqlite3.Connection.create_function'."
 #elif PY_VERSION_HEX >= 0x030f00A0
 #  ifdef _MSC_VER
@@ -625,8 +625,8 @@ pysqlite_connection_create_aggregate_impl(pysqlite_Connection *self,
                                           const char *name, int n_arg,
                                           PyObject *aggregate_class);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+// Emit compiler warnings when we get to Python 3.2026.
+#if PY_VERSION_HEX >= 0x0307E200C0
 #  error "Update the clinic input of '_sqlite3.Connection.create_aggregate'."
 #elif PY_VERSION_HEX >= 0x030f00A0
 #  ifdef _MSC_VER
@@ -727,8 +727,8 @@ pysqlite_connection_set_authorizer_impl(pysqlite_Connection *self,
                                         PyTypeObject *cls,
                                         PyObject *callable);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+// Emit compiler warnings when we get to Python 3.2026.
+#if PY_VERSION_HEX >= 0x0307E200C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_authorizer'."
 #elif PY_VERSION_HEX >= 0x030f00A0
 #  ifdef _MSC_VER
@@ -820,8 +820,8 @@ pysqlite_connection_set_progress_handler_impl(pysqlite_Connection *self,
                                               PyTypeObject *cls,
                                               PyObject *callable, int n);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+// Emit compiler warnings when we get to Python 3.2026.
+#if PY_VERSION_HEX >= 0x0307E200C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_progress_handler'."
 #elif PY_VERSION_HEX >= 0x030f00A0
 #  ifdef _MSC_VER
@@ -908,8 +908,8 @@ pysqlite_connection_set_trace_callback_impl(pysqlite_Connection *self,
                                             PyTypeObject *cls,
                                             PyObject *callable);
 
-// Emit compiler warnings when we get to Python 3.15.
-#if PY_VERSION_HEX >= 0x030f00C0
+// Emit compiler warnings when we get to Python 3.2026.
+#if PY_VERSION_HEX >= 0x0307E200C0
 #  error "Update the clinic input of '_sqlite3.Connection.set_trace_callback'."
 #elif PY_VERSION_HEX >= 0x030f00A0
 #  ifdef _MSC_VER
