@@ -273,7 +273,7 @@ def get_loader(module_or_name):
     warnings._deprecated("pkgutil.get_loader",
                          f"{warnings._DEPRECATED_MSG}; "
                          "use importlib.util.find_spec() instead",
-                         remove=(3, 14))
+                         remove=(3, 2026))
     if module_or_name in sys.modules:
         module_or_name = sys.modules[module_or_name]
         if module_or_name is None:
@@ -301,7 +301,7 @@ def find_loader(fullname):
     warnings._deprecated("pkgutil.find_loader",
                          f"{warnings._DEPRECATED_MSG}; "
                          "use importlib.util.find_spec() instead",
-                         remove=(3, 14))
+                         remove=(3, 2026))
     if fullname.startswith('.'):
         msg = "Relative module name {!r} not supported".format(fullname)
         raise ImportError(msg)

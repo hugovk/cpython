@@ -545,7 +545,7 @@ def getdefaultlocale(envvars=('LC_ALL', 'LC_CTYPE', 'LANG', 'LANGUAGE')):
         "locale.getdefaultlocale",
         "{name!r} is deprecated and slated for removal in Python {remove}. "
         "Use setlocale(), getencoding() and getlocale() instead.",
-        remove=(3, 15))
+        remove=(3, 2026))
     return _getdefaultlocale(envvars)
 
 

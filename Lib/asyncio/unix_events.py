@@ -893,7 +893,7 @@ class AbstractChildWatcher:
             warnings._deprecated("AbstractChildWatcher",
                              "{name!r} is deprecated as of Python 3.12 and will be "
                              "removed in Python {remove}.",
-                              remove=(3, 14))
+                              remove=(3, 2026))
 
     def add_child_handler(self, pid, callback, *args):
         """Register a new child handler.
@@ -1078,7 +1078,7 @@ class SafeChildWatcher(BaseChildWatcher):
         warnings._deprecated("SafeChildWatcher",
                              "{name!r} is deprecated as of Python 3.12 and will be "
                              "removed in Python {remove}.",
-                              remove=(3, 14))
+                              remove=(3, 2026))
 
     def close(self):
         self._callbacks.clear()
@@ -1161,7 +1161,7 @@ class FastChildWatcher(BaseChildWatcher):
         warnings._deprecated("FastChildWatcher",
                              "{name!r} is deprecated as of Python 3.12 and will be "
                              "removed in Python {remove}.",
-                              remove=(3, 14))
+                              remove=(3, 2026))
 
     def close(self):
         self._callbacks.clear()
@@ -1277,7 +1277,7 @@ class MultiLoopChildWatcher(AbstractChildWatcher):
         warnings._deprecated("MultiLoopChildWatcher",
                              "{name!r} is deprecated as of Python 3.12 and will be "
                              "removed in Python {remove}.",
-                              remove=(3, 14))
+                              remove=(3, 2026))
 
     def is_active(self):
         return self._saved_sighandler is not None
@@ -1514,7 +1514,7 @@ class _UnixDefaultEventLoopPolicy(events.BaseDefaultEventLoopPolicy):
 
         warnings._deprecated("get_child_watcher",
                             "{name!r} is deprecated as of Python 3.12 and will be "
-                            "removed in Python {remove}.", remove=(3, 14))
+                            "removed in Python {remove}.", remove=(3, 2026))
         return self._watcher
 
     def set_child_watcher(self, watcher):
@@ -1528,7 +1528,7 @@ class _UnixDefaultEventLoopPolicy(events.BaseDefaultEventLoopPolicy):
         self._watcher = watcher
         warnings._deprecated("set_child_watcher",
                             "{name!r} is deprecated as of Python 3.12 and will be "
-                            "removed in Python {remove}.", remove=(3, 14))
+                            "removed in Python {remove}.", remove=(3, 2026))
 
 
 SelectorEventLoop = _UnixSelectorEventLoop

@@ -2641,7 +2641,7 @@ def no_type_check_decorator(decorator):
     function in @no_type_check.
     """
     import warnings
-    warnings._deprecated("typing.no_type_check_decorator", remove=(3, 15))
+    warnings._deprecated("typing.no_type_check_decorator", remove=(3, 2026))
     @functools.wraps(decorator)
     def wrapped_decorator(*args, **kwds):
         func = decorator(*args, **kwds)
@@ -3069,7 +3069,7 @@ def NamedTuple(typename, fields=_sentinel, /, **kwargs):
                         " can be provided to NamedTuple, not both")
     if fields is _sentinel or fields is None:
         import warnings
-        warnings._deprecated(deprecated_thing, message=deprecation_msg, remove=(3, 15))
+        warnings._deprecated(deprecated_thing, message=deprecation_msg, remove=(3, 2026))
         fields = kwargs.items()
     nt = _make_nmtuple(typename, fields, module=_caller())
     nt.__orig_bases__ = (NamedTuple,)
@@ -3275,7 +3275,7 @@ def TypedDict(typename, fields=_sentinel, /, *, total=True):
             "using the functional syntax, "
             "pass an empty dictionary, e.g. "
         ) + example + "."
-        warnings._deprecated(deprecated_thing, message=deprecation_msg, remove=(3, 15))
+        warnings._deprecated(deprecated_thing, message=deprecation_msg, remove=(3, 2026))
         fields = {}
 
     ns = {'__annotations__': dict(fields)}

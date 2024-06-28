@@ -781,7 +781,7 @@ class CAPITest(unittest.TestCase):
     def test_immutable_type_with_mutable_base(self):
         # Add deprecation warning here so it's removed in 3.14
         warnings._deprecated(
-            'creating immutable classes with mutable bases', remove=(3, 14))
+            'creating immutable classes with mutable bases', remove=(3, 2026))
 
         class MutableBase:
             def meth(self):

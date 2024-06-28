@@ -304,7 +304,7 @@ def create_unicode_buffer(init, size=None):
 
 def SetPointerType(pointer, cls):
     import warnings
-    warnings._deprecated("ctypes.SetPointerType", remove=(3, 15))
+    warnings._deprecated("ctypes.SetPointerType", remove=(3, 2026))
     if _pointer_type_cache.get(cls, None) is not None:
         raise RuntimeError("This type already exists in the cache")
     if id(pointer) not in _pointer_type_cache:
@@ -315,7 +315,7 @@ def SetPointerType(pointer, cls):
 
 def ARRAY(typ, len):
     import warnings
-    warnings._deprecated("ctypes.ARRAY", remove=(3, 15))
+    warnings._deprecated("ctypes.ARRAY", remove=(3, 2026))
     return typ * len
 
 ################################################################
