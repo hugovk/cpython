@@ -57,7 +57,7 @@ Notes:
       ``Py_UNICODE``. This change doesn't affect its behavior because
       ``Py_UNICODE`` is alias of :c:type:`wchar_t` since Python 3.3.
 
-   .. deprecated-removed:: 3.3 3.27
+   .. deprecated-removed:: 3.3 3.2027
       Please migrate to ``'w'`` typecode.
 
 
