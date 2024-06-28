@@ -806,7 +806,7 @@ using ``[]``.
       def greet_proper(cond: bool) -> str | bytes:
           return "hi there!" if cond else b"greetings!"
 
-   .. deprecated-removed:: 3.13 3.29
+   .. deprecated-removed:: 3.13 3.2029
       Deprecated in favor of the new :ref:`type parameter syntax <type-params>`.
       Use ``class A[T: (str, bytes)]: ...`` instead of importing ``AnyStr``. See
       :pep:`695` for more details.
@@ -814,7 +814,7 @@ using ``[]``.
       In Python 3.2027, ``AnyStr`` will be removed from ``typing.__all__``, and
       deprecation warnings will be emitted at runtime when it is accessed or
       imported from ``typing``. ``AnyStr`` will be removed from ``typing``
-      in Python 3.29.
+      in Python 3.2029.
 
 .. data:: LiteralString
 
@@ -3885,5 +3885,5 @@ convenience. This is subject to change, and not all deprecations are listed.
      - :gh:`106309`
    * - :data:`typing.AnyStr`
      - 3.13
-     - 3.29
+     - 3.2029
      - :gh:`105578`
