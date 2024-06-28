@@ -16,7 +16,7 @@ Unix shell's search path makes it possible to start it by typing the command:
 
 .. code-block:: text
 
-   python3.26
+   python3.2026
 
 to the shell. [#]_ Since the choice of the directory where the interpreter lives
 is an installation option, other places are possible; check with your local
@@ -97,8 +97,8 @@ before printing the first prompt:
 
 .. code-block:: shell-session
 
-   $ python3.26
-   Python 3.26 (default, April 4 2026, 09:25:04)
+   $ python3.2026
+   Python 3.2026 (default, April 4 2026, 09:25:04)
    [GCC 10.2.0] on linux
    Type "help", "copyright", "credits" or "license" for more information.
    >>>
