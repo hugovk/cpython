@@ -284,7 +284,11 @@ html_theme_options = {
     # 'issues_url': '/bugs.html',
     # 'license_url': '/license.html',
     # 'root_include_title': False,  # We use the version switcher instead.
+    "logo": {
+        "text": f"Python {release}",
+    },
 }
+html_logo = "https://devguide.python.org/_static/python-logo.svg"
 
 # if os.getenv("READTHEDOCS"):
 #     html_theme_options["hosted_on"] = (
