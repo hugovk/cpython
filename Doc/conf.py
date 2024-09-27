@@ -276,14 +276,14 @@ gettext_additional_targets = [
 # -----------------------
 
 # Use our custom theme: https://github.com/python/python-docs-theme
-html_theme = 'python_docs_theme'
-# Location of overrides for theme templates and static files
+# html_theme = 'python_docs_theme'
+html_theme = 'pydata_sphinx_theme'
 html_theme_path = ['tools']
 html_theme_options = {
-    'collapsiblesidebar': True,
-    'issues_url': '/bugs.html',
-    'license_url': '/license.html',
-    'root_include_title': False,  # We use the version switcher instead.
+    # 'collapsiblesidebar': True,
+    # 'issues_url': '/bugs.html',
+    # 'license_url': '/license.html',
+    # 'root_include_title': False,  # We use the version switcher instead.
 }
 
 if os.getenv("READTHEDOCS"):
