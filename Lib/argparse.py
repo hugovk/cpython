@@ -1317,8 +1317,19 @@ class _SubParsersAction(Action):
             raise ArgumentError(self, msg)
 
         if parser_name in self._deprecated:
-            parser._warning(_("command '%(parser_name)s' is deprecated") %
-                            {'parser_name': parser_name})
+            from _colorize import ANSIColors, can_colorize
+
+            yellow, reset = (
+                (ANSIColors.YELLOW, ANSIColors.RESET) if can_colorize() else ("", "")
+            )
+            parser._warning(
+                _("%(yellow)s command '%(parser_name)s' is deprecated%(reset)s")
+                % {
+                    "yellow": yellow,
+                    "parser_name": parser_name,
+                    "reset": reset,
+                }
+            )
 
         # parse all the remaining options into the namespace
         # store any unrecognized options on the object, so that the top
@@ -2216,8 +2227,21 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
             assert action_tuples
             for action, args, option_string in action_tuples:
                 if action.deprecated and option_string not in warned:
-                    self._warning(_("option '%(option)s' is deprecated") %
-                                  {'option': option_string})
+                    from _colorize import ANSIColors, can_colorize
+
+                    yellow, reset = (
+                        (ANSIColors.YELLOW, ANSIColors.RESET)
+                        if can_colorize()
+                        else ("", "")
+                    )
+                    self._warning(
+                        _("%(yellow)soption '%(option)s' is deprecated%(reset)s")
+                        % {
+                            "yellow": yellow,
+                            "option": option_string,
+                            "reset": reset,
+                        }
+                    )
                     warned.add(option_string)
                 take_action(action, args, option_string)
             return stop
