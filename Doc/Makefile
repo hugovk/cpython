@@ -59,7 +59,9 @@ build:
 	echo $(BLURB)
 	ls $(VENVDIR)/bin
 	which $(BLURB)
+	echo call blurb help:
 	$(BLURB) help
+	echo called blurb help.
 	@if [ -f  ../Misc/NEWS ] ; then \
 		echo "Using existing Misc/NEWS file"; \
 		cp ../Misc/NEWS build/NEWS; \
