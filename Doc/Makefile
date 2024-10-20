@@ -58,7 +58,6 @@ build:
 	echo $(VENVDIR)
 	echo $(BLURB)
 	ls $(VENVDIR)/bin
-	which $(BLURB)
 	echo call blurb help:
 	$(BLURB) help
 	echo called blurb help.
