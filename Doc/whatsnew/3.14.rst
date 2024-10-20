@@ -75,6 +75,8 @@ New features
 PEP 649: deferred evaluation of annotations
 -------------------------------------------
 
+hi!
+
 The :term:`annotations <annotation>` on functions, classes, and modules are no
 longer evaluated eagerly. Instead, annotations are stored in special-purpose
 :term:`annotate functions <annotate function>` and evaluated only when
