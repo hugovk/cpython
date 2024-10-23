@@ -86,7 +86,7 @@ jobs:
 
         # Check if we should run hypothesis tests
         GIT_BRANCH=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-        echo $GIT_BRANCH
+        echo "$GIT_BRANCH"
         if $(echo "$GIT_BRANCH" | grep -q -w '3\.\(8\|9\|10\|11\)'); then
           echo "Branch too old for hypothesis tests"
           echo "run-hypothesis=false" >> "$GITHUB_OUTPUT"
@@ -100,7 +100,7 @@ jobs:
         # merged into the main branch; compatibility with older branches may
         # be broken.
         FUZZ_RELEVANT_FILES='(\.c$|\.h$|\.cpp$|^configure$|^\.github/workflows/build\.yml$|^Modules/_xxtestfuzz)'
-        if [ "$GITHUB_BASE_REF" = "main" ] && [ "$(git diff --name-only origin/$GITHUB_BASE_REF.. | grep -qE $FUZZ_RELEVANT_FILES; echo $?)" -eq 0 ]; then
+        if [ "$GITHUB_BASE_REF" = "main" ] && [ "$(git diff --name-only "origin/$GITHUB_BASE_REF.." | grep -qE $FUZZ_RELEVANT_FILES; echo $?)" -eq 0 ]; then
           # The tests are pretty slow so they are executed only for PRs
           # changing relevant files.
           echo "Run CIFuzz tests"
