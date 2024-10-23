@@ -333,8 +333,8 @@ jobs:
         save: false
     - name: Setup directory envs for out-of-tree builds
       run: |
-        echo "CPYTHON_RO_SRCDIR=$(realpath -m ${GITHUB_WORKSPACE}/../cpython-ro-srcdir)" >> "$GITHUB_ENV"
-        echo "CPYTHON_BUILDDIR=$(realpath -m ${GITHUB_WORKSPACE}/../cpython-builddir)" >> "$GITHUB_ENV"
+        echo "CPYTHON_RO_SRCDIR=$(realpath -m "${GITHUB_WORKSPACE}"/../cpython-ro-srcdir)" >> "$GITHUB_ENV"
+        echo "CPYTHON_BUILDDIR=$(realpath -m "${GITHUB_WORKSPACE}"/../cpython-builddir)" >> "$GITHUB_ENV"
     - name: Create directories for read-only out-of-tree builds
       run: mkdir -p "$CPYTHON_RO_SRCDIR" "$CPYTHON_BUILDDIR"
     - name: Bind mount sources read-only
@@ -365,7 +365,7 @@ jobs:
       run: sudo mount "$CPYTHON_RO_SRCDIR" -oremount,rw
     - name: Setup directory envs for out-of-tree builds
       run: |
-        echo "CPYTHON_BUILDDIR=$(realpath -m ${GITHUB_WORKSPACE}/../cpython-builddir)" >> "$GITHUB_ENV"
+        echo "CPYTHON_BUILDDIR=$(realpath -m "${GITHUB_WORKSPACE}"/../cpython-builddir)" >> "$GITHUB_ENV"
     - name: "Create hypothesis venv"
       working-directory: ${{ env.CPYTHON_BUILDDIR }}
       run: |
