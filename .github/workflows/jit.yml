@@ -173,7 +173,8 @@ jobs:
       - name: Build with JIT enabled and GIL disabled
         run: |
           sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" ./llvm.sh 18
-          export PATH="$(llvm-config-18 --bindir):$PATH"
+          PATH="$(llvm-config-18 --bindir):$PATH"
+          export PATH
           ./configure --enable-experimental-jit --with-pydebug --disable-gil
           make all --jobs 4
       - name: Run tests
