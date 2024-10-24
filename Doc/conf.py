@@ -374,6 +374,7 @@ html_theme_options = {
     },
     "navbar_align": "left",
 }
+html_favicon = "https://devguide.python.org/_static/python-logo.svg"
 html_logo = "https://devguide.python.org/_static/python-logo.svg"
 
 # if os.getenv("READTHEDOCS"):
