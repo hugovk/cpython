@@ -284,9 +284,30 @@ html_theme_options = {
     # 'issues_url': '/bugs.html',
     # 'license_url': '/license.html',
     # 'root_include_title': False,  # We use the version switcher instead.
+    "external_links": [
+        {"name": "Discuss", "url": "https://discuss.python.org/"},
+        {"name": "GitHub", "url": "https://github.com/python/cpython"},
+        {"name": "Issues", "url": "https://github.com/python/cpython/issues"},
+        {"name": "Developer's guide", "url": "devguide.python.org"},
+    ],
+    "icon_links": [
+        {
+            "name": "Discuss",
+            "url": "https://discuss.python.org/",
+            "icon": "fa-brands fa-discourse",
+            "type": "fontawesome",
+        },
+        {
+            "name": "GitHub",
+            "url": "https://github.com/python/cpython",
+            "icon": "fa-brands fa-square-github",
+            "type": "fontawesome",
+        },
+    ],
     "logo": {
         "text": f"Python {release}",
     },
+    "navbar_align": "left",
 }
 html_logo = "https://devguide.python.org/_static/python-logo.svg"
 
