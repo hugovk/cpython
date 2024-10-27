@@ -6,17 +6,16 @@
 // - PyOS_strtoul(): convert string to C unsigned long integer.
 
 #include "Python.h"
-#include "pycore_long.h"          // _PyLong_DigitValue
+#include "pycore_long.h"  // _PyLong_DigitValue
 
 #if defined(__sgi) && !defined(_SGI_MP_SOURCE)
-#  define _SGI_MP_SOURCE
+#define _SGI_MP_SOURCE
 #endif
 
 /* strtol and strtoul, renamed to avoid conflicts */
 
-
 #ifdef HAVE_ERRNO_H
-#  include <errno.h>              // errno
+#include <errno.h>  // errno
 #endif
 
 /* Static overflow check values for bases 2 through 36.
@@ -68,20 +67,18 @@ static const unsigned long smallmax[] = {
  * Note that this is pessimistic if sizeof(long) > 4.
  */
 #if SIZEOF_LONG == 4
-static const int digitlimit[] = {
-    0,  0, 32, 20, 16, 13, 12, 11, 10, 10,  /*  0 -  9 */
-    9,  9,  8,  8,  8,  8,  8,  7,  7,  7,  /* 10 - 19 */
-    7,  7,  7,  7,  6,  6,  6,  6,  6,  6,  /* 20 - 29 */
-    6,  6,  6,  6,  6,  6,  6};             /* 30 - 36 */
+static const int digitlimit[] = {0, 0, 32, 20, 16, 13, 12, 11, 10, 10, /*  0 -  9 */
+                                 9, 9, 8,  8,  8,  8,  8,  7,  7,  7,  /* 10 - 19 */
+                                 7, 7, 7,  7,  6,  6,  6,  6,  6,  6,  /* 20 - 29 */
+                                 6, 6, 6,  6,  6,  6,  6};             /* 30 - 36 */
 #elif SIZEOF_LONG == 8
 /* [int(math.floor(math.log(2**64, i))) for i in range(2, 37)] */
-static const int digitlimit[] = {
-         0,   0, 64, 40, 32, 27, 24, 22, 21, 20,  /*  0 -  9 */
-    19,  18, 17, 17, 16, 16, 16, 15, 15, 15,  /* 10 - 19 */
-    14,  14, 14, 14, 13, 13, 13, 13, 13, 13,  /* 20 - 29 */
-    13,  12, 12, 12, 12, 12, 12};             /* 30 - 36 */
+static const int digitlimit[] = {0,  0,  64, 40, 32, 27, 24, 22, 21, 20, /*  0 -  9 */
+                                 19, 18, 17, 17, 16, 16, 16, 15, 15, 15, /* 10 - 19 */
+                                 14, 14, 14, 14, 13, 13, 13, 13, 13, 13, /* 20 - 29 */
+                                 13, 12, 12, 12, 12, 12, 12};            /* 30 - 36 */
 #else
-#  error "Need table for SIZEOF_LONG"
+#error "Need table for SIZEOF_LONG"
 #endif
 
 /*
@@ -98,106 +95,101 @@ static const int digitlimit[] = {
 **              exceptions - we don't check for them.
 */
 unsigned long
-PyOS_strtoul(const char *str, char **ptr, int base)
-{
+PyOS_strtoul(const char *str, char **ptr, int base) {
     unsigned long result = 0; /* return value of the function */
-    int c;             /* current input character */
-    int ovlimit;       /* required digits to overflow */
+    int c;                    /* current input character */
+    int ovlimit;              /* required digits to overflow */
 
     /* skip leading white space */
-    while (*str && Py_ISSPACE(*str))
-        ++str;
+    while (*str && Py_ISSPACE(*str)) ++str;
 
     /* check for leading 0b, 0o or 0x for auto-base or base 16 */
     switch (base) {
-    case 0:             /* look for leading 0b, 0o or 0x */
-        if (*str == '0') {
-            ++str;
-            if (*str == 'x' || *str == 'X') {
-                /* there must be at least one digit after 0x */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 16) {
-                    if (ptr)
-                        *ptr = (char *)str;
-                    return 0;
-                }
+        case 0: /* look for leading 0b, 0o or 0x */
+            if (*str == '0') {
                 ++str;
-                base = 16;
-            } else if (*str == 'o' || *str == 'O') {
-                /* there must be at least one digit after 0o */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 8) {
-                    if (ptr)
-                        *ptr = (char *)str;
-                    return 0;
-                }
-                ++str;
-                base = 8;
-            } else if (*str == 'b' || *str == 'B') {
-                /* there must be at least one digit after 0b */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 2) {
-                    if (ptr)
-                        *ptr = (char *)str;
-                    return 0;
-                }
-                ++str;
-                base = 2;
-            } else {
-                /* skip all zeroes... */
-                while (*str == '0')
+                if (*str == 'x' || *str == 'X') {
+                    /* there must be at least one digit after 0x */
+                    if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 16) {
+                        if (ptr)
+                            *ptr = (char *)str;
+                        return 0;
+                    }
                     ++str;
-                while (Py_ISSPACE(*str))
+                    base = 16;
+                } else if (*str == 'o' || *str == 'O') {
+                    /* there must be at least one digit after 0o */
+                    if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 8) {
+                        if (ptr)
+                            *ptr = (char *)str;
+                        return 0;
+                    }
                     ++str;
-                if (ptr)
-                    *ptr = (char *)str;
-                return 0;
-            }
-        }
-        else
-            base = 10;
-        break;
+                    base = 8;
+                } else if (*str == 'b' || *str == 'B') {
+                    /* there must be at least one digit after 0b */
+                    if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 2) {
+                        if (ptr)
+                            *ptr = (char *)str;
+                        return 0;
+                    }
+                    ++str;
+                    base = 2;
+                } else {
+                    /* skip all zeroes... */
+                    while (*str == '0') ++str;
+                    while (Py_ISSPACE(*str)) ++str;
+                    if (ptr)
+                        *ptr = (char *)str;
+                    return 0;
+                }
+            } else
+                base = 10;
+            break;
 
-    /* even with explicit base, skip leading 0? prefix */
-    case 16:
-        if (*str == '0') {
-            ++str;
-            if (*str == 'x' || *str == 'X') {
-                /* there must be at least one digit after 0x */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 16) {
-                    if (ptr)
-                        *ptr = (char *)str;
-                    return 0;
-                }
+        /* even with explicit base, skip leading 0? prefix */
+        case 16:
+            if (*str == '0') {
                 ++str;
-            }
-        }
-        break;
-    case 8:
-        if (*str == '0') {
-            ++str;
-            if (*str == 'o' || *str == 'O') {
-                /* there must be at least one digit after 0o */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 8) {
-                    if (ptr)
-                        *ptr = (char *)str;
-                    return 0;
+                if (*str == 'x' || *str == 'X') {
+                    /* there must be at least one digit after 0x */
+                    if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 16) {
+                        if (ptr)
+                            *ptr = (char *)str;
+                        return 0;
+                    }
+                    ++str;
                 }
-                ++str;
             }
-        }
-        break;
-    case 2:
-        if(*str == '0') {
-            ++str;
-            if (*str == 'b' || *str == 'B') {
-                /* there must be at least one digit after 0b */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 2) {
-                    if (ptr)
-                        *ptr = (char *)str;
-                    return 0;
+            break;
+        case 8:
+            if (*str == '0') {
+                ++str;
+                if (*str == 'o' || *str == 'O') {
+                    /* there must be at least one digit after 0o */
+                    if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 8) {
+                        if (ptr)
+                            *ptr = (char *)str;
+                        return 0;
+                    }
+                    ++str;
                 }
-                ++str;
             }
-        }
-        break;
+            break;
+        case 2:
+            if (*str == '0') {
+                ++str;
+                if (*str == 'b' || *str == 'B') {
+                    /* there must be at least one digit after 0b */
+                    if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 2) {
+                        if (ptr)
+                            *ptr = (char *)str;
+                        return 0;
+                    }
+                    ++str;
+                }
+            }
+            break;
     }
 
     /* catch silly bases */
@@ -208,8 +200,7 @@ PyOS_strtoul(const char *str, char **ptr, int base)
     }
 
     /* skip leading zeroes */
-    while (*str == '0')
-        ++str;
+    while (*str == '0') ++str;
 
     /* base is guaranteed to be in [2, 36] at this point */
     ovlimit = digitlimit[base];
@@ -252,8 +243,7 @@ PyOS_strtoul(const char *str, char **ptr, int base)
 overflowed:
     if (ptr) {
         /* spool through remaining digit characters */
-        while (_PyLong_DigitValue[Py_CHARMASK(*str)] < base)
-            ++str;
+        while (_PyLong_DigitValue[Py_CHARMASK(*str)] < base) ++str;
         *ptr = (char *)str;
     }
     errno = ERANGE;
@@ -263,17 +253,15 @@ overflowed:
 /* Checking for overflow in PyOS_strtol is a PITA; see comments
  * about PY_ABS_LONG_MIN in longobject.c.
  */
-#define PY_ABS_LONG_MIN         (0-(unsigned long)LONG_MIN)
+#define PY_ABS_LONG_MIN (0 - (unsigned long)LONG_MIN)
 
 long
-PyOS_strtol(const char *str, char **ptr, int base)
-{
+PyOS_strtol(const char *str, char **ptr, int base) {
     long result;
     unsigned long uresult;
     char sign;
 
-    while (*str && Py_ISSPACE(*str))
-        str++;
+    while (*str && Py_ISSPACE(*str)) str++;
 
     sign = *str;
     if (sign == '+' || sign == '-')
@@ -285,11 +273,9 @@ PyOS_strtol(const char *str, char **ptr, int base)
         result = (long)uresult;
         if (sign == '-')
             result = -result;
-    }
-    else if (sign == '-' && uresult == PY_ABS_LONG_MIN) {
+    } else if (sign == '-' && uresult == PY_ABS_LONG_MIN) {
         result = LONG_MIN;
-    }
-    else {
+    } else {
         errno = ERANGE;
         result = LONG_MAX;
     }

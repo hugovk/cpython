@@ -16,7 +16,7 @@ EM_JS(int, _Py_CheckEmscriptenSignals_Helper, (void), {
         let result = Module.Py_EmscriptenSignalBuffer[0];
         Module.Py_EmscriptenSignalBuffer[0] = 0;
         return result;
-    } catch(e) {
+    } catch (e) {
 #if !defined(NDEBUG)
         console.warn("Error occurred while trying to read signal buffer:", e);
 #endif
@@ -27,8 +27,7 @@ EM_JS(int, _Py_CheckEmscriptenSignals_Helper, (void), {
 EMSCRIPTEN_KEEPALIVE int Py_EMSCRIPTEN_SIGNAL_HANDLING = 0;
 
 void
-_Py_CheckEmscriptenSignals(void)
-{
+_Py_CheckEmscriptenSignals(void) {
     if (!Py_EMSCRIPTEN_SIGNAL_HANDLING) {
         return;
     }
@@ -42,13 +41,11 @@ _Py_CheckEmscriptenSignals(void)
 int _Py_emscripten_signal_clock = PY_EMSCRIPTEN_SIGNAL_INTERVAL;
 
 void
-_Py_CheckEmscriptenSignalsPeriodically(void)
-{
+_Py_CheckEmscriptenSignalsPeriodically(void) {
     if (_Py_emscripten_signal_clock == 0) {
         _Py_emscripten_signal_clock = PY_EMSCRIPTEN_SIGNAL_INTERVAL;
         _Py_CheckEmscriptenSignals();
-    }
-    else if (Py_EMSCRIPTEN_SIGNAL_HANDLING) {
+    } else if (Py_EMSCRIPTEN_SIGNAL_HANDLING) {
         _Py_emscripten_signal_clock--;
     }
 }

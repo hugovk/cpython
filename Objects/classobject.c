@@ -1,16 +1,15 @@
 /* Class object implementation (dead now except for methods) */
 
 #include "Python.h"
-#include "pycore_call.h"          // _PyObject_VectorcallTstate()
-#include "pycore_ceval.h"         // _PyEval_GetBuiltin()
+#include "pycore_call.h"   // _PyObject_VectorcallTstate()
+#include "pycore_ceval.h"  // _PyEval_GetBuiltin()
 #include "pycore_object.h"
 #include "pycore_pyerrors.h"
-#include "pycore_pystate.h"       // _PyThreadState_GET()
-
+#include "pycore_pystate.h"  // _PyThreadState_GET()
 
 #include "clinic/classobject.c.h"
 
-#define _PyMethodObject_CAST(op) _Py_CAST(PyMethodObject*, (op))
+#define _PyMethodObject_CAST(op) _Py_CAST(PyMethodObject *, (op))
 #define TP_DESCR_GET(t) ((t)->tp_descr_get)
 
 /*[clinic input]
@@ -18,10 +17,8 @@ class method "PyMethodObject *" "&PyMethod_Type"
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=b16e47edf6107c23]*/
 
-
 PyObject *
-PyMethod_Function(PyObject *im)
-{
+PyMethod_Function(PyObject *im) {
     if (!PyMethod_Check(im)) {
         PyErr_BadInternalCall();
         return NULL;
@@ -30,8 +27,7 @@ PyMethod_Function(PyObject *im)
 }
 
 PyObject *
-PyMethod_Self(PyObject *im)
-{
+PyMethod_Self(PyObject *im) {
     if (!PyMethod_Check(im)) {
         PyErr_BadInternalCall();
         return NULL;
@@ -39,32 +35,30 @@ PyMethod_Self(PyObject *im)
     return ((PyMethodObject *)im)->im_self;
 }
 
-
 static PyObject *
-method_vectorcall(PyObject *method, PyObject *const *args,
-                  size_t nargsf, PyObject *kwnames)
-{
+method_vectorcall(
+    PyObject *method, PyObject *const *args, size_t nargsf, PyObject *kwnames
+) {
     assert(Py_IS_TYPE(method, &PyMethod_Type));
 
     PyThreadState *tstate = _PyThreadState_GET();
     PyObject *self = PyMethod_GET_SELF(method);
     PyObject *func = PyMethod_GET_FUNCTION(method);
     Py_ssize_t nargs = PyVectorcall_NARGS(nargsf);
-    assert(nargs == 0 || args[nargs-1]);
+    assert(nargs == 0 || args[nargs - 1]);
 
     PyObject *result;
     if (nargsf & PY_VECTORCALL_ARGUMENTS_OFFSET) {
-        /* PY_VECTORCALL_ARGUMENTS_OFFSET is set, so we are allowed to mutate the vector */
-        PyObject **newargs = (PyObject**)args - 1;
+        /* PY_VECTORCALL_ARGUMENTS_OFFSET is set, so we are allowed to mutate the vector
+         */
+        PyObject **newargs = (PyObject **)args - 1;
         nargs += 1;
         PyObject *tmp = newargs[0];
         newargs[0] = self;
-        assert(newargs[nargs-1]);
-        result = _PyObject_VectorcallTstate(tstate, func, newargs,
-                                            nargs, kwnames);
+        assert(newargs[nargs - 1]);
+        result = _PyObject_VectorcallTstate(tstate, func, newargs, nargs, kwnames);
         newargs[0] = tmp;
-    }
-    else {
+    } else {
         Py_ssize_t nkwargs = (kwnames == NULL) ? 0 : PyTuple_GET_SIZE(kwnames);
         Py_ssize_t totalargs = nargs + nkwargs;
         if (totalargs == 0) {
@@ -75,9 +69,8 @@ method_vectorcall(PyObject *method, PyObject *const *args,
         PyObject **newargs;
         if (totalargs <= (Py_ssize_t)Py_ARRAY_LENGTH(newargs_stack) - 1) {
             newargs = newargs_stack;
-        }
-        else {
-            newargs = PyMem_Malloc((totalargs+1) * sizeof(PyObject *));
+        } else {
+            newargs = PyMem_Malloc((totalargs + 1) * sizeof(PyObject *));
             if (newargs == NULL) {
                 _PyErr_NoMemory(tstate);
                 return NULL;
@@ -90,8 +83,7 @@ method_vectorcall(PyObject *method, PyObject *const *args,
          * undefined behaviour. */
         assert(args != NULL);
         memcpy(newargs + 1, args, totalargs * sizeof(PyObject *));
-        result = _PyObject_VectorcallTstate(tstate, func,
-                                            newargs, nargs+1, kwnames);
+        result = _PyObject_VectorcallTstate(tstate, func, newargs, nargs + 1, kwnames);
         if (newargs != newargs_stack) {
             PyMem_Free(newargs);
         }
@@ -99,15 +91,13 @@ method_vectorcall(PyObject *method, PyObject *const *args,
     return result;
 }
 
-
 /* Method objects are used for bound instance methods returned by
    instancename.methodname. ClassName.methodname returns an ordinary
    function.
 */
 
 PyObject *
-PyMethod_New(PyObject *func, PyObject *self)
-{
+PyMethod_New(PyObject *func, PyObject *self) {
     if (self == NULL) {
         PyErr_BadInternalCall();
         return NULL;
@@ -139,13 +129,11 @@ method___reduce___impl(PyMethodObject *self)
         return NULL;
     }
     return Py_BuildValue(
-            "N(ON)", _PyEval_GetBuiltin(&_Py_ID(getattr)), funcself, funcname);
+        "N(ON)", _PyEval_GetBuiltin(&_Py_ID(getattr)), funcself, funcname
+    );
 }
 
-static PyMethodDef method_methods[] = {
-    METHOD___REDUCE___METHODDEF
-    {NULL, NULL}
-};
+static PyMethodDef method_methods[] = {METHOD___REDUCE___METHODDEF{NULL, NULL}};
 
 /* Descriptors for PyMethod attributes */
 
@@ -154,11 +142,17 @@ static PyMethodDef method_methods[] = {
 #define MO_OFF(x) offsetof(PyMethodObject, x)
 
 static PyMemberDef method_memberlist[] = {
-    {"__func__", _Py_T_OBJECT, MO_OFF(im_func), Py_READONLY,
+    {"__func__",
+     _Py_T_OBJECT,
+     MO_OFF(im_func),
+     Py_READONLY,
      "the function (or other callable) implementing a method"},
-    {"__self__", _Py_T_OBJECT, MO_OFF(im_self), Py_READONLY,
+    {"__self__",
+     _Py_T_OBJECT,
+     MO_OFF(im_self),
+     Py_READONLY,
      "the instance to which a method is bound"},
-    {NULL}      /* Sentinel */
+    {NULL} /* Sentinel */
 };
 
 /* Christian Tismer argued convincingly that method attributes should
@@ -167,20 +161,15 @@ static PyMemberDef method_memberlist[] = {
    should only be used for the class, not for instances */
 
 static PyObject *
-method_get_doc(PyObject *self, void *context)
-{
+method_get_doc(PyObject *self, void *context) {
     PyMethodObject *im = _PyMethodObject_CAST(self);
     return PyObject_GetAttr(im->im_func, &_Py_ID(__doc__));
 }
 
-static PyGetSetDef method_getset[] = {
-    {"__doc__", method_get_doc, NULL, NULL},
-    {0}
-};
+static PyGetSetDef method_getset[] = {{"__doc__", method_get_doc, NULL, NULL}, {0}};
 
 static PyObject *
-method_getattro(PyObject *obj, PyObject *name)
-{
+method_getattro(PyObject *obj, PyObject *name) {
     PyMethodObject *im = (PyMethodObject *)obj;
     PyTypeObject *tp = Py_TYPE(obj);
     PyObject *descr = NULL;
@@ -199,8 +188,7 @@ method_getattro(PyObject *obj, PyObject *name)
             PyObject *res = f(descr, obj, (PyObject *)Py_TYPE(obj));
             Py_DECREF(descr);
             return res;
-        }
-        else {
+        } else {
             return descr;
         }
     }
@@ -223,13 +211,11 @@ method_new_impl(PyTypeObject *type, PyObject *function, PyObject *instance)
 /*[clinic end generated code: output=d33ef4ebf702e1f7 input=4e32facc3c3108ae]*/
 {
     if (!PyCallable_Check(function)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "first argument must be callable");
+        PyErr_SetString(PyExc_TypeError, "first argument must be callable");
         return NULL;
     }
     if (instance == NULL || instance == Py_None) {
-        PyErr_SetString(PyExc_TypeError,
-            "instance must not be None");
+        PyErr_SetString(PyExc_TypeError, "instance must not be None");
         return NULL;
     }
 
@@ -237,8 +223,7 @@ method_new_impl(PyTypeObject *type, PyObject *function, PyObject *instance)
 }
 
 static void
-method_dealloc(PyObject *self)
-{
+method_dealloc(PyObject *self) {
     PyMethodObject *im = _PyMethodObject_CAST(self);
     _PyObject_GC_UNTRACK(im);
     if (im->im_weakreflist != NULL)
@@ -249,16 +234,13 @@ method_dealloc(PyObject *self)
 }
 
 static PyObject *
-method_richcompare(PyObject *self, PyObject *other, int op)
-{
+method_richcompare(PyObject *self, PyObject *other, int op) {
     PyMethodObject *a, *b;
     PyObject *res;
     int eq;
 
-    if ((op != Py_EQ && op != Py_NE) ||
-        !PyMethod_Check(self) ||
-        !PyMethod_Check(other))
-    {
+    if ((op != Py_EQ && op != Py_NE) || !PyMethod_Check(self) ||
+        !PyMethod_Check(other)) {
         Py_RETURN_NOTIMPLEMENTED;
     }
     a = (PyMethodObject *)self;
@@ -266,8 +248,7 @@ method_richcompare(PyObject *self, PyObject *other, int op)
     eq = PyObject_RichCompareBool(a->im_func, b->im_func, Py_EQ);
     if (eq == 1) {
         eq = (a->im_self == b->im_self);
-    }
-    else if (eq < 0)
+    } else if (eq < 0)
         return NULL;
     if (op == Py_EQ)
         res = eq ? Py_True : Py_False;
@@ -277,8 +258,7 @@ method_richcompare(PyObject *self, PyObject *other, int op)
 }
 
 static PyObject *
-method_repr(PyObject *op)
-{
+method_repr(PyObject *op) {
     PyMethodObject *a = _PyMethodObject_CAST(op);
     PyObject *self = a->im_self;
     PyObject *func = a->im_func;
@@ -287,8 +267,7 @@ method_repr(PyObject *op)
 
     if (PyObject_GetOptionalAttr(func, &_Py_ID(__qualname__), &funcname) < 0 ||
         (funcname == NULL &&
-         PyObject_GetOptionalAttr(func, &_Py_ID(__name__), &funcname) < 0))
-    {
+         PyObject_GetOptionalAttr(func, &_Py_ID(__name__), &funcname) < 0)) {
         return NULL;
     }
 
@@ -297,16 +276,14 @@ method_repr(PyObject *op)
     }
 
     /* XXX Shouldn't use repr()/%R here! */
-    result = PyUnicode_FromFormat("<bound method %V of %R>",
-                                  funcname, defname, self);
+    result = PyUnicode_FromFormat("<bound method %V of %R>", funcname, defname, self);
 
     Py_XDECREF(funcname);
     return result;
 }
 
 static Py_hash_t
-method_hash(PyObject *self)
-{
+method_hash(PyObject *self) {
     PyMethodObject *a = _PyMethodObject_CAST(self);
     Py_hash_t x = PyObject_GenericHash(a->im_self);
     Py_hash_t y = PyObject_Hash(a->im_func);
@@ -322,8 +299,7 @@ method_hash(PyObject *self)
 }
 
 static int
-method_traverse(PyObject *self, visitproc visit, void *arg)
-{
+method_traverse(PyObject *self, visitproc visit, void *arg) {
     PyMethodObject *im = _PyMethodObject_CAST(self);
     Py_VISIT(im->im_func);
     Py_VISIT(im->im_self);
@@ -331,15 +307,13 @@ method_traverse(PyObject *self, visitproc visit, void *arg)
 }
 
 static PyObject *
-method_descr_get(PyObject *meth, PyObject *obj, PyObject *cls)
-{
+method_descr_get(PyObject *meth, PyObject *obj, PyObject *cls) {
     Py_INCREF(meth);
     return meth;
 }
 
 PyTypeObject PyMethod_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    .tp_name = "method",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0).tp_name = "method",
     .tp_basicsize = sizeof(PyMethodObject),
     .tp_dealloc = method_dealloc,
     .tp_vectorcall_offset = offsetof(PyMethodObject, vectorcall),
@@ -348,8 +322,7 @@ PyTypeObject PyMethod_Type = {
     .tp_call = PyVectorcall_Call,
     .tp_getattro = method_getattro,
     .tp_setattro = PyObject_GenericSetAttr,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
-                Py_TPFLAGS_HAVE_VECTORCALL,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_HAVE_VECTORCALL,
     .tp_doc = method_new__doc__,
     .tp_traverse = method_traverse,
     .tp_richcompare = method_richcompare,
@@ -373,17 +346,16 @@ class instancemethod "PyInstanceMethodObject *" "&PyInstanceMethod_Type"
 PyObject *
 PyInstanceMethod_New(PyObject *func) {
     PyInstanceMethodObject *method;
-    method = PyObject_GC_New(PyInstanceMethodObject,
-                             &PyInstanceMethod_Type);
-    if (method == NULL) return NULL;
+    method = PyObject_GC_New(PyInstanceMethodObject, &PyInstanceMethod_Type);
+    if (method == NULL)
+        return NULL;
     method->func = Py_NewRef(func);
     _PyObject_GC_TRACK(method);
     return (PyObject *)method;
 }
 
 PyObject *
-PyInstanceMethod_Function(PyObject *im)
-{
+PyInstanceMethod_Function(PyObject *im) {
     if (!PyInstanceMethod_Check(im)) {
         PyErr_BadInternalCall();
         return NULL;
@@ -394,26 +366,25 @@ PyInstanceMethod_Function(PyObject *im)
 #define IMO_OFF(x) offsetof(PyInstanceMethodObject, x)
 
 static PyMemberDef instancemethod_memberlist[] = {
-    {"__func__", _Py_T_OBJECT, IMO_OFF(func), Py_READONLY,
+    {"__func__",
+     _Py_T_OBJECT,
+     IMO_OFF(func),
+     Py_READONLY,
      "the function (or other callable) implementing a method"},
-    {NULL}      /* Sentinel */
+    {NULL} /* Sentinel */
 };
 
 static PyObject *
-instancemethod_get_doc(PyObject *self, void *context)
-{
-    return PyObject_GetAttr(PyInstanceMethod_GET_FUNCTION(self),
-                            &_Py_ID(__doc__));
+instancemethod_get_doc(PyObject *self, void *context) {
+    return PyObject_GetAttr(PyInstanceMethod_GET_FUNCTION(self), &_Py_ID(__doc__));
 }
 
 static PyGetSetDef instancemethod_getset[] = {
-    {"__doc__", instancemethod_get_doc, NULL, NULL},
-    {0}
+    {"__doc__", instancemethod_get_doc, NULL, NULL}, {0}
 };
 
 static PyObject *
-instancemethod_getattro(PyObject *self, PyObject *name)
-{
+instancemethod_getattro(PyObject *self, PyObject *name) {
     PyTypeObject *tp = Py_TYPE(self);
     PyObject *descr = NULL;
 
@@ -429,8 +400,7 @@ instancemethod_getattro(PyObject *self, PyObject *name)
             PyObject *res = f(descr, self, (PyObject *)Py_TYPE(self));
             Py_DECREF(descr);
             return res;
-        }
-        else {
+        } else {
             return descr;
         }
     }
@@ -452,8 +422,7 @@ instancemethod_traverse(PyObject *self, visitproc visit, void *arg) {
 }
 
 static PyObject *
-instancemethod_call(PyObject *self, PyObject *arg, PyObject *kw)
-{
+instancemethod_call(PyObject *self, PyObject *arg, PyObject *kw) {
     return PyObject_Call(PyInstanceMethod_GET_FUNCTION(self), arg, kw);
 }
 
@@ -462,22 +431,18 @@ instancemethod_descr_get(PyObject *descr, PyObject *obj, PyObject *type) {
     PyObject *func = PyInstanceMethod_GET_FUNCTION(descr);
     if (obj == NULL) {
         return Py_NewRef(func);
-    }
-    else
+    } else
         return PyMethod_New(func, obj);
 }
 
 static PyObject *
-instancemethod_richcompare(PyObject *self, PyObject *other, int op)
-{
+instancemethod_richcompare(PyObject *self, PyObject *other, int op) {
     PyInstanceMethodObject *a, *b;
     PyObject *res;
     int eq;
 
-    if ((op != Py_EQ && op != Py_NE) ||
-        !PyInstanceMethod_Check(self) ||
-        !PyInstanceMethod_Check(other))
-    {
+    if ((op != Py_EQ && op != Py_NE) || !PyInstanceMethod_Check(self) ||
+        !PyInstanceMethod_Check(other)) {
         Py_RETURN_NOTIMPLEMENTED;
     }
     a = (PyInstanceMethodObject *)self;
@@ -493,8 +458,7 @@ instancemethod_richcompare(PyObject *self, PyObject *other, int op)
 }
 
 static PyObject *
-instancemethod_repr(PyObject *self)
-{
+instancemethod_repr(PyObject *self) {
     PyObject *func = PyInstanceMethod_Function(self);
     PyObject *funcname, *result;
     const char *defname = "?";
@@ -511,8 +475,7 @@ instancemethod_repr(PyObject *self)
         Py_SETREF(funcname, NULL);
     }
 
-    result = PyUnicode_FromFormat("<instancemethod %V at %p>",
-                                  funcname, defname, self);
+    result = PyUnicode_FromFormat("<instancemethod %V at %p>", funcname, defname, self);
 
     Py_XDECREF(funcname);
     return result;
@@ -532,8 +495,7 @@ instancemethod_new_impl(PyTypeObject *type, PyObject *function)
 /*[clinic end generated code: output=5e0397b2bdb750be input=cfc54e8b973664a8]*/
 {
     if (!PyCallable_Check(function)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "first argument must be callable");
+        PyErr_SetString(PyExc_TypeError, "first argument must be callable");
         return NULL;
     }
 
@@ -541,8 +503,7 @@ instancemethod_new_impl(PyTypeObject *type, PyObject *function)
 }
 
 PyTypeObject PyInstanceMethod_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    .tp_name = "instancemethod",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0).tp_name = "instancemethod",
     .tp_basicsize = sizeof(PyInstanceMethodObject),
     .tp_dealloc = instancemethod_dealloc,
     .tp_repr = instancemethod_repr,

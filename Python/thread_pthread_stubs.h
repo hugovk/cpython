@@ -6,141 +6,121 @@ typedef struct py_stub_tls_entry py_tls_entry;
 
 // mutex
 int
-pthread_mutex_init(pthread_mutex_t *restrict mutex,
-                   const pthread_mutexattr_t *restrict attr)
-{
+pthread_mutex_init(
+    pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr
+) {
     return 0;
 }
 
 int
-pthread_mutex_destroy(pthread_mutex_t *mutex)
-{
+pthread_mutex_destroy(pthread_mutex_t *mutex) {
     return 0;
 }
 
 int
-pthread_mutex_trylock(pthread_mutex_t *mutex)
-{
+pthread_mutex_trylock(pthread_mutex_t *mutex) {
     return 0;
 }
 
 int
-pthread_mutex_lock(pthread_mutex_t *mutex)
-{
+pthread_mutex_lock(pthread_mutex_t *mutex) {
     return 0;
 }
 
 int
-pthread_mutex_unlock(pthread_mutex_t *mutex)
-{
+pthread_mutex_unlock(pthread_mutex_t *mutex) {
     return 0;
 }
 
 // condition
 int
-pthread_cond_init(pthread_cond_t *restrict cond,
-                  const pthread_condattr_t *restrict attr)
-{
+pthread_cond_init(
+    pthread_cond_t *restrict cond, const pthread_condattr_t *restrict attr
+) {
     return 0;
 }
 
-PyAPI_FUNC(int) pthread_cond_destroy(pthread_cond_t *cond)
-{
+PyAPI_FUNC(int) pthread_cond_destroy(pthread_cond_t *cond) { return 0; }
+
+int
+pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex) {
     return 0;
 }
 
 int
-pthread_cond_wait(pthread_cond_t *restrict cond,
-                  pthread_mutex_t *restrict mutex)
-{
+pthread_cond_timedwait(
+    pthread_cond_t *restrict cond,
+    pthread_mutex_t *restrict mutex,
+    const struct timespec *restrict abstime
+) {
     return 0;
 }
 
 int
-pthread_cond_timedwait(pthread_cond_t *restrict cond,
-                       pthread_mutex_t *restrict mutex,
-                       const struct timespec *restrict abstime)
-{
+pthread_cond_signal(pthread_cond_t *cond) {
     return 0;
 }
 
 int
-pthread_cond_signal(pthread_cond_t *cond)
-{
+pthread_condattr_init(pthread_condattr_t *attr) {
     return 0;
 }
 
 int
-pthread_condattr_init(pthread_condattr_t *attr)
-{
-    return 0;
-}
-
-int
-pthread_condattr_setclock(pthread_condattr_t *attr, clockid_t clock_id)
-{
+pthread_condattr_setclock(pthread_condattr_t *attr, clockid_t clock_id) {
     return 0;
 }
 
 // pthread
 int
-pthread_create(pthread_t *restrict thread,
-               const pthread_attr_t *restrict attr,
-               void *(*start_routine)(void *),
-               void *restrict arg)
-{
+pthread_create(
+    pthread_t *restrict thread,
+    const pthread_attr_t *restrict attr,
+    void *(*start_routine)(void *),
+    void *restrict arg
+) {
     return EAGAIN;
 }
 
 int
-pthread_detach(pthread_t thread)
-{
+pthread_detach(pthread_t thread) {
     return 0;
 }
 
 int
-pthread_join(pthread_t thread, void** value_ptr)
-{
+pthread_join(pthread_t thread, void **value_ptr) {
     if (value_ptr) {
         *value_ptr = NULL;
     }
     return 0;
 }
 
-PyAPI_FUNC(pthread_t) pthread_self(void)
-{
+PyAPI_FUNC(pthread_t) pthread_self(void) {
     return (pthread_t)(uintptr_t)&py_tls_entries;
 }
 
 int
-pthread_exit(void *retval)
-{
+pthread_exit(void *retval) {
     exit(0);
 }
 
 int
-pthread_attr_init(pthread_attr_t *attr)
-{
+pthread_attr_init(pthread_attr_t *attr) {
     return 0;
 }
 
 int
-pthread_attr_setstacksize(
-    pthread_attr_t *attr, size_t stacksize)
-{
+pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize) {
     return 0;
 }
 
 int
-pthread_attr_destroy(pthread_attr_t *attr)
-{
+pthread_attr_destroy(pthread_attr_t *attr) {
     return 0;
 }
 
-
 int
-pthread_key_create(pthread_key_t *key, void (*destr_function)(void *))
-{
+pthread_key_create(pthread_key_t *key, void (*destr_function)(void *)) {
     if (!key) {
         return EINVAL;
     }
@@ -158,8 +138,7 @@ pthread_key_create(pthread_key_t *key, void (*destr_function)(void *))
 }
 
 int
-pthread_key_delete(pthread_key_t key)
-{
+pthread_key_delete(pthread_key_t key) {
     if (key < 0 || key >= PTHREAD_KEYS_MAX || !py_tls_entries[key].in_use) {
         return EINVAL;
     }
@@ -167,7 +146,6 @@ pthread_key_delete(pthread_key_t key)
     py_tls_entries[key].value = NULL;
     return 0;
 }
-
 
 void *
 pthread_getspecific(pthread_key_t key) {
@@ -178,8 +156,7 @@ pthread_getspecific(pthread_key_t key) {
 }
 
 int
-pthread_setspecific(pthread_key_t key, const void *value)
-{
+pthread_setspecific(pthread_key_t key, const void *value) {
     if (key < 0 || key >= PTHREAD_KEYS_MAX || !py_tls_entries[key].in_use) {
         return EINVAL;
     }

@@ -9,9 +9,9 @@ extern "C" {
 
 typedef struct {
     enum {
-        _PyStatus_TYPE_OK=0,
-        _PyStatus_TYPE_ERROR=1,
-        _PyStatus_TYPE_EXIT=2
+        _PyStatus_TYPE_OK = 0,
+        _PyStatus_TYPE_ERROR = 1,
+        _PyStatus_TYPE_EXIT = 2
     } _type;
     const char *func;
     const char *err_msg;
@@ -35,17 +35,16 @@ typedef struct {
     wchar_t **items;
 } PyWideStringList;
 
-PyAPI_FUNC(PyStatus) PyWideStringList_Append(PyWideStringList *list,
-    const wchar_t *item);
-PyAPI_FUNC(PyStatus) PyWideStringList_Insert(PyWideStringList *list,
-    Py_ssize_t index,
-    const wchar_t *item);
-
+PyAPI_FUNC(PyStatus)
+    PyWideStringList_Append(PyWideStringList *list, const wchar_t *item);
+PyAPI_FUNC(PyStatus) PyWideStringList_Insert(
+    PyWideStringList *list, Py_ssize_t index, const wchar_t *item
+);
 
 /* --- PyPreConfig ----------------------------------------------- */
 
 typedef struct PyPreConfig {
-    int _config_init;     /* _PyConfigInitEnum value */
+    int _config_init; /* _PyConfigInitEnum value */
 
     /* Parse Py_PreInitializeFromBytesArgs() arguments?
        See PyConfig.parse_argv */
@@ -127,12 +126,11 @@ typedef struct PyPreConfig {
 PyAPI_FUNC(void) PyPreConfig_InitPythonConfig(PyPreConfig *config);
 PyAPI_FUNC(void) PyPreConfig_InitIsolatedConfig(PyPreConfig *config);
 
-
 /* --- PyConfig ---------------------------------------------- */
 
 /* This structure is best documented in the Doc/c-api/init_config.rst file. */
 typedef struct PyConfig {
-    int _config_init;     /* _PyConfigInitEnum value */
+    int _config_init; /* _PyConfigInitEnum value */
 
     int isolated;
     int use_environment;
@@ -239,34 +237,25 @@ typedef struct PyConfig {
 PyAPI_FUNC(void) PyConfig_InitPythonConfig(PyConfig *config);
 PyAPI_FUNC(void) PyConfig_InitIsolatedConfig(PyConfig *config);
 PyAPI_FUNC(void) PyConfig_Clear(PyConfig *);
-PyAPI_FUNC(PyStatus) PyConfig_SetString(
-    PyConfig *config,
-    wchar_t **config_str,
-    const wchar_t *str);
-PyAPI_FUNC(PyStatus) PyConfig_SetBytesString(
-    PyConfig *config,
-    wchar_t **config_str,
-    const char *str);
+PyAPI_FUNC(PyStatus)
+    PyConfig_SetString(PyConfig *config, wchar_t **config_str, const wchar_t *str);
+PyAPI_FUNC(PyStatus)
+    PyConfig_SetBytesString(PyConfig *config, wchar_t **config_str, const char *str);
 PyAPI_FUNC(PyStatus) PyConfig_Read(PyConfig *config);
-PyAPI_FUNC(PyStatus) PyConfig_SetBytesArgv(
-    PyConfig *config,
-    Py_ssize_t argc,
-    char * const *argv);
-PyAPI_FUNC(PyStatus) PyConfig_SetArgv(PyConfig *config,
-    Py_ssize_t argc,
-    wchar_t * const *argv);
-PyAPI_FUNC(PyStatus) PyConfig_SetWideStringList(PyConfig *config,
-    PyWideStringList *list,
-    Py_ssize_t length, wchar_t **items);
-
+PyAPI_FUNC(PyStatus)
+    PyConfig_SetBytesArgv(PyConfig *config, Py_ssize_t argc, char *const *argv);
+PyAPI_FUNC(PyStatus)
+    PyConfig_SetArgv(PyConfig *config, Py_ssize_t argc, wchar_t *const *argv);
+PyAPI_FUNC(PyStatus) PyConfig_SetWideStringList(
+    PyConfig *config, PyWideStringList *list, Py_ssize_t length, wchar_t **items
+);
 
 /* --- PyConfig_Get() ----------------------------------------- */
 
-PyAPI_FUNC(PyObject*) PyConfig_Get(const char *name);
+PyAPI_FUNC(PyObject *) PyConfig_Get(const char *name);
 PyAPI_FUNC(int) PyConfig_GetInt(const char *name, int *value);
-PyAPI_FUNC(PyObject*) PyConfig_Names(void);
+PyAPI_FUNC(PyObject *) PyConfig_Names(void);
 PyAPI_FUNC(int) PyConfig_Set(const char *name, PyObject *value);
-
 
 /* --- Helper functions --------------------------------------- */
 
@@ -275,50 +264,39 @@ PyAPI_FUNC(int) PyConfig_Set(const char *name, PyObject *value);
    See also PyConfig.orig_argv. */
 PyAPI_FUNC(void) Py_GetArgcArgv(int *argc, wchar_t ***argv);
 
-
 // --- PyInitConfig ---------------------------------------------------------
 
 typedef struct PyInitConfig PyInitConfig;
 
-PyAPI_FUNC(PyInitConfig*) PyInitConfig_Create(void);
+PyAPI_FUNC(PyInitConfig *) PyInitConfig_Create(void);
 PyAPI_FUNC(void) PyInitConfig_Free(PyInitConfig *config);
 
-PyAPI_FUNC(int) PyInitConfig_GetError(PyInitConfig* config,
-    const char **err_msg);
-PyAPI_FUNC(int) PyInitConfig_GetExitCode(PyInitConfig* config,
-    int *exitcode);
+PyAPI_FUNC(int) PyInitConfig_GetError(PyInitConfig *config, const char **err_msg);
+PyAPI_FUNC(int) PyInitConfig_GetExitCode(PyInitConfig *config, int *exitcode);
 
-PyAPI_FUNC(int) PyInitConfig_HasOption(PyInitConfig *config,
-    const char *name);
-PyAPI_FUNC(int) PyInitConfig_GetInt(PyInitConfig *config,
-    const char *name,
-    int64_t *value);
-PyAPI_FUNC(int) PyInitConfig_GetStr(PyInitConfig *config,
-    const char *name,
-    char **value);
-PyAPI_FUNC(int) PyInitConfig_GetStrList(PyInitConfig *config,
-    const char *name,
-    size_t *length,
-    char ***items);
+PyAPI_FUNC(int) PyInitConfig_HasOption(PyInitConfig *config, const char *name);
+PyAPI_FUNC(int)
+    PyInitConfig_GetInt(PyInitConfig *config, const char *name, int64_t *value);
+PyAPI_FUNC(int)
+    PyInitConfig_GetStr(PyInitConfig *config, const char *name, char **value);
+PyAPI_FUNC(int) PyInitConfig_GetStrList(
+    PyInitConfig *config, const char *name, size_t *length, char ***items
+);
 PyAPI_FUNC(void) PyInitConfig_FreeStrList(size_t length, char **items);
 
-PyAPI_FUNC(int) PyInitConfig_SetInt(PyInitConfig *config,
-    const char *name,
-    int64_t value);
-PyAPI_FUNC(int) PyInitConfig_SetStr(PyInitConfig *config,
-    const char *name,
-    const char *value);
-PyAPI_FUNC(int) PyInitConfig_SetStrList(PyInitConfig *config,
-    const char *name,
-    size_t length,
-    char * const *items);
+PyAPI_FUNC(int)
+    PyInitConfig_SetInt(PyInitConfig *config, const char *name, int64_t value);
+PyAPI_FUNC(int)
+    PyInitConfig_SetStr(PyInitConfig *config, const char *name, const char *value);
+PyAPI_FUNC(int) PyInitConfig_SetStrList(
+    PyInitConfig *config, const char *name, size_t length, char *const *items
+);
 
-PyAPI_FUNC(int) PyInitConfig_AddModule(PyInitConfig *config,
-    const char *name,
-    PyObject* (*initfunc)(void));
+PyAPI_FUNC(int) PyInitConfig_AddModule(
+    PyInitConfig *config, const char *name, PyObject *(*initfunc)(void)
+);
 
 PyAPI_FUNC(int) Py_InitializeFromInitConfig(PyInitConfig *config);
-
 
 #ifdef __cplusplus
 }

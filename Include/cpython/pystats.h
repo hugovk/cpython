@@ -20,7 +20,7 @@
 // interpreter_decrefs. Otherwise, increment increfs and decrefs.
 
 #ifndef Py_CPYTHON_PYSTATS_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 #define PYSTATS_MAX_UOP_ID 512
@@ -140,7 +140,8 @@ typedef struct _rare_event_stats {
     uint64_t set_class;
     /* Setting the bases of a class, cls.__bases__ = ... */
     uint64_t set_bases;
-    /* Setting the PEP 523 frame eval function, _PyInterpreterState_SetFrameEvalFunc() */
+    /* Setting the PEP 523 frame eval function, _PyInterpreterState_SetFrameEvalFunc()
+     */
     uint64_t set_eval_frame_func;
     /* Modifying the builtins,  __builtins__.__dict__[var] = ... */
     uint64_t builtin_dict;
@@ -160,18 +161,49 @@ typedef struct _stats {
     GCStats *gc_stats;
 } PyStats;
 
-
 // Export for shared extensions like 'math'
-PyAPI_DATA(PyStats*) _Py_stats;
+PyAPI_DATA(PyStats *) _Py_stats;
 
 #ifdef _PY_INTERPRETER
-#  define _Py_INCREF_STAT_INC() do { if (_Py_stats) _Py_stats->object_stats.interpreter_increfs++; } while (0)
-#  define _Py_DECREF_STAT_INC() do { if (_Py_stats) _Py_stats->object_stats.interpreter_decrefs++; } while (0)
-#  define _Py_INCREF_IMMORTAL_STAT_INC() do { if (_Py_stats) _Py_stats->object_stats.interpreter_immortal_increfs++; } while (0)
-#  define _Py_DECREF_IMMORTAL_STAT_INC() do { if (_Py_stats) _Py_stats->object_stats.interpreter_immortal_decrefs++; } while (0)
+#define _Py_INCREF_STAT_INC()                              \
+    do {                                                   \
+        if (_Py_stats)                                     \
+            _Py_stats->object_stats.interpreter_increfs++; \
+    } while (0)
+#define _Py_DECREF_STAT_INC()                              \
+    do {                                                   \
+        if (_Py_stats)                                     \
+            _Py_stats->object_stats.interpreter_decrefs++; \
+    } while (0)
+#define _Py_INCREF_IMMORTAL_STAT_INC()                              \
+    do {                                                            \
+        if (_Py_stats)                                              \
+            _Py_stats->object_stats.interpreter_immortal_increfs++; \
+    } while (0)
+#define _Py_DECREF_IMMORTAL_STAT_INC()                              \
+    do {                                                            \
+        if (_Py_stats)                                              \
+            _Py_stats->object_stats.interpreter_immortal_decrefs++; \
+    } while (0)
 #else
-#  define _Py_INCREF_STAT_INC() do { if (_Py_stats) _Py_stats->object_stats.increfs++; } while (0)
-#  define _Py_DECREF_STAT_INC() do { if (_Py_stats) _Py_stats->object_stats.decrefs++; } while (0)
-#  define _Py_INCREF_IMMORTAL_STAT_INC() do { if (_Py_stats) _Py_stats->object_stats.immortal_increfs++; } while (0)
-#  define _Py_DECREF_IMMORTAL_STAT_INC() do { if (_Py_stats) _Py_stats->object_stats.immortal_decrefs++; } while (0)
+#define _Py_INCREF_STAT_INC()                  \
+    do {                                       \
+        if (_Py_stats)                         \
+            _Py_stats->object_stats.increfs++; \
+    } while (0)
+#define _Py_DECREF_STAT_INC()                  \
+    do {                                       \
+        if (_Py_stats)                         \
+            _Py_stats->object_stats.decrefs++; \
+    } while (0)
+#define _Py_INCREF_IMMORTAL_STAT_INC()                  \
+    do {                                                \
+        if (_Py_stats)                                  \
+            _Py_stats->object_stats.immortal_increfs++; \
+    } while (0)
+#define _Py_DECREF_IMMORTAL_STAT_INC()                  \
+    do {                                                \
+        if (_Py_stats)                                  \
+            _Py_stats->object_stats.immortal_decrefs++; \
+    } while (0)
 #endif

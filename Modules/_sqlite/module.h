@@ -42,7 +42,6 @@ typedef struct {
     PyObject *ProgrammingError;
     PyObject *Warning;
 
-
     /* A dictionary, mapping column types (INTEGER, VARCHAR, etc.) to converter
      * functions, that convert the SQL value to the appropriate Python value.
      * The key is uppercase.
@@ -75,8 +74,7 @@ typedef struct {
 extern pysqlite_state pysqlite_global_state;
 
 static inline pysqlite_state *
-pysqlite_get_state(PyObject *module)
-{
+pysqlite_get_state(PyObject *module) {
     pysqlite_state *state = (pysqlite_state *)PyModule_GetState(module);
     assert(state != NULL);
     return state;
@@ -84,14 +82,14 @@ pysqlite_get_state(PyObject *module)
 
 extern struct PyModuleDef _sqlite3module;
 static inline pysqlite_state *
-pysqlite_get_state_by_type(PyTypeObject *tp)
-{
+pysqlite_get_state_by_type(PyTypeObject *tp) {
     PyObject *module = PyType_GetModuleByDef(tp, &_sqlite3module);
     assert(module != NULL);
     return pysqlite_get_state(module);
 }
 
-extern const char *pysqlite_error_name(int rc);
+extern const char *
+pysqlite_error_name(int rc);
 
 #define PARSE_DECLTYPES 1
 #define PARSE_COLNAMES 2

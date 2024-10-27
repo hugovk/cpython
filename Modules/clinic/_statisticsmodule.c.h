@@ -2,21 +2,28 @@
 preserve
 [clinic start generated code]*/
 
-PyDoc_STRVAR(_statistics__normal_dist_inv_cdf__doc__,
-"_normal_dist_inv_cdf($module, p, mu, sigma, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    _statistics__normal_dist_inv_cdf__doc__,
+    "_normal_dist_inv_cdf($module, p, mu, sigma, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define _STATISTICS__NORMAL_DIST_INV_CDF_METHODDEF    \
-    {"_normal_dist_inv_cdf", (PyCFunction)(void(*)(void))_statistics__normal_dist_inv_cdf, METH_FASTCALL, _statistics__normal_dist_inv_cdf__doc__},
+#define _STATISTICS__NORMAL_DIST_INV_CDF_METHODDEF                  \
+    {"_normal_dist_inv_cdf",                                        \
+     (PyCFunction)(void (*)(void))_statistics__normal_dist_inv_cdf, \
+     METH_FASTCALL,                                                 \
+     _statistics__normal_dist_inv_cdf__doc__},
 
 static double
-_statistics__normal_dist_inv_cdf_impl(PyObject *module, double p, double mu,
-                                      double sigma);
+_statistics__normal_dist_inv_cdf_impl(
+    PyObject *module, double p, double mu, double sigma
+);
 
 static PyObject *
-_statistics__normal_dist_inv_cdf(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
-{
+_statistics__normal_dist_inv_cdf(
+    PyObject *module, PyObject *const *args, Py_ssize_t nargs
+) {
     PyObject *return_value = NULL;
     double p;
     double mu;
@@ -24,7 +31,9 @@ _statistics__normal_dist_inv_cdf(PyObject *module, PyObject *const *args, Py_ssi
     double _return_value;
 
     if (nargs != 3) {
-        PyErr_Format(PyExc_TypeError, "_normal_dist_inv_cdf expected 3 arguments, got %zd", nargs);
+        PyErr_Format(
+            PyExc_TypeError, "_normal_dist_inv_cdf expected 3 arguments, got %zd", nargs
+        );
         goto exit;
     }
     p = PyFloat_AsDouble(args[0]);

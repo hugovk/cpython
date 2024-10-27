@@ -5,9 +5,9 @@
 #undef Py_BUILD_CORE_BUILTIN
 
 // For now, AC only supports the limited C API version 3.13
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #ifndef Py_GIL_DISABLED
-#  define Py_LIMITED_API 0x030d0000
+#define Py_LIMITED_API 0x030d0000
 #endif
 
 /* Always enable assertions */
@@ -15,15 +15,12 @@
 
 #include "Python.h"
 
-
 #include "clinic/_testclinic_limited.c.h"
-
 
 /*[clinic input]
 module  _testclinic_limited
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=dd408149a4fc0dbb]*/
-
 
 /*[clinic input]
 test_empty_function
@@ -36,7 +33,6 @@ test_empty_function_impl(PyObject *module)
 {
     Py_RETURN_NONE;
 }
-
 
 /*[clinic input]
 my_int_func -> int
@@ -52,7 +48,6 @@ my_int_func_impl(PyObject *module, int arg)
 {
     return arg;
 }
-
 
 /*[clinic input]
 my_int_sum -> int
@@ -70,7 +65,6 @@ my_int_sum_impl(PyObject *module, int x, int y)
     return x + y;
 }
 
-
 /*[clinic input]
 my_float_sum -> float
 
@@ -86,7 +80,6 @@ my_float_sum_impl(PyObject *module, float x, float y)
 {
     return x + y;
 }
-
 
 /*[clinic input]
 my_double_sum -> double
@@ -104,7 +97,6 @@ my_double_sum_impl(PyObject *module, double x, double y)
     return x + y;
 }
 
-
 /*[clinic input]
 get_file_descriptor -> int
 
@@ -121,15 +113,11 @@ get_file_descriptor_impl(PyObject *module, int fd)
     return fd;
 }
 
-
 static PyMethodDef tester_methods[] = {
-    TEST_EMPTY_FUNCTION_METHODDEF
-    MY_INT_FUNC_METHODDEF
-    MY_INT_SUM_METHODDEF
-    MY_FLOAT_SUM_METHODDEF
-    MY_DOUBLE_SUM_METHODDEF
-    GET_FILE_DESCRIPTOR_METHODDEF
-    {NULL, NULL}
+    TEST_EMPTY_FUNCTION_METHODDEF MY_INT_FUNC_METHODDEF MY_INT_SUM_METHODDEF
+        MY_FLOAT_SUM_METHODDEF MY_DOUBLE_SUM_METHODDEF GET_FILE_DESCRIPTOR_METHODDEF{
+            NULL, NULL
+        }
 };
 
 static struct PyModuleDef _testclinic_module = {
@@ -140,8 +128,7 @@ static struct PyModuleDef _testclinic_module = {
 };
 
 PyMODINIT_FUNC
-PyInit__testclinic_limited(void)
-{
+PyInit__testclinic_limited(void) {
     PyObject *m = PyModule_Create(&_testclinic_module);
     if (m == NULL) {
         return NULL;

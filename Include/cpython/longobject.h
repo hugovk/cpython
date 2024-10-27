@@ -1,11 +1,10 @@
 #ifndef Py_CPYTHON_LONGOBJECT_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
-#define _PyLong_CAST(op) \
-    (assert(PyLong_Check(op)), _Py_CAST(PyLongObject*, (op)))
+#define _PyLong_CAST(op) (assert(PyLong_Check(op)), _Py_CAST(PyLongObject *, (op)))
 
-PyAPI_FUNC(PyObject*) PyLong_FromUnicodeObject(PyObject *u, int base);
+PyAPI_FUNC(PyObject *) PyLong_FromUnicodeObject(PyObject *u, int base);
 
 #define Py_ASNATIVEBYTES_DEFAULTS -1
 #define Py_ASNATIVEBYTES_BIG_ENDIAN 0
@@ -42,8 +41,8 @@ PyAPI_FUNC(PyObject*) PyLong_FromUnicodeObject(PyObject *u, int base);
    may be larger than necessary - this function is not an accurate way to
    calculate the bit length of an integer object.
    */
-PyAPI_FUNC(Py_ssize_t) PyLong_AsNativeBytes(PyObject* v, void* buffer,
-    Py_ssize_t n_bytes, int flags);
+PyAPI_FUNC(Py_ssize_t)
+    PyLong_AsNativeBytes(PyObject *v, void *buffer, Py_ssize_t n_bytes, int flags);
 
 /* PyLong_FromNativeBytes: Create an int value from a native integer
    n_bytes is the number of bytes to read from the buffer. Passing 0 will
@@ -53,13 +52,13 @@ PyAPI_FUNC(Py_ssize_t) PyLong_AsNativeBytes(PyObject* v, void* buffer,
    the endianness or forcing an unsigned buffer.
 
    Returns the int object, or NULL with an exception set. */
-PyAPI_FUNC(PyObject*) PyLong_FromNativeBytes(const void* buffer, size_t n_bytes,
-    int flags);
-PyAPI_FUNC(PyObject*) PyLong_FromUnsignedNativeBytes(const void* buffer,
-    size_t n_bytes, int flags);
+PyAPI_FUNC(PyObject *)
+    PyLong_FromNativeBytes(const void *buffer, size_t n_bytes, int flags);
+PyAPI_FUNC(PyObject *)
+    PyLong_FromUnsignedNativeBytes(const void *buffer, size_t n_bytes, int flags);
 
-PyAPI_FUNC(int) PyUnstable_Long_IsCompact(const PyLongObject* op);
-PyAPI_FUNC(Py_ssize_t) PyUnstable_Long_CompactValue(const PyLongObject* op);
+PyAPI_FUNC(int) PyUnstable_Long_IsCompact(const PyLongObject *op);
+PyAPI_FUNC(Py_ssize_t) PyUnstable_Long_CompactValue(const PyLongObject *op);
 
 /* PyLong_GetSign.  Get the sign of an integer object:
    0, -1 or +1 for zero, negative or positive integer, respectively.
@@ -92,8 +91,8 @@ PyAPI_FUNC(int64_t) _PyLong_NumBits(PyObject *v);
      enough memory to create the Python int.
 */
 PyAPI_FUNC(PyObject *) _PyLong_FromByteArray(
-    const unsigned char* bytes, size_t n,
-    int little_endian, int is_signed);
+    const unsigned char *bytes, size_t n, int little_endian, int is_signed
+);
 
 /* _PyLong_AsByteArray: Convert the least-significant 8*n bits of long
    v to a base-256 integer, stored in array bytes.  Normally return 0,
@@ -114,9 +113,14 @@ PyAPI_FUNC(PyObject *) _PyLong_FromByteArray(
      being large enough to hold a sign bit.  OverflowError is set in this
      case, but bytes holds the least-significant n bytes of the true value.
 */
-PyAPI_FUNC(int) _PyLong_AsByteArray(PyLongObject* v,
-    unsigned char* bytes, size_t n,
-    int little_endian, int is_signed, int with_exceptions);
+PyAPI_FUNC(int) _PyLong_AsByteArray(
+    PyLongObject *v,
+    unsigned char *bytes,
+    size_t n,
+    int little_endian,
+    int is_signed,
+    int with_exceptions
+);
 
 /* For use by the gcd function in mathmodule.c */
 PyAPI_FUNC(PyObject *) _PyLong_GCD(PyObject *, PyObject *);

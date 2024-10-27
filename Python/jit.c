@@ -21,12 +21,11 @@
 // Memory management stuff: ////////////////////////////////////////////////////
 
 #ifndef MS_WINDOWS
-    #include <sys/mman.h>
+#include <sys/mman.h>
 #endif
 
 static size_t
-get_page_size(void)
-{
+get_page_size(void) {
 #ifdef MS_WINDOWS
     SYSTEM_INFO si;
     GetSystemInfo(&si);
@@ -37,8 +36,7 @@ get_page_size(void)
 }
 
 static void
-jit_error(const char *message)
-{
+jit_error(const char *message) {
 #ifdef MS_WINDOWS
     int hint = GetLastError();
 #else
@@ -48,8 +46,7 @@ jit_error(const char *message)
 }
 
 static unsigned char *
-jit_alloc(size_t size)
-{
+jit_alloc(size_t size) {
     assert(size);
     assert(size % get_page_size() == 0);
 #ifdef MS_WINDOWS
@@ -69,8 +66,7 @@ jit_alloc(size_t size)
 }
 
 static int
-jit_free(unsigned char *memory, size_t size)
-{
+jit_free(unsigned char *memory, size_t size) {
     assert(size);
     assert(size % get_page_size() == 0);
 #ifdef MS_WINDOWS
@@ -86,8 +82,7 @@ jit_free(unsigned char *memory, size_t size)
 }
 
 static int
-mark_executable(unsigned char *memory, size_t size)
-{
+mark_executable(unsigned char *memory, size_t size) {
     if (size == 0) {
         return 0;
     }
@@ -133,17 +128,16 @@ typedef struct {
 
 // value[value_start : value_start + len]
 static uint32_t
-get_bits(uint64_t value, uint8_t value_start, uint8_t width)
-{
+get_bits(uint64_t value, uint8_t value_start, uint8_t width) {
     assert(width <= 32);
     return (value >> value_start) & ((1ULL << width) - 1);
 }
 
 // *loc[loc_start : loc_start + width] = value[value_start : value_start + width]
 static void
-set_bits(uint32_t *loc, uint8_t loc_start, uint64_t value, uint8_t value_start,
-         uint8_t width)
-{
+set_bits(
+    uint32_t *loc, uint8_t loc_start, uint64_t value, uint8_t value_start, uint8_t width
+) {
     assert(loc_start + width <= 32);
     // Clear the bits we're about to patch:
     *loc &= ~(((1ULL << width) - 1) << loc_start);
@@ -156,10 +150,10 @@ set_bits(uint32_t *loc, uint8_t loc_start, uint64_t value, uint8_t value_start,
 // See https://developer.arm.com/documentation/ddi0602/2023-09/Base-Instructions
 // for instruction encodings:
 #define IS_AARCH64_ADD_OR_SUB(I) (((I) & 0x11C00000) == 0x11000000)
-#define IS_AARCH64_ADRP(I)       (((I) & 0x9F000000) == 0x90000000)
-#define IS_AARCH64_BRANCH(I)     (((I) & 0x7C000000) == 0x14000000)
+#define IS_AARCH64_ADRP(I) (((I) & 0x9F000000) == 0x90000000)
+#define IS_AARCH64_BRANCH(I) (((I) & 0x7C000000) == 0x14000000)
 #define IS_AARCH64_LDR_OR_STR(I) (((I) & 0x3B000000) == 0x39000000)
-#define IS_AARCH64_MOV(I)        (((I) & 0x9F800000) == 0x92800000)
+#define IS_AARCH64_MOV(I) (((I) & 0x9F800000) == 0x92800000)
 
 // LLD is a great reference for performing relocations... just keep in
 // mind that Tools/jit/build.py does filtering and preprocessing for us!
@@ -188,8 +182,7 @@ set_bits(uint32_t *loc, uint8_t loc_start, uint64_t value, uint8_t value_start,
 
 // 32-bit absolute address.
 void
-patch_32(unsigned char *location, uint64_t value)
-{
+patch_32(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     // Check that we're not out of range of 32 unsigned bits:
     assert(value < (1ULL << 32));
@@ -198,8 +191,7 @@ patch_32(unsigned char *location, uint64_t value)
 
 // 32-bit relative address.
 void
-patch_32r(unsigned char *location, uint64_t value)
-{
+patch_32r(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     value -= (uintptr_t)location;
     // Check that we're not out of range of 32 signed bits:
@@ -210,8 +202,7 @@ patch_32r(unsigned char *location, uint64_t value)
 
 // 64-bit absolute address.
 void
-patch_64(unsigned char *location, uint64_t value)
-{
+patch_64(unsigned char *location, uint64_t value) {
     uint64_t *loc64 = (uint64_t *)location;
     *loc64 = value;
 }
@@ -219,8 +210,7 @@ patch_64(unsigned char *location, uint64_t value)
 // 12-bit low part of an absolute address. Pairs nicely with patch_aarch64_21r
 // (below).
 void
-patch_aarch64_12(unsigned char *location, uint64_t value)
-{
+patch_aarch64_12(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     assert(IS_AARCH64_LDR_OR_STR(*loc32) || IS_AARCH64_ADD_OR_SUB(*loc32));
     // There might be an implicit shift encoded in the instruction:
@@ -239,8 +229,7 @@ patch_aarch64_12(unsigned char *location, uint64_t value)
 // Relaxable 12-bit low part of an absolute address. Pairs nicely with
 // patch_aarch64_21rx (below).
 void
-patch_aarch64_12x(unsigned char *location, uint64_t value)
-{
+patch_aarch64_12x(unsigned char *location, uint64_t value) {
     // This can *only* be relaxed if it occurs immediately before a matching
     // patch_aarch64_21rx. If that happens, the JIT build step will replace both
     // calls with a single call to patch_aarch64_33rx. Otherwise, we end up
@@ -250,8 +239,7 @@ patch_aarch64_12x(unsigned char *location, uint64_t value)
 
 // 16-bit low part of an absolute address.
 void
-patch_aarch64_16a(unsigned char *location, uint64_t value)
-{
+patch_aarch64_16a(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     assert(IS_AARCH64_MOV(*loc32));
     // Check the implicit shift (this is "part 0 of 3"):
@@ -261,8 +249,7 @@ patch_aarch64_16a(unsigned char *location, uint64_t value)
 
 // 16-bit middle-low part of an absolute address.
 void
-patch_aarch64_16b(unsigned char *location, uint64_t value)
-{
+patch_aarch64_16b(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     assert(IS_AARCH64_MOV(*loc32));
     // Check the implicit shift (this is "part 1 of 3"):
@@ -272,8 +259,7 @@ patch_aarch64_16b(unsigned char *location, uint64_t value)
 
 // 16-bit middle-high part of an absolute address.
 void
-patch_aarch64_16c(unsigned char *location, uint64_t value)
-{
+patch_aarch64_16c(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     assert(IS_AARCH64_MOV(*loc32));
     // Check the implicit shift (this is "part 2 of 3"):
@@ -283,8 +269,7 @@ patch_aarch64_16c(unsigned char *location, uint64_t value)
 
 // 16-bit high part of an absolute address.
 void
-patch_aarch64_16d(unsigned char *location, uint64_t value)
-{
+patch_aarch64_16d(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     assert(IS_AARCH64_MOV(*loc32));
     // Check the implicit shift (this is "part 3 of 3"):
@@ -295,8 +280,7 @@ patch_aarch64_16d(unsigned char *location, uint64_t value)
 // 21-bit count of pages between this page and an absolute address's page... I
 // know, I know, it's weird. Pairs nicely with patch_aarch64_12 (above).
 void
-patch_aarch64_21r(unsigned char *location, uint64_t value)
-{
+patch_aarch64_21r(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     value = (value >> 12) - ((uintptr_t)location >> 12);
     // Check that we're not out of range of 21 signed bits:
@@ -311,8 +295,7 @@ patch_aarch64_21r(unsigned char *location, uint64_t value)
 // Relaxable 21-bit count of pages between this page and an absolute address's
 // page. Pairs nicely with patch_aarch64_12x (above).
 void
-patch_aarch64_21rx(unsigned char *location, uint64_t value)
-{
+patch_aarch64_21rx(unsigned char *location, uint64_t value) {
     // This can *only* be relaxed if it occurs immediately before a matching
     // patch_aarch64_12x. If that happens, the JIT build step will replace both
     // calls with a single call to patch_aarch64_33rx. Otherwise, we end up
@@ -322,8 +305,7 @@ patch_aarch64_21rx(unsigned char *location, uint64_t value)
 
 // 28-bit relative branch.
 void
-patch_aarch64_26r(unsigned char *location, uint64_t value)
-{
+patch_aarch64_26r(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     assert(IS_AARCH64_BRANCH(*loc32));
     value -= (uintptr_t)location;
@@ -337,8 +319,7 @@ patch_aarch64_26r(unsigned char *location, uint64_t value)
 
 // A pair of patch_aarch64_21rx and patch_aarch64_12x.
 void
-patch_aarch64_33rx(unsigned char *location, uint64_t value)
-{
+patch_aarch64_33rx(unsigned char *location, uint64_t value) {
     uint32_t *loc32 = (uint32_t *)location;
     // Try to relax the pair of GOT loads into an immediate value:
     assert(IS_AARCH64_ADRP(*loc32));
@@ -356,15 +337,13 @@ patch_aarch64_33rx(unsigned char *location, uint64_t value)
     }
     if (relaxed < (1ULL << 32)) {
         // adrp reg, AAA; ldr reg, [reg + BBB] -> movz reg, XXX; movk reg, YYY
-        loc32[0] = 0xD2800000 | (get_bits(relaxed,  0, 16) << 5) | reg;
+        loc32[0] = 0xD2800000 | (get_bits(relaxed, 0, 16) << 5) | reg;
         loc32[1] = 0xF2A00000 | (get_bits(relaxed, 16, 16) << 5) | reg;
         return;
     }
     relaxed = value - (uintptr_t)location;
-    if ((relaxed & 0x3) == 0 &&
-        (int64_t)relaxed >= -(1L << 19) &&
-        (int64_t)relaxed < (1L << 19))
-    {
+    if ((relaxed & 0x3) == 0 && (int64_t)relaxed >= -(1L << 19) &&
+        (int64_t)relaxed < (1L << 19)) {
         // adrp reg, AAA; ldr reg, [reg + BBB] -> ldr reg, XXX; nop
         loc32[0] = 0x58000000 | (get_bits(relaxed, 2, 19) << 5) | reg;
         loc32[1] = 0xD503201F;
@@ -377,26 +356,22 @@ patch_aarch64_33rx(unsigned char *location, uint64_t value)
 
 // Relaxable 32-bit relative address.
 void
-patch_x86_64_32rx(unsigned char *location, uint64_t value)
-{
+patch_x86_64_32rx(unsigned char *location, uint64_t value) {
     uint8_t *loc8 = (uint8_t *)location;
     // Try to relax the GOT load into an immediate value:
     uint64_t relaxed = *(uint64_t *)(value + 4) - 4;
     if ((int64_t)relaxed - (int64_t)location >= -(1LL << 31) &&
-        (int64_t)relaxed - (int64_t)location + 1 < (1LL << 31))
-    {
+        (int64_t)relaxed - (int64_t)location + 1 < (1LL << 31)) {
         if (loc8[-2] == 0x8B) {
             // mov reg, dword ptr [rip + AAA] -> lea reg, [rip + XXX]
             loc8[-2] = 0x8D;
             value = relaxed;
-        }
-        else if (loc8[-2] == 0xFF && loc8[-1] == 0x15) {
+        } else if (loc8[-2] == 0xFF && loc8[-1] == 0x15) {
             // call qword ptr [rip + AAA] -> nop; call XXX
             loc8[-2] = 0x90;
             loc8[-1] = 0xE8;
             value = relaxed;
-        }
-        else if (loc8[-2] == 0xFF && loc8[-1] == 0x25) {
+        } else if (loc8[-2] == 0xFF && loc8[-1] == 0x25) {
             // jmp qword ptr [rip + AAA] -> nop; jmp XXX
             loc8[-2] = 0x90;
             loc8[-1] = 0xE9;
@@ -406,21 +381,21 @@ patch_x86_64_32rx(unsigned char *location, uint64_t value)
     patch_32r(location, value);
 }
 
-void patch_aarch64_trampoline(unsigned char *location, int ordinal, jit_state *state);
+void
+patch_aarch64_trampoline(unsigned char *location, int ordinal, jit_state *state);
 
 #include "jit_stencils.h"
 
 #if defined(__aarch64__) || defined(_M_ARM64)
-    #define TRAMPOLINE_SIZE 16
+#define TRAMPOLINE_SIZE 16
 #else
-    #define TRAMPOLINE_SIZE 0
+#define TRAMPOLINE_SIZE 0
 #endif
 
 // Generate and patch AArch64 trampolines. The symbols to jump to are stored
 // in the jit_stencils.h in the symbols_map.
 void
-patch_aarch64_trampoline(unsigned char *location, int ordinal, jit_state *state)
-{
+patch_aarch64_trampoline(unsigned char *location, int ordinal, jit_state *state) {
     // Masking is done modulo 32 as the mask is stored as an array of uint32_t
     const uint32_t symbol_mask = 1 << (ordinal % 32);
     const uint32_t trampoline_mask = state->trampolines.mask[ordinal / 32];
@@ -433,7 +408,7 @@ patch_aarch64_trampoline(unsigned char *location, int ordinal, jit_state *state)
         index += _Py_popcount32(state->trampolines.mask[i]);
     }
 
-    uint32_t *p = (uint32_t*)(state->trampolines.mem + index * TRAMPOLINE_SIZE);
+    uint32_t *p = (uint32_t *)(state->trampolines.mem + index * TRAMPOLINE_SIZE);
     assert((size_t)(index + 1) * TRAMPOLINE_SIZE <= state->trampolines.size);
 
     uint64_t value = (uintptr_t)symbols_map[ordinal];
@@ -453,8 +428,7 @@ patch_aarch64_trampoline(unsigned char *location, int ordinal, jit_state *state)
 }
 
 static void
-combine_symbol_mask(const symbol_mask src, symbol_mask dest)
-{
+combine_symbol_mask(const symbol_mask src, symbol_mask dest) {
     // Calculate the union of the trampolines required by each StencilGroup
     for (size_t i = 0; i < SYMBOL_MASK_WORDS; i++) {
         dest[i] |= src[i];
@@ -463,8 +437,9 @@ combine_symbol_mask(const symbol_mask src, symbol_mask dest)
 
 // Compiles executor in-place. Don't forget to call _PyJIT_Free later!
 int
-_PyJIT_Compile(_PyExecutorObject *executor, const _PyUOpInstruction trace[], size_t length)
-{
+_PyJIT_Compile(
+    _PyExecutorObject *executor, const _PyUOpInstruction trace[], size_t length
+) {
     const StencilGroup *group;
     // Loop once to find the total compiled size:
     size_t code_size = 0;
@@ -488,12 +463,14 @@ _PyJIT_Compile(_PyExecutorObject *executor, const _PyUOpInstruction trace[], siz
     combine_symbol_mask(group->trampoline_mask, state.trampolines.mask);
     // Calculate the size of the trampolines required by the whole trace
     for (size_t i = 0; i < Py_ARRAY_LENGTH(state.trampolines.mask); i++) {
-        state.trampolines.size += _Py_popcount32(state.trampolines.mask[i]) * TRAMPOLINE_SIZE;
+        state.trampolines.size +=
+            _Py_popcount32(state.trampolines.mask[i]) * TRAMPOLINE_SIZE;
     }
     // Round up to the nearest page:
     size_t page_size = get_page_size();
     assert((page_size & (page_size - 1)) == 0);
-    size_t padding = page_size - ((code_size + data_size + state.trampolines.size) & (page_size - 1));
+    size_t padding = page_size - ((code_size + data_size + state.trampolines.size) &
+                                  (page_size - 1));
     size_t total_size = code_size + data_size + state.trampolines.size + padding;
     unsigned char *memory = jit_alloc(total_size);
     if (memory == NULL) {
@@ -542,8 +519,7 @@ _PyJIT_Compile(_PyExecutorObject *executor, const _PyUOpInstruction trace[], siz
 }
 
 void
-_PyJIT_Free(_PyExecutorObject *executor)
-{
+_PyJIT_Free(_PyExecutorObject *executor) {
     unsigned char *memory = (unsigned char *)executor->jit_code;
     size_t size = executor->jit_size;
     if (memory) {

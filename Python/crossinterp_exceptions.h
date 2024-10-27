@@ -2,8 +2,7 @@
 /* InterpreterError extends Exception */
 
 static PyTypeObject _PyExc_InterpreterError = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "interpreters.InterpreterError",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "interpreters.InterpreterError",
     .tp_doc = PyDoc_STR("A cross-interpreter operation failed"),
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     //.tp_traverse = ((PyTypeObject *)PyExc_Exception)->tp_traverse,
@@ -15,8 +14,7 @@ PyObject *PyExc_InterpreterError = (PyObject *)&_PyExc_InterpreterError;
 /* InterpreterNotFoundError extends InterpreterError */
 
 static PyTypeObject _PyExc_InterpreterNotFoundError = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "interpreters.InterpreterNotFoundError",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "interpreters.InterpreterNotFoundError",
     .tp_doc = PyDoc_STR("An interpreter was not found"),
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     //.tp_traverse = ((PyTypeObject *)PyExc_Exception)->tp_traverse,
@@ -28,8 +26,7 @@ PyObject *PyExc_InterpreterNotFoundError = (PyObject *)&_PyExc_InterpreterNotFou
 /* NotShareableError extends ValueError */
 
 static int
-_init_not_shareable_error_type(PyInterpreterState *interp)
-{
+_init_not_shareable_error_type(PyInterpreterState *interp) {
     const char *name = "interpreters.NotShareableError";
     PyObject *base = PyExc_ValueError;
     PyObject *ns = NULL;
@@ -43,24 +40,20 @@ _init_not_shareable_error_type(PyInterpreterState *interp)
 }
 
 static void
-_fini_not_shareable_error_type(PyInterpreterState *interp)
-{
+_fini_not_shareable_error_type(PyInterpreterState *interp) {
     Py_CLEAR(_PyInterpreterState_GetXIState(interp)->PyExc_NotShareableError);
 }
 
 static PyObject *
-_get_not_shareable_error_type(PyInterpreterState *interp)
-{
+_get_not_shareable_error_type(PyInterpreterState *interp) {
     assert(_PyInterpreterState_GetXIState(interp)->PyExc_NotShareableError != NULL);
     return _PyInterpreterState_GetXIState(interp)->PyExc_NotShareableError;
 }
 
-
 /* lifecycle */
 
 static int
-init_exceptions(PyInterpreterState *interp)
-{
+init_exceptions(PyInterpreterState *interp) {
     PyTypeObject *base = (PyTypeObject *)PyExc_Exception;
 
     // builtin static types
@@ -87,8 +80,7 @@ init_exceptions(PyInterpreterState *interp)
 }
 
 static void
-fini_exceptions(PyInterpreterState *interp)
-{
+fini_exceptions(PyInterpreterState *interp) {
     // Likewise with _fini_not_shareable_error_type().
     _PyStaticType_FiniBuiltin(interp, &_PyExc_InterpreterNotFoundError);
     _PyStaticType_FiniBuiltin(interp, &_PyExc_InterpreterError);

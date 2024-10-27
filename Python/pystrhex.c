@@ -1,18 +1,22 @@
 /* Format bytes as hexadecimal */
 
 #include "Python.h"
-#include "pycore_strhex.h"        // _Py_strhex_with_sep()
-#include "pycore_unicodeobject.h" // _PyUnicode_CheckConsistency()
+#include "pycore_strhex.h"         // _Py_strhex_with_sep()
+#include "pycore_unicodeobject.h"  // _PyUnicode_CheckConsistency()
 
-static PyObject *_Py_strhex_impl(const char* argbuf, const Py_ssize_t arglen,
-                                 PyObject* sep, int bytes_per_sep_group,
-                                 const int return_bytes)
-{
+static PyObject *
+_Py_strhex_impl(
+    const char *argbuf,
+    const Py_ssize_t arglen,
+    PyObject *sep,
+    int bytes_per_sep_group,
+    const int return_bytes
+) {
     assert(arglen >= 0);
 
     Py_UCS1 sep_char = 0;
     if (sep) {
-        Py_ssize_t seplen = PyObject_Length((PyObject*)sep);
+        Py_ssize_t seplen = PyObject_Length((PyObject *)sep);
         if (seplen < 0) {
             return NULL;
         }
@@ -26,11 +30,9 @@ static PyObject *_Py_strhex_impl(const char* argbuf, const Py_ssize_t arglen,
                 return NULL;
             }
             sep_char = PyUnicode_READ_CHAR(sep, 0);
-        }
-        else if (PyBytes_Check(sep)) {
+        } else if (PyBytes_Check(sep)) {
             sep_char = PyBytes_AS_STRING(sep)[0];
-        }
-        else {
+        } else {
             PyErr_SetString(PyExc_TypeError, "sep must be str or bytes.");
             return NULL;
         }
@@ -38,8 +40,7 @@ static PyObject *_Py_strhex_impl(const char* argbuf, const Py_ssize_t arglen,
             PyErr_SetString(PyExc_ValueError, "sep must be ASCII.");
             return NULL;
         }
-    }
-    else {
+    } else {
         bytes_per_sep_group = 0;
     }
 
@@ -69,8 +70,7 @@ static PyObject *_Py_strhex_impl(const char* argbuf, const Py_ssize_t arglen,
             return NULL;
         }
         retbuf = (Py_UCS1 *)PyBytes_AS_STRING(retval);
-    }
-    else {
+    } else {
         retval = PyUnicode_New(resultlen, 127);
         if (!retval) {
             return NULL;
@@ -90,8 +90,7 @@ static PyObject *_Py_strhex_impl(const char* argbuf, const Py_ssize_t arglen,
             retbuf[j++] = Py_hexdigits[c & 0x0f];
         }
         assert(j == resultlen);
-    }
-    else {
+    } else {
         /* The number of complete chunk+sep periods */
         Py_ssize_t chunks = (arglen - 1) / abs_bytes_per_sep;
         Py_ssize_t chunk;
@@ -113,8 +112,7 @@ static PyObject *_Py_strhex_impl(const char* argbuf, const Py_ssize_t arglen,
                 retbuf[j++] = Py_hexdigits[c & 0x0f];
             }
             assert(j == resultlen);
-        }
-        else {
+        } else {
             i = arglen - 1;
             j = resultlen - 1;
             for (chunk = 0; chunk < chunks; chunk++) {
@@ -143,30 +141,38 @@ static PyObject *_Py_strhex_impl(const char* argbuf, const Py_ssize_t arglen,
     return retval;
 }
 
-PyObject * _Py_strhex(const char* argbuf, const Py_ssize_t arglen)
-{
+PyObject *
+_Py_strhex(const char *argbuf, const Py_ssize_t arglen) {
     return _Py_strhex_impl(argbuf, arglen, NULL, 0, 0);
 }
 
 /* Same as above but returns a bytes() instead of str() to avoid the
  * need to decode the str() when bytes are needed. */
-PyObject* _Py_strhex_bytes(const char* argbuf, const Py_ssize_t arglen)
-{
+PyObject *
+_Py_strhex_bytes(const char *argbuf, const Py_ssize_t arglen) {
     return _Py_strhex_impl(argbuf, arglen, NULL, 0, 1);
 }
 
 /* These variants include support for a separator between every N bytes: */
 
-PyObject* _Py_strhex_with_sep(const char* argbuf, const Py_ssize_t arglen,
-                              PyObject* sep, const int bytes_per_group)
-{
+PyObject *
+_Py_strhex_with_sep(
+    const char *argbuf,
+    const Py_ssize_t arglen,
+    PyObject *sep,
+    const int bytes_per_group
+) {
     return _Py_strhex_impl(argbuf, arglen, sep, bytes_per_group, 0);
 }
 
 /* Same as above but returns a bytes() instead of str() to avoid the
  * need to decode the str() when bytes are needed. */
-PyObject* _Py_strhex_bytes_with_sep(const char* argbuf, const Py_ssize_t arglen,
-                                    PyObject* sep, const int bytes_per_group)
-{
+PyObject *
+_Py_strhex_bytes_with_sep(
+    const char *argbuf,
+    const Py_ssize_t arglen,
+    PyObject *sep,
+    const int bytes_per_group
+) {
     return _Py_strhex_impl(argbuf, arglen, sep, bytes_per_group, 1);
 }

@@ -25,28 +25,25 @@
  * SUCH DAMAGE.
  */
 
-
 #ifndef LIBMPDEC_TRANSPOSE_H_
 #define LIBMPDEC_TRANSPOSE_H_
 
-
 #include "mpdecimal.h"
-
 
 /* Internal header file: all symbols have local scope in the DSO */
 MPD_PRAGMA(MPD_HIDE_SYMBOLS_START)
 
+enum { FORWARD_CYCLE, BACKWARD_CYCLE };
 
-enum {FORWARD_CYCLE, BACKWARD_CYCLE};
+void
+std_trans(mpd_uint_t dest[], mpd_uint_t src[], mpd_size_t rows, mpd_size_t cols);
+int
+transpose_pow2(mpd_uint_t *matrix, mpd_size_t rows, mpd_size_t cols);
+void
+transpose_3xpow2(mpd_uint_t *matrix, mpd_size_t rows, mpd_size_t cols);
 
-
-void std_trans(mpd_uint_t dest[], mpd_uint_t src[], mpd_size_t rows, mpd_size_t cols);
-int transpose_pow2(mpd_uint_t *matrix, mpd_size_t rows, mpd_size_t cols);
-void transpose_3xpow2(mpd_uint_t *matrix, mpd_size_t rows, mpd_size_t cols);
-
-
-static inline void pointerswap(mpd_uint_t **a, mpd_uint_t **b)
-{
+static inline void
+pointerswap(mpd_uint_t **a, mpd_uint_t **b) {
     mpd_uint_t *tmp;
 
     tmp = *b;
@@ -54,8 +51,6 @@ static inline void pointerswap(mpd_uint_t **a, mpd_uint_t **b)
     *a = tmp;
 }
 
-
 MPD_PRAGMA(MPD_HIDE_SYMBOLS_END) /* restore previous scope rules */
-
 
 #endif /* LIBMPDEC_TRANSPOSE_H_ */

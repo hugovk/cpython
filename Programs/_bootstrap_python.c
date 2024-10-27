@@ -18,8 +18,12 @@
 /* Note that a negative size indicates a package. */
 
 static const struct _frozen bootstrap_modules[] = {
-    {"_frozen_importlib", _Py_M__importlib__bootstrap, (int)sizeof(_Py_M__importlib__bootstrap)},
-    {"_frozen_importlib_external", _Py_M__importlib__bootstrap_external, (int)sizeof(_Py_M__importlib__bootstrap_external)},
+    {"_frozen_importlib",
+     _Py_M__importlib__bootstrap,
+     (int)sizeof(_Py_M__importlib__bootstrap)},
+    {"_frozen_importlib_external",
+     _Py_M__importlib__bootstrap_external,
+     (int)sizeof(_Py_M__importlib__bootstrap_external)},
     {"zipimport", _Py_M__zipimport, (int)sizeof(_Py_M__zipimport)},
     {0, 0, 0} /* bootstrap sentinel */
 };
@@ -79,10 +83,10 @@ main(int argc, char **argv)
         goto error;
     }
 
-#define CLEAR(ATTR) \
-    do { \
+#define CLEAR(ATTR)          \
+    do {                     \
         PyMem_RawFree(ATTR); \
-        ATTR = NULL; \
+        ATTR = NULL;         \
     } while (0)
 
     // isolate from system Python
@@ -106,4 +110,3 @@ error:
     }
     Py_ExitStatusException(status);
 }
-

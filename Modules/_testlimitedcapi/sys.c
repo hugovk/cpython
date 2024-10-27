@@ -1,10 +1,8 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-sys_getobject(PyObject *Py_UNUSED(module), PyObject *arg)
-{
+sys_getobject(PyObject *Py_UNUSED(module), PyObject *arg) {
     const char *name;
     Py_ssize_t size;
     if (!PyArg_Parse(arg, "z#", &name, &size)) {
@@ -18,8 +16,7 @@ sys_getobject(PyObject *Py_UNUSED(module), PyObject *arg)
 }
 
 static PyObject *
-sys_setobject(PyObject *Py_UNUSED(module), PyObject *args)
-{
+sys_setobject(PyObject *Py_UNUSED(module), PyObject *args) {
     const char *name;
     Py_ssize_t size;
     PyObject *value;
@@ -31,12 +28,10 @@ sys_setobject(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-sys_getxoptions(PyObject *Py_UNUSED(module), PyObject *Py_UNUSED(ignored))
-{
+sys_getxoptions(PyObject *Py_UNUSED(module), PyObject *Py_UNUSED(ignored)) {
     PyObject *result = PySys_GetXOptions();
     return Py_XNewRef(result);
 }
-
 
 static PyMethodDef test_methods[] = {
     {"sys_getobject", sys_getobject, METH_O},
@@ -46,8 +41,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_Sys(PyObject *m)
-{
+_PyTestLimitedCAPI_Init_Sys(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

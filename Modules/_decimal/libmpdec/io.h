@@ -25,24 +25,20 @@
  * SUCH DAMAGE.
  */
 
-
 #ifndef LIBMPDEC_IO_H_
 #define LIBMPDEC_IO_H_
-
 
 #include "mpdecimal.h"
 
 #include <stdint.h>
 
-
 #if SIZE_MAX == MPD_SIZE_MAX
-  #define mpd_strtossize _mpd_strtossize
+#define mpd_strtossize _mpd_strtossize
 #else
 #include <errno.h>
 
 static inline mpd_ssize_t
-mpd_strtossize(const char *s, char **end, int base)
-{
+mpd_strtossize(const char *s, char **end, int base) {
     int64_t retval;
 
     errno = 0;
@@ -57,6 +53,5 @@ mpd_strtossize(const char *s, char **end, int base)
     return (mpd_ssize_t)retval;
 }
 #endif
-
 
 #endif /* LIBMPDEC_IO_H_ */

@@ -1,9 +1,9 @@
 #ifndef Py_CPYTHON_LOCK_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
-#define _Py_UNLOCKED    0
-#define _Py_LOCKED      1
+#define _Py_UNLOCKED 0
+#define _Py_LOCKED 1
 
 // A mutex that occupies one byte. The lock can be zero initialized to
 // represent the unlocked state.
@@ -42,8 +42,7 @@ PyAPI_FUNC(void) PyMutex_Unlock(PyMutex *m);
 // the mutex is unlocked. If the current thread holds the GIL, then the GIL
 // will be released while the thread is parked.
 static inline void
-_PyMutex_Lock(PyMutex *m)
-{
+_PyMutex_Lock(PyMutex *m) {
     uint8_t expected = _Py_UNLOCKED;
     if (!_Py_atomic_compare_exchange_uint8(&m->_bits, &expected, _Py_LOCKED)) {
         PyMutex_Lock(m);
@@ -53,8 +52,7 @@ _PyMutex_Lock(PyMutex *m)
 
 // Unlocks the mutex.
 static inline void
-_PyMutex_Unlock(PyMutex *m)
-{
+_PyMutex_Unlock(PyMutex *m) {
     uint8_t expected = _Py_LOCKED;
     if (!_Py_atomic_compare_exchange_uint8(&m->_bits, &expected, _Py_UNLOCKED)) {
         PyMutex_Unlock(m);

@@ -53,50 +53,53 @@
 
 #define SUCCESS 0
 #define YES 1
-#define NO  0
+#define NO 0
 
 static struct gni_afd {
     int a_af;
     int a_addrlen;
     int a_socklen;
     int a_off;
-} gni_afdl [] = {
+} gni_afdl[] = {
 #ifdef ENABLE_IPV6
-    {PF_INET6, sizeof(struct in6_addr), sizeof(struct sockaddr_in6),
-        offsetof(struct sockaddr_in6, sin6_addr)},
+    {PF_INET6,
+     sizeof(struct in6_addr),
+     sizeof(struct sockaddr_in6),
+     offsetof(struct sockaddr_in6, sin6_addr)},
 #endif
-    {PF_INET, sizeof(struct in_addr), sizeof(struct sockaddr_in),
-        offsetof(struct sockaddr_in, sin_addr)},
+    {PF_INET,
+     sizeof(struct in_addr),
+     sizeof(struct sockaddr_in),
+     offsetof(struct sockaddr_in, sin_addr)},
     {0, 0, 0},
 };
 
 struct gni_sockinet {
-    u_char      si_len;
-    u_char      si_family;
-    u_short     si_port;
+    u_char si_len;
+    u_char si_family;
+    u_short si_port;
 };
 
-#define ENI_NOSOCKET    0
-#define ENI_NOSERVNAME  1
-#define ENI_NOHOSTNAME  2
-#define ENI_MEMORY      3
-#define ENI_SYSTEM      4
-#define ENI_FAMILY      5
-#define ENI_SALEN       6
+#define ENI_NOSOCKET 0
+#define ENI_NOSERVNAME 1
+#define ENI_NOHOSTNAME 2
+#define ENI_MEMORY 3
+#define ENI_SYSTEM 4
+#define ENI_FAMILY 5
+#define ENI_SALEN 6
 
 /* forward declaration to make gcc happy */
-int getnameinfo(const struct sockaddr *, size_t, char *, size_t,
-                          char *, size_t, int);
-
 int
-getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
-    const struct sockaddr *sa;
-    size_t salen;
-    char *host;
-    size_t hostlen;
-    char *serv;
-    size_t servlen;
-    int flags;
+getnameinfo(const struct sockaddr *, size_t, char *, size_t, char *, size_t, int);
+
+int getnameinfo(sa, salen, host, hostlen, serv, servlen, flags) const
+    struct sockaddr *sa;
+size_t salen;
+char *host;
+size_t hostlen;
+char *serv;
+size_t servlen;
+int flags;
 {
     struct gni_afd *gni_afd;
     struct servent *sp;
@@ -117,7 +120,8 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 
 #ifdef HAVE_SOCKADDR_SA_LEN
     len = sa->sa_len;
-    if (len != salen) return ENI_SALEN;
+    if (len != salen)
+        return ENI_SALEN;
 #else
     len = salen;
 #endif
@@ -130,8 +134,9 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
         }
     return ENI_FAMILY;
 
- found:
-    if (len != gni_afd->a_socklen) return ENI_SALEN;
+found:
+    if (len != gni_afd->a_socklen)
+        return ENI_SALEN;
 
     port = ((struct gni_sockinet *)sa)->si_port; /* network byte order */
     addr = (char *)sa + gni_afd->a_off;
@@ -154,27 +159,26 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
     }
 
     switch (sa->sa_family) {
-    case AF_INET:
-        v4a = ((struct sockaddr_in *)sa)->sin_addr.s_addr;
-        if (IN_MULTICAST(v4a) || IN_EXPERIMENTAL(v4a))
-            flags |= NI_NUMERICHOST;
-        v4a >>= IN_CLASSA_NSHIFT;
-        if (v4a == 0 || v4a == IN_LOOPBACKNET)
-            flags |= NI_NUMERICHOST;
-        break;
+        case AF_INET:
+            v4a = ((struct sockaddr_in *)sa)->sin_addr.s_addr;
+            if (IN_MULTICAST(v4a) || IN_EXPERIMENTAL(v4a))
+                flags |= NI_NUMERICHOST;
+            v4a >>= IN_CLASSA_NSHIFT;
+            if (v4a == 0 || v4a == IN_LOOPBACKNET)
+                flags |= NI_NUMERICHOST;
+            break;
 #ifdef ENABLE_IPV6
-    case AF_INET6:
-        pfx = ((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr[0];
-        if (pfx == 0 || pfx == 0xfe || pfx == 0xff)
-            flags |= NI_NUMERICHOST;
-        break;
+        case AF_INET6:
+            pfx = ((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr[0];
+            if (pfx == 0 || pfx == 0xfe || pfx == 0xff)
+                flags |= NI_NUMERICHOST;
+            break;
 #endif
     }
     if (host == NULL || hostlen == 0) {
         /* what should we do? */
     } else if (flags & NI_NUMERICHOST) {
-        if (inet_ntop(gni_afd->a_af, addr, numaddr, sizeof(numaddr))
-            == NULL)
+        if (inet_ntop(gni_afd->a_af, addr, numaddr, sizeof(numaddr)) == NULL)
             return ENI_SYSTEM;
         if (strlen(numaddr) > hostlen)
             return ENI_MEMORY;
@@ -189,7 +193,8 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
         if (hp) {
             if (flags & NI_NOFQDN) {
                 p = strchr(hp->h_name, '.');
-                if (p) *p = '\0';
+                if (p)
+                    *p = '\0';
             }
             if (strlen(hp->h_name) > hostlen) {
 #ifdef ENABLE_IPV6
@@ -204,8 +209,7 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
         } else {
             if (flags & NI_NAMEREQD)
                 return ENI_NOHOSTNAME;
-            if (inet_ntop(gni_afd->a_af, addr, numaddr, sizeof(numaddr))
-                == NULL)
+            if (inet_ntop(gni_afd->a_af, addr, numaddr, sizeof(numaddr)) == NULL)
                 return ENI_NOHOSTNAME;
             if (strlen(numaddr) > hostlen)
                 return ENI_MEMORY;
@@ -214,4 +218,4 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
     }
     return SUCCESS;
 }
-#endif // HAVE_NETDB_H
+#endif  // HAVE_NETDB_H

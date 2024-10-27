@@ -5,12 +5,11 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 typedef struct {
-    PyObject_HEAD
-    PyObject *prop_get;
+    PyObject_HEAD PyObject *prop_get;
     PyObject *prop_set;
     PyObject *prop_del;
     PyObject *prop_doc;
@@ -25,4 +24,4 @@ extern PyTypeObject _PyMethodWrapper_Type;
 #ifdef __cplusplus
 }
 #endif
-#endif   /* !Py_INTERNAL_DESCROBJECT_H */
+#endif /* !Py_INTERNAL_DESCROBJECT_H */

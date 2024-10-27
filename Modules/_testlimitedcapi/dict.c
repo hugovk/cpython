@@ -1,51 +1,43 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-dict_check(PyObject *self, PyObject *obj)
-{
+dict_check(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyDict_Check(obj));
 }
 
 static PyObject *
-dict_checkexact(PyObject *self, PyObject *obj)
-{
+dict_checkexact(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyDict_CheckExact(obj));
 }
 
 static PyObject *
-dict_new(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+dict_new(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     return PyDict_New();
 }
 
 static PyObject *
-dictproxy_new(PyObject *self, PyObject *obj)
-{
+dictproxy_new(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyDictProxy_New(obj);
 }
 
 static PyObject *
-dict_clear(PyObject *self, PyObject *obj)
-{
+dict_clear(PyObject *self, PyObject *obj) {
     PyDict_Clear(obj);
     Py_RETURN_NONE;
 }
 
 static PyObject *
-dict_copy(PyObject *self, PyObject *obj)
-{
+dict_copy(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyDict_Copy(obj);
 }
 
 static PyObject *
-dict_contains(PyObject *self, PyObject *args)
-{
+dict_contains(PyObject *self, PyObject *args) {
     PyObject *obj, *key;
     if (!PyArg_ParseTuple(args, "OO", &obj, &key)) {
         return NULL;
@@ -56,15 +48,13 @@ dict_contains(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_size(PyObject *self, PyObject *obj)
-{
+dict_size(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PyDict_Size(obj));
 }
 
 static PyObject *
-dict_getitem(PyObject *self, PyObject *args)
-{
+dict_getitem(PyObject *self, PyObject *args) {
     PyObject *mapping, *key;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &key)) {
         return NULL;
@@ -82,8 +72,7 @@ dict_getitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_getitemstring(PyObject *self, PyObject *args)
-{
+dict_getitemstring(PyObject *self, PyObject *args) {
     PyObject *mapping;
     const char *key;
     Py_ssize_t size;
@@ -102,8 +91,7 @@ dict_getitemstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_getitemwitherror(PyObject *self, PyObject *args)
-{
+dict_getitemwitherror(PyObject *self, PyObject *args) {
     PyObject *mapping, *key;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &key)) {
         return NULL;
@@ -120,10 +108,8 @@ dict_getitemwitherror(PyObject *self, PyObject *args)
     return Py_NewRef(value);
 }
 
-
 static PyObject *
-dict_setitem(PyObject *self, PyObject *args)
-{
+dict_setitem(PyObject *self, PyObject *args) {
     PyObject *mapping, *key, *value;
     if (!PyArg_ParseTuple(args, "OOO", &mapping, &key, &value)) {
         return NULL;
@@ -135,8 +121,7 @@ dict_setitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_setitemstring(PyObject *self, PyObject *args)
-{
+dict_setitemstring(PyObject *self, PyObject *args) {
     PyObject *mapping, *value;
     const char *key;
     Py_ssize_t size;
@@ -149,8 +134,7 @@ dict_setitemstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_delitem(PyObject *self, PyObject *args)
-{
+dict_delitem(PyObject *self, PyObject *args) {
     PyObject *mapping, *key;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &key)) {
         return NULL;
@@ -161,8 +145,7 @@ dict_delitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_delitemstring(PyObject *self, PyObject *args)
-{
+dict_delitemstring(PyObject *self, PyObject *args) {
     PyObject *mapping;
     const char *key;
     Py_ssize_t size;
@@ -174,29 +157,25 @@ dict_delitemstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_keys(PyObject *self, PyObject *obj)
-{
+dict_keys(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyDict_Keys(obj);
 }
 
 static PyObject *
-dict_values(PyObject *self, PyObject *obj)
-{
+dict_values(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyDict_Values(obj);
 }
 
 static PyObject *
-dict_items(PyObject *self, PyObject *obj)
-{
+dict_items(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyDict_Items(obj);
 }
 
 static PyObject *
-dict_next(PyObject *self, PyObject *args)
-{
+dict_next(PyObject *self, PyObject *args) {
     PyObject *mapping, *key = UNINITIALIZED_PTR, *value = UNINITIALIZED_PTR;
     Py_ssize_t pos;
     if (!PyArg_ParseTuple(args, "On", &mapping, &pos)) {
@@ -216,8 +195,7 @@ dict_next(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_merge(PyObject *self, PyObject *args)
-{
+dict_merge(PyObject *self, PyObject *args) {
     PyObject *mapping, *mapping2;
     int override;
     if (!PyArg_ParseTuple(args, "OOi", &mapping, &mapping2, &override)) {
@@ -229,8 +207,7 @@ dict_merge(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_update(PyObject *self, PyObject *args)
-{
+dict_update(PyObject *self, PyObject *args) {
     PyObject *mapping, *mapping2;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &mapping2)) {
         return NULL;
@@ -241,8 +218,7 @@ dict_update(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_mergefromseq2(PyObject *self, PyObject *args)
-{
+dict_mergefromseq2(PyObject *self, PyObject *args) {
     PyObject *mapping, *seq;
     int override;
     if (!PyArg_ParseTuple(args, "OOi", &mapping, &seq, &override)) {
@@ -252,7 +228,6 @@ dict_mergefromseq2(PyObject *self, PyObject *args)
     NULLABLE(seq);
     RETURN_INT(PyDict_MergeFromSeq2(mapping, seq, override));
 }
-
 
 static PyMethodDef test_methods[] = {
     {"dict_check", dict_check, METH_O},
@@ -281,8 +256,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_Dict(PyObject *m)
-{
+_PyTestLimitedCAPI_Init_Dict(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

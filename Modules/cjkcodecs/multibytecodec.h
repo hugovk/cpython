@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include "pycore_unicodeobject.h" // _PyUnicodeWriter
+#include "pycore_unicodeobject.h"  // _PyUnicodeWriter
 
 #ifdef uint16_t
 typedef uint16_t ucs2_t, DBCHAR;
@@ -33,25 +33,39 @@ struct _cjk_mod_state;
 struct _multibyte_codec;
 
 typedef int (*mbcodec_init)(const struct _multibyte_codec *codec);
-typedef Py_ssize_t (*mbencode_func)(MultibyteCodec_State *state,
-                        const struct _multibyte_codec *codec,
-                        int kind, const void *data,
-                        Py_ssize_t *inpos, Py_ssize_t inlen,
-                        unsigned char **outbuf, Py_ssize_t outleft,
-                        int flags);
-typedef int (*mbencodeinit_func)(MultibyteCodec_State *state,
-                                 const struct _multibyte_codec *codec);
-typedef Py_ssize_t (*mbencodereset_func)(MultibyteCodec_State *state,
-                        const struct _multibyte_codec *codec,
-                        unsigned char **outbuf, Py_ssize_t outleft);
-typedef Py_ssize_t (*mbdecode_func)(MultibyteCodec_State *state,
-                        const struct _multibyte_codec *codec,
-                        const unsigned char **inbuf, Py_ssize_t inleft,
-                        _PyUnicodeWriter *writer);
-typedef int (*mbdecodeinit_func)(MultibyteCodec_State *state,
-                                 const struct _multibyte_codec *codec);
-typedef Py_ssize_t (*mbdecodereset_func)(MultibyteCodec_State *state,
-                                         const struct _multibyte_codec *codec);
+typedef Py_ssize_t (*mbencode_func)(
+    MultibyteCodec_State *state,
+    const struct _multibyte_codec *codec,
+    int kind,
+    const void *data,
+    Py_ssize_t *inpos,
+    Py_ssize_t inlen,
+    unsigned char **outbuf,
+    Py_ssize_t outleft,
+    int flags
+);
+typedef int (*mbencodeinit_func)(
+    MultibyteCodec_State *state, const struct _multibyte_codec *codec
+);
+typedef Py_ssize_t (*mbencodereset_func)(
+    MultibyteCodec_State *state,
+    const struct _multibyte_codec *codec,
+    unsigned char **outbuf,
+    Py_ssize_t outleft
+);
+typedef Py_ssize_t (*mbdecode_func)(
+    MultibyteCodec_State *state,
+    const struct _multibyte_codec *codec,
+    const unsigned char **inbuf,
+    Py_ssize_t inleft,
+    _PyUnicodeWriter *writer
+);
+typedef int (*mbdecodeinit_func)(
+    MultibyteCodec_State *state, const struct _multibyte_codec *codec
+);
+typedef Py_ssize_t (*mbdecodereset_func)(
+    MultibyteCodec_State *state, const struct _multibyte_codec *codec
+);
 
 typedef struct _multibyte_codec {
     const char *encoding;
@@ -67,34 +81,29 @@ typedef struct _multibyte_codec {
 } MultibyteCodec;
 
 typedef struct {
-    PyObject_HEAD
-    const MultibyteCodec *codec;
+    PyObject_HEAD const MultibyteCodec *codec;
     PyObject *cjk_module;
 } MultibyteCodecObject;
 
 #define MultibyteCodec_Check(state, op) Py_IS_TYPE((op), state->multibytecodec_type)
 
-#define _MultibyteStatefulCodec_HEAD            \
-    PyObject_HEAD                               \
-    const MultibyteCodec *codec;                \
-    MultibyteCodec_State state;                 \
+#define _MultibyteStatefulCodec_HEAD           \
+    PyObject_HEAD const MultibyteCodec *codec; \
+    MultibyteCodec_State state;                \
     PyObject *errors;
 typedef struct {
     _MultibyteStatefulCodec_HEAD
 } MultibyteStatefulCodecContext;
 
-#define MAXENCPENDING   2
-#define _MultibyteStatefulEncoder_HEAD          \
-    _MultibyteStatefulCodec_HEAD                \
-    PyObject *pending;
+#define MAXENCPENDING 2
+#define _MultibyteStatefulEncoder_HEAD _MultibyteStatefulCodec_HEAD PyObject *pending;
 typedef struct {
     _MultibyteStatefulEncoder_HEAD
 } MultibyteStatefulEncoderContext;
 
-#define MAXDECPENDING   8
-#define _MultibyteStatefulDecoder_HEAD          \
-    _MultibyteStatefulCodec_HEAD                \
-    unsigned char pending[MAXDECPENDING];       \
+#define MAXDECPENDING 8
+#define _MultibyteStatefulDecoder_HEAD                                 \
+    _MultibyteStatefulCodec_HEAD unsigned char pending[MAXDECPENDING]; \
     Py_ssize_t pendingsize;
 typedef struct {
     _MultibyteStatefulDecoder_HEAD
@@ -109,33 +118,31 @@ typedef struct {
 } MultibyteIncrementalDecoderObject;
 
 typedef struct {
-    _MultibyteStatefulDecoder_HEAD
-    PyObject *stream;
+    _MultibyteStatefulDecoder_HEAD PyObject *stream;
 } MultibyteStreamReaderObject;
 
 typedef struct {
-    _MultibyteStatefulEncoder_HEAD
-    PyObject *stream;
+    _MultibyteStatefulEncoder_HEAD PyObject *stream;
 } MultibyteStreamWriterObject;
 
 /* positive values for illegal sequences */
-#define MBERR_TOOSMALL          (-1) /* insufficient output buffer space */
-#define MBERR_TOOFEW            (-2) /* incomplete input buffer */
-#define MBERR_INTERNAL          (-3) /* internal runtime error */
-#define MBERR_EXCEPTION         (-4) /* an exception has been raised */
+#define MBERR_TOOSMALL (-1)  /* insufficient output buffer space */
+#define MBERR_TOOFEW (-2)    /* incomplete input buffer */
+#define MBERR_INTERNAL (-3)  /* internal runtime error */
+#define MBERR_EXCEPTION (-4) /* an exception has been raised */
 
-#define ERROR_STRICT            (PyObject *)(1)
-#define ERROR_IGNORE            (PyObject *)(2)
-#define ERROR_REPLACE           (PyObject *)(3)
-#define ERROR_ISCUSTOM(p)       ((p) < ERROR_STRICT || ERROR_REPLACE < (p))
-#define ERROR_DECREF(p)                             \
-    do {                                            \
-        if (p != NULL && ERROR_ISCUSTOM(p))         \
-            Py_DECREF(p);                           \
+#define ERROR_STRICT (PyObject *)(1)
+#define ERROR_IGNORE (PyObject *)(2)
+#define ERROR_REPLACE (PyObject *)(3)
+#define ERROR_ISCUSTOM(p) ((p) < ERROR_STRICT || ERROR_REPLACE < (p))
+#define ERROR_DECREF(p)                     \
+    do {                                    \
+        if (p != NULL && ERROR_ISCUSTOM(p)) \
+            Py_DECREF(p);                   \
     } while (0);
 
-#define MBENC_FLUSH             0x0001 /* encode all characters encodable */
-#define MBENC_MAX               MBENC_FLUSH
+#define MBENC_FLUSH 0x0001 /* encode all characters encodable */
+#define MBENC_MAX MBENC_FLUSH
 
 typedef struct {
     const MultibyteCodec *codec;
@@ -144,7 +151,6 @@ typedef struct {
 
 #define MAP_CAPSULE "multibytecodec.map"
 #define CODEC_CAPSULE "multibytecodec.codec"
-
 
 #ifdef __cplusplus
 }

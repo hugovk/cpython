@@ -5,84 +5,151 @@
 
 #include "Python.h"
 
-extern PyObject* PyInit__abc(void);
-extern PyObject* PyInit_array(void);
-extern PyObject* PyInit_binascii(void);
-extern PyObject* PyInit_cmath(void);
-extern PyObject* PyInit_errno(void);
-extern PyObject* PyInit_faulthandler(void);
-extern PyObject* PyInit__tracemalloc(void);
-extern PyObject* PyInit_gc(void);
-extern PyObject* PyInit_math(void);
-extern PyObject* PyInit__md5(void);
-extern PyObject* PyInit_nt(void);
-extern PyObject* PyInit__operator(void);
-extern PyObject* PyInit__signal(void);
-extern PyObject* PyInit__sha1(void);
-extern PyObject* PyInit__sha2(void);
-extern PyObject* PyInit__sha3(void);
-extern PyObject* PyInit__statistics(void);
-extern PyObject* PyInit__sysconfig(void);
-extern PyObject* PyInit__typing(void);
-extern PyObject* PyInit__blake2(void);
-extern PyObject* PyInit_time(void);
-extern PyObject* PyInit__thread(void);
+extern PyObject *
+PyInit__abc(void);
+extern PyObject *
+PyInit_array(void);
+extern PyObject *
+PyInit_binascii(void);
+extern PyObject *
+PyInit_cmath(void);
+extern PyObject *
+PyInit_errno(void);
+extern PyObject *
+PyInit_faulthandler(void);
+extern PyObject *
+PyInit__tracemalloc(void);
+extern PyObject *
+PyInit_gc(void);
+extern PyObject *
+PyInit_math(void);
+extern PyObject *
+PyInit__md5(void);
+extern PyObject *
+PyInit_nt(void);
+extern PyObject *
+PyInit__operator(void);
+extern PyObject *
+PyInit__signal(void);
+extern PyObject *
+PyInit__sha1(void);
+extern PyObject *
+PyInit__sha2(void);
+extern PyObject *
+PyInit__sha3(void);
+extern PyObject *
+PyInit__statistics(void);
+extern PyObject *
+PyInit__sysconfig(void);
+extern PyObject *
+PyInit__typing(void);
+extern PyObject *
+PyInit__blake2(void);
+extern PyObject *
+PyInit_time(void);
+extern PyObject *
+PyInit__thread(void);
 #ifdef WIN32
-extern PyObject* PyInit_msvcrt(void);
-extern PyObject* PyInit__locale(void);
+extern PyObject *
+PyInit_msvcrt(void);
+extern PyObject *
+PyInit__locale(void);
 #endif
-extern PyObject* PyInit__codecs(void);
-extern PyObject* PyInit__weakref(void);
+extern PyObject *
+PyInit__codecs(void);
+extern PyObject *
+PyInit__weakref(void);
 /* XXX: These two should really be extracted to standalone extensions. */
-extern PyObject* PyInit_xxsubtype(void);
-extern PyObject* PyInit__interpreters(void);
-extern PyObject* PyInit__interpchannels(void);
-extern PyObject* PyInit__interpqueues(void);
-extern PyObject* PyInit__random(void);
-extern PyObject* PyInit_itertools(void);
-extern PyObject* PyInit__collections(void);
-extern PyObject* PyInit__heapq(void);
-extern PyObject* PyInit__bisect(void);
-extern PyObject* PyInit__symtable(void);
-extern PyObject* PyInit_mmap(void);
-extern PyObject* PyInit__csv(void);
-extern PyObject* PyInit__sre(void);
-#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM) || defined(MS_WINDOWS_GAMES)
-extern PyObject* PyInit_winreg(void);
+extern PyObject *
+PyInit_xxsubtype(void);
+extern PyObject *
+PyInit__interpreters(void);
+extern PyObject *
+PyInit__interpchannels(void);
+extern PyObject *
+PyInit__interpqueues(void);
+extern PyObject *
+PyInit__random(void);
+extern PyObject *
+PyInit_itertools(void);
+extern PyObject *
+PyInit__collections(void);
+extern PyObject *
+PyInit__heapq(void);
+extern PyObject *
+PyInit__bisect(void);
+extern PyObject *
+PyInit__symtable(void);
+extern PyObject *
+PyInit_mmap(void);
+extern PyObject *
+PyInit__csv(void);
+extern PyObject *
+PyInit__sre(void);
+#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM) || \
+    defined(MS_WINDOWS_GAMES)
+extern PyObject *
+PyInit_winreg(void);
 #endif
-extern PyObject* PyInit__struct(void);
-extern PyObject* PyInit__datetime(void);
-extern PyObject* PyInit__functools(void);
-extern PyObject* PyInit__json(void);
+extern PyObject *
+PyInit__struct(void);
+extern PyObject *
+PyInit__datetime(void);
+extern PyObject *
+PyInit__functools(void);
+extern PyObject *
+PyInit__json(void);
 #ifdef _Py_HAVE_ZLIB
-extern PyObject* PyInit_zlib(void);
+extern PyObject *
+PyInit_zlib(void);
 #endif
 
-extern PyObject* PyInit__multibytecodec(void);
-extern PyObject* PyInit__codecs_cn(void);
-extern PyObject* PyInit__codecs_hk(void);
-extern PyObject* PyInit__codecs_iso2022(void);
-extern PyObject* PyInit__codecs_jp(void);
-extern PyObject* PyInit__codecs_kr(void);
-extern PyObject* PyInit__codecs_tw(void);
-extern PyObject* PyInit__winapi(void);
-extern PyObject* PyInit__lsprof(void);
-extern PyObject* PyInit__ast(void);
-extern PyObject* PyInit__io(void);
-extern PyObject* PyInit__pickle(void);
-extern PyObject* PyInit_atexit(void);
-extern PyObject* _PyWarnings_Init(void);
-extern PyObject* PyInit__string(void);
-extern PyObject* PyInit__stat(void);
-extern PyObject* PyInit__opcode(void);
-extern PyObject* PyInit__contextvars(void);
-extern PyObject* PyInit__tokenize(void);
+extern PyObject *
+PyInit__multibytecodec(void);
+extern PyObject *
+PyInit__codecs_cn(void);
+extern PyObject *
+PyInit__codecs_hk(void);
+extern PyObject *
+PyInit__codecs_iso2022(void);
+extern PyObject *
+PyInit__codecs_jp(void);
+extern PyObject *
+PyInit__codecs_kr(void);
+extern PyObject *
+PyInit__codecs_tw(void);
+extern PyObject *
+PyInit__winapi(void);
+extern PyObject *
+PyInit__lsprof(void);
+extern PyObject *
+PyInit__ast(void);
+extern PyObject *
+PyInit__io(void);
+extern PyObject *
+PyInit__pickle(void);
+extern PyObject *
+PyInit_atexit(void);
+extern PyObject *
+_PyWarnings_Init(void);
+extern PyObject *
+PyInit__string(void);
+extern PyObject *
+PyInit__stat(void);
+extern PyObject *
+PyInit__opcode(void);
+extern PyObject *
+PyInit__contextvars(void);
+extern PyObject *
+PyInit__tokenize(void);
 
 /* tools/freeze/makeconfig.py marker for additional "extern" */
 /* -- ADDMODULE MARKER 1 -- */
 
-extern PyObject* PyMarshal_Init(void);
-extern PyObject* PyInit__imp(void);
+extern PyObject *
+PyMarshal_Init(void);
+extern PyObject *
+PyInit__imp(void);
 
 struct _inittab _PyImport_Inittab[] = {
     {"_abc", PyInit__abc},
@@ -130,7 +197,8 @@ struct _inittab _PyImport_Inittab[] = {
 #endif
     {"_csv", PyInit__csv},
     {"_sre", PyInit__sre},
-#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM) || defined(MS_WINDOWS_GAMES)
+#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM) || \
+    defined(MS_WINDOWS_GAMES)
     {"winreg", PyInit_winreg},
 #endif
     {"_struct", PyInit__struct},
@@ -155,8 +223,8 @@ struct _inittab _PyImport_Inittab[] = {
     {"_codecs_kr", PyInit__codecs_kr},
     {"_codecs_tw", PyInit__codecs_tw},
 
-/* tools/freeze/makeconfig.py marker for additional "_inittab" entries */
-/* -- ADDMODULE MARKER 2 -- */
+    /* tools/freeze/makeconfig.py marker for additional "_inittab" entries */
+    /* -- ADDMODULE MARKER 2 -- */
 
     /* This module "lives in" with marshal.c */
     {"marshal", PyMarshal_Init},

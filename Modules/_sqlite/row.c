@@ -22,7 +22,7 @@
  */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "row.h"
@@ -39,16 +39,14 @@ class _sqlite3.Row "pysqlite_Row *" "clinic_state()->RowType"
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=966c53403d7f3a40]*/
 
 static int
-row_clear(pysqlite_Row *self)
-{
+row_clear(pysqlite_Row *self) {
     Py_CLEAR(self->data);
     Py_CLEAR(self->description);
     return 0;
 }
 
 static int
-row_traverse(pysqlite_Row *self, visitproc visit, void *arg)
-{
+row_traverse(pysqlite_Row *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->data);
     Py_VISIT(self->description);
@@ -56,8 +54,7 @@ row_traverse(pysqlite_Row *self, visitproc visit, void *arg)
 }
 
 static void
-pysqlite_row_dealloc(PyObject *self)
-{
+pysqlite_row_dealloc(PyObject *self) {
     PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack(self);
     tp->tp_clear(self);
@@ -76,33 +73,31 @@ _sqlite3.Row.__new__ as pysqlite_row_new
 [clinic start generated code]*/
 
 static PyObject *
-pysqlite_row_new_impl(PyTypeObject *type, pysqlite_Cursor *cursor,
-                      PyObject *data)
+pysqlite_row_new_impl(PyTypeObject *type, pysqlite_Cursor *cursor, PyObject *data)
 /*[clinic end generated code: output=10d58b09a819a4c1 input=b9e954ca31345dbf]*/
 {
     pysqlite_Row *self;
 
     assert(type != NULL && type->tp_alloc != NULL);
 
-    self = (pysqlite_Row *) type->tp_alloc(type, 0);
+    self = (pysqlite_Row *)type->tp_alloc(type, 0);
     if (self == NULL)
         return NULL;
 
     self->data = Py_NewRef(data);
     self->description = Py_NewRef(cursor->description);
 
-    return (PyObject *) self;
+    return (PyObject *)self;
 }
 
-PyObject* pysqlite_row_item(pysqlite_Row* self, Py_ssize_t idx)
-{
-   PyObject *item = PyTuple_GetItem(self->data, idx);
-   return Py_XNewRef(item);
+PyObject *
+pysqlite_row_item(pysqlite_Row *self, Py_ssize_t idx) {
+    PyObject *item = PyTuple_GetItem(self->data, idx);
+    return Py_XNewRef(item);
 }
 
 static int
-equal_ignore_case(PyObject *left, PyObject *right)
-{
+equal_ignore_case(PyObject *left, PyObject *right) {
     int eq = PyObject_RichCompareBool(left, right, Py_EQ);
     if (eq) { /* equal or error */
         return eq;
@@ -129,8 +124,7 @@ equal_ignore_case(PyObject *left, PyObject *right)
 }
 
 static PyObject *
-pysqlite_row_subscript(pysqlite_Row *self, PyObject *idx)
-{
+pysqlite_row_subscript(pysqlite_Row *self, PyObject *idx) {
     Py_ssize_t _idx;
     Py_ssize_t nitems, i;
 
@@ -139,7 +133,7 @@ pysqlite_row_subscript(pysqlite_Row *self, PyObject *idx)
         if (_idx == -1 && PyErr_Occurred())
             return NULL;
         if (_idx < 0)
-           _idx += PyTuple_GET_SIZE(self->data);
+            _idx += PyTuple_GET_SIZE(self->data);
 
         PyObject *item = PyTuple_GetItem(self->data, _idx);
         return Py_XNewRef(item);
@@ -163,19 +157,16 @@ pysqlite_row_subscript(pysqlite_Row *self, PyObject *idx)
 
         PyErr_SetString(PyExc_IndexError, "No item with that key");
         return NULL;
-    }
-    else if (PySlice_Check(idx)) {
+    } else if (PySlice_Check(idx)) {
         return PyObject_GetItem(self->data, idx);
-    }
-    else {
+    } else {
         PyErr_SetString(PyExc_IndexError, "Index must be int or string");
         return NULL;
     }
 }
 
 static Py_ssize_t
-pysqlite_row_length(pysqlite_Row* self)
-{
+pysqlite_row_length(pysqlite_Row *self) {
     return PyTuple_GET_SIZE(self->data);
 }
 
@@ -189,7 +180,7 @@ static PyObject *
 pysqlite_row_keys_impl(pysqlite_Row *self)
 /*[clinic end generated code: output=efe3dfb3af6edc07 input=7549a122827c5563]*/
 {
-    PyObject* list;
+    PyObject *list;
     Py_ssize_t nitems, i;
 
     list = PyList_New(0);
@@ -199,7 +190,9 @@ pysqlite_row_keys_impl(pysqlite_Row *self)
     nitems = PyTuple_Size(self->description);
 
     for (i = 0; i < nitems; i++) {
-        if (PyList_Append(list, PyTuple_GET_ITEM(PyTuple_GET_ITEM(self->description, i), 0)) != 0) {
+        if (PyList_Append(
+                list, PyTuple_GET_ITEM(PyTuple_GET_ITEM(self->description, i), 0)
+            ) != 0) {
             Py_DECREF(list);
             return NULL;
         }
@@ -208,18 +201,18 @@ pysqlite_row_keys_impl(pysqlite_Row *self)
     return list;
 }
 
-static PyObject* pysqlite_iter(pysqlite_Row* self)
-{
+static PyObject *
+pysqlite_iter(pysqlite_Row *self) {
     return PyObject_GetIter(self->data);
 }
 
-static Py_hash_t pysqlite_row_hash(pysqlite_Row *self)
-{
+static Py_hash_t
+pysqlite_row_hash(pysqlite_Row *self) {
     return PyObject_Hash(self->description) ^ PyObject_Hash(self->data);
 }
 
-static PyObject* pysqlite_row_richcompare(pysqlite_Row *self, PyObject *_other, int opid)
-{
+static PyObject *
+pysqlite_row_richcompare(pysqlite_Row *self, PyObject *_other, int opid) {
     if (opid != Py_EQ && opid != Py_NE)
         Py_RETURN_NOTIMPLEMENTED;
 
@@ -238,10 +231,7 @@ static PyObject* pysqlite_row_richcompare(pysqlite_Row *self, PyObject *_other, 
     Py_RETURN_NOTIMPLEMENTED;
 }
 
-static PyMethodDef row_methods[] = {
-    PYSQLITE_ROW_KEYS_METHODDEF
-    {NULL, NULL}
-};
+static PyMethodDef row_methods[] = {PYSQLITE_ROW_KEYS_METHODDEF{NULL, NULL}};
 
 static PyType_Slot row_slots[] = {
     {Py_tp_dealloc, pysqlite_row_dealloc},
@@ -262,14 +252,14 @@ static PyType_Slot row_slots[] = {
 static PyType_Spec row_spec = {
     .name = MODULE_NAME ".Row",
     .basicsize = sizeof(pysqlite_Row),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-              Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC |
+         Py_TPFLAGS_IMMUTABLETYPE),
     .slots = row_slots,
 };
 
 int
-pysqlite_row_setup_types(PyObject *module)
-{
+pysqlite_row_setup_types(PyObject *module) {
     PyObject *type = PyType_FromModuleAndSpec(module, &row_spec, NULL);
     if (type == NULL) {
         return -1;

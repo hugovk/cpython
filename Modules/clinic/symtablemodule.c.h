@@ -2,24 +2,29 @@
 preserve
 [clinic start generated code]*/
 
-#include "pycore_modsupport.h"    // _PyArg_CheckPositional()
+#include "pycore_modsupport.h"  // _PyArg_CheckPositional()
 
-PyDoc_STRVAR(_symtable_symtable__doc__,
-"symtable($module, source, filename, startstr, /)\n"
-"--\n"
-"\n"
-"Return symbol and scope dictionaries used internally by compiler.");
+PyDoc_STRVAR(
+    _symtable_symtable__doc__,
+    "symtable($module, source, filename, startstr, /)\n"
+    "--\n"
+    "\n"
+    "Return symbol and scope dictionaries used internally by compiler."
+);
 
-#define _SYMTABLE_SYMTABLE_METHODDEF    \
-    {"symtable", _PyCFunction_CAST(_symtable_symtable), METH_FASTCALL, _symtable_symtable__doc__},
+#define _SYMTABLE_SYMTABLE_METHODDEF        \
+    {"symtable",                            \
+     _PyCFunction_CAST(_symtable_symtable), \
+     METH_FASTCALL,                         \
+     _symtable_symtable__doc__},
 
 static PyObject *
-_symtable_symtable_impl(PyObject *module, PyObject *source,
-                        PyObject *filename, const char *startstr);
+_symtable_symtable_impl(
+    PyObject *module, PyObject *source, PyObject *filename, const char *startstr
+);
 
 static PyObject *
-_symtable_symtable(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
-{
+_symtable_symtable(PyObject *module, PyObject *const *args, Py_ssize_t nargs) {
     PyObject *return_value = NULL;
     PyObject *source;
     PyObject *filename;

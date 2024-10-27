@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 
 #include <assert.h>
@@ -39,15 +38,12 @@
 #include "transpose.h"
 #include "umodarith.h"
 
-
 /* Bignum: Cache efficient Matrix Fourier Transform for arrays of the
    form 2**n (See literature/six-step.txt). */
 
-
 /* forward transform with sign = -1 */
 int
-six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
-{
+six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum) {
     struct fnt_params *tparams;
     mpd_size_t log2n, C, R;
     mpd_uint_t kernel;
@@ -59,15 +55,13 @@ six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
     mpd_uint_t *x, w0, w1, wstep;
     mpd_size_t i, k;
 
-
     assert(ispower2(n));
     assert(n >= 16);
     assert(n <= MPD_MAXTRANSFORM_2N);
 
     log2n = mpd_bsr(n);
-    C = ((mpd_size_t)1) << (log2n / 2);  /* number of columns */
+    C = ((mpd_size_t)1) << (log2n / 2);           /* number of columns */
     R = ((mpd_size_t)1) << (log2n - (log2n / 2)); /* number of rows */
-
 
     /* Transpose the matrix. */
     if (!transpose_pow2(a, R, C)) {
@@ -78,7 +72,7 @@ six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
     if ((tparams = _mpd_init_fnt_params(R, -1, modnum)) == NULL) {
         return 0;
     }
-    for (x = a; x < a+n; x += R) {
+    for (x = a; x < a + n; x += R) {
         fnt_dif2(x, R, tparams);
     }
 
@@ -92,16 +86,16 @@ six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
     SETMODULUS(modnum);
     kernel = _mpd_getkernel(n, -1, modnum);
     for (i = 1; i < R; i++) {
-        w0 = 1;                  /* r**(i*0): initial value for k=0 */
-        w1 = POWMOD(kernel, i);  /* r**(i*1): initial value for k=1 */
-        wstep = MULMOD(w1, w1);  /* r**(2*i) */
+        w0 = 1;                 /* r**(i*0): initial value for k=0 */
+        w1 = POWMOD(kernel, i); /* r**(i*1): initial value for k=1 */
+        wstep = MULMOD(w1, w1); /* r**(2*i) */
         for (k = 0; k < C; k += 2) {
-            mpd_uint_t x0 = a[i*C+k];
-            mpd_uint_t x1 = a[i*C+k+1];
+            mpd_uint_t x0 = a[i * C + k];
+            mpd_uint_t x1 = a[i * C + k + 1];
             MULMOD2(&x0, w0, &x1, w1);
-            MULMOD2C(&w0, &w1, wstep);  /* r**(i*(k+2)) = r**(i*k) * r**(2*i) */
-            a[i*C+k] = x0;
-            a[i*C+k+1] = x1;
+            MULMOD2C(&w0, &w1, wstep); /* r**(i*(k+2)) = r**(i*k) * r**(2*i) */
+            a[i * C + k] = x0;
+            a[i * C + k + 1] = x1;
         }
     }
 
@@ -112,7 +106,7 @@ six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
             return 0;
         }
     }
-    for (x = a; x < a+n; x += C) {
+    for (x = a; x < a + n; x += C) {
         fnt_dif2(x, C, tparams);
     }
     mpd_free(tparams);
@@ -128,11 +122,9 @@ six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
     return 1;
 }
 
-
 /* reverse transform, sign = 1 */
 int
-inv_six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
-{
+inv_six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum) {
     struct fnt_params *tparams;
     mpd_size_t log2n, C, R;
     mpd_uint_t kernel;
@@ -144,15 +136,13 @@ inv_six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
     mpd_uint_t *x, w0, w1, wstep;
     mpd_size_t i, k;
 
-
     assert(ispower2(n));
     assert(n >= 16);
     assert(n <= MPD_MAXTRANSFORM_2N);
 
     log2n = mpd_bsr(n);
-    C = ((mpd_size_t)1) << (log2n / 2); /* number of columns */
+    C = ((mpd_size_t)1) << (log2n / 2);           /* number of columns */
     R = ((mpd_size_t)1) << (log2n - (log2n / 2)); /* number of rows */
-
 
 #if 0
     /* An unordered transform is sufficient for convolution. */
@@ -166,7 +156,7 @@ inv_six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
     if ((tparams = _mpd_init_fnt_params(C, 1, modnum)) == NULL) {
         return 0;
     }
-    for (x = a; x < a+n; x += C) {
+    for (x = a; x < a + n; x += C) {
         fnt_dif2(x, C, tparams);
     }
 
@@ -178,12 +168,12 @@ inv_six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
         w1 = POWMOD(kernel, i);
         wstep = MULMOD(w1, w1);
         for (k = 0; k < C; k += 2) {
-            mpd_uint_t x0 = a[i*C+k];
-            mpd_uint_t x1 = a[i*C+k+1];
+            mpd_uint_t x0 = a[i * C + k];
+            mpd_uint_t x1 = a[i * C + k + 1];
             MULMOD2(&x0, w0, &x1, w1);
             MULMOD2C(&w0, &w1, wstep);
-            a[i*C+k] = x0;
-            a[i*C+k+1] = x1;
+            a[i * C + k] = x0;
+            a[i * C + k + 1] = x1;
         }
     }
 
@@ -200,7 +190,7 @@ inv_six_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
             return 0;
         }
     }
-    for (x = a; x < a+n; x += R) {
+    for (x = a; x < a + n; x += R) {
         fnt_dif2(x, R, tparams);
     }
     mpd_free(tparams);

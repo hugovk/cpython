@@ -4,11 +4,8 @@
 #error must include "stringlib/fastsearch.h" before including this module
 #endif
 
-
 static void
-STRINGLIB(repr)(PyObject *unicode, Py_UCS4 quote,
-                STRINGLIB_CHAR *odata)
-{
+STRINGLIB(repr)(PyObject *unicode, Py_UCS4 quote, STRINGLIB_CHAR *odata) {
     Py_ssize_t isize = PyUnicode_GET_LENGTH(unicode);
     const void *idata = PyUnicode_DATA(unicode);
     int ikind = PyUnicode_KIND(unicode);
@@ -28,12 +25,10 @@ STRINGLIB(repr)(PyObject *unicode, Py_UCS4 quote,
         if (ch == '\t') {
             *odata++ = '\\';
             *odata++ = 't';
-        }
-        else if (ch == '\n') {
+        } else if (ch == '\n') {
             *odata++ = '\\';
             *odata++ = 'n';
-        }
-        else if (ch == '\r') {
+        } else if (ch == '\r') {
             *odata++ = '\\';
             *odata++ = 'r';
         }

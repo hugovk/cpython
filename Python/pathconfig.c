@@ -1,21 +1,20 @@
 /* Path configuration like module_search_path (sys.path) */
 
 #include "Python.h"
-#include "pycore_initconfig.h"    // _PyStatus_OK()
-#include "pycore_fileutils.h"     // _Py_wgetcwd()
+#include "pycore_initconfig.h"  // _PyStatus_OK()
+#include "pycore_fileutils.h"   // _Py_wgetcwd()
 #include "pycore_pathconfig.h"
-#include "pycore_pymem.h"         // _PyMem_SetDefaultAllocator()
+#include "pycore_pymem.h"  // _PyMem_SetDefaultAllocator()
 #include <wchar.h>
 
-#include "marshal.h"              // PyMarshal_ReadObjectFromString
-#include "osdefs.h"               // DELIM
+#include "marshal.h"  // PyMarshal_ReadObjectFromString
+#include "osdefs.h"   // DELIM
 
 #ifdef MS_WINDOWS
-#  include <windows.h>            // GetFullPathNameW(), MAX_PATH
-#  include <pathcch.h>
-#  include <shlwapi.h>
+#include <windows.h>  // GetFullPathNameW(), MAX_PATH
+#include <pathcch.h>
+#include <shlwapi.h>
 #endif
-
 
 /* External interface */
 
@@ -37,30 +36,24 @@ typedef struct _PyPathConfig {
     int _is_python_build;
 } _PyPathConfig;
 
-#  define _PyPathConfig_INIT \
-      {.module_search_path = NULL, ._is_python_build = 0}
-
+#define _PyPathConfig_INIT {.module_search_path = NULL, ._is_python_build = 0}
 
 _PyPathConfig _Py_path_config = _PyPathConfig_INIT;
 
-
 const wchar_t *
-_PyPathConfig_GetGlobalModuleSearchPath(void)
-{
+_PyPathConfig_GetGlobalModuleSearchPath(void) {
     return _Py_path_config.module_search_path;
 }
 
-
 void
-_PyPathConfig_ClearGlobal(void)
-{
+_PyPathConfig_ClearGlobal(void) {
     PyMemAllocatorEx old_alloc;
     _PyMem_SetDefaultAllocator(PYMEM_DOMAIN_RAW, &old_alloc);
 
-#define CLEAR(ATTR) \
-    do { \
+#define CLEAR(ATTR)                          \
+    do {                                     \
         PyMem_RawFree(_Py_path_config.ATTR); \
-        _Py_path_config.ATTR = NULL; \
+        _Py_path_config.ATTR = NULL;         \
     } while (0)
 
     CLEAR(program_full_path);
@@ -79,32 +72,34 @@ _PyPathConfig_ClearGlobal(void)
 }
 
 PyStatus
-_PyPathConfig_ReadGlobal(PyConfig *config)
-{
+_PyPathConfig_ReadGlobal(PyConfig *config) {
     PyStatus status = _PyStatus_OK();
 
-#define COPY(ATTR) \
-    do { \
-        if (_Py_path_config.ATTR && !config->ATTR) { \
+#define COPY(ATTR)                                                                    \
+    do {                                                                              \
+        if (_Py_path_config.ATTR && !config->ATTR) {                                  \
             status = PyConfig_SetString(config, &config->ATTR, _Py_path_config.ATTR); \
-            if (_PyStatus_EXCEPTION(status)) goto done; \
-        } \
+            if (_PyStatus_EXCEPTION(status))                                          \
+                goto done;                                                            \
+        }                                                                             \
     } while (0)
 
-#define COPY2(ATTR, SRCATTR) \
-    do { \
-        if (_Py_path_config.SRCATTR && !config->ATTR) { \
-            status = PyConfig_SetString(config, &config->ATTR, _Py_path_config.SRCATTR); \
-            if (_PyStatus_EXCEPTION(status)) goto done; \
-        } \
+#define COPY2(ATTR, SRCATTR)                                                        \
+    do {                                                                            \
+        if (_Py_path_config.SRCATTR && !config->ATTR) {                             \
+            status =                                                                \
+                PyConfig_SetString(config, &config->ATTR, _Py_path_config.SRCATTR); \
+            if (_PyStatus_EXCEPTION(status))                                        \
+                goto done;                                                          \
+        }                                                                           \
     } while (0)
 
-#define COPY_INT(ATTR) \
-    do { \
-        assert(_Py_path_config.ATTR >= 0); \
+#define COPY_INT(ATTR)                                            \
+    do {                                                          \
+        assert(_Py_path_config.ATTR >= 0);                        \
         if ((_Py_path_config.ATTR >= 0) && (config->ATTR <= 0)) { \
-            config->ATTR = _Py_path_config.ATTR; \
-        } \
+            config->ATTR = _Py_path_config.ATTR;                  \
+        }                                                         \
     } while (0)
 
     COPY(prefix);
@@ -124,34 +119,35 @@ done:
 }
 
 PyStatus
-_PyPathConfig_UpdateGlobal(const PyConfig *config)
-{
+_PyPathConfig_UpdateGlobal(const PyConfig *config) {
     PyMemAllocatorEx old_alloc;
     _PyMem_SetDefaultAllocator(PYMEM_DOMAIN_RAW, &old_alloc);
 
-#define COPY(ATTR) \
-    do { \
-        if (config->ATTR) { \
-            PyMem_RawFree(_Py_path_config.ATTR); \
+#define COPY(ATTR)                                                 \
+    do {                                                           \
+        if (config->ATTR) {                                        \
+            PyMem_RawFree(_Py_path_config.ATTR);                   \
             _Py_path_config.ATTR = _PyMem_RawWcsdup(config->ATTR); \
-            if (!_Py_path_config.ATTR) goto error; \
-        } \
+            if (!_Py_path_config.ATTR)                             \
+                goto error;                                        \
+        }                                                          \
     } while (0)
 
-#define COPY2(ATTR, SRCATTR) \
-    do { \
-        if (config->SRCATTR) { \
-            PyMem_RawFree(_Py_path_config.ATTR); \
+#define COPY2(ATTR, SRCATTR)                                          \
+    do {                                                              \
+        if (config->SRCATTR) {                                        \
+            PyMem_RawFree(_Py_path_config.ATTR);                      \
             _Py_path_config.ATTR = _PyMem_RawWcsdup(config->SRCATTR); \
-            if (!_Py_path_config.ATTR) goto error; \
-        } \
+            if (!_Py_path_config.ATTR)                                \
+                goto error;                                           \
+        }                                                             \
     } while (0)
 
-#define COPY_INT(ATTR) \
-    do { \
-        if (config->ATTR > 0) { \
+#define COPY_INT(ATTR)                           \
+    do {                                         \
+        if (config->ATTR > 0) {                  \
             _Py_path_config.ATTR = config->ATTR; \
-        } \
+        }                                        \
     } while (0)
 
     COPY(prefix);
@@ -176,7 +172,7 @@ _PyPathConfig_UpdateGlobal(const PyConfig *config)
             cch += 1 + wcslen(config->module_search_paths.items[i]);
         }
 
-        wchar_t *path = (wchar_t*)PyMem_RawMalloc(sizeof(wchar_t) * cch);
+        wchar_t *path = (wchar_t *)PyMem_RawMalloc(sizeof(wchar_t) * cch);
         if (!path) {
             goto error;
         }
@@ -202,17 +198,13 @@ error:
     return _PyStatus_NO_MEMORY();
 }
 
-
 static void _Py_NO_RETURN
-path_out_of_memory(const char *func)
-{
+path_out_of_memory(const char *func) {
     _Py_FatalErrorFunc(func, "out of memory");
 }
 
 // Removed in Python 3.13 API, but kept for the stable ABI
-PyAPI_FUNC(void)
-Py_SetPath(const wchar_t *path)
-{
+PyAPI_FUNC(void) Py_SetPath(const wchar_t *path) {
     if (path == NULL) {
         _PyPathConfig_ClearGlobal();
         return;
@@ -232,8 +224,7 @@ Py_SetPath(const wchar_t *path)
     // XXX Copy this from the new module_search_path?
     if (_Py_path_config.home != NULL) {
         _Py_path_config.stdlib_dir = _PyMem_RawWcsdup(_Py_path_config.home);
-    }
-    else {
+    } else {
         _Py_path_config.stdlib_dir = _PyMem_RawWcsdup(L"");
     }
     _Py_path_config.module_search_path = _PyMem_RawWcsdup(path);
@@ -241,19 +232,15 @@ Py_SetPath(const wchar_t *path)
 
     PyMem_SetAllocator(PYMEM_DOMAIN_RAW, &old_alloc);
 
-    if (_Py_path_config.prefix == NULL
-        || _Py_path_config.exec_prefix == NULL
-        || _Py_path_config.stdlib_dir == NULL
-        || _Py_path_config.module_search_path == NULL)
-    {
+    if (_Py_path_config.prefix == NULL || _Py_path_config.exec_prefix == NULL ||
+        _Py_path_config.stdlib_dir == NULL ||
+        _Py_path_config.module_search_path == NULL) {
         path_out_of_memory(__func__);
     }
 }
 
-
 void
-Py_SetPythonHome(const wchar_t *home)
-{
+Py_SetPythonHome(const wchar_t *home) {
     int has_value = home && home[0];
 
     PyMemAllocatorEx old_alloc;
@@ -273,10 +260,8 @@ Py_SetPythonHome(const wchar_t *home)
     }
 }
 
-
 void
-Py_SetProgramName(const wchar_t *program_name)
-{
+Py_SetProgramName(const wchar_t *program_name) {
     int has_value = program_name && program_name[0];
 
     PyMemAllocatorEx old_alloc;
@@ -296,10 +281,8 @@ Py_SetProgramName(const wchar_t *program_name)
     }
 }
 
-
 wchar_t *
-Py_GetPath(void)
-{
+Py_GetPath(void) {
     /* If the user has provided a path, return that */
     if (_Py_path_config.module_search_path) {
         return _Py_path_config.module_search_path;
@@ -308,10 +291,8 @@ Py_GetPath(void)
     return _Py_path_config.calculated_module_search_path;
 }
 
-
 wchar_t *
-_Py_GetStdlibDir(void)
-{
+_Py_GetStdlibDir(void) {
     wchar_t *stdlib_dir = _Py_path_config.stdlib_dir;
     if (stdlib_dir != NULL && stdlib_dir[0] != L'\0') {
         return stdlib_dir;
@@ -319,42 +300,30 @@ _Py_GetStdlibDir(void)
     return NULL;
 }
 
-
 wchar_t *
-Py_GetPrefix(void)
-{
+Py_GetPrefix(void) {
     return _Py_path_config.prefix;
 }
 
-
 wchar_t *
-Py_GetExecPrefix(void)
-{
+Py_GetExecPrefix(void) {
     return _Py_path_config.exec_prefix;
 }
 
-
 wchar_t *
-Py_GetProgramFullPath(void)
-{
+Py_GetProgramFullPath(void) {
     return _Py_path_config.program_full_path;
 }
 
-
-wchar_t*
-Py_GetPythonHome(void)
-{
+wchar_t *
+Py_GetPythonHome(void) {
     return _Py_path_config.home;
 }
 
-
 wchar_t *
-Py_GetProgramName(void)
-{
+Py_GetProgramName(void) {
     return _Py_path_config.program_name;
 }
-
-
 
 /* Compute module search path from argv[0] or the current working
    directory ("-m module" case) which will be prepended to sys.argv:
@@ -368,8 +337,7 @@ Py_GetProgramName(void)
    Raise an exception and return -1 on error.
    */
 int
-_PyPathConfig_ComputeSysPath0(const PyWideStringList *argv, PyObject **path0_p)
-{
+_PyPathConfig_ComputeSysPath0(const PyWideStringList *argv, PyObject **path0_p) {
     assert(_PyWideStringList_CheckConsistency(argv));
 
     if (argv->length == 0) {
@@ -415,22 +383,19 @@ _PyPathConfig_ComputeSysPath0(const PyWideStringList *argv, PyObject **path0_p)
         link[nr] = '\0';
         if (link[0] == SEP) {
             path0 = link; /* Link to absolute path */
-        }
-        else if (wcschr(link, SEP) == NULL) {
+        } else if (wcschr(link, SEP) == NULL) {
             /* Link without path */
-        }
-        else {
+        } else {
             /* Must join(dirname(path0), link) */
             wchar_t *q = wcsrchr(path0, SEP);
             if (q == NULL) {
                 /* path0 without path */
                 path0 = link;
-            }
-            else {
+            } else {
                 /* Must make a copy, path0copy has room for 2 * MAXPATHLEN */
                 wcsncpy(path0copy, path0, MAXPATHLEN);
                 q = wcsrchr(path0copy, SEP);
-                wcsncpy(q+1, link, MAXPATHLEN);
+                wcsncpy(q + 1, link, MAXPATHLEN);
                 q[MAXPATHLEN + 1] = L'\0';
                 path0 = path0copy;
             }
@@ -447,10 +412,7 @@ _PyPathConfig_ComputeSysPath0(const PyWideStringList *argv, PyObject **path0_p)
 #if defined(MS_WINDOWS)
         /* Replace the first element in argv with the full path. */
         wchar_t *ptemp;
-        if (GetFullPathNameW(path0,
-                           Py_ARRAY_LENGTH(fullpath),
-                           fullpath,
-                           &ptemp)) {
+        if (GetFullPathNameW(path0, Py_ARRAY_LENGTH(fullpath), fullpath, &ptemp)) {
             path0 = fullpath;
         }
 #endif
@@ -482,9 +444,9 @@ _PyPathConfig_ComputeSysPath0(const PyWideStringList *argv, PyObject **path0_p)
             /* Drop trailing separator */
             n--;
         }
-#endif /* Unix */
+#endif         /* Unix */
     }
-#endif /* All others */
+#endif         /* All others */
 
     PyObject *path0_obj = PyUnicode_FromWideChar(path0, n);
     if (path0_obj == NULL) {

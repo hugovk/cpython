@@ -1,42 +1,37 @@
 // Need limited C API version 3.13 for PyList_GetItemRef()
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #if !defined(Py_GIL_DISABLED) && !defined(Py_LIMITED_API)
-#  define Py_LIMITED_API 0x030d0000
+#define Py_LIMITED_API 0x030d0000
 #endif
 
 #include "parts.h"
 #include "util.h"
 
 static PyObject *
-list_check(PyObject* Py_UNUSED(module), PyObject *obj)
-{
+list_check(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyList_Check(obj));
 }
 
 static PyObject *
-list_check_exact(PyObject* Py_UNUSED(module), PyObject *obj)
-{
+list_check_exact(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyList_CheckExact(obj));
 }
 
 static PyObject *
-list_new(PyObject* Py_UNUSED(module), PyObject *obj)
-{
+list_new(PyObject *Py_UNUSED(module), PyObject *obj) {
     return PyList_New(PyLong_AsSsize_t(obj));
 }
 
 static PyObject *
-list_size(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+list_size(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PyList_Size(obj));
 }
 
 static PyObject *
-list_getitem(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_getitem(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "On", &obj, &i)) {
@@ -47,8 +42,7 @@ list_getitem(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-list_get_item_ref(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_get_item_ref(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "On", &obj, &i)) {
@@ -59,8 +53,7 @@ list_get_item_ref(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-list_setitem(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_setitem(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj, *value;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "OnO", &obj, &i, &value)) {
@@ -69,12 +62,10 @@ list_setitem(PyObject *Py_UNUSED(module), PyObject *args)
     NULLABLE(obj);
     NULLABLE(value);
     RETURN_INT(PyList_SetItem(obj, i, Py_XNewRef(value)));
-
 }
 
 static PyObject *
-list_insert(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_insert(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj, *value;
     Py_ssize_t where;
     if (!PyArg_ParseTuple(args, "OnO", &obj, &where, &value)) {
@@ -83,12 +74,10 @@ list_insert(PyObject *Py_UNUSED(module), PyObject *args)
     NULLABLE(obj);
     NULLABLE(value);
     RETURN_INT(PyList_Insert(obj, where, Py_XNewRef(value)));
-
 }
 
 static PyObject *
-list_append(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_append(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj, *value;
     if (!PyArg_ParseTuple(args, "OO", &obj, &value)) {
         return NULL;
@@ -99,8 +88,7 @@ list_append(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-list_getslice(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_getslice(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t ilow, ihigh;
     if (!PyArg_ParseTuple(args, "Onn", &obj, &ilow, &ihigh)) {
@@ -108,12 +96,10 @@ list_getslice(PyObject *Py_UNUSED(module), PyObject *args)
     }
     NULLABLE(obj);
     return PyList_GetSlice(obj, ilow, ihigh);
-
 }
 
 static PyObject *
-list_setslice(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_setslice(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj, *value;
     Py_ssize_t ilow, ihigh;
     if (!PyArg_ParseTuple(args, "OnnO", &obj, &ilow, &ihigh, &value)) {
@@ -125,26 +111,22 @@ list_setslice(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-list_sort(PyObject* Py_UNUSED(module), PyObject *obj)
-{
+list_sort(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PyList_Sort(obj));
 }
 
 static PyObject *
-list_reverse(PyObject* Py_UNUSED(module), PyObject *obj)
-{
+list_reverse(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PyList_Reverse(obj));
 }
 
 static PyObject *
-list_astuple(PyObject* Py_UNUSED(module), PyObject *obj)
-{
+list_astuple(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     return PyList_AsTuple(obj);
 }
-
 
 static PyMethodDef test_methods[] = {
     {"list_check", list_check, METH_O},
@@ -165,8 +147,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_List(PyObject *m)
-{
+_PyTestLimitedCAPI_Init_List(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

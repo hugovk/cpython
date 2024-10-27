@@ -1,14 +1,15 @@
 #include "Python.h"
 
-#include <stddef.h>               // offsetof()
-#include <time.h>                 // clock()
+#include <stddef.h>  // offsetof()
+#include <time.h>    // clock()
 
-
-PyDoc_STRVAR(xxsubtype__doc__,
-"xxsubtype is an example module showing how to subtype builtin types from C.\n"
-"test_descr.py in the standard test suite requires it in order to complete.\n"
-"If you don't care about the examples, and don't intend to run the Python\n"
-"test suite, you can recompile Python without Modules/xxsubtype.c.");
+PyDoc_STRVAR(
+    xxsubtype__doc__,
+    "xxsubtype is an example module showing how to subtype builtin types from C.\n"
+    "test_descr.py in the standard test suite requires it in order to complete.\n"
+    "If you don't care about the examples, and don't intend to run the Python\n"
+    "test suite, you can recompile Python without Modules/xxsubtype.c."
+);
 
 /* We link this module statically for convenience.  If compiled as a shared
    library instead, some compilers don't allow addresses of Python objects
@@ -27,16 +28,14 @@ typedef struct {
 } spamlistobject;
 
 static PyObject *
-spamlist_getstate(spamlistobject *self, PyObject *args)
-{
+spamlist_getstate(spamlistobject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, ":getstate"))
         return NULL;
     return PyLong_FromLong(self->state);
 }
 
 static PyObject *
-spamlist_setstate(spamlistobject *self, PyObject *args)
-{
+spamlist_setstate(spamlistobject *self, PyObject *args) {
     int state;
 
     if (!PyArg_ParseTuple(args, "i:setstate", &state))
@@ -46,8 +45,7 @@ spamlist_setstate(spamlistobject *self, PyObject *args)
 }
 
 static PyObject *
-spamlist_specialmeth(PyObject *self, PyObject *args, PyObject *kw)
-{
+spamlist_specialmeth(PyObject *self, PyObject *args, PyObject *kw) {
     PyObject *result = PyTuple_New(3);
 
     if (result != NULL) {
@@ -63,24 +61,29 @@ spamlist_specialmeth(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static PyMethodDef spamlist_methods[] = {
-    {"getstate", (PyCFunction)spamlist_getstate, METH_VARARGS,
-        PyDoc_STR("getstate() -> state")},
-    {"setstate", (PyCFunction)spamlist_setstate, METH_VARARGS,
-        PyDoc_STR("setstate(state)")},
+    {"getstate",
+     (PyCFunction)spamlist_getstate,
+     METH_VARARGS,
+     PyDoc_STR("getstate() -> state")},
+    {"setstate",
+     (PyCFunction)spamlist_setstate,
+     METH_VARARGS,
+     PyDoc_STR("setstate(state)")},
     /* These entries differ only in the flags; they are used by the tests
        in test.test_descr. */
-    {"classmeth", _PyCFunction_CAST(spamlist_specialmeth),
-        METH_VARARGS | METH_KEYWORDS | METH_CLASS,
-        PyDoc_STR("classmeth(*args, **kw)")},
-    {"staticmeth", _PyCFunction_CAST(spamlist_specialmeth),
-        METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-        PyDoc_STR("staticmeth(*args, **kw)")},
-    {NULL,      NULL},
+    {"classmeth",
+     _PyCFunction_CAST(spamlist_specialmeth),
+     METH_VARARGS | METH_KEYWORDS | METH_CLASS,
+     PyDoc_STR("classmeth(*args, **kw)")},
+    {"staticmeth",
+     _PyCFunction_CAST(spamlist_specialmeth),
+     METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+     PyDoc_STR("staticmeth(*args, **kw)")},
+    {NULL, NULL},
 };
 
 static int
-spamlist_init(spamlistobject *self, PyObject *args, PyObject *kwds)
-{
+spamlist_init(spamlistobject *self, PyObject *args, PyObject *kwds) {
     if (PyList_Type.tp_init((PyObject *)self, args, kwds) < 0)
         return -1;
     self->state = 0;
@@ -88,56 +91,56 @@ spamlist_init(spamlistobject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
-spamlist_state_get(spamlistobject *self, void *Py_UNUSED(ignored))
-{
+spamlist_state_get(spamlistobject *self, void *Py_UNUSED(ignored)) {
     return PyLong_FromLong(self->state);
 }
 
 static PyGetSetDef spamlist_getsets[] = {
-    {"state", (getter)spamlist_state_get, NULL,
+    {"state",
+     (getter)spamlist_state_get,
+     NULL,
      PyDoc_STR("an int variable for demonstration purposes")},
     {0}
 };
 
 static PyTypeObject spamlist_type = {
-    PyVarObject_HEAD_INIT(DEFERRED_ADDRESS(&PyType_Type), 0)
-    "xxsubtype.spamlist",
+    PyVarObject_HEAD_INIT(DEFERRED_ADDRESS(&PyType_Type), 0) "xxsubtype.spamlist",
     sizeof(spamlistobject),
     0,
-    0,                                          /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    0,                                          /* tp_getattr */
-    0,                                          /* tp_setattr */
-    0,                                          /* tp_as_async */
-    0,                                          /* tp_repr */
-    0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
-    0,                                          /* tp_as_mapping */
-    0,                                          /* tp_hash */
-    0,                                          /* tp_call */
-    0,                                          /* tp_str */
-    0,                                          /* tp_getattro */
-    0,                                          /* tp_setattro */
-    0,                                          /* tp_as_buffer */
+    0,                                        /* tp_dealloc */
+    0,                                        /* tp_vectorcall_offset */
+    0,                                        /* tp_getattr */
+    0,                                        /* tp_setattr */
+    0,                                        /* tp_as_async */
+    0,                                        /* tp_repr */
+    0,                                        /* tp_as_number */
+    0,                                        /* tp_as_sequence */
+    0,                                        /* tp_as_mapping */
+    0,                                        /* tp_hash */
+    0,                                        /* tp_call */
+    0,                                        /* tp_str */
+    0,                                        /* tp_getattro */
+    0,                                        /* tp_setattro */
+    0,                                        /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-    0,                                          /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
-    0,                                          /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    spamlist_methods,                           /* tp_methods */
-    0,                                          /* tp_members */
-    spamlist_getsets,                           /* tp_getset */
-    DEFERRED_ADDRESS(&PyList_Type),             /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    (initproc)spamlist_init,                    /* tp_init */
-    0,                                          /* tp_alloc */
-    0,                                          /* tp_new */
+    0,                                        /* tp_doc */
+    0,                                        /* tp_traverse */
+    0,                                        /* tp_clear */
+    0,                                        /* tp_richcompare */
+    0,                                        /* tp_weaklistoffset */
+    0,                                        /* tp_iter */
+    0,                                        /* tp_iternext */
+    spamlist_methods,                         /* tp_methods */
+    0,                                        /* tp_members */
+    spamlist_getsets,                         /* tp_getset */
+    DEFERRED_ADDRESS(&PyList_Type),           /* tp_base */
+    0,                                        /* tp_dict */
+    0,                                        /* tp_descr_get */
+    0,                                        /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    (initproc)spamlist_init,                  /* tp_init */
+    0,                                        /* tp_alloc */
+    0,                                        /* tp_new */
 };
 
 /* spamdict -- a dict subtype */
@@ -148,16 +151,14 @@ typedef struct {
 } spamdictobject;
 
 static PyObject *
-spamdict_getstate(spamdictobject *self, PyObject *args)
-{
+spamdict_getstate(spamdictobject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, ":getstate"))
         return NULL;
     return PyLong_FromLong(self->state);
 }
 
 static PyObject *
-spamdict_setstate(spamdictobject *self, PyObject *args)
-{
+spamdict_setstate(spamdictobject *self, PyObject *args) {
     int state;
 
     if (!PyArg_ParseTuple(args, "i:setstate", &state))
@@ -167,16 +168,19 @@ spamdict_setstate(spamdictobject *self, PyObject *args)
 }
 
 static PyMethodDef spamdict_methods[] = {
-    {"getstate", (PyCFunction)spamdict_getstate, METH_VARARGS,
-        PyDoc_STR("getstate() -> state")},
-    {"setstate", (PyCFunction)spamdict_setstate, METH_VARARGS,
-        PyDoc_STR("setstate(state)")},
-    {NULL,      NULL},
+    {"getstate",
+     (PyCFunction)spamdict_getstate,
+     METH_VARARGS,
+     PyDoc_STR("getstate() -> state")},
+    {"setstate",
+     (PyCFunction)spamdict_setstate,
+     METH_VARARGS,
+     PyDoc_STR("setstate(state)")},
+    {NULL, NULL},
 };
 
 static int
-spamdict_init(spamdictobject *self, PyObject *args, PyObject *kwds)
-{
+spamdict_init(spamdictobject *self, PyObject *args, PyObject *kwds) {
     if (PyDict_Type.tp_init((PyObject *)self, args, kwds) < 0)
         return -1;
     self->state = 0;
@@ -184,55 +188,56 @@ spamdict_init(spamdictobject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMemberDef spamdict_members[] = {
-    {"state", Py_T_INT, offsetof(spamdictobject, state), Py_READONLY,
+    {"state",
+     Py_T_INT,
+     offsetof(spamdictobject, state),
+     Py_READONLY,
      PyDoc_STR("an int variable for demonstration purposes")},
     {0}
 };
 
 static PyTypeObject spamdict_type = {
-    PyVarObject_HEAD_INIT(DEFERRED_ADDRESS(&PyType_Type), 0)
-    "xxsubtype.spamdict",
+    PyVarObject_HEAD_INIT(DEFERRED_ADDRESS(&PyType_Type), 0) "xxsubtype.spamdict",
     sizeof(spamdictobject),
     0,
-    0,                                          /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    0,                                          /* tp_getattr */
-    0,                                          /* tp_setattr */
-    0,                                          /* tp_as_async */
-    0,                                          /* tp_repr */
-    0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
-    0,                                          /* tp_as_mapping */
-    0,                                          /* tp_hash */
-    0,                                          /* tp_call */
-    0,                                          /* tp_str */
-    0,                                          /* tp_getattro */
-    0,                                          /* tp_setattro */
-    0,                                          /* tp_as_buffer */
+    0,                                        /* tp_dealloc */
+    0,                                        /* tp_vectorcall_offset */
+    0,                                        /* tp_getattr */
+    0,                                        /* tp_setattr */
+    0,                                        /* tp_as_async */
+    0,                                        /* tp_repr */
+    0,                                        /* tp_as_number */
+    0,                                        /* tp_as_sequence */
+    0,                                        /* tp_as_mapping */
+    0,                                        /* tp_hash */
+    0,                                        /* tp_call */
+    0,                                        /* tp_str */
+    0,                                        /* tp_getattro */
+    0,                                        /* tp_setattro */
+    0,                                        /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-    0,                                          /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
-    0,                                          /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    spamdict_methods,                           /* tp_methods */
-    spamdict_members,                           /* tp_members */
-    0,                                          /* tp_getset */
-    DEFERRED_ADDRESS(&PyDict_Type),             /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    (initproc)spamdict_init,                    /* tp_init */
-    0,                                          /* tp_alloc */
-    0,                                          /* tp_new */
+    0,                                        /* tp_doc */
+    0,                                        /* tp_traverse */
+    0,                                        /* tp_clear */
+    0,                                        /* tp_richcompare */
+    0,                                        /* tp_weaklistoffset */
+    0,                                        /* tp_iter */
+    0,                                        /* tp_iternext */
+    spamdict_methods,                         /* tp_methods */
+    spamdict_members,                         /* tp_members */
+    0,                                        /* tp_getset */
+    DEFERRED_ADDRESS(&PyDict_Type),           /* tp_base */
+    0,                                        /* tp_dict */
+    0,                                        /* tp_descr_get */
+    0,                                        /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    (initproc)spamdict_init,                  /* tp_init */
+    0,                                        /* tp_alloc */
+    0,                                        /* tp_new */
 };
 
 static PyObject *
-spam_bench(PyObject *self, PyObject *args)
-{
+spam_bench(PyObject *self, PyObject *args) {
     PyObject *obj, *name, *res;
     int n = 1000;
     time_t t0 = 0, t1 = 0;
@@ -249,17 +254,15 @@ spam_bench(PyObject *self, PyObject *args)
     }
     t1 = clock();
 #endif
-    return PyFloat_FromDouble((double)(t1-t0) / CLOCKS_PER_SEC);
+    return PyFloat_FromDouble((double)(t1 - t0) / CLOCKS_PER_SEC);
 }
 
 static PyMethodDef xxsubtype_functions[] = {
-    {"bench",           spam_bench,     METH_VARARGS},
-    {NULL,              NULL}           /* sentinel */
+    {"bench", spam_bench, METH_VARARGS}, {NULL, NULL} /* sentinel */
 };
 
 static int
-xxsubtype_exec(PyObject* m)
-{
+xxsubtype_exec(PyObject *m) {
     /* Fill in deferred data addresses.  This must be done before
        PyType_Ready() is called.  Note that PyType_Ready() automatically
        initializes the ob.ob_type field to &PyType_Type if it's NULL,
@@ -304,9 +307,7 @@ static struct PyModuleDef xxsubtypemodule = {
     NULL
 };
 
-
 PyMODINIT_FUNC
-PyInit_xxsubtype(void)
-{
+PyInit_xxsubtype(void) {
     return PyModuleDef_Init(&xxsubtypemodule);
 }

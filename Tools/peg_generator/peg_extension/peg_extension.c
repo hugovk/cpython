@@ -1,6 +1,5 @@
 #include "pegen.h"
-#include "pycore_compile.h"       // _PyAST_Compile()
-
+#include "pycore_compile.h"  // _PyAST_Compile()
 
 PyObject *
 _build_return_object(mod_ty module, int mode, PyObject *filename_ob, PyArena *arena)
@@ -9,9 +8,11 @@ _build_return_object(mod_ty module, int mode, PyObject *filename_ob, PyArena *ar
 
     if (mode == 2) {
         result = (PyObject *)_PyAST_Compile(module, filename_ob, NULL, -1, arena);
-    } else if (mode == 1) {
+    }
+    else if (mode == 1) {
         result = PyAST_mod2obj(module);
-    } else {
+    }
+    else {
         result = Py_NewRef(Py_None);
     }
 
@@ -50,9 +51,8 @@ parse_file(PyObject *self, PyObject *args, PyObject *kwds)
     }
 
     PyCompilerFlags flags = _PyCompilerFlags_INIT;
-    mod_ty res = _PyPegen_run_parser_from_file_pointer(
-                        fp, Py_file_input, filename_ob,
-                        NULL, NULL, NULL, &flags, NULL, NULL, arena);
+    mod_ty res = _PyPegen_run_parser_from_file_pointer(fp, Py_file_input, filename_ob, NULL,
+                                                       NULL, NULL, &flags, NULL, NULL, arena);
     fclose(fp);
     if (res == NULL) {
         goto error;
@@ -92,8 +92,8 @@ parse_string(PyObject *self, PyObject *args, PyObject *kwds)
     }
 
     PyCompilerFlags flags = _PyCompilerFlags_INIT;
-    mod_ty res = _PyPegen_run_parser_from_string(the_string, Py_file_input, filename_ob,
-                                        &flags, arena);
+    mod_ty res =
+        _PyPegen_run_parser_from_string(the_string, Py_file_input, filename_ob, &flags, arena);
     if (res == NULL) {
         goto error;
     }
@@ -150,12 +150,14 @@ dump_memo_stats(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(ignored))
 }
 
 static PyMethodDef ParseMethods[] = {
-    {"parse_file", _PyCFunction_CAST(parse_file), METH_VARARGS|METH_KEYWORDS, "Parse a file."},
-    {"parse_string", _PyCFunction_CAST(parse_string), METH_VARARGS|METH_KEYWORDS, "Parse a string."},
+    {"parse_file", _PyCFunction_CAST(parse_file), METH_VARARGS | METH_KEYWORDS,
+     "Parse a file."},
+    {"parse_string", _PyCFunction_CAST(parse_string), METH_VARARGS | METH_KEYWORDS,
+     "Parse a string."},
     {"clear_memo_stats", clear_memo_stats, METH_NOARGS},
     {"dump_memo_stats", dump_memo_stats, METH_NOARGS},
     {"get_memo_stats", get_memo_stats, METH_NOARGS},
-    {NULL, NULL, 0, NULL}        /* Sentinel */
+    {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
 static struct PyModuleDef parsemodule = {

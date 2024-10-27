@@ -5,28 +5,27 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_atexit.h"          // struct _atexit_runtime_state
-#include "pycore_audit.h"           // _Py_AuditHookEntry
-#include "pycore_ceval_state.h"     // struct _ceval_runtime_state
-#include "pycore_crossinterp.h"     // struct _xidregistry
-#include "pycore_debug_offsets.h"   // _Py_DebugOffsets
-#include "pycore_faulthandler.h"    // struct _faulthandler_runtime_state
-#include "pycore_floatobject.h"     // struct _Py_float_runtime_state
-#include "pycore_import.h"          // struct _import_runtime_state
-#include "pycore_interp.h"          // PyInterpreterState
-#include "pycore_object_state.h"    // struct _py_object_runtime_state
-#include "pycore_parser.h"          // struct _parser_runtime_state
-#include "pycore_pyhash.h"          // struct pyhash_runtime_state
-#include "pycore_pymem.h"           // struct _pymem_allocators
-#include "pycore_pythread.h"        // struct _pythread_runtime_state
-#include "pycore_signal.h"          // struct _signals_runtime_state
-#include "pycore_tracemalloc.h"     // struct _tracemalloc_runtime_state
-#include "pycore_typeobject.h"      // struct _types_runtime_state
-#include "pycore_unicodeobject.h"   // struct _Py_unicode_runtime_state
-
+#include "pycore_atexit.h"         // struct _atexit_runtime_state
+#include "pycore_audit.h"          // _Py_AuditHookEntry
+#include "pycore_ceval_state.h"    // struct _ceval_runtime_state
+#include "pycore_crossinterp.h"    // struct _xidregistry
+#include "pycore_debug_offsets.h"  // _Py_DebugOffsets
+#include "pycore_faulthandler.h"   // struct _faulthandler_runtime_state
+#include "pycore_floatobject.h"    // struct _Py_float_runtime_state
+#include "pycore_import.h"         // struct _import_runtime_state
+#include "pycore_interp.h"         // PyInterpreterState
+#include "pycore_object_state.h"   // struct _py_object_runtime_state
+#include "pycore_parser.h"         // struct _parser_runtime_state
+#include "pycore_pyhash.h"         // struct pyhash_runtime_state
+#include "pycore_pymem.h"          // struct _pymem_allocators
+#include "pycore_pythread.h"       // struct _pythread_runtime_state
+#include "pycore_signal.h"         // struct _signals_runtime_state
+#include "pycore_tracemalloc.h"    // struct _tracemalloc_runtime_state
+#include "pycore_typeobject.h"     // struct _types_runtime_state
+#include "pycore_unicodeobject.h"  // struct _Py_unicode_runtime_state
 
 /* Full Python runtime state */
 
@@ -198,7 +197,6 @@ typedef struct pyruntimestate {
 
 } _PyRuntimeState;
 
-
 /* other API */
 
 // Export _PyRuntime for shared extensions which use it in static inline
@@ -206,23 +204,27 @@ typedef struct pyruntimestate {
 // It's also made accessible for debuggers and profilers.
 PyAPI_DATA(_PyRuntimeState) _PyRuntime;
 
-extern PyStatus _PyRuntimeState_Init(_PyRuntimeState *runtime);
-extern void _PyRuntimeState_Fini(_PyRuntimeState *runtime);
+extern PyStatus
+_PyRuntimeState_Init(_PyRuntimeState *runtime);
+extern void
+_PyRuntimeState_Fini(_PyRuntimeState *runtime);
 
 #ifdef HAVE_FORK
-extern PyStatus _PyRuntimeState_ReInitThreads(_PyRuntimeState *runtime);
+extern PyStatus
+_PyRuntimeState_ReInitThreads(_PyRuntimeState *runtime);
 #endif
 
 /* Initialize _PyRuntimeState.
    Return NULL on success, or return an error message on failure. */
-extern PyStatus _PyRuntime_Initialize(void);
+extern PyStatus
+_PyRuntime_Initialize(void);
 
-extern void _PyRuntime_Finalize(void);
+extern void
+_PyRuntime_Finalize(void);
 
-
-static inline PyThreadState*
+static inline PyThreadState *
 _PyRuntimeState_GetFinalizing(_PyRuntimeState *runtime) {
-    return (PyThreadState*)_Py_atomic_load_ptr_relaxed(&runtime->_finalizing);
+    return (PyThreadState *)_Py_atomic_load_ptr_relaxed(&runtime->_finalizing);
 }
 
 static inline unsigned long
@@ -235,15 +237,12 @@ _PyRuntimeState_SetFinalizing(_PyRuntimeState *runtime, PyThreadState *tstate) {
     _Py_atomic_store_ptr_relaxed(&runtime->_finalizing, tstate);
     if (tstate == NULL) {
         _Py_atomic_store_ulong_relaxed(&runtime->_finalizing_id, 0);
-    }
-    else {
+    } else {
         // XXX Re-enable this assert once gh-109860 is fixed.
-        //assert(tstate->thread_id == PyThread_get_thread_ident());
-        _Py_atomic_store_ulong_relaxed(&runtime->_finalizing_id,
-                                       tstate->thread_id);
+        // assert(tstate->thread_id == PyThread_get_thread_ident());
+        _Py_atomic_store_ulong_relaxed(&runtime->_finalizing_id, tstate->thread_id);
     }
 }
-
 
 #ifdef __cplusplus
 }

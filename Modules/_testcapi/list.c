@@ -1,18 +1,14 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-list_get_size(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+list_get_size(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PyList_GET_SIZE(obj));
 }
 
-
 static PyObject *
-list_get_item(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_get_item(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "On", &obj, &i)) {
@@ -22,10 +18,8 @@ list_get_item(PyObject *Py_UNUSED(module), PyObject *args)
     return Py_XNewRef(PyList_GET_ITEM(obj, i));
 }
 
-
 static PyObject *
-list_set_item(PyObject *Py_UNUSED(module), PyObject *args)
-{
+list_set_item(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj, *value;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "OnO", &obj, &i, &value)) {
@@ -35,21 +29,16 @@ list_set_item(PyObject *Py_UNUSED(module), PyObject *args)
     NULLABLE(value);
     PyList_SET_ITEM(obj, i, Py_XNewRef(value));
     Py_RETURN_NONE;
-
 }
 
-
 static PyObject *
-list_clear(PyObject* Py_UNUSED(module), PyObject *obj)
-{
+list_clear(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PyList_Clear(obj));
 }
 
-
 static PyObject *
-list_extend(PyObject* Py_UNUSED(module), PyObject *args)
-{
+list_extend(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj, *arg;
     if (!PyArg_ParseTuple(args, "OO", &obj, &arg)) {
         return NULL;
@@ -58,7 +47,6 @@ list_extend(PyObject* Py_UNUSED(module), PyObject *args)
     NULLABLE(arg);
     RETURN_INT(PyList_Extend(obj, arg));
 }
-
 
 static PyMethodDef test_methods[] = {
     {"list_get_size", list_get_size, METH_O},
@@ -71,8 +59,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_List(PyObject *m)
-{
+_PyTestCapi_Init_List(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

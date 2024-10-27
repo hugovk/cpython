@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-
 #ifndef __internal_Hacl_Hash_Blake2s_H
 #define __internal_Hacl_Hash_Blake2s_H
 
@@ -39,30 +38,32 @@ extern "C" {
 #include "internal/Hacl_Hash_Blake2b.h"
 #include "../Hacl_Hash_Blake2s.h"
 
-void Hacl_Hash_Blake2s_init(uint32_t *hash, uint32_t kk, uint32_t nn);
+void
+Hacl_Hash_Blake2s_init(uint32_t *hash, uint32_t kk, uint32_t nn);
 
 void
 Hacl_Hash_Blake2s_update_multi(
-  uint32_t len,
-  uint32_t *wv,
-  uint32_t *hash,
-  uint64_t prev,
-  uint8_t *blocks,
-  uint32_t nb
+    uint32_t len,
+    uint32_t *wv,
+    uint32_t *hash,
+    uint64_t prev,
+    uint8_t *blocks,
+    uint32_t nb
 );
 
 void
 Hacl_Hash_Blake2s_update_last(
-  uint32_t len,
-  uint32_t *wv,
-  uint32_t *hash,
-  bool last_node,
-  uint64_t prev,
-  uint32_t rem,
-  uint8_t *d
+    uint32_t len,
+    uint32_t *wv,
+    uint32_t *hash,
+    bool last_node,
+    uint64_t prev,
+    uint32_t rem,
+    uint8_t *d
 );
 
-void Hacl_Hash_Blake2s_finish(uint32_t nn, uint8_t *output, uint32_t *hash);
+void
+Hacl_Hash_Blake2s_finish(uint32_t nn, uint8_t *output, uint32_t *hash);
 
 #if defined(__cplusplus)
 }

@@ -21,7 +21,6 @@
 #endif /* !COMPILER */
 
 const char *
-Py_GetCompiler(void)
-{
+Py_GetCompiler(void) {
     return COMPILER;
 }

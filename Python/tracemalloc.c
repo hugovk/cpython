@@ -1,27 +1,29 @@
 #include "Python.h"
-#include "pycore_fileutils.h"     // _Py_write_noraise()
-#include "pycore_gc.h"            // PyGC_Head
-#include "pycore_hashtable.h"     // _Py_hashtable_t
-#include "pycore_object.h"        // _PyType_PreHeaderSize()
-#include "pycore_pymem.h"         // _Py_tracemalloc_config
-#include "pycore_runtime.h"       // _Py_ID()
-#include "pycore_traceback.h"     // _Py_DumpASCII()
+#include "pycore_fileutils.h"  // _Py_write_noraise()
+#include "pycore_gc.h"         // PyGC_Head
+#include "pycore_hashtable.h"  // _Py_hashtable_t
+#include "pycore_object.h"     // _PyType_PreHeaderSize()
+#include "pycore_pymem.h"      // _Py_tracemalloc_config
+#include "pycore_runtime.h"    // _Py_ID()
+#include "pycore_traceback.h"  // _Py_DumpASCII()
 #include <pycore_frame.h>
 
-#include "frameobject.h"          // _PyInterpreterFrame_GetLine
+#include "frameobject.h"  // _PyInterpreterFrame_GetLine
 
-#include <stdlib.h>               // malloc()
+#include <stdlib.h>  // malloc()
 
 #define tracemalloc_config _PyRuntime.tracemalloc.config
 
 _Py_DECLARE_STR(anon_unknown, "<unknown>");
 
 /* Forward declaration */
-static void* raw_malloc(size_t size);
-static void raw_free(void *ptr);
+static void *
+raw_malloc(size_t size);
+static void
+raw_free(void *ptr);
 
 #ifdef Py_DEBUG
-#  define TRACE_DEBUG
+#define TRACE_DEBUG
 #endif
 
 #define TO_PTR(key) ((const void *)(uintptr_t)(key))
@@ -29,37 +31,33 @@ static void raw_free(void *ptr);
 
 #define allocators _PyRuntime.tracemalloc.allocators
 
-
 #if defined(TRACE_RAW_MALLOC)
 /* This lock is needed because tracemalloc_free() is called without
    the GIL held from PyMem_RawFree(). It cannot acquire the lock because it
    would introduce a deadlock in _PyThreadState_DeleteCurrent(). */
-#  define tables_lock _PyRuntime.tracemalloc.tables_lock
-#  define TABLES_LOCK() PyThread_acquire_lock(tables_lock, 1)
-#  define TABLES_UNLOCK() PyThread_release_lock(tables_lock)
+#define tables_lock _PyRuntime.tracemalloc.tables_lock
+#define TABLES_LOCK() PyThread_acquire_lock(tables_lock, 1)
+#define TABLES_UNLOCK() PyThread_release_lock(tables_lock)
 #else
-   /* variables are protected by the GIL */
-#  define TABLES_LOCK()
-#  define TABLES_UNLOCK()
+/* variables are protected by the GIL */
+#define TABLES_LOCK()
+#define TABLES_UNLOCK()
 #endif
-
 
 #define DEFAULT_DOMAIN 0
 
 typedef struct tracemalloc_frame frame_t;
 typedef struct tracemalloc_traceback traceback_t;
 
-#define TRACEBACK_SIZE(NFRAME) \
-        (sizeof(traceback_t) + sizeof(frame_t) * (NFRAME - 1))
+#define TRACEBACK_SIZE(NFRAME) (sizeof(traceback_t) + sizeof(frame_t) * (NFRAME - 1))
 
 /* The maximum number of frames is either:
  - The maximum number of frames we can store in `traceback_t.nframe`
  - The maximum memory size_t we can allocate */
-static const unsigned long MAX_NFRAME = Py_MIN(UINT16_MAX, ((SIZE_MAX - sizeof(traceback_t)) / sizeof(frame_t) + 1));
-
+static const unsigned long MAX_NFRAME =
+    Py_MIN(UINT16_MAX, ((SIZE_MAX - sizeof(traceback_t)) / sizeof(frame_t) + 1));
 
 #define tracemalloc_empty_traceback _PyRuntime.tracemalloc.empty_traceback
-
 
 /* Trace of a memory block */
 typedef struct {
@@ -70,7 +68,6 @@ typedef struct {
     traceback_t *traceback;
 } trace_t;
 
-
 #define tracemalloc_traced_memory _PyRuntime.tracemalloc.traced_memory
 #define tracemalloc_peak_traced_memory _PyRuntime.tracemalloc.peak_traced_memory
 #define tracemalloc_filenames _PyRuntime.tracemalloc.filenames
@@ -79,11 +76,9 @@ typedef struct {
 #define tracemalloc_traces _PyRuntime.tracemalloc.traces
 #define tracemalloc_domains _PyRuntime.tracemalloc.domains
 
-
 #ifdef TRACE_DEBUG
 static void
-tracemalloc_error(const char *format, ...)
-{
+tracemalloc_error(const char *format, ...) {
     va_list ap;
     fprintf(stderr, "tracemalloc: ");
     va_start(ap, format);
@@ -94,7 +89,6 @@ tracemalloc_error(const char *format, ...)
 }
 #endif
 
-
 #if defined(TRACE_RAW_MALLOC)
 #define REENTRANT_THREADLOCAL
 
@@ -104,8 +98,7 @@ tracemalloc_error(const char *format, ...)
 #define REENTRANT Py_True
 
 static int
-get_reentrant(void)
-{
+get_reentrant(void) {
     void *ptr;
 
     assert(PyThread_tss_is_created(&tracemalloc_reentrant_key));
@@ -113,22 +106,19 @@ get_reentrant(void)
     if (ptr != NULL) {
         assert(ptr == REENTRANT);
         return 1;
-    }
-    else
+    } else
         return 0;
 }
 
 static void
-set_reentrant(int reentrant)
-{
+set_reentrant(int reentrant) {
     assert(reentrant == 0 || reentrant == 1);
     assert(PyThread_tss_is_created(&tracemalloc_reentrant_key));
 
     if (reentrant) {
         assert(!get_reentrant());
         PyThread_tss_set(&tracemalloc_reentrant_key, REENTRANT);
-    }
-    else {
+    } else {
         assert(get_reentrant());
         PyThread_tss_set(&tracemalloc_reentrant_key, NULL);
     }
@@ -140,87 +130,71 @@ set_reentrant(int reentrant)
 static int tracemalloc_reentrant = 0;
 
 static int
-get_reentrant(void)
-{
+get_reentrant(void) {
     return tracemalloc_reentrant;
 }
 
 static void
-set_reentrant(int reentrant)
-{
+set_reentrant(int reentrant) {
     assert(reentrant != tracemalloc_reentrant);
     tracemalloc_reentrant = reentrant;
 }
 #endif
 
-
 static Py_uhash_t
-hashtable_hash_pyobject(const void *key)
-{
+hashtable_hash_pyobject(const void *key) {
     PyObject *obj = (PyObject *)key;
     return PyObject_Hash(obj);
 }
 
-
 static int
-hashtable_compare_unicode(const void *key1, const void *key2)
-{
+hashtable_compare_unicode(const void *key1, const void *key2) {
     PyObject *obj1 = (PyObject *)key1;
     PyObject *obj2 = (PyObject *)key2;
     if (obj1 != NULL && obj2 != NULL) {
         return (PyUnicode_Compare(obj1, obj2) == 0);
-    }
-    else {
+    } else {
         return obj1 == obj2;
     }
 }
 
-
 static Py_uhash_t
-hashtable_hash_uint(const void *key_raw)
-{
+hashtable_hash_uint(const void *key_raw) {
     unsigned int key = (unsigned int)FROM_PTR(key_raw);
     return (Py_uhash_t)key;
 }
 
-
 static _Py_hashtable_t *
-hashtable_new(_Py_hashtable_hash_func hash_func,
-              _Py_hashtable_compare_func compare_func,
-              _Py_hashtable_destroy_func key_destroy_func,
-              _Py_hashtable_destroy_func value_destroy_func)
-{
+hashtable_new(
+    _Py_hashtable_hash_func hash_func,
+    _Py_hashtable_compare_func compare_func,
+    _Py_hashtable_destroy_func key_destroy_func,
+    _Py_hashtable_destroy_func value_destroy_func
+) {
     _Py_hashtable_allocator_t hashtable_alloc = {malloc, free};
-    return _Py_hashtable_new_full(hash_func, compare_func,
-                                  key_destroy_func, value_destroy_func,
-                                  &hashtable_alloc);
+    return _Py_hashtable_new_full(
+        hash_func, compare_func, key_destroy_func, value_destroy_func, &hashtable_alloc
+    );
 }
 
-
-static void*
-raw_malloc(size_t size)
-{
+static void *
+raw_malloc(size_t size) {
     return allocators.raw.malloc(allocators.raw.ctx, size);
 }
 
 static void
-raw_free(void *ptr)
-{
+raw_free(void *ptr) {
     allocators.raw.free(allocators.raw.ctx, ptr);
 }
 
-
 static Py_uhash_t
-hashtable_hash_traceback(const void *key)
-{
+hashtable_hash_traceback(const void *key) {
     const traceback_t *traceback = (const traceback_t *)key;
     return traceback->hash;
 }
 
-
 static int
-hashtable_compare_traceback(const void *key1, const void *key2)
-{
+hashtable_compare_traceback(const void *key1, const void *key2) {
     const traceback_t *traceback1 = (const traceback_t *)key1;
     const traceback_t *traceback2 = (const traceback_t *)key2;
 
@@ -231,7 +205,7 @@ hashtable_compare_traceback(const void *key1, const void *key2)
         return 0;
     }
 
-    for (int i=0; i < traceback1->nframe; i++) {
+    for (int i = 0; i < traceback1->nframe; i++) {
         const frame_t *frame1 = &traceback1->frames[i];
         const frame_t *frame2 = &traceback2->frames[i];
 
@@ -246,10 +220,8 @@ hashtable_compare_traceback(const void *key1, const void *key2)
     return 1;
 }
 
-
 static void
-tracemalloc_get_frame(_PyInterpreterFrame *pyframe, frame_t *frame)
-{
+tracemalloc_get_frame(_PyInterpreterFrame *pyframe, frame_t *frame) {
     assert(PyStackRef_CodeCheck(pyframe->f_executable));
     frame->filename = &_Py_STR(anon_unknown);
     int lineno = PyUnstable_InterpreterFrame_GetLine(pyframe);
@@ -287,12 +259,10 @@ tracemalloc_get_frame(_PyInterpreterFrame *pyframe, frame_t *frame)
     entry = _Py_hashtable_get_entry(tracemalloc_filenames, filename);
     if (entry != NULL) {
         filename = (PyObject *)entry->key;
-    }
-    else {
+    } else {
         /* tracemalloc_filenames is responsible to keep a reference
            to the filename */
-        if (_Py_hashtable_set(tracemalloc_filenames, Py_NewRef(filename),
-                              NULL) < 0) {
+        if (_Py_hashtable_set(tracemalloc_filenames, Py_NewRef(filename), NULL) < 0) {
             Py_DECREF(filename);
 #ifdef TRACE_DEBUG
             tracemalloc_error("failed to intern the filename");
@@ -305,12 +275,10 @@ tracemalloc_get_frame(_PyInterpreterFrame *pyframe, frame_t *frame)
     frame->filename = filename;
 }
 
-
 static Py_uhash_t
-traceback_hash(traceback_t *traceback)
-{
+traceback_hash(traceback_t *traceback) {
     /* code based on tuplehash() of Objects/tupleobject.c */
-    Py_uhash_t x, y;  /* Unsigned for defined overflow behavior. */
+    Py_uhash_t x, y; /* Unsigned for defined overflow behavior. */
     int len = traceback->nframe;
     Py_uhash_t mult = PyHASH_MULTIPLIER;
     frame_t *frame;
@@ -331,10 +299,8 @@ traceback_hash(traceback_t *traceback)
     return x;
 }
 
-
 static void
-traceback_get_frames(traceback_t *traceback)
-{
+traceback_get_frames(traceback_t *traceback) {
     PyThreadState *tstate = PyGILState_GetThisThreadState();
     if (tstate == NULL) {
 #ifdef TRACE_DEBUG
@@ -357,10 +323,8 @@ traceback_get_frames(traceback_t *traceback)
     }
 }
 
-
 static traceback_t *
-traceback_new(void)
-{
+traceback_new(void) {
     traceback_t *traceback;
     _Py_hashtable_entry_t *entry;
 
@@ -379,8 +343,7 @@ traceback_new(void)
     entry = _Py_hashtable_get_entry(tracemalloc_tracebacks, traceback);
     if (entry != NULL) {
         traceback = (traceback_t *)entry->key;
-    }
-    else {
+    } else {
         traceback_t *copy;
         size_t traceback_size;
 
@@ -407,41 +370,34 @@ traceback_new(void)
     return traceback;
 }
 
-
-static _Py_hashtable_t*
-tracemalloc_create_traces_table(void)
-{
-    return hashtable_new(_Py_hashtable_hash_ptr,
-                         _Py_hashtable_compare_direct,
-                         NULL, raw_free);
+static _Py_hashtable_t *
+tracemalloc_create_traces_table(void) {
+    return hashtable_new(
+        _Py_hashtable_hash_ptr, _Py_hashtable_compare_direct, NULL, raw_free
+    );
 }
 
-
-static _Py_hashtable_t*
-tracemalloc_create_domains_table(void)
-{
-    return hashtable_new(hashtable_hash_uint,
-                         _Py_hashtable_compare_direct,
-                         NULL,
-                         (_Py_hashtable_destroy_func)_Py_hashtable_destroy);
+static _Py_hashtable_t *
+tracemalloc_create_domains_table(void) {
+    return hashtable_new(
+        hashtable_hash_uint,
+        _Py_hashtable_compare_direct,
+        NULL,
+        (_Py_hashtable_destroy_func)_Py_hashtable_destroy
+    );
 }
 
-
-static _Py_hashtable_t*
-tracemalloc_get_traces_table(unsigned int domain)
-{
+static _Py_hashtable_t *
+tracemalloc_get_traces_table(unsigned int domain) {
     if (domain == DEFAULT_DOMAIN) {
         return tracemalloc_traces;
-    }
-    else {
+    } else {
         return _Py_hashtable_get(tracemalloc_domains, TO_PTR(domain));
     }
 }
 
-
 static void
-tracemalloc_remove_trace(unsigned int domain, uintptr_t ptr)
-{
+tracemalloc_remove_trace(unsigned int domain, uintptr_t ptr) {
     assert(tracemalloc_config.tracing);
 
     _Py_hashtable_t *traces = tracemalloc_get_traces_table(domain);
@@ -458,14 +414,10 @@ tracemalloc_remove_trace(unsigned int domain, uintptr_t ptr)
     raw_free(trace);
 }
 
-#define REMOVE_TRACE(ptr) \
-            tracemalloc_remove_trace(DEFAULT_DOMAIN, (uintptr_t)(ptr))
-
+#define REMOVE_TRACE(ptr) tracemalloc_remove_trace(DEFAULT_DOMAIN, (uintptr_t)(ptr))
 
 static int
-tracemalloc_add_trace(unsigned int domain, uintptr_t ptr,
-                      size_t size)
-{
+tracemalloc_add_trace(unsigned int domain, uintptr_t ptr, size_t size) {
     assert(tracemalloc_config.tracing);
 
     traceback_t *traceback = traceback_new();
@@ -494,8 +446,7 @@ tracemalloc_add_trace(unsigned int domain, uintptr_t ptr,
 
         trace->size = size;
         trace->traceback = traceback;
-    }
-    else {
+    } else {
         trace = raw_malloc(sizeof(trace_t));
         if (trace == NULL) {
             return -1;
@@ -519,12 +470,10 @@ tracemalloc_add_trace(unsigned int domain, uintptr_t ptr,
 }
 
 #define ADD_TRACE(ptr, size) \
-            tracemalloc_add_trace(DEFAULT_DOMAIN, (uintptr_t)(ptr), size)
+    tracemalloc_add_trace(DEFAULT_DOMAIN, (uintptr_t)(ptr), size)
 
-
-static void*
-tracemalloc_alloc(int use_calloc, void *ctx, size_t nelem, size_t elsize)
-{
+static void *
+tracemalloc_alloc(int use_calloc, void *ctx, size_t nelem, size_t elsize) {
     PyMemAllocatorEx *alloc = (PyMemAllocatorEx *)ctx;
     void *ptr;
 
@@ -548,10 +497,8 @@ tracemalloc_alloc(int use_calloc, void *ctx, size_t nelem, size_t elsize)
     return ptr;
 }
 
-
-static void*
-tracemalloc_realloc(void *ctx, void *ptr, size_t new_size)
-{
+static void *
+tracemalloc_realloc(void *ctx, void *ptr, size_t new_size) {
     PyMemAllocatorEx *alloc = (PyMemAllocatorEx *)ctx;
     void *ptr2;
 
@@ -583,8 +530,7 @@ tracemalloc_realloc(void *ctx, void *ptr, size_t new_size)
             Py_FatalError("tracemalloc_realloc() failed to allocate a trace");
         }
         TABLES_UNLOCK();
-    }
-    else {
+    } else {
         /* new allocation */
 
         TABLES_LOCK();
@@ -599,17 +545,15 @@ tracemalloc_realloc(void *ctx, void *ptr, size_t new_size)
     return ptr2;
 }
 
-
 static void
-tracemalloc_free(void *ctx, void *ptr)
-{
+tracemalloc_free(void *ctx, void *ptr) {
     PyMemAllocatorEx *alloc = (PyMemAllocatorEx *)ctx;
 
     if (ptr == NULL)
         return;
 
-     /* GIL cannot be locked in PyMem_RawFree() because it would introduce
-        a deadlock in _PyThreadState_DeleteCurrent(). */
+    /* GIL cannot be locked in PyMem_RawFree() because it would introduce
+       a deadlock in _PyThreadState_DeleteCurrent(). */
 
     alloc->free(alloc->ctx, ptr);
 
@@ -618,10 +562,8 @@ tracemalloc_free(void *ctx, void *ptr)
     TABLES_UNLOCK();
 }
 
-
-static void*
-tracemalloc_alloc_gil(int use_calloc, void *ctx, size_t nelem, size_t elsize)
-{
+static void *
+tracemalloc_alloc_gil(int use_calloc, void *ctx, size_t nelem, size_t elsize) {
     void *ptr;
 
     if (get_reentrant()) {
@@ -643,24 +585,18 @@ tracemalloc_alloc_gil(int use_calloc, void *ctx, size_t nelem, size_t elsize)
     return ptr;
 }
 
-
-static void*
-tracemalloc_malloc_gil(void *ctx, size_t size)
-{
+static void *
+tracemalloc_malloc_gil(void *ctx, size_t size) {
     return tracemalloc_alloc_gil(0, ctx, 1, size);
 }
 
-
-static void*
-tracemalloc_calloc_gil(void *ctx, size_t nelem, size_t elsize)
-{
+static void *
+tracemalloc_calloc_gil(void *ctx, size_t nelem, size_t elsize) {
     return tracemalloc_alloc_gil(1, ctx, nelem, elsize);
 }
 
-
-static void*
-tracemalloc_realloc_gil(void *ctx, void *ptr, size_t new_size)
-{
+static void *
+tracemalloc_realloc_gil(void *ctx, void *ptr, size_t new_size) {
     void *ptr2;
 
     if (get_reentrant()) {
@@ -690,11 +626,9 @@ tracemalloc_realloc_gil(void *ctx, void *ptr, size_t new_size)
     return ptr2;
 }
 
-
 #ifdef TRACE_RAW_MALLOC
-static void*
-tracemalloc_raw_alloc(int use_calloc, void *ctx, size_t nelem, size_t elsize)
-{
+static void *
+tracemalloc_raw_alloc(int use_calloc, void *ctx, size_t nelem, size_t elsize) {
     PyGILState_STATE gil_state;
     void *ptr;
 
@@ -719,24 +653,18 @@ tracemalloc_raw_alloc(int use_calloc, void *ctx, size_t nelem, size_t elsize)
     return ptr;
 }
 
-
-static void*
-tracemalloc_raw_malloc(void *ctx, size_t size)
-{
+static void *
+tracemalloc_raw_malloc(void *ctx, size_t size) {
     return tracemalloc_raw_alloc(0, ctx, 1, size);
 }
 
-
-static void*
-tracemalloc_raw_calloc(void *ctx, size_t nelem, size_t elsize)
-{
+static void *
+tracemalloc_raw_calloc(void *ctx, size_t nelem, size_t elsize) {
     return tracemalloc_raw_alloc(1, ctx, nelem, elsize);
 }
 
-
-static void*
-tracemalloc_raw_realloc(void *ctx, void *ptr, size_t new_size)
-{
+static void *
+tracemalloc_raw_realloc(void *ctx, void *ptr, size_t new_size) {
     PyGILState_STATE gil_state;
     void *ptr2;
 
@@ -766,21 +694,17 @@ tracemalloc_raw_realloc(void *ctx, void *ptr, size_t new_size)
     set_reentrant(0);
     return ptr2;
 }
-#endif   /* TRACE_RAW_MALLOC */
-
+#endif /* TRACE_RAW_MALLOC */
 
 static void
-tracemalloc_clear_filename(void *value)
-{
+tracemalloc_clear_filename(void *value) {
     PyObject *filename = (PyObject *)value;
     Py_DECREF(filename);
 }
 
-
 /* reentrant flag must be set to call this function and GIL must be held */
 static void
-tracemalloc_clear_traces(void)
-{
+tracemalloc_clear_traces(void) {
     /* The GIL protects variables against concurrent access */
     assert(PyGILState_Check());
 
@@ -796,13 +720,10 @@ tracemalloc_clear_traces(void)
     _Py_hashtable_clear(tracemalloc_filenames);
 }
 
-
 int
-_PyTraceMalloc_Init(void)
-{
+_PyTraceMalloc_Init(void) {
     if (tracemalloc_config.initialized == TRACEMALLOC_FINALIZED) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "the tracemalloc module has been unloaded");
+        PyErr_SetString(PyExc_RuntimeError, "the tracemalloc module has been unloaded");
         return -1;
     }
 
@@ -832,19 +753,22 @@ _PyTraceMalloc_Init(void)
     }
 #endif
 
-    tracemalloc_filenames = hashtable_new(hashtable_hash_pyobject,
-                                          hashtable_compare_unicode,
-                                          tracemalloc_clear_filename, NULL);
+    tracemalloc_filenames = hashtable_new(
+        hashtable_hash_pyobject,
+        hashtable_compare_unicode,
+        tracemalloc_clear_filename,
+        NULL
+    );
 
-    tracemalloc_tracebacks = hashtable_new(hashtable_hash_traceback,
-                                           hashtable_compare_traceback,
-                                           raw_free, NULL);
+    tracemalloc_tracebacks = hashtable_new(
+        hashtable_hash_traceback, hashtable_compare_traceback, raw_free, NULL
+    );
 
     tracemalloc_traces = tracemalloc_create_traces_table();
     tracemalloc_domains = tracemalloc_create_domains_table();
 
-    if (tracemalloc_filenames == NULL || tracemalloc_tracebacks == NULL
-       || tracemalloc_traces == NULL || tracemalloc_domains == NULL) {
+    if (tracemalloc_filenames == NULL || tracemalloc_tracebacks == NULL ||
+        tracemalloc_traces == NULL || tracemalloc_domains == NULL) {
         PyErr_NoMemory();
         return -1;
     }
@@ -860,10 +784,8 @@ _PyTraceMalloc_Init(void)
     return 0;
 }
 
-
 static void
-tracemalloc_deinit(void)
-{
+tracemalloc_deinit(void) {
     if (tracemalloc_config.initialized != TRACEMALLOC_INITIALIZED)
         return;
     tracemalloc_config.initialized = TRACEMALLOC_FINALIZED;
@@ -888,17 +810,17 @@ tracemalloc_deinit(void)
 #endif
 }
 
-
 int
-_PyTraceMalloc_Start(int max_nframe)
-{
+_PyTraceMalloc_Start(int max_nframe) {
     PyMemAllocatorEx alloc;
     size_t size;
 
-    if (max_nframe < 1 || (unsigned long) max_nframe > MAX_NFRAME) {
-        PyErr_Format(PyExc_ValueError,
-                     "the number of frames must be in range [1; %lu]",
-                     MAX_NFRAME);
+    if (max_nframe < 1 || (unsigned long)max_nframe > MAX_NFRAME) {
+        PyErr_Format(
+            PyExc_ValueError,
+            "the number of frames must be in range [1; %lu]",
+            MAX_NFRAME
+        );
         return -1;
     }
 
@@ -956,10 +878,8 @@ _PyTraceMalloc_Start(int max_nframe)
     return 0;
 }
 
-
 void
-_PyTraceMalloc_Stop(void)
-{
+_PyTraceMalloc_Stop(void) {
     if (!tracemalloc_config.tracing)
         return;
 
@@ -980,11 +900,8 @@ _PyTraceMalloc_Stop(void)
     tracemalloc_traceback = NULL;
 }
 
-
-
-static PyObject*
-frame_to_pyobject(frame_t *frame)
-{
+static PyObject *
+frame_to_pyobject(frame_t *frame) {
     PyObject *frame_obj, *lineno_obj;
 
     frame_obj = PyTuple_New(2);
@@ -1003,10 +920,8 @@ frame_to_pyobject(frame_t *frame)
     return frame_obj;
 }
 
-
-static PyObject*
-traceback_to_pyobject(traceback_t *traceback, _Py_hashtable_t *intern_table)
-{
+static PyObject *
+traceback_to_pyobject(traceback_t *traceback, _Py_hashtable_t *intern_table) {
     PyObject *frames;
 
     if (intern_table != NULL) {
@@ -1020,7 +935,7 @@ traceback_to_pyobject(traceback_t *traceback, _Py_hashtable_t *intern_table)
     if (frames == NULL)
         return NULL;
 
-    for (int i=0; i < traceback->nframe; i++) {
+    for (int i = 0; i < traceback->nframe; i++) {
         PyObject *frame = frame_to_pyobject(&traceback->frames[i]);
         if (frame == NULL) {
             Py_DECREF(frames);
@@ -1041,11 +956,10 @@ traceback_to_pyobject(traceback_t *traceback, _Py_hashtable_t *intern_table)
     return frames;
 }
 
-
-static PyObject*
-trace_to_pyobject(unsigned int domain, const trace_t *trace,
-                  _Py_hashtable_t *intern_tracebacks)
-{
+static PyObject *
+trace_to_pyobject(
+    unsigned int domain, const trace_t *trace, _Py_hashtable_t *intern_tracebacks
+) {
     PyObject *trace_obj = NULL;
     PyObject *obj;
 
@@ -1084,7 +998,6 @@ trace_to_pyobject(unsigned int domain, const trace_t *trace,
     return trace_obj;
 }
 
-
 typedef struct {
     _Py_hashtable_t *traces;
     _Py_hashtable_t *domains;
@@ -1093,12 +1006,10 @@ typedef struct {
     unsigned int domain;
 } get_traces_t;
 
-
 static int
-tracemalloc_copy_trace(_Py_hashtable_t *traces,
-                       const void *key, const void *value,
-                       void *user_data)
-{
+tracemalloc_copy_trace(
+    _Py_hashtable_t *traces, const void *key, const void *value, void *user_data
+) {
     _Py_hashtable_t *traces2 = (_Py_hashtable_t *)user_data;
 
     trace_t *trace = (trace_t *)value;
@@ -1115,18 +1026,14 @@ tracemalloc_copy_trace(_Py_hashtable_t *traces,
     return 0;
 }
 
-
-static _Py_hashtable_t*
-tracemalloc_copy_traces(_Py_hashtable_t *traces)
-{
+static _Py_hashtable_t *
+tracemalloc_copy_traces(_Py_hashtable_t *traces) {
     _Py_hashtable_t *traces2 = tracemalloc_create_traces_table();
     if (traces2 == NULL) {
         return NULL;
     }
 
-    int err = _Py_hashtable_foreach(traces,
-                                    tracemalloc_copy_trace,
-                                    traces2);
+    int err = _Py_hashtable_foreach(traces, tracemalloc_copy_trace, traces2);
     if (err) {
         _Py_hashtable_destroy(traces2);
         return NULL;
@@ -1134,12 +1041,10 @@ tracemalloc_copy_traces(_Py_hashtable_t *traces)
     return traces2;
 }
 
-
 static int
-tracemalloc_copy_domain(_Py_hashtable_t *domains,
-                        const void *key, const void *value,
-                        void *user_data)
-{
+tracemalloc_copy_domain(
+    _Py_hashtable_t *domains, const void *key, const void *value, void *user_data
+) {
     _Py_hashtable_t *domains2 = (_Py_hashtable_t *)user_data;
 
     unsigned int domain = (unsigned int)FROM_PTR(key);
@@ -1156,18 +1061,14 @@ tracemalloc_copy_domain(_Py_hashtable_t *domains,
     return 0;
 }
 
-
-static _Py_hashtable_t*
-tracemalloc_copy_domains(_Py_hashtable_t *domains)
-{
+static _Py_hashtable_t *
+tracemalloc_copy_domains(_Py_hashtable_t *domains) {
     _Py_hashtable_t *domains2 = tracemalloc_create_domains_table();
     if (domains2 == NULL) {
         return NULL;
     }
 
-    int err = _Py_hashtable_foreach(domains,
-                                    tracemalloc_copy_domain,
-                                    domains2);
+    int err = _Py_hashtable_foreach(domains, tracemalloc_copy_domain, domains2);
     if (err) {
         _Py_hashtable_destroy(domains2);
         return NULL;
@@ -1175,18 +1076,16 @@ tracemalloc_copy_domains(_Py_hashtable_t *domains)
     return domains2;
 }
 
-
 static int
-tracemalloc_get_traces_fill(_Py_hashtable_t *traces,
-                            const void *key, const void *value,
-                            void *user_data)
-{
+tracemalloc_get_traces_fill(
+    _Py_hashtable_t *traces, const void *key, const void *value, void *user_data
+) {
     get_traces_t *get_traces = user_data;
 
     const trace_t *trace = (const trace_t *)value;
 
-    PyObject *tuple = trace_to_pyobject(get_traces->domain, trace,
-                                        get_traces->tracebacks);
+    PyObject *tuple =
+        trace_to_pyobject(get_traces->domain, trace, get_traces->tracebacks);
     if (tuple == NULL) {
         return 1;
     }
@@ -1200,36 +1099,27 @@ tracemalloc_get_traces_fill(_Py_hashtable_t *traces,
     return 0;
 }
 
-
 static int
-tracemalloc_get_traces_domain(_Py_hashtable_t *domains,
-                              const void *key, const void *value,
-                              void *user_data)
-{
+tracemalloc_get_traces_domain(
+    _Py_hashtable_t *domains, const void *key, const void *value, void *user_data
+) {
     get_traces_t *get_traces = user_data;
 
     unsigned int domain = (unsigned int)FROM_PTR(key);
     _Py_hashtable_t *traces = (_Py_hashtable_t *)value;
 
     get_traces->domain = domain;
-    return _Py_hashtable_foreach(traces,
-                                 tracemalloc_get_traces_fill,
-                                 get_traces);
+    return _Py_hashtable_foreach(traces, tracemalloc_get_traces_fill, get_traces);
 }
 
-
 static void
-tracemalloc_pyobject_decref(void *value)
-{
+tracemalloc_pyobject_decref(void *value) {
     PyObject *obj = (PyObject *)value;
     Py_DECREF(obj);
 }
 
-
-static traceback_t*
-tracemalloc_get_traceback(unsigned int domain, uintptr_t ptr)
-{
-
+static traceback_t *
+tracemalloc_get_traceback(unsigned int domain, uintptr_t ptr) {
     if (!tracemalloc_config.tracing)
         return NULL;
 
@@ -1238,8 +1128,7 @@ tracemalloc_get_traceback(unsigned int domain, uintptr_t ptr)
     _Py_hashtable_t *traces = tracemalloc_get_traces_table(domain);
     if (traces) {
         trace = _Py_hashtable_get(traces, TO_PTR(ptr));
-    }
-    else {
+    } else {
         trace = NULL;
     }
     TABLES_UNLOCK();
@@ -1251,12 +1140,10 @@ tracemalloc_get_traceback(unsigned int domain, uintptr_t ptr)
     return trace->traceback;
 }
 
-
 #define PUTS(fd, str) (void)_Py_write_noraise(fd, str, (int)strlen(str))
 
 static void
-_PyMem_DumpFrame(int fd, frame_t * frame)
-{
+_PyMem_DumpFrame(int fd, frame_t *frame) {
     PUTS(fd, "  File \"");
     _Py_DumpASCII(fd, frame->filename);
     PUTS(fd, "\", line ");
@@ -1267,14 +1154,16 @@ _PyMem_DumpFrame(int fd, frame_t * frame)
 /* Dump the traceback where a memory block was allocated into file descriptor
    fd. The function may block on TABLES_LOCK() but it is unlikely. */
 void
-_PyMem_DumpTraceback(int fd, const void *ptr)
-{
+_PyMem_DumpTraceback(int fd, const void *ptr) {
     traceback_t *traceback;
     int i;
 
     if (!tracemalloc_config.tracing) {
-        PUTS(fd, "Enable tracemalloc to get the memory block "
-                 "allocation traceback\n\n");
+        PUTS(
+            fd,
+            "Enable tracemalloc to get the memory block "
+            "allocation traceback\n\n"
+        );
         return;
     }
 
@@ -1283,7 +1172,7 @@ _PyMem_DumpTraceback(int fd, const void *ptr)
         return;
 
     PUTS(fd, "Memory block allocated at (most recent call first):\n");
-    for (i=0; i < traceback->nframe; i++) {
+    for (i = 0; i < traceback->nframe; i++) {
         _PyMem_DumpFrame(fd, &traceback->frames[i]);
     }
     PUTS(fd, "\n");
@@ -1291,22 +1180,18 @@ _PyMem_DumpTraceback(int fd, const void *ptr)
 
 #undef PUTS
 
-
 static int
-tracemalloc_get_tracemalloc_memory_cb(_Py_hashtable_t *domains,
-                                      const void *key, const void *value,
-                                      void *user_data)
-{
+tracemalloc_get_tracemalloc_memory_cb(
+    _Py_hashtable_t *domains, const void *key, const void *value, void *user_data
+) {
     const _Py_hashtable_t *traces = value;
-    size_t *size = (size_t*)user_data;
+    size_t *size = (size_t *)user_data;
     *size += _Py_hashtable_size(traces);
     return 0;
 }
 
 int
-PyTraceMalloc_Track(unsigned int domain, uintptr_t ptr,
-                    size_t size)
-{
+PyTraceMalloc_Track(unsigned int domain, uintptr_t ptr, size_t size) {
     int res;
     PyGILState_STATE gil_state;
 
@@ -1325,10 +1210,8 @@ PyTraceMalloc_Track(unsigned int domain, uintptr_t ptr,
     return res;
 }
 
-
 int
-PyTraceMalloc_Untrack(unsigned int domain, uintptr_t ptr)
-{
+PyTraceMalloc_Untrack(unsigned int domain, uintptr_t ptr) {
     if (!tracemalloc_config.tracing) {
         /* tracemalloc is not tracing: do nothing */
         return -2;
@@ -1341,14 +1224,11 @@ PyTraceMalloc_Untrack(unsigned int domain, uintptr_t ptr)
     return 0;
 }
 
-
 void
-_PyTraceMalloc_Fini(void)
-{
+_PyTraceMalloc_Fini(void) {
     assert(PyGILState_Check());
     tracemalloc_deinit();
 }
-
 
 /* If the object memory block is already traced, update its trace
    with the current Python traceback.
@@ -1356,8 +1236,7 @@ _PyTraceMalloc_Fini(void)
    Do nothing if tracemalloc is not tracing memory allocations
    or if the object memory block is not already traced. */
 int
-_PyTraceMalloc_TraceRef(PyObject *op, PyRefTracerEvent event, void* Py_UNUSED(ignore))
-{
+_PyTraceMalloc_TraceRef(PyObject *op, PyRefTracerEvent event, void *Py_UNUSED(ignore)) {
     if (event != PyRefTracer_CREATE) {
         return 0;
     }
@@ -1391,10 +1270,8 @@ _PyTraceMalloc_TraceRef(PyObject *op, PyRefTracerEvent event, void* Py_UNUSED(ig
     return res;
 }
 
-
-PyObject*
-_PyTraceMalloc_GetTraceback(unsigned int domain, uintptr_t ptr)
-{
+PyObject *
+_PyTraceMalloc_GetTraceback(unsigned int domain, uintptr_t ptr) {
     traceback_t *traceback;
 
     traceback = tracemalloc_get_traceback(domain, ptr);
@@ -1405,15 +1282,12 @@ _PyTraceMalloc_GetTraceback(unsigned int domain, uintptr_t ptr)
 }
 
 int
-_PyTraceMalloc_IsTracing(void)
-{
+_PyTraceMalloc_IsTracing(void) {
     return tracemalloc_config.tracing;
 }
 
 void
-_PyTraceMalloc_ClearTraces(void)
-{
-
+_PyTraceMalloc_ClearTraces(void) {
     if (!tracemalloc_config.tracing) {
         return;
     }
@@ -1423,8 +1297,7 @@ _PyTraceMalloc_ClearTraces(void)
 }
 
 PyObject *
-_PyTraceMalloc_GetTraces(void)
-{
+_PyTraceMalloc_GetTraces(void) {
     get_traces_t get_traces;
     get_traces.domain = DEFAULT_DOMAIN;
     get_traces.traces = NULL;
@@ -1439,9 +1312,12 @@ _PyTraceMalloc_GetTraces(void)
 
     /* the traceback hash table is used temporarily to intern traceback tuple
        of (filename, lineno) tuples */
-    get_traces.tracebacks = hashtable_new(_Py_hashtable_hash_ptr,
-                                          _Py_hashtable_compare_direct,
-                                          NULL, tracemalloc_pyobject_decref);
+    get_traces.tracebacks = hashtable_new(
+        _Py_hashtable_hash_ptr,
+        _Py_hashtable_compare_direct,
+        NULL,
+        tracemalloc_pyobject_decref
+    );
     if (get_traces.tracebacks == NULL) {
         goto no_memory;
     }
@@ -1467,13 +1343,13 @@ _PyTraceMalloc_GetTraces(void)
 
     // Convert traces to a list of tuples
     set_reentrant(1);
-    int err = _Py_hashtable_foreach(get_traces.traces,
-                                    tracemalloc_get_traces_fill,
-                                    &get_traces);
+    int err = _Py_hashtable_foreach(
+        get_traces.traces, tracemalloc_get_traces_fill, &get_traces
+    );
     if (!err) {
-        err = _Py_hashtable_foreach(get_traces.domains,
-                                    tracemalloc_get_traces_domain,
-                                    &get_traces);
+        err = _Py_hashtable_foreach(
+            get_traces.domains, tracemalloc_get_traces_domain, &get_traces
+        );
     }
     set_reentrant(0);
     if (err) {
@@ -1521,13 +1397,13 @@ _PyTraceMalloc_GetObjectTraceback(PyObject *obj)
     return traceback_to_pyobject(traceback, NULL);
 }
 
-int _PyTraceMalloc_GetTracebackLimit(void) {
+int
+_PyTraceMalloc_GetTracebackLimit(void) {
     return tracemalloc_config.max_nframe;
 }
 
 size_t
 _PyTraceMalloc_GetMemory(void) {
-
     size_t size;
 
     size = _Py_hashtable_size(tracemalloc_tracebacks);
@@ -1535,16 +1411,15 @@ _PyTraceMalloc_GetMemory(void) {
 
     TABLES_LOCK();
     size += _Py_hashtable_size(tracemalloc_traces);
-    _Py_hashtable_foreach(tracemalloc_domains,
-                          tracemalloc_get_tracemalloc_memory_cb, &size);
+    _Py_hashtable_foreach(
+        tracemalloc_domains, tracemalloc_get_tracemalloc_memory_cb, &size
+    );
     TABLES_UNLOCK();
     return size;
 }
 
-
 PyObject *
-_PyTraceMalloc_GetTracedMemory(void)
-{
+_PyTraceMalloc_GetTracedMemory(void) {
     Py_ssize_t size, peak_size;
 
     if (!tracemalloc_config.tracing)
@@ -1559,8 +1434,7 @@ _PyTraceMalloc_GetTracedMemory(void)
 }
 
 void
-_PyTraceMalloc_ResetPeak(void)
-{
+_PyTraceMalloc_ResetPeak(void) {
     if (!tracemalloc_config.tracing) {
         return;
     }

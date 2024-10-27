@@ -25,29 +25,28 @@
  * SUCH DAMAGE.
  */
 
-
 #ifndef LIBMPDEC_MPALLOC_H_
 #define LIBMPDEC_MPALLOC_H_
-
 
 #include "mpdecimal.h"
 
 #include <stdint.h>
 
-
 /* Internal header file: all symbols have local scope in the DSO */
 MPD_PRAGMA(MPD_HIDE_SYMBOLS_START)
 
+int
+mpd_switch_to_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status);
+int
+mpd_switch_to_dyn_zero(mpd_t *result, mpd_ssize_t nwords, uint32_t *status);
+int
+mpd_realloc_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status);
 
-int mpd_switch_to_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status);
-int mpd_switch_to_dyn_zero(mpd_t *result, mpd_ssize_t nwords, uint32_t *status);
-int mpd_realloc_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status);
-
-int mpd_switch_to_dyn_cxx(mpd_t *result, mpd_ssize_t nwords);
-int mpd_realloc_dyn_cxx(mpd_t *result, mpd_ssize_t nwords);
-
+int
+mpd_switch_to_dyn_cxx(mpd_t *result, mpd_ssize_t nwords);
+int
+mpd_realloc_dyn_cxx(mpd_t *result, mpd_ssize_t nwords);
 
 MPD_PRAGMA(MPD_HIDE_SYMBOLS_END) /* restore previous scope rules */
-
 
 #endif /* LIBMPDEC_MPALLOC_H_ */

@@ -2,11 +2,11 @@
 #define Py_INTERNAL_CRITICAL_SECTION_H
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_lock.h"        // PyMutex
-#include "pycore_pystate.h"     // _PyThreadState_GET()
+#include "pycore_lock.h"     // PyMutex
+#include "pycore_pystate.h"  // _PyThreadState_GET()
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -16,19 +16,19 @@ extern "C" {
 // Tagged pointers to critical sections use the two least significant bits to
 // mark if the pointed-to critical section is inactive and whether it is a
 // PyCriticalSection2 object.
-#define _Py_CRITICAL_SECTION_INACTIVE       0x1
-#define _Py_CRITICAL_SECTION_TWO_MUTEXES    0x2
-#define _Py_CRITICAL_SECTION_MASK           0x3
+#define _Py_CRITICAL_SECTION_INACTIVE 0x1
+#define _Py_CRITICAL_SECTION_TWO_MUTEXES 0x2
+#define _Py_CRITICAL_SECTION_MASK 0x3
 
 #ifdef Py_GIL_DISABLED
-# define Py_BEGIN_CRITICAL_SECTION_MUT(mutex)                           \
-    {                                                                   \
-        PyCriticalSection _py_cs;                                       \
+#define Py_BEGIN_CRITICAL_SECTION_MUT(mutex) \
+    {                                        \
+        PyCriticalSection _py_cs;            \
         _PyCriticalSection_BeginMutex(&_py_cs, mutex)
 
-# define Py_BEGIN_CRITICAL_SECTION2_MUT(m1, m2)                         \
-    {                                                                   \
-        PyCriticalSection2 _py_cs2;                                     \
+#define Py_BEGIN_CRITICAL_SECTION2_MUT(m1, m2) \
+    {                                          \
+        PyCriticalSection2 _py_cs2;            \
         _PyCriticalSection2_BeginMutex(&_py_cs2, m1, m2)
 
 // Specialized version of critical section locking to safely use
@@ -36,19 +36,19 @@ extern "C" {
 // PySequence_Fast() is provided to the macro, not the *result* of
 // PySequence_Fast(), which would require an extra test to determine if the
 // lock must be acquired.
-# define Py_BEGIN_CRITICAL_SECTION_SEQUENCE_FAST(original)              \
-    {                                                                   \
-        PyObject *_orig_seq = _PyObject_CAST(original);                 \
-        const bool _should_lock_cs = PyList_CheckExact(_orig_seq);      \
-        PyCriticalSection _cs;                                          \
-        if (_should_lock_cs) {                                          \
-            _PyCriticalSection_Begin(&_cs, _orig_seq);                  \
+#define Py_BEGIN_CRITICAL_SECTION_SEQUENCE_FAST(original)          \
+    {                                                              \
+        PyObject *_orig_seq = _PyObject_CAST(original);            \
+        const bool _should_lock_cs = PyList_CheckExact(_orig_seq); \
+        PyCriticalSection _cs;                                     \
+        if (_should_lock_cs) {                                     \
+            _PyCriticalSection_Begin(&_cs, _orig_seq);             \
         }
 
-# define Py_END_CRITICAL_SECTION_SEQUENCE_FAST()                        \
-        if (_should_lock_cs) {                                          \
-            PyCriticalSection_End(&_cs);                                \
-        }                                                               \
+#define Py_END_CRITICAL_SECTION_SEQUENCE_FAST() \
+    if (_should_lock_cs) {                      \
+        PyCriticalSection_End(&_cs);            \
+    }                                           \
     }
 
 // Asserts that the mutex is locked.  The mutex must be held by the
@@ -62,67 +62,60 @@ extern "C" {
 // possibility that the mutex would be swalled out in some code paths.
 #ifdef Py_DEBUG
 
-# define _Py_CRITICAL_SECTION_ASSERT_OBJECT_LOCKED(op)                           \
+#define _Py_CRITICAL_SECTION_ASSERT_OBJECT_LOCKED(op)                            \
     if (Py_REFCNT(op) != 1) {                                                    \
         _Py_CRITICAL_SECTION_ASSERT_MUTEX_LOCKED(&_PyObject_CAST(op)->ob_mutex); \
     }
 
-#else   /* Py_DEBUG */
+#else /* Py_DEBUG */
 
-# define _Py_CRITICAL_SECTION_ASSERT_OBJECT_LOCKED(op)
+#define _Py_CRITICAL_SECTION_ASSERT_OBJECT_LOCKED(op)
 
-#endif  /* Py_DEBUG */
+#endif /* Py_DEBUG */
 
-#else  /* !Py_GIL_DISABLED */
+#else /* !Py_GIL_DISABLED */
 // The critical section APIs are no-ops with the GIL.
-# define Py_BEGIN_CRITICAL_SECTION_MUT(mut) {
-# define Py_BEGIN_CRITICAL_SECTION2_MUT(m1, m2) {
-# define Py_BEGIN_CRITICAL_SECTION_SEQUENCE_FAST(original) {
-# define Py_END_CRITICAL_SECTION_SEQUENCE_FAST() }
-# define _Py_CRITICAL_SECTION_ASSERT_MUTEX_LOCKED(mutex)
-# define _Py_CRITICAL_SECTION_ASSERT_OBJECT_LOCKED(op)
-#endif  /* !Py_GIL_DISABLED */
+#define Py_BEGIN_CRITICAL_SECTION_MUT(mut) {
+#define Py_BEGIN_CRITICAL_SECTION2_MUT(m1, m2) {
+#define Py_BEGIN_CRITICAL_SECTION_SEQUENCE_FAST(original) {
+#define Py_END_CRITICAL_SECTION_SEQUENCE_FAST() }
+#define _Py_CRITICAL_SECTION_ASSERT_MUTEX_LOCKED(mutex)
+#define _Py_CRITICAL_SECTION_ASSERT_OBJECT_LOCKED(op)
+#endif /* !Py_GIL_DISABLED */
 
 // Resumes the top-most critical section.
-PyAPI_FUNC(void)
-_PyCriticalSection_Resume(PyThreadState *tstate);
+PyAPI_FUNC(void) _PyCriticalSection_Resume(PyThreadState *tstate);
 
 // (private) slow path for locking the mutex
-PyAPI_FUNC(void)
-_PyCriticalSection_BeginSlow(PyCriticalSection *c, PyMutex *m);
+PyAPI_FUNC(void) _PyCriticalSection_BeginSlow(PyCriticalSection *c, PyMutex *m);
 
-PyAPI_FUNC(void)
-_PyCriticalSection2_BeginSlow(PyCriticalSection2 *c, PyMutex *m1, PyMutex *m2,
-                             int is_m1_locked);
+PyAPI_FUNC(void) _PyCriticalSection2_BeginSlow(
+    PyCriticalSection2 *c, PyMutex *m1, PyMutex *m2, int is_m1_locked
+);
 
-PyAPI_FUNC(void)
-_PyCriticalSection_SuspendAll(PyThreadState *tstate);
+PyAPI_FUNC(void) _PyCriticalSection_SuspendAll(PyThreadState *tstate);
 
 #ifdef Py_GIL_DISABLED
 
 static inline int
-_PyCriticalSection_IsActive(uintptr_t tag)
-{
+_PyCriticalSection_IsActive(uintptr_t tag) {
     return tag != 0 && (tag & _Py_CRITICAL_SECTION_INACTIVE) == 0;
 }
 
 static inline void
-_PyCriticalSection_BeginMutex(PyCriticalSection *c, PyMutex *m)
-{
+_PyCriticalSection_BeginMutex(PyCriticalSection *c, PyMutex *m) {
     if (PyMutex_LockFast(&m->_bits)) {
         PyThreadState *tstate = _PyThreadState_GET();
         c->_cs_mutex = m;
         c->_cs_prev = tstate->critical_section;
         tstate->critical_section = (uintptr_t)c;
-    }
-    else {
+    } else {
         _PyCriticalSection_BeginSlow(c, m);
     }
 }
 
 static inline void
-_PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op)
-{
+_PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op) {
     _PyCriticalSection_BeginMutex(c, &op->ob_mutex);
 }
 #define PyCriticalSection_Begin _PyCriticalSection_Begin
@@ -131,8 +124,7 @@ _PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op)
 // sections. If the new top-most critical section is inactive, then it is
 // resumed.
 static inline void
-_PyCriticalSection_Pop(PyCriticalSection *c)
-{
+_PyCriticalSection_Pop(PyCriticalSection *c) {
     PyThreadState *tstate = _PyThreadState_GET();
     uintptr_t prev = c->_cs_prev;
     tstate->critical_section = prev;
@@ -143,16 +135,14 @@ _PyCriticalSection_Pop(PyCriticalSection *c)
 }
 
 static inline void
-_PyCriticalSection_End(PyCriticalSection *c)
-{
+_PyCriticalSection_End(PyCriticalSection *c) {
     PyMutex_Unlock(c->_cs_mutex);
     _PyCriticalSection_Pop(c);
 }
 #define PyCriticalSection_End _PyCriticalSection_End
 
 static inline void
-_PyCriticalSection2_BeginMutex(PyCriticalSection2 *c, PyMutex *m1, PyMutex *m2)
-{
+_PyCriticalSection2_BeginMutex(PyCriticalSection2 *c, PyMutex *m1, PyMutex *m2) {
     if (m1 == m2) {
         // If the two mutex arguments are the same, treat this as a critical
         // section with a single mutex.
@@ -179,26 +169,22 @@ _PyCriticalSection2_BeginMutex(PyCriticalSection2 *c, PyMutex *m1, PyMutex *m2)
 
             uintptr_t p = (uintptr_t)c | _Py_CRITICAL_SECTION_TWO_MUTEXES;
             tstate->critical_section = p;
-        }
-        else {
+        } else {
             _PyCriticalSection2_BeginSlow(c, m1, m2, 1);
         }
-    }
-    else {
+    } else {
         _PyCriticalSection2_BeginSlow(c, m1, m2, 0);
     }
 }
 
 static inline void
-_PyCriticalSection2_Begin(PyCriticalSection2 *c, PyObject *a, PyObject *b)
-{
+_PyCriticalSection2_Begin(PyCriticalSection2 *c, PyObject *a, PyObject *b) {
     _PyCriticalSection2_BeginMutex(c, &a->ob_mutex, &b->ob_mutex);
 }
 #define PyCriticalSection2_Begin _PyCriticalSection2_Begin
 
 static inline void
-_PyCriticalSection2_End(PyCriticalSection2 *c)
-{
+_PyCriticalSection2_End(PyCriticalSection2 *c) {
     if (c->_cs_mutex2) {
         PyMutex_Unlock(c->_cs_mutex2);
     }
@@ -208,17 +194,19 @@ _PyCriticalSection2_End(PyCriticalSection2 *c)
 #define PyCriticalSection2_End _PyCriticalSection2_End
 
 static inline void
-_PyCriticalSection_AssertHeld(PyMutex *mutex)
-{
+_PyCriticalSection_AssertHeld(PyMutex *mutex) {
 #ifdef Py_DEBUG
     PyThreadState *tstate = _PyThreadState_GET();
     uintptr_t prev = tstate->critical_section;
     if (prev & _Py_CRITICAL_SECTION_TWO_MUTEXES) {
-        PyCriticalSection2 *cs = (PyCriticalSection2 *)(prev & ~_Py_CRITICAL_SECTION_MASK);
-        assert(cs != NULL && (cs->_cs_base._cs_mutex == mutex || cs->_cs_mutex2 == mutex));
-    }
-    else {
-        PyCriticalSection *cs = (PyCriticalSection *)(tstate->critical_section & ~_Py_CRITICAL_SECTION_MASK);
+        PyCriticalSection2 *cs =
+            (PyCriticalSection2 *)(prev & ~_Py_CRITICAL_SECTION_MASK);
+        assert(
+            cs != NULL && (cs->_cs_base._cs_mutex == mutex || cs->_cs_mutex2 == mutex)
+        );
+    } else {
+        PyCriticalSection *cs = (PyCriticalSection *)(tstate->critical_section &
+                                                      ~_Py_CRITICAL_SECTION_MASK);
         assert(cs != NULL && cs->_cs_mutex == mutex);
     }
 

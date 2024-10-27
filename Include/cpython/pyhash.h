@@ -1,18 +1,18 @@
 #ifndef Py_CPYTHON_HASH_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 /* Prime multiplier used in string and various other hashes. */
-#define PyHASH_MULTIPLIER 1000003UL  /* 0xf4243 */
+#define PyHASH_MULTIPLIER 1000003UL /* 0xf4243 */
 
 /* Parameters used for the numeric hash implementation.  See notes for
    _Py_HashDouble in Python/pyhash.c.  Numeric hashes are based on
    reduction modulo the prime 2**_PyHASH_BITS - 1. */
 
 #if SIZEOF_VOID_P >= 8
-#  define PyHASH_BITS 61
+#define PyHASH_BITS 61
 #else
-#  define PyHASH_BITS 31
+#define PyHASH_BITS 31
 #endif
 
 #define PyHASH_MODULUS (((size_t)1 << _PyHASH_BITS) - 1)
@@ -32,7 +32,6 @@ PyAPI_FUNC(Py_hash_t) _Py_HashDouble(PyObject *, double);
 // Kept for backward compatibility
 #define _Py_HashPointer Py_HashPointer
 
-
 /* hash function definition */
 typedef struct {
     Py_hash_t (*const hash)(const void *, Py_ssize_t);
@@ -41,7 +40,7 @@ typedef struct {
     const int seed_bits;
 } PyHash_FuncDef;
 
-PyAPI_FUNC(PyHash_FuncDef*) PyHash_GetFuncDef(void);
+PyAPI_FUNC(PyHash_FuncDef *) PyHash_GetFuncDef(void);
 
 PyAPI_FUNC(Py_hash_t) Py_HashPointer(const void *ptr);
 PyAPI_FUNC(Py_hash_t) PyObject_GenericHash(PyObject *);

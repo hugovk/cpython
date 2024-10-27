@@ -33,27 +33,30 @@ extern PyType_Spec winconsoleio_spec;
  * BUT when args=Py_True is passed, they return a borrowed reference.
  */
 typedef struct _io_state _PyIO_State;  // Forward decl.
-extern PyObject* _PyIOBase_check_readable(_PyIO_State *state,
-                                          PyObject *self, PyObject *args);
-extern PyObject* _PyIOBase_check_writable(_PyIO_State *state,
-                                          PyObject *self, PyObject *args);
-extern PyObject* _PyIOBase_check_seekable(_PyIO_State *state,
-                                          PyObject *self, PyObject *args);
-extern PyObject* _PyIOBase_check_closed(PyObject *self, PyObject *args);
+extern PyObject *
+_PyIOBase_check_readable(_PyIO_State *state, PyObject *self, PyObject *args);
+extern PyObject *
+_PyIOBase_check_writable(_PyIO_State *state, PyObject *self, PyObject *args);
+extern PyObject *
+_PyIOBase_check_seekable(_PyIO_State *state, PyObject *self, PyObject *args);
+extern PyObject *
+_PyIOBase_check_closed(PyObject *self, PyObject *args);
 
 /* Helper for finalization.
    This function will revive an object ready to be deallocated and try to
    close() it. It returns 0 if the object can be destroyed, or -1 if it
    is alive again. */
-extern int _PyIOBase_finalize(PyObject *self);
+extern int
+_PyIOBase_finalize(PyObject *self);
 
 /* Returns true if the given FileIO object is closed.
    Doesn't check the argument type, so be careful! */
-extern int _PyFileIO_closed(PyObject *self);
+extern int
+_PyFileIO_closed(PyObject *self);
 
 /* Shortcut to the core of the IncrementalNewlineDecoder.decode method */
-extern PyObject *_PyIncrementalNewlineDecoder_decode(
-    PyObject *self, PyObject *input, int final);
+extern PyObject *
+_PyIncrementalNewlineDecoder_decode(PyObject *self, PyObject *input, int final);
 
 /* Finds the first line ending between `start` and `end`.
    If found, returns the index after the line ending and doesn't touch
@@ -68,17 +71,25 @@ extern PyObject *_PyIncrementalNewlineDecoder_decode(
    * translated: Only find \n (assume newlines already translated)
    * universal: Use universal newlines algorithm
    * Otherwise, the line ending is specified by readnl, a str object */
-extern Py_ssize_t _PyIO_find_line_ending(
-    int translated, int universal, PyObject *readnl,
-    int kind, const char *start, const char *end, Py_ssize_t *consumed);
+extern Py_ssize_t
+_PyIO_find_line_ending(
+    int translated,
+    int universal,
+    PyObject *readnl,
+    int kind,
+    const char *start,
+    const char *end,
+    Py_ssize_t *consumed
+);
 
 /* Return 1 if an OSError with errno == EINTR is set (and then
    clears the error indicator), 0 otherwise.
    Should only be called when PyErr_Occurred() is true.
 */
-extern int _PyIO_trap_eintr(void);
+extern int
+_PyIO_trap_eintr(void);
 
-#define DEFAULT_BUFFER_SIZE (8 * 1024)  /* bytes */
+#define DEFAULT_BUFFER_SIZE (8 * 1024) /* bytes */
 
 /*
  * Offset type for positioning.
@@ -96,45 +107,46 @@ extern int _PyIO_trap_eintr(void);
 
 /* Windows uses long long for offsets */
 typedef long long Py_off_t;
-# define PyLong_AsOff_t     PyLong_AsLongLong
-# define PyLong_FromOff_t   PyLong_FromLongLong
-# define PY_OFF_T_MAX       LLONG_MAX
-# define PY_OFF_T_MIN       LLONG_MIN
-# define PY_OFF_T_COMPAT    long long    /* type compatible with off_t */
-# define PY_PRIdOFF         "lld"        /* format to use for that type */
+#define PyLong_AsOff_t PyLong_AsLongLong
+#define PyLong_FromOff_t PyLong_FromLongLong
+#define PY_OFF_T_MAX LLONG_MAX
+#define PY_OFF_T_MIN LLONG_MIN
+#define PY_OFF_T_COMPAT long long /* type compatible with off_t */
+#define PY_PRIdOFF "lld"          /* format to use for that type */
 
 #else
 
 /* Other platforms use off_t */
 typedef off_t Py_off_t;
 #if (SIZEOF_OFF_T == SIZEOF_SIZE_T)
-# define PyLong_AsOff_t     PyLong_AsSsize_t
-# define PyLong_FromOff_t   PyLong_FromSsize_t
-# define PY_OFF_T_MAX       PY_SSIZE_T_MAX
-# define PY_OFF_T_MIN       PY_SSIZE_T_MIN
-# define PY_OFF_T_COMPAT    Py_ssize_t
-# define PY_PRIdOFF         "zd"
+#define PyLong_AsOff_t PyLong_AsSsize_t
+#define PyLong_FromOff_t PyLong_FromSsize_t
+#define PY_OFF_T_MAX PY_SSIZE_T_MAX
+#define PY_OFF_T_MIN PY_SSIZE_T_MIN
+#define PY_OFF_T_COMPAT Py_ssize_t
+#define PY_PRIdOFF "zd"
 #elif (SIZEOF_OFF_T == SIZEOF_LONG_LONG)
-# define PyLong_AsOff_t     PyLong_AsLongLong
-# define PyLong_FromOff_t   PyLong_FromLongLong
-# define PY_OFF_T_MAX       LLONG_MAX
-# define PY_OFF_T_MIN       LLONG_MIN
-# define PY_OFF_T_COMPAT    long long
-# define PY_PRIdOFF         "lld"
+#define PyLong_AsOff_t PyLong_AsLongLong
+#define PyLong_FromOff_t PyLong_FromLongLong
+#define PY_OFF_T_MAX LLONG_MAX
+#define PY_OFF_T_MIN LLONG_MIN
+#define PY_OFF_T_COMPAT long long
+#define PY_PRIdOFF "lld"
 #elif (SIZEOF_OFF_T == SIZEOF_LONG)
-# define PyLong_AsOff_t     PyLong_AsLong
-# define PyLong_FromOff_t   PyLong_FromLong
-# define PY_OFF_T_MAX       LONG_MAX
-# define PY_OFF_T_MIN       LONG_MIN
-# define PY_OFF_T_COMPAT    long
-# define PY_PRIdOFF         "ld"
+#define PyLong_AsOff_t PyLong_AsLong
+#define PyLong_FromOff_t PyLong_FromLong
+#define PY_OFF_T_MAX LONG_MAX
+#define PY_OFF_T_MIN LONG_MIN
+#define PY_OFF_T_COMPAT long
+#define PY_PRIdOFF "ld"
 #else
-# error off_t does not match either size_t, long, or long long!
+#error off_t does not match either size_t, long, or long long!
 #endif
 
 #endif
 
-extern Py_off_t PyNumber_AsOff_t(PyObject *item, PyObject *err);
+extern Py_off_t
+PyNumber_AsOff_t(PyObject *item, PyObject *err);
 
 /* Implementation details */
 
@@ -167,31 +179,30 @@ struct _io_state {
 };
 
 static inline _PyIO_State *
-get_io_state(PyObject *module)
-{
+get_io_state(PyObject *module) {
     void *state = _PyModule_GetState(module);
     assert(state != NULL);
     return (_PyIO_State *)state;
 }
 
 static inline _PyIO_State *
-get_io_state_by_cls(PyTypeObject *cls)
-{
+get_io_state_by_cls(PyTypeObject *cls) {
     void *state = _PyType_GetModuleState(cls);
     assert(state != NULL);
     return (_PyIO_State *)state;
 }
 
 static inline _PyIO_State *
-find_io_state_by_def(PyTypeObject *type)
-{
+find_io_state_by_def(PyTypeObject *type) {
     PyObject *mod = PyType_GetModuleByDef(type, &_PyIO_Module);
     assert(mod != NULL);
     return get_io_state(mod);
 }
 
-extern PyObject *_PyIOBase_cannot_pickle(PyObject *self, PyObject *args);
+extern PyObject *
+_PyIOBase_cannot_pickle(PyObject *self, PyObject *args);
 
 #ifdef HAVE_WINDOWS_CONSOLE_IO
-extern char _PyIO_get_console_type(PyObject *);
+extern char
+_PyIO_get_console_type(PyObject *);
 #endif

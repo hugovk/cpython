@@ -1,33 +1,35 @@
 /* Common code for use by all hashlib related modules. */
 
-#include "pycore_lock.h"        // PyMutex
+#include "pycore_lock.h"  // PyMutex
 
 /*
  * Given a PyObject* obj, fill in the Py_buffer* viewp with the result
  * of PyObject_GetBuffer.  Sets an exception and issues the erraction
  * on any errors, e.g. 'return NULL' or 'goto error'.
  */
-#define GET_BUFFER_VIEW_OR_ERROR(obj, viewp, erraction) do { \
-        if (PyUnicode_Check((obj))) { \
-            PyErr_SetString(PyExc_TypeError, \
-                            "Strings must be encoded before hashing");\
-            erraction; \
-        } \
-        if (!PyObject_CheckBuffer((obj))) { \
-            PyErr_SetString(PyExc_TypeError, \
-                            "object supporting the buffer API required"); \
-            erraction; \
-        } \
-        if (PyObject_GetBuffer((obj), (viewp), PyBUF_SIMPLE) == -1) { \
-            erraction; \
-        } \
-        if ((viewp)->ndim > 1) { \
-            PyErr_SetString(PyExc_BufferError, \
-                            "Buffer must be single dimension"); \
-            PyBuffer_Release((viewp)); \
-            erraction; \
-        } \
-    } while(0)
+#define GET_BUFFER_VIEW_OR_ERROR(obj, viewp, erraction)                            \
+    do {                                                                           \
+        if (PyUnicode_Check((obj))) {                                              \
+            PyErr_SetString(                                                       \
+                PyExc_TypeError, "Strings must be encoded before hashing"          \
+            );                                                                     \
+            erraction;                                                             \
+        }                                                                          \
+        if (!PyObject_CheckBuffer((obj))) {                                        \
+            PyErr_SetString(                                                       \
+                PyExc_TypeError, "object supporting the buffer API required"       \
+            );                                                                     \
+            erraction;                                                             \
+        }                                                                          \
+        if (PyObject_GetBuffer((obj), (viewp), PyBUF_SIMPLE) == -1) {              \
+            erraction;                                                             \
+        }                                                                          \
+        if ((viewp)->ndim > 1) {                                                   \
+            PyErr_SetString(PyExc_BufferError, "Buffer must be single dimension"); \
+            PyBuffer_Release((viewp));                                             \
+            erraction;                                                             \
+        }                                                                          \
+    } while (0)
 
 #define GET_BUFFER_VIEW_OR_ERROUT(obj, viewp) \
     GET_BUFFER_VIEW_OR_ERROR(obj, viewp, return NULL)
@@ -49,30 +51,29 @@
  */
 
 #include "pythread.h"
-#define ENTER_HASHLIB(obj) \
-    if ((obj)->use_mutex) { \
+#define ENTER_HASHLIB(obj)           \
+    if ((obj)->use_mutex) {          \
         PyMutex_Lock(&(obj)->mutex); \
     }
-#define LEAVE_HASHLIB(obj) \
-    if ((obj)->use_mutex) { \
+#define LEAVE_HASHLIB(obj)             \
+    if ((obj)->use_mutex) {            \
         PyMutex_Unlock(&(obj)->mutex); \
     }
 
 #ifdef Py_GIL_DISABLED
-#define HASHLIB_INIT_MUTEX(obj) \
-    do { \
+#define HASHLIB_INIT_MUTEX(obj)      \
+    do {                             \
         (obj)->mutex = (PyMutex){0}; \
-        (obj)->use_mutex = true; \
+        (obj)->use_mutex = true;     \
     } while (0)
 #else
-#define HASHLIB_INIT_MUTEX(obj) \
-    do { \
+#define HASHLIB_INIT_MUTEX(obj)      \
+    do {                             \
         (obj)->mutex = (PyMutex){0}; \
-        (obj)->use_mutex = false; \
+        (obj)->use_mutex = false;    \
     } while (0)
 #endif
 
 /* TODO(gpshead): We should make this a module or class attribute
  * to allow the user to optimize based on the platform they're using. */
 #define HASHLIB_GIL_MINSIZE 2048
-

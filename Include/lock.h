@@ -5,9 +5,9 @@ extern "C" {
 #endif
 
 #ifndef Py_LIMITED_API
-#  define Py_CPYTHON_LOCK_H
-#  include "cpython/lock.h"
-#  undef Py_CPYTHON_LOCK_H
+#define Py_CPYTHON_LOCK_H
+#include "cpython/lock.h"
+#undef Py_CPYTHON_LOCK_H
 #endif
 
 #ifdef __cplusplus

@@ -2,7 +2,7 @@
 #define Py_INTERNAL_INSTRUCTION_SEQUENCE_H
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #include "pycore_symtable.h"
@@ -10,7 +10,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 typedef struct {
     int h_label;
@@ -30,8 +29,7 @@ typedef struct {
 } _PyInstruction;
 
 typedef struct instruction_sequence {
-    PyObject_HEAD
-    _PyInstruction *s_instrs;
+    PyObject_HEAD _PyInstruction *s_instrs;
     int s_allocated;
     int s_used;
 
@@ -56,18 +54,28 @@ typedef struct {
 #define SAME_JUMP_TARGET_LABEL(L1, L2) ((L1).id == (L2).id)
 #define IS_JUMP_TARGET_LABEL(L) (!SAME_JUMP_TARGET_LABEL((L), (NO_LABEL)))
 
-PyAPI_FUNC(PyObject*)_PyInstructionSequence_New(void);
+PyAPI_FUNC(PyObject *) _PyInstructionSequence_New(void);
 
-int _PyInstructionSequence_UseLabel(_PyInstructionSequence *seq, int lbl);
-int _PyInstructionSequence_Addop(_PyInstructionSequence *seq,
-                                 int opcode, int oparg,
-                                 _Py_SourceLocation loc);
-_PyJumpTargetLabel _PyInstructionSequence_NewLabel(_PyInstructionSequence *seq);
-int _PyInstructionSequence_ApplyLabelMap(_PyInstructionSequence *seq);
-int _PyInstructionSequence_InsertInstruction(_PyInstructionSequence *seq, int pos,
-                                             int opcode, int oparg, _Py_SourceLocation loc);
-int _PyInstructionSequence_AddNested(_PyInstructionSequence *seq, _PyInstructionSequence *nested);
-void PyInstructionSequence_Fini(_PyInstructionSequence *seq);
+int
+_PyInstructionSequence_UseLabel(_PyInstructionSequence *seq, int lbl);
+int
+_PyInstructionSequence_Addop(
+    _PyInstructionSequence *seq, int opcode, int oparg, _Py_SourceLocation loc
+);
+_PyJumpTargetLabel
+_PyInstructionSequence_NewLabel(_PyInstructionSequence *seq);
+int
+_PyInstructionSequence_ApplyLabelMap(_PyInstructionSequence *seq);
+int
+_PyInstructionSequence_InsertInstruction(
+    _PyInstructionSequence *seq, int pos, int opcode, int oparg, _Py_SourceLocation loc
+);
+int
+_PyInstructionSequence_AddNested(
+    _PyInstructionSequence *seq, _PyInstructionSequence *nested
+);
+void
+PyInstructionSequence_Fini(_PyInstructionSequence *seq);
 
 extern PyTypeObject _PyInstructionSequence_Type;
 #define _PyInstructionSequence_Check(v) Py_IS_TYPE((v), &_PyInstructionSequence_Type)

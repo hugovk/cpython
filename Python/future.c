@@ -1,13 +1,12 @@
 #include "Python.h"
-#include "pycore_ast.h"           // _PyAST_GetDocString()
-#include "pycore_symtable.h"      // _PyFutureFeatures
-#include "pycore_unicodeobject.h" // _PyUnicode_EqualToASCIIString()
+#include "pycore_ast.h"            // _PyAST_GetDocString()
+#include "pycore_symtable.h"       // _PyFutureFeatures
+#include "pycore_unicodeobject.h"  // _PyUnicode_EqualToASCIIString()
 
 #define UNDEFINED_FUTURE_FEATURE "future feature %.100s is not defined"
 
 static int
-future_check_features(_PyFutureFeatures *ff, stmt_ty s, PyObject *filename)
-{
+future_check_features(_PyFutureFeatures *ff, stmt_ty s, PyObject *filename) {
     Py_ssize_t i;
 
     assert(s->kind == ImportFrom_kind);
@@ -39,13 +38,11 @@ future_check_features(_PyFutureFeatures *ff, stmt_ty s, PyObject *filename)
         } else if (strcmp(feature, FUTURE_ANNOTATIONS) == 0) {
             ff->ff_features |= CO_FUTURE_ANNOTATIONS;
         } else if (strcmp(feature, "braces") == 0) {
-            PyErr_SetString(PyExc_SyntaxError,
-                            "not a chance");
+            PyErr_SetString(PyExc_SyntaxError, "not a chance");
             PyErr_SyntaxLocationObject(filename, s->lineno, s->col_offset + 1);
             return 0;
         } else {
-            PyErr_Format(PyExc_SyntaxError,
-                         UNDEFINED_FUTURE_FEATURE, feature);
+            PyErr_Format(PyExc_SyntaxError, UNDEFINED_FUTURE_FEATURE, feature);
             PyErr_SyntaxLocationObject(filename, s->lineno, s->col_offset + 1);
             return 0;
         }
@@ -54,8 +51,7 @@ future_check_features(_PyFutureFeatures *ff, stmt_ty s, PyObject *filename)
 }
 
 static int
-future_parse(_PyFutureFeatures *ff, mod_ty mod, PyObject *filename)
-{
+future_parse(_PyFutureFeatures *ff, mod_ty mod, PyObject *filename) {
     if (!(mod->kind == Module_kind || mod->kind == Interactive_kind)) {
         return 1;
     }
@@ -79,28 +75,23 @@ future_parse(_PyFutureFeatures *ff, mod_ty mod, PyObject *filename)
 
         if (s->kind == ImportFrom_kind && s->v.ImportFrom.level == 0) {
             identifier modname = s->v.ImportFrom.module;
-            if (modname &&
-                _PyUnicode_EqualToASCIIString(modname, "__future__")) {
+            if (modname && _PyUnicode_EqualToASCIIString(modname, "__future__")) {
                 if (!future_check_features(ff, s, filename)) {
                     return 0;
                 }
                 ff->ff_location = SRC_LOCATION_FROM_AST(s);
-            }
-            else {
+            } else {
                 return 1;
             }
-        }
-        else {
+        } else {
             return 1;
         }
     }
     return 1;
 }
 
-
 int
-_PyFuture_FromAST(mod_ty mod, PyObject *filename, _PyFutureFeatures *ff)
-{
+_PyFuture_FromAST(mod_ty mod, PyObject *filename, _PyFutureFeatures *ff) {
     ff->ff_features = 0;
     ff->ff_location = (_Py_SourceLocation){-1, -1, -1, -1};
 

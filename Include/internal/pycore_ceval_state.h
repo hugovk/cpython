@@ -5,12 +5,11 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_lock.h"            // PyMutex
-#include "pycore_gil.h"             // struct _gil_runtime_state
-
+#include "pycore_lock.h"  // PyMutex
+#include "pycore_gil.h"   // struct _gil_runtime_state
 
 typedef int (*_Py_pending_call_func)(void *);
 
@@ -26,9 +25,9 @@ struct _pending_call {
 /* For interpreter-level pending calls, we want to avoid spending too
    much time on pending calls in any one thread, so we apply a limit. */
 #if MAXPENDINGCALLS > 100
-#  define MAXPENDINGCALLSLOOP 100
+#define MAXPENDINGCALLSLOOP 100
 #else
-#  define MAXPENDINGCALLSLOOP MAXPENDINGCALLS
+#define MAXPENDINGCALLSLOOP MAXPENDINGCALLS
 #endif
 
 /* We keep the number small to preserve as much compatibility
@@ -59,7 +58,6 @@ struct _pending_calls {
     int next;
 };
 
-
 typedef enum {
     PERF_STATUS_FAILED = -1,  // Perf trampoline is in an invalid state
     PERF_STATUS_NO_INIT = 0,  // Perf trampoline is not initialized
@@ -70,15 +68,15 @@ typedef enum {
 struct code_arena_st;
 
 struct trampoline_api_st {
-    void* (*init_state)(void);
-    void (*write_state)(void* state, const void *code_addr,
-                        unsigned int code_size, PyCodeObject* code);
-    int (*free_state)(void* state);
+    void *(*init_state)(void);
+    void (*write_state)(
+        void *state, const void *code_addr, unsigned int code_size, PyCodeObject *code
+    );
+    int (*free_state)(void *state);
     void *state;
     Py_ssize_t code_padding;
 };
 #endif
-
 
 struct _ceval_runtime_state {
     struct {
@@ -103,18 +101,16 @@ struct _ceval_runtime_state {
     PyMutex sys_trace_profile_mutex;
 };
 
-
 #ifdef PY_HAVE_PERF_TRAMPOLINE
-# define _PyEval_RUNTIME_PERF_INIT \
-    { \
+#define _PyEval_RUNTIME_PERF_INIT      \
+    {                                  \
         .status = PERF_STATUS_NO_INIT, \
-        .extra_code_index = -1, \
-        .persist_after_fork = 0, \
+        .extra_code_index = -1,        \
+        .persist_after_fork = 0,       \
     }
 #else
-# define _PyEval_RUNTIME_PERF_INIT {0}
+#define _PyEval_RUNTIME_PERF_INIT {0}
 #endif
-
 
 struct _ceval_state {
     /* This variable holds the global instrumentation version. When a thread is
@@ -126,7 +122,6 @@ struct _ceval_state {
     int own_gil;
     struct _pending_calls pending;
 };
-
 
 #ifdef __cplusplus
 }

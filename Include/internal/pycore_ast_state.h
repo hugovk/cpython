@@ -3,14 +3,14 @@
 #ifndef Py_INTERNAL_AST_STATE_H
 #define Py_INTERNAL_AST_STATE_H
 
-#include "pycore_lock.h"    // _PyOnceFlag
+#include "pycore_lock.h"  // _PyOnceFlag
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 struct ast_state {
@@ -265,4 +265,3 @@ struct ast_state {
 }
 #endif
 #endif /* !Py_INTERNAL_AST_STATE_H */
-

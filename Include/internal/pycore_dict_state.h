@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #define DICT_MAX_WATCHERS 8
@@ -16,13 +16,12 @@ struct _Py_dict_state {
     PyDict_WatchCallback watchers[DICT_MAX_WATCHERS];
 };
 
-#define _dict_state_INIT \
-    { \
+#define _dict_state_INIT        \
+    {                           \
         .next_keys_version = 2, \
     }
-
 
 #ifdef __cplusplus
 }
 #endif
-#endif   /* !Py_INTERNAL_DICT_STATE_H */
+#endif /* !Py_INTERNAL_DICT_STATE_H */

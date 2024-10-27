@@ -1,10 +1,8 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-complex_fromccomplex(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+complex_fromccomplex(PyObject *Py_UNUSED(module), PyObject *obj) {
     Py_complex complex;
 
     if (!PyArg_Parse(obj, "D", &complex)) {
@@ -15,8 +13,7 @@ complex_fromccomplex(PyObject *Py_UNUSED(module), PyObject *obj)
 }
 
 static PyObject *
-complex_asccomplex(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+complex_asccomplex(PyObject *Py_UNUSED(module), PyObject *obj) {
     Py_complex complex;
 
     NULLABLE(obj);
@@ -29,9 +26,8 @@ complex_asccomplex(PyObject *Py_UNUSED(module), PyObject *obj)
     return PyComplex_FromCComplex(complex);
 }
 
-static PyObject*
-_py_c_neg(PyObject *Py_UNUSED(module), PyObject *num)
-{
+static PyObject *
+_py_c_neg(PyObject *Py_UNUSED(module), PyObject *num) {
     Py_complex complex;
 
     complex = PyComplex_AsCComplex(num);
@@ -42,19 +38,17 @@ _py_c_neg(PyObject *Py_UNUSED(module), PyObject *num)
     return PyComplex_FromCComplex(_Py_c_neg(complex));
 }
 
-#define _PY_C_FUNC2(suffix)                                      \
-    static PyObject *                                            \
-    _py_c_##suffix(PyObject *Py_UNUSED(module), PyObject *args)  \
-    {                                                            \
-        Py_complex num, exp, res;                                \
-                                                                 \
-        if (!PyArg_ParseTuple(args, "DD", &num, &exp)) {         \
-            return NULL;                                         \
-        }                                                        \
-                                                                 \
-        errno = 0;                                               \
-        res = _Py_c_##suffix(num, exp);                          \
-        return Py_BuildValue("Di", &res, errno);                 \
+#define _PY_C_FUNC2(suffix)                                                        \
+    static PyObject *_py_c_##suffix(PyObject *Py_UNUSED(module), PyObject *args) { \
+        Py_complex num, exp, res;                                                  \
+                                                                                   \
+        if (!PyArg_ParseTuple(args, "DD", &num, &exp)) {                           \
+            return NULL;                                                           \
+        }                                                                          \
+                                                                                   \
+        errno = 0;                                                                 \
+        res = _Py_c_##suffix(num, exp);                                            \
+        return Py_BuildValue("Di", &res, errno);                                   \
     };
 
 _PY_C_FUNC2(sum)
@@ -63,9 +57,8 @@ _PY_C_FUNC2(prod)
 _PY_C_FUNC2(quot)
 _PY_C_FUNC2(pow)
 
-static PyObject*
-_py_c_abs(PyObject *Py_UNUSED(module), PyObject* obj)
-{
+static PyObject *
+_py_c_abs(PyObject *Py_UNUSED(module), PyObject *obj) {
     Py_complex complex;
     double res;
 
@@ -81,7 +74,6 @@ _py_c_abs(PyObject *Py_UNUSED(module), PyObject* obj)
     return Py_BuildValue("di", res, errno);
 }
 
-
 static PyMethodDef test_methods[] = {
     {"complex_fromccomplex", complex_fromccomplex, METH_O},
     {"complex_asccomplex", complex_asccomplex, METH_O},
@@ -96,8 +88,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Complex(PyObject *mod)
-{
+_PyTestCapi_Init_Complex(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 
 #include <stdint.h>
@@ -33,17 +32,14 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 static void
-err_exit(const char *msg)
-{
+err_exit(const char *msg) {
     fprintf(stderr, "%s\n", msg);
     exit(1);
 }
 
 static mpd_t *
-new_mpd(void)
-{
+new_mpd(void) {
     mpd_t *x = mpd_qnew();
     if (x == NULL) {
         err_exit("out of memory");
@@ -55,8 +51,7 @@ new_mpd(void)
 /* Nonsense version of escape-time algorithm for calculating a mandelbrot
  * set. Just for benchmarking. */
 static void
-color_point(mpd_t *x0, mpd_t *y0, long maxiter, mpd_context_t *ctx)
-{
+color_point(mpd_t *x0, mpd_t *y0, long maxiter, mpd_context_t *ctx) {
     mpd_t *x, *y, *sq_x, *sq_y;
     mpd_t *two;
 
@@ -94,10 +89,8 @@ color_point(mpd_t *x0, mpd_t *y0, long maxiter, mpd_context_t *ctx)
     mpd_del(x);
 }
 
-
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
     mpd_context_t ctx;
     mpd_t *x0, *y0;
     uint32_t prec = 19;
@@ -128,7 +121,11 @@ main(int argc, char **argv)
     end_clock = clock();
 
     mpd_print(x0);
-    fprintf(stderr, "time: %f\n\n", (double)(end_clock-start_clock)/(double)CLOCKS_PER_SEC);
+    fprintf(
+        stderr,
+        "time: %f\n\n",
+        (double)(end_clock - start_clock) / (double)CLOCKS_PER_SEC
+    );
 
     mpd_del(y0);
     mpd_del(x0);

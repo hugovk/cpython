@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-
 #ifndef __internal_Hacl_Hash_Blake2b_Simd256_H
 #define __internal_Hacl_Hash_Blake2b_Simd256_H
 
@@ -41,49 +40,48 @@ extern "C" {
 #include "libintvector.h"
 
 void
-Hacl_Hash_Blake2b_Simd256_init(Lib_IntVector_Intrinsics_vec256 *hash, uint32_t kk, uint32_t nn);
+Hacl_Hash_Blake2b_Simd256_init(
+    Lib_IntVector_Intrinsics_vec256 *hash, uint32_t kk, uint32_t nn
+);
 
 void
 Hacl_Hash_Blake2b_Simd256_update_multi(
-  uint32_t len,
-  Lib_IntVector_Intrinsics_vec256 *wv,
-  Lib_IntVector_Intrinsics_vec256 *hash,
-  FStar_UInt128_uint128 prev,
-  uint8_t *blocks,
-  uint32_t nb
+    uint32_t len,
+    Lib_IntVector_Intrinsics_vec256 *wv,
+    Lib_IntVector_Intrinsics_vec256 *hash,
+    FStar_UInt128_uint128 prev,
+    uint8_t *blocks,
+    uint32_t nb
 );
 
 void
 Hacl_Hash_Blake2b_Simd256_update_last(
-  uint32_t len,
-  Lib_IntVector_Intrinsics_vec256 *wv,
-  Lib_IntVector_Intrinsics_vec256 *hash,
-  bool last_node,
-  FStar_UInt128_uint128 prev,
-  uint32_t rem,
-  uint8_t *d
+    uint32_t len,
+    Lib_IntVector_Intrinsics_vec256 *wv,
+    Lib_IntVector_Intrinsics_vec256 *hash,
+    bool last_node,
+    FStar_UInt128_uint128 prev,
+    uint32_t rem,
+    uint8_t *d
 );
 
 void
 Hacl_Hash_Blake2b_Simd256_finish(
-  uint32_t nn,
-  uint8_t *output,
-  Lib_IntVector_Intrinsics_vec256 *hash
+    uint32_t nn, uint8_t *output, Lib_IntVector_Intrinsics_vec256 *hash
 );
 
 void
 Hacl_Hash_Blake2b_Simd256_load_state256b_from_state32(
-  Lib_IntVector_Intrinsics_vec256 *st,
-  uint64_t *st32
+    Lib_IntVector_Intrinsics_vec256 *st, uint64_t *st32
 );
 
 void
 Hacl_Hash_Blake2b_Simd256_store_state256b_to_state32(
-  uint64_t *st32,
-  Lib_IntVector_Intrinsics_vec256 *st
+    uint64_t *st32, Lib_IntVector_Intrinsics_vec256 *st
 );
 
-Lib_IntVector_Intrinsics_vec256 *Hacl_Hash_Blake2b_Simd256_malloc_with_key(void);
+Lib_IntVector_Intrinsics_vec256 *
+Hacl_Hash_Blake2b_Simd256_malloc_with_key(void);
 
 #if defined(__cplusplus)
 }

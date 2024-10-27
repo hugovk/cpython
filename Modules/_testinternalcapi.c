@@ -3,48 +3,45 @@
  */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 /* Always enable assertions */
 #undef NDEBUG
 
 #include "Python.h"
-#include "pycore_backoff.h"       // JUMP_BACKWARD_INITIAL_VALUE
-#include "pycore_bitutils.h"      // _Py_bswap32()
-#include "pycore_bytesobject.h"   // _PyBytes_Find()
-#include "pycore_ceval.h"         // _PyEval_AddPendingCall()
-#include "pycore_compile.h"       // _PyCompile_CodeGen()
-#include "pycore_context.h"       // _PyContext_NewHamtForTests()
-#include "pycore_dict.h"          // _PyManagedDictPointer_GetValues()
-#include "pycore_fileutils.h"     // _Py_normpath()
-#include "pycore_flowgraph.h"     // _PyCompile_OptimizeCfg()
-#include "pycore_frame.h"         // _PyInterpreterFrame
-#include "pycore_gc.h"            // PyGC_Head
-#include "pycore_hashtable.h"     // _Py_hashtable_new()
-#include "pycore_initconfig.h"    // _Py_GetConfigsAsDict()
+#include "pycore_backoff.h"               // JUMP_BACKWARD_INITIAL_VALUE
+#include "pycore_bitutils.h"              // _Py_bswap32()
+#include "pycore_bytesobject.h"           // _PyBytes_Find()
+#include "pycore_ceval.h"                 // _PyEval_AddPendingCall()
+#include "pycore_compile.h"               // _PyCompile_CodeGen()
+#include "pycore_context.h"               // _PyContext_NewHamtForTests()
+#include "pycore_dict.h"                  // _PyManagedDictPointer_GetValues()
+#include "pycore_fileutils.h"             // _Py_normpath()
+#include "pycore_flowgraph.h"             // _PyCompile_OptimizeCfg()
+#include "pycore_frame.h"                 // _PyInterpreterFrame
+#include "pycore_gc.h"                    // PyGC_Head
+#include "pycore_hashtable.h"             // _Py_hashtable_new()
+#include "pycore_initconfig.h"            // _Py_GetConfigsAsDict()
 #include "pycore_instruction_sequence.h"  // _PyInstructionSequence_New()
-#include "pycore_interp.h"        // _PyInterpreterState_GetConfigCopy()
-#include "pycore_long.h"          // _PyLong_Sign()
-#include "pycore_object.h"        // _PyObject_IsFreed()
-#include "pycore_optimizer.h"     // _Py_UopsSymbol, etc.
-#include "pycore_pathconfig.h"    // _PyPathConfig_ClearGlobal()
-#include "pycore_pyerrors.h"      // _PyErr_ChainExceptions1()
-#include "pycore_pylifecycle.h"   // _PyInterpreterConfig_AsDict()
-#include "pycore_pystate.h"       // _PyThreadState_GET()
+#include "pycore_interp.h"                // _PyInterpreterState_GetConfigCopy()
+#include "pycore_long.h"                  // _PyLong_Sign()
+#include "pycore_object.h"                // _PyObject_IsFreed()
+#include "pycore_optimizer.h"             // _Py_UopsSymbol, etc.
+#include "pycore_pathconfig.h"            // _PyPathConfig_ClearGlobal()
+#include "pycore_pyerrors.h"              // _PyErr_ChainExceptions1()
+#include "pycore_pylifecycle.h"           // _PyInterpreterConfig_AsDict()
+#include "pycore_pystate.h"               // _PyThreadState_GET()
 
 #include "clinic/_testinternalcapi.c.h"
 
 // Include test definitions from _testinternalcapi/
 #include "_testinternalcapi/parts.h"
 
-
 #define MODULE_NAME "_testinternalcapi"
 
-
 static PyObject *
-_get_current_module(void)
-{
+_get_current_module(void) {
     // We ensured it was imported in _run_script().
     PyObject *name = PyUnicode_FromString(MODULE_NAME);
     if (name == NULL) {
@@ -59,7 +56,6 @@ _get_current_module(void)
     return mod;
 }
 
-
 /* module state *************************************************************/
 
 typedef struct {
@@ -67,8 +63,7 @@ typedef struct {
 } module_state;
 
 static inline module_state *
-get_module_state(PyObject *mod)
-{
+get_module_state(PyObject *mod) {
     assert(mod != NULL);
     module_state *state = PyModule_GetState(mod);
     assert(state != NULL);
@@ -76,19 +71,16 @@ get_module_state(PyObject *mod)
 }
 
 static int
-traverse_module_state(module_state *state, visitproc visit, void *arg)
-{
+traverse_module_state(module_state *state, visitproc visit, void *arg) {
     Py_VISIT(state->record_list);
     return 0;
 }
 
 static int
-clear_module_state(module_state *state)
-{
+clear_module_state(module_state *state) {
     Py_CLEAR(state->record_list);
     return 0;
 }
-
 
 /* module functions *********************************************************/
 
@@ -97,81 +89,73 @@ module _testinternalcapi
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=7bb583d8c9eb9a78]*/
 static PyObject *
-get_configs(PyObject *self, PyObject *Py_UNUSED(args))
-{
+get_configs(PyObject *self, PyObject *Py_UNUSED(args)) {
     return _Py_GetConfigsAsDict();
 }
 
-
-static PyObject*
-get_recursion_depth(PyObject *self, PyObject *Py_UNUSED(args))
-{
+static PyObject *
+get_recursion_depth(PyObject *self, PyObject *Py_UNUSED(args)) {
     PyThreadState *tstate = _PyThreadState_GET();
 
     return PyLong_FromLong(tstate->py_recursion_limit - tstate->py_recursion_remaining);
 }
 
-
-static PyObject*
-get_c_recursion_remaining(PyObject *self, PyObject *Py_UNUSED(args))
-{
+static PyObject *
+get_c_recursion_remaining(PyObject *self, PyObject *Py_UNUSED(args)) {
     PyThreadState *tstate = _PyThreadState_GET();
     return PyLong_FromLong(tstate->c_recursion_remaining);
 }
 
-
-static PyObject*
-test_bswap(PyObject *self, PyObject *Py_UNUSED(args))
-{
+static PyObject *
+test_bswap(PyObject *self, PyObject *Py_UNUSED(args)) {
     uint16_t u16 = _Py_bswap16(UINT16_C(0x3412));
     if (u16 != UINT16_C(0x1234)) {
-        PyErr_Format(PyExc_AssertionError,
-                     "_Py_bswap16(0x3412) returns %u", u16);
+        PyErr_Format(PyExc_AssertionError, "_Py_bswap16(0x3412) returns %u", u16);
         return NULL;
     }
 
     uint32_t u32 = _Py_bswap32(UINT32_C(0x78563412));
     if (u32 != UINT32_C(0x12345678)) {
-        PyErr_Format(PyExc_AssertionError,
-                     "_Py_bswap32(0x78563412) returns %lu", u32);
+        PyErr_Format(PyExc_AssertionError, "_Py_bswap32(0x78563412) returns %lu", u32);
         return NULL;
     }
 
     uint64_t u64 = _Py_bswap64(UINT64_C(0xEFCDAB9078563412));
     if (u64 != UINT64_C(0x1234567890ABCDEF)) {
-        PyErr_Format(PyExc_AssertionError,
-                     "_Py_bswap64(0xEFCDAB9078563412) returns %llu", u64);
+        PyErr_Format(
+            PyExc_AssertionError, "_Py_bswap64(0xEFCDAB9078563412) returns %llu", u64
+        );
         return NULL;
     }
 
     Py_RETURN_NONE;
 }
 
-
 static int
-check_popcount(uint32_t x, int expected)
-{
+check_popcount(uint32_t x, int expected) {
     // Use volatile to prevent the compiler to optimize out the whole test
     volatile uint32_t u = x;
     int bits = _Py_popcount32(u);
     if (bits != expected) {
-        PyErr_Format(PyExc_AssertionError,
-                     "_Py_popcount32(%lu) returns %i, expected %i",
-                     (unsigned long)x, bits, expected);
+        PyErr_Format(
+            PyExc_AssertionError,
+            "_Py_popcount32(%lu) returns %i, expected %i",
+            (unsigned long)x,
+            bits,
+            expected
+        );
         return -1;
     }
     return 0;
 }
 
-
-static PyObject*
-test_popcount(PyObject *self, PyObject *Py_UNUSED(args))
-{
-#define CHECK(X, RESULT) \
-    do { \
+static PyObject *
+test_popcount(PyObject *self, PyObject *Py_UNUSED(args)) {
+#define CHECK(X, RESULT)                     \
+    do {                                     \
         if (check_popcount(X, RESULT) < 0) { \
-            return NULL; \
-        } \
+            return NULL;                     \
+        }                                    \
     } while (0)
 
     CHECK(0, 0);
@@ -187,31 +171,31 @@ test_popcount(PyObject *self, PyObject *Py_UNUSED(args))
 #undef CHECK
 }
 
-
 static int
-check_bit_length(unsigned long x, int expected)
-{
+check_bit_length(unsigned long x, int expected) {
     // Use volatile to prevent the compiler to optimize out the whole test
     volatile unsigned long u = x;
     int len = _Py_bit_length(u);
     if (len != expected) {
-        PyErr_Format(PyExc_AssertionError,
-                     "_Py_bit_length(%lu) returns %i, expected %i",
-                     x, len, expected);
+        PyErr_Format(
+            PyExc_AssertionError,
+            "_Py_bit_length(%lu) returns %i, expected %i",
+            x,
+            len,
+            expected
+        );
         return -1;
     }
     return 0;
 }
 
-
-static PyObject*
-test_bit_length(PyObject *self, PyObject *Py_UNUSED(args))
-{
-#define CHECK(X, RESULT) \
-    do { \
+static PyObject *
+test_bit_length(PyObject *self, PyObject *Py_UNUSED(args)) {
+#define CHECK(X, RESULT)                       \
+    do {                                       \
         if (check_bit_length(X, RESULT) < 0) { \
-            return NULL; \
-        } \
+            return NULL;                       \
+        }                                      \
     } while (0)
 
     CHECK(0, 0);
@@ -226,24 +210,20 @@ test_bit_length(PyObject *self, PyObject *Py_UNUSED(args))
 #undef CHECK
 }
 
-
-#define TO_PTR(ch) ((void*)(uintptr_t)ch)
+#define TO_PTR(ch) ((void *)(uintptr_t)ch)
 #define FROM_PTR(ptr) ((uintptr_t)ptr)
 #define VALUE(key) (1 + ((int)(key) - 'a'))
 
 static Py_uhash_t
-hash_char(const void *key)
-{
+hash_char(const void *key) {
     char ch = (char)FROM_PTR(key);
     return ch;
 }
 
-
 static int
-hashtable_cb(_Py_hashtable_t *table,
-             const void *key_ptr, const void *value_ptr,
-             void *user_data)
-{
+hashtable_cb(
+    _Py_hashtable_t *table, const void *key_ptr, const void *value_ptr, void *user_data
+) {
     int *count = (int *)user_data;
     char key = (char)FROM_PTR(key_ptr);
     int value = (int)FROM_PTR(value_ptr);
@@ -252,12 +232,9 @@ hashtable_cb(_Py_hashtable_t *table,
     return 0;
 }
 
-
-static PyObject*
-test_hashtable(PyObject *self, PyObject *Py_UNUSED(args))
-{
-    _Py_hashtable_t *table = _Py_hashtable_new(hash_char,
-                                               _Py_hashtable_compare_direct);
+static PyObject *
+test_hashtable(PyObject *self, PyObject *Py_UNUSED(args)) {
+    _Py_hashtable_t *table = _Py_hashtable_new(hash_char, _Py_hashtable_compare_direct);
     if (table == NULL) {
         return PyErr_NoMemory();
     }
@@ -269,7 +246,7 @@ test_hashtable(PyObject *self, PyObject *Py_UNUSED(args))
 
     // Test _Py_hashtable_set()
     char key;
-    for (key='a'; key <= 'z'; key++) {
+    for (key = 'a'; key <= 'z'; key++) {
         int value = VALUE(key);
         if (_Py_hashtable_set(table, TO_PTR(key), TO_PTR(value)) < 0) {
             _Py_hashtable_destroy(table);
@@ -280,7 +257,7 @@ test_hashtable(PyObject *self, PyObject *Py_UNUSED(args))
     assert(table->nbuckets > table->nentries);
 
     // Test _Py_hashtable_get_entry()
-    for (key='a'; key <= 'z'; key++) {
+    for (key = 'a'; key <= 'z'; key++) {
         _Py_hashtable_entry_t *entry = _Py_hashtable_get_entry(table, TO_PTR(key));
         assert(entry != NULL);
         assert(entry->key == TO_PTR(key));
@@ -288,7 +265,7 @@ test_hashtable(PyObject *self, PyObject *Py_UNUSED(args))
     }
 
     // Test _Py_hashtable_get()
-    for (key='a'; key <= 'z'; key++) {
+    for (key = 'a'; key <= 'z'; key++) {
         void *value_ptr = _Py_hashtable_get(table, TO_PTR(key));
         assert((int)FROM_PTR(value_ptr) == VALUE(key));
     }
@@ -316,10 +293,8 @@ test_hashtable(PyObject *self, PyObject *Py_UNUSED(args))
     Py_RETURN_NONE;
 }
 
-
 static PyObject *
-test_get_config(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
-{
+test_get_config(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args)) {
     PyConfig config;
     PyConfig_InitIsolatedConfig(&config);
     if (_PyInterpreterState_GetConfigCopy(&config) < 0) {
@@ -331,10 +306,8 @@ test_get_config(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
     return dict;
 }
 
-
 static PyObject *
-test_set_config(PyObject *Py_UNUSED(self), PyObject *dict)
-{
+test_set_config(PyObject *Py_UNUSED(self), PyObject *dict) {
     PyConfig config;
     PyConfig_InitIsolatedConfig(&config);
     if (_PyConfig_FromDict(&config, dict) < 0) {
@@ -351,18 +324,14 @@ error:
     return NULL;
 }
 
-
 static PyObject *
-test_reset_path_config(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(arg))
-{
+test_reset_path_config(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(arg)) {
     _PyPathConfig_ClearGlobal();
     Py_RETURN_NONE;
 }
 
-
 static int
-check_edit_cost(const char *a, const char *b, Py_ssize_t expected)
-{
+check_edit_cost(const char *a, const char *b, Py_ssize_t expected) {
     int ret = -1;
     PyObject *a_obj = NULL;
     PyObject *b_obj = NULL;
@@ -377,9 +346,14 @@ check_edit_cost(const char *a, const char *b, Py_ssize_t expected)
     }
     Py_ssize_t result = _Py_UTF8_Edit_Cost(a_obj, b_obj, -1);
     if (result != expected) {
-        PyErr_Format(PyExc_AssertionError,
-                     "Edit cost from '%s' to '%s' returns %zd, expected %zd",
-                     a, b, result, expected);
+        PyErr_Format(
+            PyExc_AssertionError,
+            "Edit cost from '%s' to '%s' returns %zd, expected %zd",
+            a,
+            b,
+            result,
+            expected
+        );
         goto exit;
     }
     // Check that smaller max_edits thresholds are exceeded.
@@ -388,20 +362,32 @@ check_edit_cost(const char *a, const char *b, Py_ssize_t expected)
         max_edits /= 2;
         Py_ssize_t result2 = _Py_UTF8_Edit_Cost(a_obj, b_obj, max_edits);
         if (result2 <= max_edits) {
-            PyErr_Format(PyExc_AssertionError,
-                         "Edit cost from '%s' to '%s' (threshold %zd) "
-                         "returns %zd, expected greater than %zd",
-                         a, b, max_edits, result2, max_edits);
+            PyErr_Format(
+                PyExc_AssertionError,
+                "Edit cost from '%s' to '%s' (threshold %zd) "
+                "returns %zd, expected greater than %zd",
+                a,
+                b,
+                max_edits,
+                result2,
+                max_edits
+            );
             goto exit;
         }
     }
     // Check that bigger max_edits thresholds don't change anything
     Py_ssize_t result3 = _Py_UTF8_Edit_Cost(a_obj, b_obj, result * 2 + 1);
     if (result3 != result) {
-        PyErr_Format(PyExc_AssertionError,
-                     "Edit cost from '%s' to '%s' (threshold %zd) "
-                     "returns %zd, expected %zd",
-                     a, b, result * 2, result3, result);
+        PyErr_Format(
+            PyExc_AssertionError,
+            "Edit cost from '%s' to '%s' (threshold %zd) "
+            "returns %zd, expected %zd",
+            a,
+            b,
+            result * 2,
+            result3,
+            result
+        );
         goto exit;
     }
     ret = 0;
@@ -412,13 +398,13 @@ exit:
 }
 
 static PyObject *
-test_edit_cost(PyObject *self, PyObject *Py_UNUSED(args))
-{
-    #define CHECK(a, b, n) do {              \
-        if (check_edit_cost(a, b, n) < 0) {  \
-            return NULL;                     \
-        }                                    \
-    } while (0)                              \
+test_edit_cost(PyObject *self, PyObject *Py_UNUSED(args)) {
+#define CHECK(a, b, n)                      \
+    do {                                    \
+        if (check_edit_cost(a, b, n) < 0) { \
+            return NULL;                    \
+        }                                   \
+    } while (0)
 
     CHECK("", "", 0);
     CHECK("", "a", 2);
@@ -434,29 +420,32 @@ test_edit_cost(PyObject *self, PyObject *Py_UNUSED(args))
     CHECK("wxyz", "wXyZ123", 8);
     CHECK("Python", "Java", 12);
     CHECK("Java", "C#", 8);
-    CHECK("AbstractFoobarManager", "abstract_foobar_manager", 3+2*2);
+    CHECK("AbstractFoobarManager", "abstract_foobar_manager", 3 + 2 * 2);
     CHECK("CPython", "PyPy", 10);
     CHECK("CPython", "pypy", 11);
     CHECK("AttributeError", "AttributeErrop", 2);
     CHECK("AttributeError", "AttributeErrorTests", 10);
 
-    #undef CHECK
+#undef CHECK
     Py_RETURN_NONE;
 }
 
-
 static int
-check_bytes_find(const char *haystack0, const char *needle0,
-                 int offset, Py_ssize_t expected)
-{
+check_bytes_find(
+    const char *haystack0, const char *needle0, int offset, Py_ssize_t expected
+) {
     Py_ssize_t len_haystack = strlen(haystack0);
     Py_ssize_t len_needle = strlen(needle0);
-    Py_ssize_t result_1 = _PyBytes_Find(haystack0, len_haystack,
-                                        needle0, len_needle, offset);
+    Py_ssize_t result_1 =
+        _PyBytes_Find(haystack0, len_haystack, needle0, len_needle, offset);
     if (result_1 != expected) {
-        PyErr_Format(PyExc_AssertionError,
-                    "Incorrect result_1: '%s' in '%s' (offset=%zd)",
-                    needle0, haystack0, offset);
+        PyErr_Format(
+            PyExc_AssertionError,
+            "Incorrect result_1: '%s' in '%s' (offset=%zd)",
+            needle0,
+            haystack0,
+            offset
+        );
         return -1;
     }
     // Allocate new buffer with no NULL terminator.
@@ -473,23 +462,27 @@ check_bytes_find(const char *haystack0, const char *needle0,
     }
     memcpy(haystack, haystack0, len_haystack);
     memcpy(needle, needle0, len_needle);
-    Py_ssize_t result_2 = _PyBytes_Find(haystack, len_haystack,
-                                        needle, len_needle, offset);
+    Py_ssize_t result_2 =
+        _PyBytes_Find(haystack, len_haystack, needle, len_needle, offset);
     PyMem_Free(haystack);
     PyMem_Free(needle);
     if (result_2 != expected) {
-        PyErr_Format(PyExc_AssertionError,
-                    "Incorrect result_2: '%s' in '%s' (offset=%zd)",
-                    needle0, haystack0, offset);
+        PyErr_Format(
+            PyExc_AssertionError,
+            "Incorrect result_2: '%s' in '%s' (offset=%zd)",
+            needle0,
+            haystack0,
+            offset
+        );
         return -1;
     }
     return 0;
 }
 
 static int
-check_bytes_find_large(Py_ssize_t len_haystack, Py_ssize_t len_needle,
-                       const char *needle)
-{
+check_bytes_find_large(
+    Py_ssize_t len_haystack, Py_ssize_t len_needle, const char *needle
+) {
     char *zeros = PyMem_RawCalloc(len_haystack, 1);
     if (zeros == NULL) {
         PyErr_NoMemory();
@@ -498,21 +491,25 @@ check_bytes_find_large(Py_ssize_t len_haystack, Py_ssize_t len_needle,
     Py_ssize_t res = _PyBytes_Find(zeros, len_haystack, needle, len_needle, 0);
     PyMem_RawFree(zeros);
     if (res != -1) {
-        PyErr_Format(PyExc_AssertionError,
-                    "check_bytes_find_large(%zd, %zd) found %zd",
-                    len_haystack, len_needle, res);
+        PyErr_Format(
+            PyExc_AssertionError,
+            "check_bytes_find_large(%zd, %zd) found %zd",
+            len_haystack,
+            len_needle,
+            res
+        );
         return -1;
     }
     return 0;
 }
 
 static PyObject *
-test_bytes_find(PyObject *self, PyObject *Py_UNUSED(args))
-{
-    #define CHECK(H, N, O, E) do {               \
-        if (check_bytes_find(H, N, O, E) < 0) {  \
-            return NULL;                         \
-        }                                        \
+test_bytes_find(PyObject *self, PyObject *Py_UNUSED(args)) {
+#define CHECK(H, N, O, E)                       \
+    do {                                        \
+        if (check_bytes_find(H, N, O, E) < 0) { \
+            return NULL;                        \
+        }                                       \
     } while (0)
 
     CHECK("", "", 0, 0);
@@ -533,7 +530,7 @@ test_bytes_find(PyObject *self, PyObject *Py_UNUSED(args))
     CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", "ab", 0, 30);
     CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaba", "ba", 0, 30);
     CHECK("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb", "bb", 0, 30);
-    #undef CHECK
+#undef CHECK
 
     // Hunt for segfaults
     // n, m chosen here so that (n - m) % (m + 1) == 0
@@ -556,10 +553,8 @@ test_bytes_find(PyObject *self, PyObject *Py_UNUSED(args))
     Py_RETURN_NONE;
 }
 
-
 static PyObject *
-normalize_path(PyObject *self, PyObject *filename)
-{
+normalize_path(PyObject *self, PyObject *filename) {
     Py_ssize_t size = -1;
     wchar_t *encoded = PyUnicode_AsWideCharString(filename, &size);
     if (encoded == NULL) {
@@ -577,10 +572,8 @@ get_getpath_codeobject(PyObject *self, PyObject *Py_UNUSED(args)) {
     return _Py_Get_Getpath_CodeObject();
 }
 
-
 static PyObject *
-encode_locale_ex(PyObject *self, PyObject *args)
-{
+encode_locale_ex(PyObject *self, PyObject *args) {
     PyObject *unicode;
     int current_locale = 0;
     wchar_t *wstr;
@@ -599,37 +592,39 @@ encode_locale_ex(PyObject *self, PyObject *args)
     char *str = NULL;
     size_t error_pos;
     const char *reason = NULL;
-    int ret = _Py_EncodeLocaleEx(wstr,
-                                 &str, &error_pos, &reason,
-                                 current_locale, error_handler);
+    int ret = _Py_EncodeLocaleEx(
+        wstr, &str, &error_pos, &reason, current_locale, error_handler
+    );
     PyMem_Free(wstr);
 
-    switch(ret) {
-    case 0:
-        res = PyBytes_FromString(str);
-        PyMem_RawFree(str);
-        break;
-    case -1:
-        PyErr_NoMemory();
-        break;
-    case -2:
-        PyErr_Format(PyExc_RuntimeError, "encode error: pos=%zu, reason=%s",
-                     error_pos, reason);
-        break;
-    case -3:
-        PyErr_SetString(PyExc_ValueError, "unsupported error handler");
-        break;
-    default:
-        PyErr_SetString(PyExc_ValueError, "unknown error code");
-        break;
+    switch (ret) {
+        case 0:
+            res = PyBytes_FromString(str);
+            PyMem_RawFree(str);
+            break;
+        case -1:
+            PyErr_NoMemory();
+            break;
+        case -2:
+            PyErr_Format(
+                PyExc_RuntimeError,
+                "encode error: pos=%zu, reason=%s",
+                error_pos,
+                reason
+            );
+            break;
+        case -3:
+            PyErr_SetString(PyExc_ValueError, "unsupported error handler");
+            break;
+        default:
+            PyErr_SetString(PyExc_ValueError, "unknown error code");
+            break;
     }
     return res;
 }
 
-
 static PyObject *
-decode_locale_ex(PyObject *self, PyObject *args)
-{
+decode_locale_ex(PyObject *self, PyObject *args) {
     char *str;
     int current_locale = 0;
     PyObject *res = NULL;
@@ -643,44 +638,44 @@ decode_locale_ex(PyObject *self, PyObject *args)
     wchar_t *wstr = NULL;
     size_t wlen = 0;
     const char *reason = NULL;
-    int ret = _Py_DecodeLocaleEx(str,
-                                 &wstr, &wlen, &reason,
-                                 current_locale, error_handler);
+    int ret =
+        _Py_DecodeLocaleEx(str, &wstr, &wlen, &reason, current_locale, error_handler);
 
-    switch(ret) {
-    case 0:
-        res = PyUnicode_FromWideChar(wstr, wlen);
-        PyMem_RawFree(wstr);
-        break;
-    case -1:
-        PyErr_NoMemory();
-        break;
-    case -2:
-        PyErr_Format(PyExc_RuntimeError, "decode error: pos=%zu, reason=%s",
-                     wlen, reason);
-        break;
-    case -3:
-        PyErr_SetString(PyExc_ValueError, "unsupported error handler");
-        break;
-    default:
-        PyErr_SetString(PyExc_ValueError, "unknown error code");
-        break;
+    switch (ret) {
+        case 0:
+            res = PyUnicode_FromWideChar(wstr, wlen);
+            PyMem_RawFree(wstr);
+            break;
+        case -1:
+            PyErr_NoMemory();
+            break;
+        case -2:
+            PyErr_Format(
+                PyExc_RuntimeError, "decode error: pos=%zu, reason=%s", wlen, reason
+            );
+            break;
+        case -3:
+            PyErr_SetString(PyExc_ValueError, "unsupported error handler");
+            break;
+        default:
+            PyErr_SetString(PyExc_ValueError, "unknown error code");
+            break;
     }
     return res;
 }
 
 static PyObject *
-set_eval_frame_default(PyObject *self, PyObject *Py_UNUSED(args))
-{
+set_eval_frame_default(PyObject *self, PyObject *Py_UNUSED(args)) {
     module_state *state = get_module_state(self);
-    _PyInterpreterState_SetEvalFrameFunc(_PyInterpreterState_GET(), _PyEval_EvalFrameDefault);
+    _PyInterpreterState_SetEvalFrameFunc(
+        _PyInterpreterState_GET(), _PyEval_EvalFrameDefault
+    );
     Py_CLEAR(state->record_list);
     Py_RETURN_NONE;
 }
 
 static PyObject *
-record_eval(PyThreadState *tstate, struct _PyInterpreterFrame *f, int exc)
-{
+record_eval(PyThreadState *tstate, struct _PyInterpreterFrame *f, int exc) {
     if (PyStackRef_FunctionCheck(f->f_funcobj)) {
         PyFunctionObject *func = _PyFrame_GetFunction(f);
         PyObject *module = _get_current_module();
@@ -695,10 +690,8 @@ record_eval(PyThreadState *tstate, struct _PyInterpreterFrame *f, int exc)
     return _PyEval_EvalFrameDefault(tstate, f, exc);
 }
 
-
 static PyObject *
-set_eval_frame_record(PyObject *self, PyObject *list)
-{
+set_eval_frame_record(PyObject *self, PyObject *list) {
     module_state *state = get_module_state(self);
     if (!PyList_Check(list)) {
         PyErr_SetString(PyExc_TypeError, "argument must be a list");
@@ -752,15 +745,14 @@ Apply compiler code generation to an AST.
 [clinic start generated code]*/
 
 static PyObject *
-_testinternalcapi_compiler_codegen_impl(PyObject *module, PyObject *ast,
-                                        PyObject *filename, int optimize,
-                                        int compile_mode)
+_testinternalcapi_compiler_codegen_impl(
+    PyObject *module, PyObject *ast, PyObject *filename, int optimize, int compile_mode
+)
 /*[clinic end generated code: output=40a68f6e13951cc8 input=a0e00784f1517cd7]*/
 {
     PyCompilerFlags *flags = NULL;
     return _PyCompile_CodeGen(ast, filename, flags, optimize, compile_mode);
 }
-
 
 /*[clinic input]
 
@@ -774,8 +766,9 @@ Apply compiler optimizations to an instruction list.
 [clinic start generated code]*/
 
 static PyObject *
-_testinternalcapi_optimize_cfg_impl(PyObject *module, PyObject *instructions,
-                                    PyObject *consts, int nlocals)
+_testinternalcapi_optimize_cfg_impl(
+    PyObject *module, PyObject *instructions, PyObject *consts, int nlocals
+)
 /*[clinic end generated code: output=57c53c3a3dfd1df0 input=6a96d1926d58d7e5]*/
 {
     return _PyCompile_OptimizeCfg(instructions, consts, nlocals);
@@ -802,10 +795,9 @@ Create a code object for the given instructions.
 [clinic start generated code]*/
 
 static PyObject *
-_testinternalcapi_assemble_code_object_impl(PyObject *module,
-                                            PyObject *filename,
-                                            PyObject *instructions,
-                                            PyObject *metadata)
+_testinternalcapi_assemble_code_object_impl(
+    PyObject *module, PyObject *filename, PyObject *instructions, PyObject *metadata
+)
 /*[clinic end generated code: output=38003dc16a930f48 input=e713ad77f08fb3a8]*/
 
 {
@@ -842,14 +834,12 @@ _testinternalcapi_assemble_code_object_impl(PyObject *module,
     assert(umd.u_kwonlyargcount >= 0);
     assert(umd.u_firstlineno >= 0);
 
-    return (PyObject*)_PyCompile_Assemble(&umd, filename, instructions);
+    return (PyObject *)_PyCompile_Assemble(&umd, filename, instructions);
 }
-
 
 // Maybe this could be replaced by get_interpreter_config()?
 static PyObject *
-get_interp_settings(PyObject *self, PyObject *args)
-{
+get_interp_settings(PyObject *self, PyObject *args) {
     int interpid = -1;
     if (!PyArg_ParseTuple(args, "|i:get_interp_settings", &interpid)) {
         return NULL;
@@ -859,13 +849,10 @@ get_interp_settings(PyObject *self, PyObject *args)
     if (interpid < 0) {
         PyThreadState *tstate = _PyThreadState_GET();
         interp = tstate ? tstate->interp : _PyInterpreterState_Main();
-    }
-    else if (interpid == 0) {
+    } else if (interpid == 0) {
         interp = _PyInterpreterState_Main();
-    }
-    else {
-        PyErr_Format(PyExc_NotImplementedError,
-                     "%zd", interpid);
+    } else {
+        PyErr_Format(PyExc_NotImplementedError, "%zd", interpid);
         return NULL;
     }
     assert(interp != NULL);
@@ -898,10 +885,8 @@ get_interp_settings(PyObject *self, PyObject *args)
     return settings;
 }
 
-
 static PyObject *
-clear_extension(PyObject *self, PyObject *args)
-{
+clear_extension(PyObject *self, PyObject *args) {
     PyObject *name = NULL, *filename = NULL;
     if (!PyArg_ParseTuple(args, "OO:clear_extension", &name, &filename)) {
         return NULL;
@@ -913,8 +898,7 @@ clear_extension(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-write_perf_map_entry(PyObject *self, PyObject *args)
-{
+write_perf_map_entry(PyObject *self, PyObject *args) {
     PyObject *code_addr_v;
     const void *code_addr;
     unsigned int code_size;
@@ -936,15 +920,13 @@ write_perf_map_entry(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-perf_map_state_teardown(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(ignored))
-{
+perf_map_state_teardown(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(ignored)) {
     PyUnstable_PerfMapState_Fini();
     Py_RETURN_NONE;
 }
 
 static PyObject *
-iframe_getcode(PyObject *self, PyObject *frame)
-{
+iframe_getcode(PyObject *self, PyObject *frame) {
     if (!PyFrame_Check(frame)) {
         PyErr_SetString(PyExc_TypeError, "argument must be a frame");
         return NULL;
@@ -954,8 +936,7 @@ iframe_getcode(PyObject *self, PyObject *frame)
 }
 
 static PyObject *
-iframe_getline(PyObject *self, PyObject *frame)
-{
+iframe_getline(PyObject *self, PyObject *frame) {
     if (!PyFrame_Check(frame)) {
         PyErr_SetString(PyExc_TypeError, "argument must be a frame");
         return NULL;
@@ -965,8 +946,7 @@ iframe_getline(PyObject *self, PyObject *frame)
 }
 
 static PyObject *
-iframe_getlasti(PyObject *self, PyObject *frame)
-{
+iframe_getlasti(PyObject *self, PyObject *frame) {
     if (!PyFrame_Check(frame)) {
         PyErr_SetString(PyExc_TypeError, "argument must be a frame");
         return NULL;
@@ -976,8 +956,7 @@ iframe_getlasti(PyObject *self, PyObject *frame)
 }
 
 static PyObject *
-get_co_framesize(PyObject *self, PyObject *arg)
-{
+get_co_framesize(PyObject *self, PyObject *arg) {
     if (!PyCode_Check(arg)) {
         PyErr_SetString(PyExc_TypeError, "argument must be a code object");
         return NULL;
@@ -989,32 +968,28 @@ get_co_framesize(PyObject *self, PyObject *arg)
 #ifdef _Py_TIER2
 
 static PyObject *
-new_counter_optimizer(PyObject *self, PyObject *arg)
-{
+new_counter_optimizer(PyObject *self, PyObject *arg) {
     return _PyOptimizer_NewCounter();
 }
 
 static PyObject *
-new_uop_optimizer(PyObject *self, PyObject *arg)
-{
+new_uop_optimizer(PyObject *self, PyObject *arg) {
     return _PyOptimizer_NewUOpOptimizer();
 }
 
 static PyObject *
-set_optimizer(PyObject *self, PyObject *opt)
-{
+set_optimizer(PyObject *self, PyObject *opt) {
     if (opt == Py_None) {
         opt = NULL;
     }
-    if (_Py_SetTier2Optimizer((_PyOptimizerObject*)opt) < 0) {
+    if (_Py_SetTier2Optimizer((_PyOptimizerObject *)opt) < 0) {
         return NULL;
     }
     Py_RETURN_NONE;
 }
 
 static PyObject *
-get_optimizer(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+get_optimizer(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     PyObject *opt = NULL;
 #ifdef _Py_TIER2
     opt = (PyObject *)_Py_GetOptimizer();
@@ -1026,8 +1001,7 @@ get_optimizer(PyObject *self, PyObject *Py_UNUSED(ignored))
 }
 
 static PyObject *
-add_executor_dependency(PyObject *self, PyObject *args)
-{
+add_executor_dependency(PyObject *self, PyObject *args) {
     PyObject *exec;
     PyObject *obj;
     if (!PyArg_ParseTuple(args, "OO", &exec, &obj)) {
@@ -1044,8 +1018,7 @@ add_executor_dependency(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-invalidate_executors(PyObject *self, PyObject *obj)
-{
+invalidate_executors(PyObject *self, PyObject *obj) {
     PyInterpreterState *interp = PyInterpreterState_Get();
     _Py_Executors_InvalidateDependency(interp, obj, 1);
     Py_RETURN_NONE;
@@ -1053,8 +1026,8 @@ invalidate_executors(PyObject *self, PyObject *obj)
 
 #endif
 
-static int _pending_callback(void *arg)
-{
+static int
+_pending_callback(void *arg) {
     /* we assume the argument is callable object to which we own a reference */
     PyObject *callable = (PyObject *)arg;
     PyObject *r = PyObject_CallNoArgs(callable);
@@ -1067,18 +1040,22 @@ static int _pending_callback(void *arg)
  * run from any python thread.
  */
 static PyObject *
-pending_threadfunc(PyObject *self, PyObject *args, PyObject *kwargs)
-{
+pending_threadfunc(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *callable;
     unsigned int num = 1;
     int blocking = 0;
     int ensure_added = 0;
-    static char *kwlist[] = {"callback", "num",
-                             "blocking", "ensure_added", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                                     "O|I$pp:pending_threadfunc", kwlist,
-                                     &callable, &num, &blocking, &ensure_added))
-    {
+    static char *kwlist[] = {"callback", "num", "blocking", "ensure_added", NULL};
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwargs,
+            "O|I$pp:pending_threadfunc",
+            kwlist,
+            &callable,
+            &num,
+            &blocking,
+            &ensure_added
+        )) {
         return NULL;
     }
     PyInterpreterState *interp = _PyInterpreterState_GET();
@@ -1099,11 +1076,9 @@ pending_threadfunc(PyObject *self, PyObject *args, PyObject *kwargs)
             _Py_add_pending_call_result r;
             do {
                 r = _PyEval_AddPendingCall(interp, &_pending_callback, callable, 0);
-                assert(r == _Py_ADD_PENDING_SUCCESS
-                       || r == _Py_ADD_PENDING_FULL);
+                assert(r == _Py_ADD_PENDING_SUCCESS || r == _Py_ADD_PENDING_FULL);
             } while (r == _Py_ADD_PENDING_FULL);
-        }
-        else {
+        } else {
             if (_PyEval_AddPendingCall(interp, &_pending_callback, callable, 0) < 0) {
                 break;
             }
@@ -1122,14 +1097,12 @@ pending_threadfunc(PyObject *self, PyObject *args, PyObject *kwargs)
     return PyLong_FromUnsignedLong((unsigned long)num_added);
 }
 
-
 static struct {
     int64_t interpid;
 } pending_identify_result;
 
 static int
-_pending_identify_callback(void *arg)
-{
+_pending_identify_callback(void *arg) {
     PyThread_type_lock mutex = (PyThread_type_lock)arg;
     assert(pending_identify_result.interpid == -1);
     PyThreadState *tstate = PyThreadState_Get();
@@ -1139,8 +1112,7 @@ _pending_identify_callback(void *arg)
 }
 
 static PyObject *
-pending_identify(PyObject *self, PyObject *args)
-{
+pending_identify(PyObject *self, PyObject *args) {
     PyObject *interpid;
     if (!PyArg_ParseTuple(args, "O:pending_identify", &interpid)) {
         return NULL;
@@ -1164,13 +1136,12 @@ pending_identify(PyObject *self, PyObject *args)
 
     _Py_add_pending_call_result r;
     do {
-        Py_BEGIN_ALLOW_THREADS
-        r = _PyEval_AddPendingCall(interp,
-                                   &_pending_identify_callback, (void *)mutex,
-                                   0);
-        Py_END_ALLOW_THREADS
-        assert(r == _Py_ADD_PENDING_SUCCESS
-               || r == _Py_ADD_PENDING_FULL);
+        Py_BEGIN_ALLOW_THREADS r = _PyEval_AddPendingCall(
+            interp, &_pending_identify_callback, (void *)mutex, 0
+        );
+        Py_END_ALLOW_THREADS assert(
+            r == _Py_ADD_PENDING_SUCCESS || r == _Py_ADD_PENDING_FULL
+        );
     } while (r == _Py_ADD_PENDING_FULL);
 
     /* Wait for the pending call to complete. */
@@ -1187,8 +1158,7 @@ pending_identify(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-tracemalloc_get_traceback(PyObject *self, PyObject *args)
-{
+tracemalloc_get_traceback(PyObject *self, PyObject *args) {
     unsigned int domain;
     PyObject *ptr_obj;
 
@@ -1203,11 +1173,9 @@ tracemalloc_get_traceback(PyObject *self, PyObject *args)
     return _PyTraceMalloc_GetTraceback(domain, (uintptr_t)ptr);
 }
 
-
 // Test PyThreadState C API
 static PyObject *
-test_tstate_capi(PyObject *self, PyObject *Py_UNUSED(args))
-{
+test_tstate_capi(PyObject *self, PyObject *Py_UNUSED(args)) {
     // PyThreadState_Get()
     PyThreadState *tstate = PyThreadState_Get();
     assert(tstate != NULL);
@@ -1224,31 +1192,26 @@ test_tstate_capi(PyObject *self, PyObject *Py_UNUSED(args))
     Py_RETURN_NONE;
 }
 
-
 /* Test _PyUnicode_TransformDecimalAndSpaceToASCII() */
 static PyObject *
-unicode_transformdecimalandspacetoascii(PyObject *self, PyObject *arg)
-{
+unicode_transformdecimalandspacetoascii(PyObject *self, PyObject *arg) {
     if (arg == Py_None) {
         arg = NULL;
     }
     return _PyUnicode_TransformDecimalAndSpaceToASCII(arg);
 }
 
-
 struct atexit_data {
     int called;
 };
 
 static void
-callback(void *data)
-{
+callback(void *data) {
     ((struct atexit_data *)data)->called += 1;
 }
 
 static PyObject *
-test_atexit(PyObject *self, PyObject *Py_UNUSED(args))
-{
+test_atexit(PyObject *self, PyObject *Py_UNUSED(args)) {
     PyThreadState *oldts = PyThreadState_Swap(NULL);
     PyThreadState *tstate = Py_NewInterpreter();
 
@@ -1267,30 +1230,23 @@ test_atexit(PyObject *self, PyObject *Py_UNUSED(args))
     Py_RETURN_NONE;
 }
 
-
 static PyObject *
-test_pyobject_is_freed(const char *test_name, PyObject *op)
-{
+test_pyobject_is_freed(const char *test_name, PyObject *op) {
     if (!_PyObject_IsFreed(op)) {
-        PyErr_SetString(PyExc_AssertionError,
-                        "object is not seen as freed");
+        PyErr_SetString(PyExc_AssertionError, "object is not seen as freed");
         return NULL;
     }
     Py_RETURN_NONE;
 }
 
 static PyObject *
-check_pyobject_null_is_freed(PyObject *self, PyObject *Py_UNUSED(args))
-{
+check_pyobject_null_is_freed(PyObject *self, PyObject *Py_UNUSED(args)) {
     PyObject *op = NULL;
     return test_pyobject_is_freed("check_pyobject_null_is_freed", op);
 }
 
-
 static PyObject *
-check_pyobject_uninitialized_is_freed(PyObject *self,
-                                      PyObject *Py_UNUSED(args))
-{
+check_pyobject_uninitialized_is_freed(PyObject *self, PyObject *Py_UNUSED(args)) {
     PyObject *op = (PyObject *)PyObject_Malloc(sizeof(PyObject));
     if (op == NULL) {
         return NULL;
@@ -1301,11 +1257,8 @@ check_pyobject_uninitialized_is_freed(PyObject *self,
     return test_pyobject_is_freed("check_pyobject_uninitialized_is_freed", op);
 }
 
-
 static PyObject *
-check_pyobject_forbidden_bytes_is_freed(PyObject *self,
-                                        PyObject *Py_UNUSED(args))
-{
+check_pyobject_forbidden_bytes_is_freed(PyObject *self, PyObject *Py_UNUSED(args)) {
     /* Allocate an incomplete PyObject structure: truncate 'ob_type' field */
     PyObject *op = (PyObject *)PyObject_Malloc(offsetof(PyObject, ob_type));
     if (op == NULL) {
@@ -1318,10 +1271,8 @@ check_pyobject_forbidden_bytes_is_freed(PyObject *self,
     return test_pyobject_is_freed("check_pyobject_forbidden_bytes_is_freed", op);
 }
 
-
 static PyObject *
-check_pyobject_freed_is_freed(PyObject *self, PyObject *Py_UNUSED(args))
-{
+check_pyobject_freed_is_freed(PyObject *self, PyObject *Py_UNUSED(args)) {
     /* ASan or TSan would report an use-after-free error */
 #if defined(_Py_ADDRESS_SANITIZER) || defined(_Py_THREAD_SANITIZER)
     Py_RETURN_NONE;
@@ -1338,10 +1289,8 @@ check_pyobject_freed_is_freed(PyObject *self, PyObject *Py_UNUSED(args))
 #endif
 }
 
-
 static PyObject *
-test_pymem_getallocatorsname(PyObject *self, PyObject *args)
-{
+test_pymem_getallocatorsname(PyObject *self, PyObject *args) {
     const char *name = _PyMem_GetCurrentAllocatorName();
     if (name == NULL) {
         PyErr_SetString(PyExc_RuntimeError, "cannot get allocators name");
@@ -1351,8 +1300,7 @@ test_pymem_getallocatorsname(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-get_object_dict_values(PyObject *self, PyObject *obj)
-{
+get_object_dict_values(PyObject *self, PyObject *obj) {
     PyTypeObject *type = Py_TYPE(obj);
     if (!_PyType_HasFeature(type, Py_TPFLAGS_INLINE_VALUES)) {
         Py_RETURN_NONE;
@@ -1370,12 +1318,11 @@ get_object_dict_values(PyObject *self, PyObject *obj)
         return NULL;
     }
     _Py_DECLARE_STR(anon_null, "<NULL>");
-    for(int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         PyObject *item = values->values[i];
         if (item == NULL) {
             item = &_Py_STR(anon_null);
-        }
-        else {
+        } else {
             Py_INCREF(item);
         }
         PyTuple_SET_ITEM(res, i, item);
@@ -1383,22 +1330,17 @@ get_object_dict_values(PyObject *self, PyObject *obj)
     return res;
 }
 
-
-static PyObject*
-new_hamt(PyObject *self, PyObject *args)
-{
+static PyObject *
+new_hamt(PyObject *self, PyObject *args) {
     return _PyContext_NewHamtForTests();
 }
 
-
-static PyObject*
-dict_getitem_knownhash(PyObject *self, PyObject *args)
-{
+static PyObject *
+dict_getitem_knownhash(PyObject *self, PyObject *args) {
     PyObject *mp, *key, *result;
     Py_ssize_t hash;
 
-    if (!PyArg_ParseTuple(args, "OOn:dict_getitem_knownhash",
-                          &mp, &key, &hash)) {
+    if (!PyArg_ParseTuple(args, "OOn:dict_getitem_knownhash", &mp, &key, &hash)) {
         return NULL;
     }
 
@@ -1411,10 +1353,8 @@ dict_getitem_knownhash(PyObject *self, PyObject *args)
     return Py_XNewRef(result);
 }
 
-
 static int
-_init_interp_config_from_object(PyInterpreterConfig *config, PyObject *obj)
-{
+_init_interp_config_from_object(PyInterpreterConfig *config, PyObject *obj) {
     if (obj == NULL) {
         *config = (PyInterpreterConfig)_PyInterpreterConfig_INIT;
         return 0;
@@ -1434,8 +1374,7 @@ _init_interp_config_from_object(PyInterpreterConfig *config, PyObject *obj)
 }
 
 static PyInterpreterState *
-_new_interpreter(PyInterpreterConfig *config, long whence)
-{
+_new_interpreter(PyInterpreterConfig *config, long whence) {
     if (whence == _PyInterpreterState_WHENCE_XI) {
         return _PyXI_NewInterpreter(config, &whence, NULL, NULL);
     }
@@ -1444,18 +1383,15 @@ _new_interpreter(PyInterpreterConfig *config, long whence)
     if (whence == _PyInterpreterState_WHENCE_UNKNOWN) {
         assert(config == NULL);
         interp = PyInterpreterState_New();
-    }
-    else if (whence == _PyInterpreterState_WHENCE_CAPI
-             || whence == _PyInterpreterState_WHENCE_LEGACY_CAPI)
-    {
+    } else if (whence == _PyInterpreterState_WHENCE_CAPI ||
+               whence == _PyInterpreterState_WHENCE_LEGACY_CAPI) {
         PyThreadState *tstate = NULL;
         PyThreadState *save_tstate = PyThreadState_Swap(NULL);
         if (whence == _PyInterpreterState_WHENCE_LEGACY_CAPI) {
             assert(config == NULL);
             tstate = Py_NewInterpreter();
             PyThreadState_Swap(save_tstate);
-        }
-        else {
+        } else {
             PyStatus status = Py_NewInterpreterFromConfig(&tstate, config);
             PyThreadState_Swap(save_tstate);
             if (PyStatus_Exception(status)) {
@@ -1472,16 +1408,13 @@ _new_interpreter(PyInterpreterConfig *config, long whence)
             PyThreadState_Swap(save_tstate);
             PyThreadState_Delete(tstate);
         }
-    }
-    else {
-        PyErr_Format(PyExc_ValueError,
-                     "unsupported whence %ld", whence);
+    } else {
+        PyErr_Format(PyExc_ValueError, "unsupported whence %ld", whence);
         return NULL;
     }
 
     if (interp == NULL) {
-        PyErr_SetString(PyExc_InterpreterError,
-                        "sub-interpreter creation failed");
+        PyErr_SetString(PyExc_InterpreterError, "sub-interpreter creation failed");
         if (exc != NULL) {
             _PyErr_ChainExceptions1(exc);
         }
@@ -1492,15 +1425,13 @@ _new_interpreter(PyInterpreterConfig *config, long whence)
 // This exists mostly for testing the _interpreters module, as an
 // alternative to _interpreters.create()
 static PyObject *
-create_interpreter(PyObject *self, PyObject *args, PyObject *kwargs)
-{
+create_interpreter(PyObject *self, PyObject *args, PyObject *kwargs) {
     static char *kwlist[] = {"config", "whence", NULL};
     PyObject *configobj = NULL;
     long whence = _PyInterpreterState_WHENCE_XI;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                                     "|O$l:create_interpreter", kwlist,
-                                     &configobj, &whence))
-    {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs, "|O$l:create_interpreter", kwlist, &configobj, &whence
+        )) {
         return NULL;
     }
     if (configobj == Py_None) {
@@ -1510,15 +1441,13 @@ create_interpreter(PyObject *self, PyObject *args, PyObject *kwargs)
     // Resolve the config.
     PyInterpreterConfig *config = NULL;
     PyInterpreterConfig _config;
-    if (whence == _PyInterpreterState_WHENCE_UNKNOWN
-            || whence == _PyInterpreterState_WHENCE_LEGACY_CAPI)
-    {
+    if (whence == _PyInterpreterState_WHENCE_UNKNOWN ||
+        whence == _PyInterpreterState_WHENCE_LEGACY_CAPI) {
         if (configobj != NULL) {
             PyErr_SetString(PyExc_ValueError, "got unexpected config");
             return NULL;
         }
-    }
-    else {
+    } else {
         config = &_config;
         if (_init_interp_config_from_object(config, configobj) < 0) {
             return NULL;
@@ -1544,14 +1473,12 @@ create_interpreter(PyObject *self, PyObject *args, PyObject *kwargs)
 // This exists mostly for testing the _interpreters module, as an
 // alternative to _interpreters.destroy()
 static PyObject *
-destroy_interpreter(PyObject *self, PyObject *args, PyObject *kwargs)
-{
+destroy_interpreter(PyObject *self, PyObject *args, PyObject *kwargs) {
     static char *kwlist[] = {"id", NULL};
     PyObject *idobj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                                     "O:destroy_interpreter", kwlist,
-                                     &idobj))
-    {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs, "O:destroy_interpreter", kwlist, &idobj
+        )) {
         return NULL;
     }
 
@@ -1567,16 +1494,14 @@ destroy_interpreter(PyObject *self, PyObject *args, PyObject *kwargs)
 // This exists mostly for testing the _interpreters module, as an
 // alternative to _interpreters.destroy()
 static PyObject *
-exec_interpreter(PyObject *self, PyObject *args, PyObject *kwargs)
-{
+exec_interpreter(PyObject *self, PyObject *args, PyObject *kwargs) {
     static char *kwlist[] = {"id", "code", "main", NULL};
     PyObject *idobj;
     const char *code;
     int runningmain = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                                     "Os|$p:exec_interpreter", kwlist,
-                                     &idobj, &code, &runningmain))
-    {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs, "Os|$p:exec_interpreter", kwlist, &idobj, &code, &runningmain
+        )) {
         return NULL;
     }
 
@@ -1586,15 +1511,14 @@ exec_interpreter(PyObject *self, PyObject *args, PyObject *kwargs)
     }
 
     PyObject *res = NULL;
-    PyThreadState *tstate =
-        _PyThreadState_NewBound(interp, _PyThreadState_WHENCE_EXEC);
+    PyThreadState *tstate = _PyThreadState_NewBound(interp, _PyThreadState_WHENCE_EXEC);
 
     PyThreadState *save_tstate = PyThreadState_Swap(tstate);
 
     if (runningmain) {
-       if (_PyInterpreterState_SetRunningMain(interp) < 0) {
-           goto finally;
-       }
+        if (_PyInterpreterState_SetRunningMain(interp) < 0) {
+            goto finally;
+        }
     }
 
     /* only initialise 'cflags.cf_flags' to test backwards compatibility */
@@ -1617,7 +1541,6 @@ finally:
     return res;
 }
 
-
 /* To run some code in a sub-interpreter.
 
 Generally you can use test.support.interpreters,
@@ -1625,16 +1548,20 @@ but we keep this helper as a distinct implementation.
 That's especially important for testing test.support.interpreters.
 */
 static PyObject *
-run_in_subinterp_with_config(PyObject *self, PyObject *args, PyObject *kwargs)
-{
+run_in_subinterp_with_config(PyObject *self, PyObject *args, PyObject *kwargs) {
     const char *code;
     PyObject *configobj;
     int xi = 0;
     static char *kwlist[] = {"code", "config", "xi", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs,
-                    "sO|$p:run_in_subinterp_with_config", kwlist,
-                    &code, &configobj, &xi))
-    {
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwargs,
+            "sO|$p:run_in_subinterp_with_config",
+            kwlist,
+            &code,
+            &configobj,
+            &xi
+        )) {
         return NULL;
     }
 
@@ -1652,8 +1579,8 @@ run_in_subinterp_with_config(PyObject *self, PyObject *args, PyObject *kwargs)
         PyThreadState *tstate;
 
         /* Create an interpreter, staying switched to it. */
-        PyInterpreterState *interp = \
-                _PyXI_NewInterpreter(&config, NULL, &tstate, &save_tstate);
+        PyInterpreterState *interp =
+            _PyXI_NewInterpreter(&config, NULL, &tstate, &save_tstate);
         if (interp == NULL) {
             return NULL;
         }
@@ -1663,8 +1590,7 @@ run_in_subinterp_with_config(PyObject *self, PyObject *args, PyObject *kwargs)
 
         /* clean up post-exec. */
         _PyXI_EndInterpreter(interp, tstate, &save_tstate);
-    }
-    else {
+    } else {
         PyThreadState *substate;
         PyThreadState *mainstate = PyThreadState_Swap(NULL);
 
@@ -1677,8 +1603,7 @@ run_in_subinterp_with_config(PyObject *self, PyObject *args, PyObject *kwargs)
             PyThreadState_Swap(mainstate);
             _PyErr_SetFromPyStatus(status);
             PyObject *exc = PyErr_GetRaisedException();
-            PyErr_SetString(PyExc_InterpreterError,
-                            "sub-interpreter creation failed");
+            PyErr_SetString(PyExc_InterpreterError, "sub-interpreter creation failed");
             _PyErr_ChainExceptions1(exc);
             return NULL;
         }
@@ -1694,10 +1619,8 @@ run_in_subinterp_with_config(PyObject *self, PyObject *args, PyObject *kwargs)
     return PyLong_FromLong(r);
 }
 
-
 static PyObject *
-normalize_interp_id(PyObject *self, PyObject *idobj)
-{
+normalize_interp_id(PyObject *self, PyObject *idobj) {
     int64_t interpid = _PyInterpreterState_ObjectToID(idobj);
     if (interpid < 0) {
         return NULL;
@@ -1706,23 +1629,20 @@ normalize_interp_id(PyObject *self, PyObject *idobj)
 }
 
 static PyObject *
-next_interpreter_id(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+next_interpreter_id(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     int64_t interpid = _PyRuntime.interpreters.next_id;
     return PyLong_FromLongLong(interpid);
 }
 
 static PyObject *
-unused_interpreter_id(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+unused_interpreter_id(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     int64_t interpid = INT64_MAX;
     assert(interpid > _PyRuntime.interpreters.next_id);
     return PyLong_FromLongLong(interpid);
 }
 
 static PyObject *
-interpreter_exists(PyObject *self, PyObject *idobj)
-{
+interpreter_exists(PyObject *self, PyObject *idobj) {
     PyInterpreterState *interp = _PyInterpreterState_LookUpIDObject(idobj);
     if (interp == NULL) {
         if (PyErr_ExceptionMatches(PyExc_InterpreterNotFoundError)) {
@@ -1736,8 +1656,7 @@ interpreter_exists(PyObject *self, PyObject *idobj)
 }
 
 static PyObject *
-get_interpreter_refcount(PyObject *self, PyObject *idobj)
-{
+get_interpreter_refcount(PyObject *self, PyObject *idobj) {
     PyInterpreterState *interp = _PyInterpreterState_LookUpIDObject(idobj);
     if (interp == NULL) {
         return NULL;
@@ -1746,8 +1665,7 @@ get_interpreter_refcount(PyObject *self, PyObject *idobj)
 }
 
 static PyObject *
-link_interpreter_refcount(PyObject *self, PyObject *idobj)
-{
+link_interpreter_refcount(PyObject *self, PyObject *idobj) {
     PyInterpreterState *interp = _PyInterpreterState_LookUpIDObject(idobj);
     if (interp == NULL) {
         assert(PyErr_Occurred());
@@ -1758,8 +1676,7 @@ link_interpreter_refcount(PyObject *self, PyObject *idobj)
 }
 
 static PyObject *
-unlink_interpreter_refcount(PyObject *self, PyObject *idobj)
-{
+unlink_interpreter_refcount(PyObject *self, PyObject *idobj) {
     PyInterpreterState *interp = _PyInterpreterState_LookUpIDObject(idobj);
     if (interp == NULL) {
         assert(PyErr_Occurred());
@@ -1770,8 +1687,7 @@ unlink_interpreter_refcount(PyObject *self, PyObject *idobj)
 }
 
 static PyObject *
-interpreter_refcount_linked(PyObject *self, PyObject *idobj)
-{
+interpreter_refcount_linked(PyObject *self, PyObject *idobj) {
     PyInterpreterState *interp = _PyInterpreterState_LookUpIDObject(idobj);
     if (interp == NULL) {
         return NULL;
@@ -1782,12 +1698,10 @@ interpreter_refcount_linked(PyObject *self, PyObject *idobj)
     Py_RETURN_FALSE;
 }
 
-
 static void
-_xid_capsule_destructor(PyObject *capsule)
-{
-    _PyCrossInterpreterData *data = \
-            (_PyCrossInterpreterData *)PyCapsule_GetPointer(capsule, NULL);
+_xid_capsule_destructor(PyObject *capsule) {
+    _PyCrossInterpreterData *data =
+        (_PyCrossInterpreterData *)PyCapsule_GetPointer(capsule, NULL);
     if (data != NULL) {
         assert(_PyCrossInterpreterData_Release(data) == 0);
         _PyCrossInterpreterData_Free(data);
@@ -1795,8 +1709,7 @@ _xid_capsule_destructor(PyObject *capsule)
 }
 
 static PyObject *
-get_crossinterp_data(PyObject *self, PyObject *args)
-{
+get_crossinterp_data(PyObject *self, PyObject *args) {
     PyObject *obj = NULL;
     if (!PyArg_ParseTuple(args, "O:get_crossinterp_data", &obj)) {
         return NULL;
@@ -1819,29 +1732,25 @@ get_crossinterp_data(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-restore_crossinterp_data(PyObject *self, PyObject *args)
-{
+restore_crossinterp_data(PyObject *self, PyObject *args) {
     PyObject *capsule = NULL;
     if (!PyArg_ParseTuple(args, "O:restore_crossinterp_data", &capsule)) {
         return NULL;
     }
 
-    _PyCrossInterpreterData *data = \
-            (_PyCrossInterpreterData *)PyCapsule_GetPointer(capsule, NULL);
+    _PyCrossInterpreterData *data =
+        (_PyCrossInterpreterData *)PyCapsule_GetPointer(capsule, NULL);
     if (data == NULL) {
         return NULL;
     }
     return _PyCrossInterpreterData_NewObject(data);
 }
 
-
 static PyObject *
-raiseTestError(const char* test_name, const char* msg)
-{
+raiseTestError(const char *test_name, const char *msg) {
     PyErr_Format(PyExc_AssertionError, "%s: %s", test_name, msg);
     return NULL;
 }
-
 
 /*[clinic input]
 _testinternalcapi.test_long_numbits
@@ -1855,21 +1764,23 @@ _testinternalcapi_test_long_numbits_impl(PyObject *module)
         long input;
         uint64_t nbits;
         int sign;
-    } testcases[] = {{0, 0, 0},
-                     {1L, 1, 1},
-                     {-1L, 1, -1},
-                     {2L, 2, 1},
-                     {-2L, 2, -1},
-                     {3L, 2, 1},
-                     {-3L, 2, -1},
-                     {4L, 3, 1},
-                     {-4L, 3, -1},
-                     {0x7fffL, 15, 1},          /* one Python int digit */
-             {-0x7fffL, 15, -1},
-             {0xffffL, 16, 1},
-             {-0xffffL, 16, -1},
-             {0xfffffffL, 28, 1},
-             {-0xfffffffL, 28, -1}};
+    } testcases[] = {
+        {0, 0, 0},
+        {1L, 1, 1},
+        {-1L, 1, -1},
+        {2L, 2, 1},
+        {-2L, 2, -1},
+        {3L, 2, 1},
+        {-3L, 2, -1},
+        {4L, 3, 1},
+        {-4L, 3, -1},
+        {0x7fffL, 15, 1}, /* one Python int digit */
+        {-0x7fffL, 15, -1},
+        {0xffffL, 16, 1},
+        {-0xffffL, 16, -1},
+        {0xfffffffL, 28, 1},
+        {-0xfffffffL, 28, -1}
+    };
     size_t i;
 
     for (i = 0; i < Py_ARRAY_LENGTH(testcases); ++i) {
@@ -1885,18 +1796,17 @@ _testinternalcapi_test_long_numbits_impl(PyObject *module)
 
         Py_DECREF(plong);
         if (nbits != testcases[i].nbits)
-            return raiseTestError("test_long_numbits",
-                            "wrong result for _PyLong_NumBits");
+            return raiseTestError(
+                "test_long_numbits", "wrong result for _PyLong_NumBits"
+            );
         if (sign != testcases[i].sign)
-            return raiseTestError("test_long_numbits",
-                            "wrong result for _PyLong_Sign");
+            return raiseTestError("test_long_numbits", "wrong result for _PyLong_Sign");
     }
     Py_RETURN_NONE;
 }
 
 static PyObject *
-compile_perf_trampoline_entry(PyObject *self, PyObject *args)
-{
+compile_perf_trampoline_entry(PyObject *self, PyObject *args) {
     PyObject *co;
     if (!PyArg_ParseTuple(args, "O!", &PyCode_Type, &co)) {
         return NULL;
@@ -1910,8 +1820,7 @@ compile_perf_trampoline_entry(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-perf_trampoline_set_persist_after_fork(PyObject *self, PyObject *args)
-{
+perf_trampoline_set_persist_after_fork(PyObject *self, PyObject *args) {
     int enable;
     if (!PyArg_ParseTuple(args, "i", &enable)) {
         return NULL;
@@ -1924,25 +1833,27 @@ perf_trampoline_set_persist_after_fork(PyObject *self, PyObject *args)
     return PyLong_FromLong(ret);
 }
 
-
 static PyObject *
-get_rare_event_counters(PyObject *self, PyObject *type)
-{
+get_rare_event_counters(PyObject *self, PyObject *type) {
     PyInterpreterState *interp = PyInterpreterState_Get();
 
     return Py_BuildValue(
         "{sksksksksk}",
-        "set_class", (unsigned long)interp->rare_events.set_class,
-        "set_bases", (unsigned long)interp->rare_events.set_bases,
-        "set_eval_frame_func", (unsigned long)interp->rare_events.set_eval_frame_func,
-        "builtin_dict", (unsigned long)interp->rare_events.builtin_dict,
-        "func_modification", (unsigned long)interp->rare_events.func_modification
+        "set_class",
+        (unsigned long)interp->rare_events.set_class,
+        "set_bases",
+        (unsigned long)interp->rare_events.set_bases,
+        "set_eval_frame_func",
+        (unsigned long)interp->rare_events.set_eval_frame_func,
+        "builtin_dict",
+        (unsigned long)interp->rare_events.builtin_dict,
+        "func_modification",
+        (unsigned long)interp->rare_events.func_modification
     );
 }
 
 static PyObject *
-reset_rare_event_counters(PyObject *self, PyObject *Py_UNUSED(type))
-{
+reset_rare_event_counters(PyObject *self, PyObject *Py_UNUSED(type)) {
     PyInterpreterState *interp = PyInterpreterState_Get();
 
     interp->rare_events.set_class = 0;
@@ -1954,11 +1865,9 @@ reset_rare_event_counters(PyObject *self, PyObject *Py_UNUSED(type))
     return Py_None;
 }
 
-
 #ifdef Py_GIL_DISABLED
 static PyObject *
-get_py_thread_id(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+get_py_thread_id(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     uintptr_t tid = _Py_ThreadId();
     Py_BUILD_ASSERT(sizeof(unsigned long long) >= sizeof(tid));
     return PyLong_FromUnsignedLongLong(tid);
@@ -1966,8 +1875,7 @@ get_py_thread_id(PyObject *self, PyObject *Py_UNUSED(ignored))
 #endif
 
 static PyObject *
-has_inline_values(PyObject *self, PyObject *obj)
-{
+has_inline_values(PyObject *self, PyObject *obj) {
     if ((Py_TYPE(obj)->tp_flags & Py_TPFLAGS_INLINE_VALUES) &&
         _PyObject_InlineValues(obj)->valid) {
         Py_RETURN_TRUE;
@@ -1975,15 +1883,15 @@ has_inline_values(PyObject *self, PyObject *obj)
     Py_RETURN_FALSE;
 }
 
-
 // Circumvents standard version assignment machinery - use with caution and only on
 // short-lived heap types
 static PyObject *
-type_assign_specific_version_unsafe(PyObject *self, PyObject *args)
-{
+type_assign_specific_version_unsafe(PyObject *self, PyObject *args) {
     PyTypeObject *type;
     unsigned int version;
-    if (!PyArg_ParseTuple(args, "Oi:type_assign_specific_version_unsafe", &type, &version)) {
+    if (!PyArg_ParseTuple(
+            args, "Oi:type_assign_specific_version_unsafe", &type, &version
+        )) {
         return NULL;
     }
     assert(!PyType_HasFeature(type, Py_TPFLAGS_IMMUTABLETYPE));
@@ -2008,20 +1916,15 @@ gh_119213_getargs_impl(PyObject *module, PyObject *spam)
     return Py_NewRef(spam);
 }
 
-
 static PyObject *
-get_static_builtin_types(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+get_static_builtin_types(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     return _PyStaticType_GetBuiltins();
 }
 
-
 static PyObject *
-identify_type_slot_wrappers(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+identify_type_slot_wrappers(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     return _PyType_GetSlotWrapperNames();
 }
-
 
 static PyMethodDef module_functions[] = {
     {"get_configs", get_configs, METH_NOARGS},
@@ -2043,11 +1946,12 @@ static PyMethodDef module_functions[] = {
     {"set_eval_frame_default", set_eval_frame_default, METH_NOARGS, NULL},
     {"set_eval_frame_record", set_eval_frame_record, METH_O, NULL},
     _TESTINTERNALCAPI_COMPILER_CLEANDOC_METHODDEF
-    _TESTINTERNALCAPI_NEW_INSTRUCTION_SEQUENCE_METHODDEF
-    _TESTINTERNALCAPI_COMPILER_CODEGEN_METHODDEF
-    _TESTINTERNALCAPI_OPTIMIZE_CFG_METHODDEF
-    _TESTINTERNALCAPI_ASSEMBLE_CODE_OBJECT_METHODDEF
-    {"get_interp_settings", get_interp_settings, METH_VARARGS, NULL},
+        _TESTINTERNALCAPI_NEW_INSTRUCTION_SEQUENCE_METHODDEF
+            _TESTINTERNALCAPI_COMPILER_CODEGEN_METHODDEF
+                _TESTINTERNALCAPI_OPTIMIZE_CFG_METHODDEF
+                    _TESTINTERNALCAPI_ASSEMBLE_CODE_OBJECT_METHODDEF{
+                        "get_interp_settings", get_interp_settings, METH_VARARGS, NULL
+                    },
     {"clear_extension", clear_extension, METH_VARARGS, NULL},
     {"write_perf_map_entry", write_perf_map_entry, METH_VARARGS},
     {"perf_map_state_teardown", perf_map_state_teardown, METH_NOARGS},
@@ -2056,35 +1960,43 @@ static PyMethodDef module_functions[] = {
     {"iframe_getlasti", iframe_getlasti, METH_O, NULL},
     {"get_co_framesize", get_co_framesize, METH_O, NULL},
 #ifdef _Py_TIER2
-    {"get_optimizer", get_optimizer,  METH_NOARGS, NULL},
-    {"set_optimizer", set_optimizer,  METH_O, NULL},
+    {"get_optimizer", get_optimizer, METH_NOARGS, NULL},
+    {"set_optimizer", set_optimizer, METH_O, NULL},
     {"new_counter_optimizer", new_counter_optimizer, METH_NOARGS, NULL},
     {"new_uop_optimizer", new_uop_optimizer, METH_NOARGS, NULL},
     {"add_executor_dependency", add_executor_dependency, METH_VARARGS, NULL},
     {"invalidate_executors", invalidate_executors, METH_O, NULL},
 #endif
-    {"pending_threadfunc", _PyCFunction_CAST(pending_threadfunc),
+    {"pending_threadfunc",
+     _PyCFunction_CAST(pending_threadfunc),
      METH_VARARGS | METH_KEYWORDS},
     {"pending_identify", pending_identify, METH_VARARGS, NULL},
     {"_PyTraceMalloc_GetTraceback", tracemalloc_get_traceback, METH_VARARGS},
     {"test_tstate_capi", test_tstate_capi, METH_NOARGS, NULL},
-    {"_PyUnicode_TransformDecimalAndSpaceToASCII", unicode_transformdecimalandspacetoascii, METH_O},
+    {"_PyUnicode_TransformDecimalAndSpaceToASCII",
+     unicode_transformdecimalandspacetoascii,
+     METH_O},
     {"test_atexit", test_atexit, METH_NOARGS},
     {"check_pyobject_forbidden_bytes_is_freed",
-                            check_pyobject_forbidden_bytes_is_freed, METH_NOARGS},
+     check_pyobject_forbidden_bytes_is_freed,
+     METH_NOARGS},
     {"check_pyobject_freed_is_freed", check_pyobject_freed_is_freed, METH_NOARGS},
-    {"check_pyobject_null_is_freed",  check_pyobject_null_is_freed,  METH_NOARGS},
+    {"check_pyobject_null_is_freed", check_pyobject_null_is_freed, METH_NOARGS},
     {"check_pyobject_uninitialized_is_freed",
-                              check_pyobject_uninitialized_is_freed, METH_NOARGS},
+     check_pyobject_uninitialized_is_freed,
+     METH_NOARGS},
     {"pymem_getallocatorsname", test_pymem_getallocatorsname, METH_NOARGS},
     {"get_object_dict_values", get_object_dict_values, METH_O},
     {"hamt", new_hamt, METH_NOARGS},
-    {"dict_getitem_knownhash",  dict_getitem_knownhash,          METH_VARARGS},
-    {"create_interpreter", _PyCFunction_CAST(create_interpreter),
+    {"dict_getitem_knownhash", dict_getitem_knownhash, METH_VARARGS},
+    {"create_interpreter",
+     _PyCFunction_CAST(create_interpreter),
      METH_VARARGS | METH_KEYWORDS},
-    {"destroy_interpreter", _PyCFunction_CAST(destroy_interpreter),
+    {"destroy_interpreter",
+     _PyCFunction_CAST(destroy_interpreter),
      METH_VARARGS | METH_KEYWORDS},
-    {"exec_interpreter", _PyCFunction_CAST(exec_interpreter),
+    {"exec_interpreter",
+     _PyCFunction_CAST(exec_interpreter),
      METH_VARARGS | METH_KEYWORDS},
     {"run_in_subinterp_with_config",
      _PyCFunction_CAST(run_in_subinterp_with_config),
@@ -2094,18 +2006,23 @@ static PyMethodDef module_functions[] = {
     {"unused_interpreter_id", unused_interpreter_id, METH_NOARGS},
     {"interpreter_exists", interpreter_exists, METH_O},
     {"get_interpreter_refcount", get_interpreter_refcount, METH_O},
-    {"link_interpreter_refcount", link_interpreter_refcount,     METH_O},
+    {"link_interpreter_refcount", link_interpreter_refcount, METH_O},
     {"unlink_interpreter_refcount", unlink_interpreter_refcount, METH_O},
     {"interpreter_refcount_linked", interpreter_refcount_linked, METH_O},
     {"compile_perf_trampoline_entry", compile_perf_trampoline_entry, METH_VARARGS},
-    {"perf_trampoline_set_persist_after_fork", perf_trampoline_set_persist_after_fork, METH_VARARGS},
-    {"get_crossinterp_data",    get_crossinterp_data,            METH_VARARGS},
-    {"restore_crossinterp_data", restore_crossinterp_data,       METH_VARARGS},
-    _TESTINTERNALCAPI_TEST_LONG_NUMBITS_METHODDEF
-    {"get_rare_event_counters", get_rare_event_counters, METH_NOARGS},
+    {"perf_trampoline_set_persist_after_fork",
+     perf_trampoline_set_persist_after_fork,
+     METH_VARARGS},
+    {"get_crossinterp_data", get_crossinterp_data, METH_VARARGS},
+    {"restore_crossinterp_data", restore_crossinterp_data, METH_VARARGS},
+    _TESTINTERNALCAPI_TEST_LONG_NUMBITS_METHODDEF{
+        "get_rare_event_counters", get_rare_event_counters, METH_NOARGS
+    },
     {"reset_rare_event_counters", reset_rare_event_counters, METH_NOARGS},
     {"has_inline_values", has_inline_values, METH_O},
-    {"type_assign_specific_version_unsafe", type_assign_specific_version_unsafe, METH_VARARGS,
+    {"type_assign_specific_version_unsafe",
+     type_assign_specific_version_unsafe,
+     METH_VARARGS,
      PyDoc_STR("forcefully assign type->tp_version_tag")},
 
 #ifdef Py_GIL_DISABLED
@@ -2114,18 +2031,17 @@ static PyMethodDef module_functions[] = {
 #ifdef _Py_TIER2
     {"uop_symbols_test", _Py_uop_symbols_test, METH_NOARGS},
 #endif
-    GH_119213_GETARGS_METHODDEF
-    {"get_static_builtin_types", get_static_builtin_types, METH_NOARGS},
+    GH_119213_GETARGS_METHODDEF{
+        "get_static_builtin_types", get_static_builtin_types, METH_NOARGS
+    },
     {"identify_type_slot_wrappers", identify_type_slot_wrappers, METH_NOARGS},
     {NULL, NULL} /* sentinel */
 };
 
-
 /* initialization function */
 
 static int
-module_exec(PyObject *module)
-{
+module_exec(PyObject *module) {
     if (_PyTestInternalCapi_Init_Lock(module) < 0) {
         return 1;
     }
@@ -2144,28 +2060,31 @@ module_exec(PyObject *module)
     sizeof_gc_head = sizeof(PyGC_Head);
 #endif
 
-    if (PyModule_Add(module, "SIZEOF_PYGC_HEAD",
-                        PyLong_FromSsize_t(sizeof_gc_head)) < 0) {
+    if (PyModule_Add(module, "SIZEOF_PYGC_HEAD", PyLong_FromSsize_t(sizeof_gc_head)) <
+        0) {
         return 1;
     }
 
-    if (PyModule_Add(module, "SIZEOF_MANAGED_PRE_HEADER",
-                        PyLong_FromSsize_t(2 * sizeof(PyObject*))) < 0) {
+    if (PyModule_Add(
+            module,
+            "SIZEOF_MANAGED_PRE_HEADER",
+            PyLong_FromSsize_t(2 * sizeof(PyObject *))
+        ) < 0) {
         return 1;
     }
 
-    if (PyModule_Add(module, "SIZEOF_PYOBJECT",
-                        PyLong_FromSsize_t(sizeof(PyObject))) < 0) {
+    if (PyModule_Add(module, "SIZEOF_PYOBJECT", PyLong_FromSsize_t(sizeof(PyObject))) <
+        0) {
         return 1;
     }
 
-    if (PyModule_Add(module, "SIZEOF_TIME_T",
-                        PyLong_FromSsize_t(sizeof(time_t))) < 0) {
+    if (PyModule_Add(module, "SIZEOF_TIME_T", PyLong_FromSsize_t(sizeof(time_t))) < 0) {
         return 1;
     }
 
-    if (PyModule_Add(module, "TIER2_THRESHOLD",
-                        PyLong_FromLong(JUMP_BACKWARD_INITIAL_VALUE)) < 0) {
+    if (PyModule_Add(
+            module, "TIER2_THRESHOLD", PyLong_FromLong(JUMP_BACKWARD_INITIAL_VALUE)
+        ) < 0) {
         return 1;
     }
 
@@ -2180,8 +2099,7 @@ static struct PyModuleDef_Slot module_slots[] = {
 };
 
 static int
-module_traverse(PyObject *module, visitproc visit, void *arg)
-{
+module_traverse(PyObject *module, visitproc visit, void *arg) {
     module_state *state = get_module_state(module);
     assert(state != NULL);
     traverse_module_state(state, visit, arg);
@@ -2189,8 +2107,7 @@ module_traverse(PyObject *module, visitproc visit, void *arg)
 }
 
 static int
-module_clear(PyObject *module)
-{
+module_clear(PyObject *module) {
     module_state *state = get_module_state(module);
     assert(state != NULL);
     (void)clear_module_state(state);
@@ -2198,8 +2115,7 @@ module_clear(PyObject *module)
 }
 
 static void
-module_free(void *module)
-{
+module_free(void *module) {
     module_state *state = get_module_state(module);
     assert(state != NULL);
     (void)clear_module_state(state);
@@ -2217,9 +2133,7 @@ static struct PyModuleDef _testcapimodule = {
     .m_free = (freefunc)module_free,
 };
 
-
 PyMODINIT_FUNC
-PyInit__testinternalcapi(void)
-{
+PyInit__testinternalcapi(void) {
     return PyModuleDef_Init(&_testcapimodule);
 }

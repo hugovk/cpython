@@ -2,28 +2,36 @@
 preserve
 [clinic start generated code]*/
 
-#include "pycore_abstract.h"      // _PyNumber_Index()
-#include "pycore_modsupport.h"    // _PyArg_CheckPositional()
+#include "pycore_abstract.h"    // _PyNumber_Index()
+#include "pycore_modsupport.h"  // _PyArg_CheckPositional()
 
-PyDoc_STRVAR(_testinternalcapi_benchmark_locks__doc__,
-"benchmark_locks($module, num_threads, use_pymutex=True,\n"
-"                critical_section_length=1, time_ms=1000, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    _testinternalcapi_benchmark_locks__doc__,
+    "benchmark_locks($module, num_threads, use_pymutex=True,\n"
+    "                critical_section_length=1, time_ms=1000, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define _TESTINTERNALCAPI_BENCHMARK_LOCKS_METHODDEF    \
-    {"benchmark_locks", _PyCFunction_CAST(_testinternalcapi_benchmark_locks), METH_FASTCALL, _testinternalcapi_benchmark_locks__doc__},
-
-static PyObject *
-_testinternalcapi_benchmark_locks_impl(PyObject *module,
-                                       Py_ssize_t num_threads,
-                                       int use_pymutex,
-                                       int critical_section_length,
-                                       int time_ms);
+#define _TESTINTERNALCAPI_BENCHMARK_LOCKS_METHODDEF        \
+    {"benchmark_locks",                                    \
+     _PyCFunction_CAST(_testinternalcapi_benchmark_locks), \
+     METH_FASTCALL,                                        \
+     _testinternalcapi_benchmark_locks__doc__},
 
 static PyObject *
-_testinternalcapi_benchmark_locks(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
-{
+_testinternalcapi_benchmark_locks_impl(
+    PyObject *module,
+    Py_ssize_t num_threads,
+    int use_pymutex,
+    int critical_section_length,
+    int time_ms
+);
+
+static PyObject *
+_testinternalcapi_benchmark_locks(
+    PyObject *module, PyObject *const *args, Py_ssize_t nargs
+) {
     PyObject *return_value = NULL;
     Py_ssize_t num_threads;
     int use_pymutex = 1;
@@ -67,7 +75,9 @@ _testinternalcapi_benchmark_locks(PyObject *module, PyObject *const *args, Py_ss
         goto exit;
     }
 skip_optional:
-    return_value = _testinternalcapi_benchmark_locks_impl(module, num_threads, use_pymutex, critical_section_length, time_ms);
+    return_value = _testinternalcapi_benchmark_locks_impl(
+        module, num_threads, use_pymutex, critical_section_length, time_ms
+    );
 
 exit:
     return return_value;

@@ -5,17 +5,19 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
-
 
 /* runtime lifecycle */
 
-extern PyStatus _PyExc_InitState(PyInterpreterState *);
-extern PyStatus _PyExc_InitGlobalObjects(PyInterpreterState *);
-extern int _PyExc_InitTypes(PyInterpreterState *);
-extern void _PyExc_Fini(PyInterpreterState *);
-
+extern PyStatus
+_PyExc_InitState(PyInterpreterState *);
+extern PyStatus
+_PyExc_InitGlobalObjects(PyInterpreterState *);
+extern int
+_PyExc_InitTypes(PyInterpreterState *);
+extern void
+_PyExc_Fini(PyInterpreterState *);
 
 /* other API */
 
@@ -28,8 +30,8 @@ struct _Py_exc_state {
     PyObject *PyExc_ExceptionGroup;
 };
 
-extern void _PyExc_ClearExceptionGroupType(PyInterpreterState *);
-
+extern void
+_PyExc_ClearExceptionGroupType(PyInterpreterState *);
 
 #ifdef __cplusplus
 }

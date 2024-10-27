@@ -5,16 +5,15 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #include "pycore_moduleobject.h"  // PyModuleObject
 #include "pycore_lock.h"          // PyMutex
 
-
 /* state */
 
-#define _Py_TYPE_BASE_VERSION_TAG (2<<16)
+#define _Py_TYPE_BASE_VERSION_TAG (2 << 16)
 #define _Py_MAX_GLOBAL_TYPE_VERSION_TAG (_Py_TYPE_BASE_VERSION_TAG - 1)
 
 /* For now we hard-code this to a value for which we are confident
@@ -38,16 +37,15 @@ struct _types_runtime_state {
     } managed_static;
 };
 
-
 // Type attribute lookup cache: speed up attribute and method lookups,
 // see _PyType_Lookup().
 struct type_cache_entry {
     unsigned int version;  // initialized from type->tp_version_tag
 #ifdef Py_GIL_DISABLED
-   _PySeqLock sequence;
+    _PySeqLock sequence;
 #endif
-    PyObject *name;        // reference to exactly a str or None
-    PyObject *value;       // borrowed reference or NULL
+    PyObject *name;   // reference to exactly a str or None
+    PyObject *value;  // borrowed reference or NULL
 };
 
 #define MCACHE_SIZE_EXP 12
@@ -72,7 +70,7 @@ typedef struct {
     PyObject *tp_weaklist;
 } managed_static_type_state;
 
-#define TYPE_VERSION_CACHE_SIZE (1<<12)  /* Must be a power of 2 */
+#define TYPE_VERSION_CACHE_SIZE (1 << 12) /* Must be a power of 2 */
 
 struct types_state {
     /* Used to set PyTypeObject.tp_version_tag.
@@ -137,14 +135,18 @@ struct types_state {
     PyTypeObject *type_version_cache[TYPE_VERSION_CACHE_SIZE];
 };
 
-
 /* runtime lifecycle */
 
-extern PyStatus _PyTypes_InitTypes(PyInterpreterState *);
-extern void _PyTypes_FiniTypes(PyInterpreterState *);
-extern void _PyTypes_FiniExtTypes(PyInterpreterState *interp);
-extern void _PyTypes_Fini(PyInterpreterState *);
-extern void _PyTypes_AfterFork(void);
+extern PyStatus
+_PyTypes_InitTypes(PyInterpreterState *);
+extern void
+_PyTypes_FiniTypes(PyInterpreterState *);
+extern void
+_PyTypes_FiniExtTypes(PyInterpreterState *interp);
+extern void
+_PyTypes_Fini(PyInterpreterState *);
+extern void
+_PyTypes_AfterFork(void);
 
 /* other API */
 
@@ -156,41 +158,32 @@ extern void _PyTypes_AfterFork(void);
 
 typedef struct wrapperbase pytype_slotdef;
 
-
 static inline PyObject **
-_PyStaticType_GET_WEAKREFS_LISTPTR(managed_static_type_state *state)
-{
+_PyStaticType_GET_WEAKREFS_LISTPTR(managed_static_type_state *state) {
     assert(state != NULL);
     return &state->tp_weaklist;
 }
 
-extern int _PyStaticType_InitBuiltin(
-    PyInterpreterState *interp,
-    PyTypeObject *type);
-extern void _PyStaticType_FiniBuiltin(
-    PyInterpreterState *interp,
-    PyTypeObject *type);
-extern void _PyStaticType_ClearWeakRefs(
-    PyInterpreterState *interp,
-    PyTypeObject *type);
-extern managed_static_type_state * _PyStaticType_GetState(
-    PyInterpreterState *interp,
-    PyTypeObject *type);
+extern int
+_PyStaticType_InitBuiltin(PyInterpreterState *interp, PyTypeObject *type);
+extern void
+_PyStaticType_FiniBuiltin(PyInterpreterState *interp, PyTypeObject *type);
+extern void
+_PyStaticType_ClearWeakRefs(PyInterpreterState *interp, PyTypeObject *type);
+extern managed_static_type_state *
+_PyStaticType_GetState(PyInterpreterState *interp, PyTypeObject *type);
 
 // Export for '_datetime' shared extension.
-PyAPI_FUNC(int) _PyStaticType_InitForExtension(
-    PyInterpreterState *interp,
-     PyTypeObject *self);
+PyAPI_FUNC(int)
+    _PyStaticType_InitForExtension(PyInterpreterState *interp, PyTypeObject *self);
 
 // Export for _testinternalcapi extension.
 PyAPI_FUNC(PyObject *) _PyStaticType_GetBuiltins(void);
 
-
 /* Like PyType_GetModuleState, but skips verification
  * that type is a heap type with an associated module */
 static inline void *
-_PyType_GetModuleState(PyTypeObject *type)
-{
+_PyType_GetModuleState(PyTypeObject *type) {
     assert(PyType_Check(type));
     assert(type->tp_flags & Py_TPFLAGS_HEAPTYPE);
     PyHeapTypeObject *et = (PyHeapTypeObject *)type;
@@ -200,15 +193,18 @@ _PyType_GetModuleState(PyTypeObject *type)
     return mod->md_state;
 }
 
-
 // Export for 'math' shared extension, used via _PyType_IsReady() static inline
 // function
 PyAPI_FUNC(PyObject *) _PyType_GetDict(PyTypeObject *);
 
-extern PyObject * _PyType_GetBases(PyTypeObject *type);
-extern PyObject * _PyType_GetMRO(PyTypeObject *type);
-extern PyObject* _PyType_GetSubclasses(PyTypeObject *);
-extern int _PyType_HasSubclasses(PyTypeObject *);
+extern PyObject *
+_PyType_GetBases(PyTypeObject *type);
+extern PyObject *
+_PyType_GetMRO(PyTypeObject *type);
+extern PyObject *
+_PyType_GetSubclasses(PyTypeObject *);
+extern int
+_PyType_HasSubclasses(PyTypeObject *);
 
 // Export for _testinternalcapi extension.
 PyAPI_FUNC(PyObject *) _PyType_GetSlotWrapperNames(void);
@@ -216,42 +212,51 @@ PyAPI_FUNC(PyObject *) _PyType_GetSlotWrapperNames(void);
 // PyType_Ready() must be called if _PyType_IsReady() is false.
 // See also the Py_TPFLAGS_READY flag.
 static inline int
-_PyType_IsReady(PyTypeObject *type)
-{
+_PyType_IsReady(PyTypeObject *type) {
     return _PyType_GetDict(type) != NULL;
 }
 
-extern PyObject* _Py_type_getattro_impl(PyTypeObject *type, PyObject *name,
-                                        int *suppress_missing_attribute);
-extern PyObject* _Py_type_getattro(PyObject *type, PyObject *name);
+extern PyObject *
+_Py_type_getattro_impl(
+    PyTypeObject *type, PyObject *name, int *suppress_missing_attribute
+);
+extern PyObject *
+_Py_type_getattro(PyObject *type, PyObject *name);
 
-extern PyObject* _Py_BaseObject_RichCompare(PyObject* self, PyObject* other, int op);
+extern PyObject *
+_Py_BaseObject_RichCompare(PyObject *self, PyObject *other, int op);
 
-extern PyObject* _Py_slot_tp_getattro(PyObject *self, PyObject *name);
-extern PyObject* _Py_slot_tp_getattr_hook(PyObject *self, PyObject *name);
+extern PyObject *
+_Py_slot_tp_getattro(PyObject *self, PyObject *name);
+extern PyObject *
+_Py_slot_tp_getattr_hook(PyObject *self, PyObject *name);
 
 extern PyTypeObject _PyBufferWrapper_Type;
 
-PyAPI_FUNC(PyObject*) _PySuper_Lookup(PyTypeObject *su_type, PyObject *su_obj,
-                                 PyObject *name, int *meth_found);
+PyAPI_FUNC(PyObject *) _PySuper_Lookup(
+    PyTypeObject *su_type, PyObject *su_obj, PyObject *name, int *meth_found
+);
 
-extern PyObject* _PyType_GetFullyQualifiedName(PyTypeObject *type, char sep);
+extern PyObject *
+_PyType_GetFullyQualifiedName(PyTypeObject *type, char sep);
 
 // Perform the following operation, in a thread-safe way when required by the
 // build mode.
 //
 // self->tp_flags = (self->tp_flags & ~mask) | flags;
-extern void _PyType_SetFlags(PyTypeObject *self, unsigned long mask,
-                             unsigned long flags);
+extern void
+_PyType_SetFlags(PyTypeObject *self, unsigned long mask, unsigned long flags);
 
 // Like _PyType_SetFlags(), but apply the operation to self and any of its
 // subclasses without Py_TPFLAGS_IMMUTABLETYPE set.
-extern void _PyType_SetFlagsRecursive(PyTypeObject *self, unsigned long mask,
-                                      unsigned long flags);
+extern void
+_PyType_SetFlagsRecursive(PyTypeObject *self, unsigned long mask, unsigned long flags);
 
-extern unsigned int _PyType_GetVersionForCurrentState(PyTypeObject *tp);
+extern unsigned int
+_PyType_GetVersionForCurrentState(PyTypeObject *tp);
 PyAPI_FUNC(void) _PyType_SetVersion(PyTypeObject *tp, unsigned int version);
-PyTypeObject *_PyType_LookupByVersion(unsigned int version);
+PyTypeObject *
+_PyType_LookupByVersion(unsigned int version);
 
 #ifdef __cplusplus
 }

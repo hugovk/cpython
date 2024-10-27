@@ -1,10 +1,8 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-object_getoptionalattr(PyObject *self, PyObject *args)
-{
+object_getoptionalattr(PyObject *self, PyObject *args) {
     PyObject *obj, *attr_name, *value = UNINITIALIZED_PTR;
     if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
         return NULL;
@@ -28,8 +26,7 @@ object_getoptionalattr(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_getoptionalattrstring(PyObject *self, PyObject *args)
-{
+object_getoptionalattrstring(PyObject *self, PyObject *args) {
     PyObject *obj, *value = UNINITIALIZED_PTR;
     const char *attr_name;
     Py_ssize_t size;
@@ -54,8 +51,7 @@ object_getoptionalattrstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_hasattrwitherror(PyObject *self, PyObject *args)
-{
+object_hasattrwitherror(PyObject *self, PyObject *args) {
     PyObject *obj, *attr_name;
     if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
         return NULL;
@@ -66,8 +62,7 @@ object_hasattrwitherror(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_hasattrstringwitherror(PyObject *self, PyObject *args)
-{
+object_hasattrstringwitherror(PyObject *self, PyObject *args) {
     PyObject *obj;
     const char *attr_name;
     Py_ssize_t size;
@@ -79,8 +74,7 @@ object_hasattrstringwitherror(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_getoptionalitemstring(PyObject *self, PyObject *args)
-{
+mapping_getoptionalitemstring(PyObject *self, PyObject *args) {
     PyObject *obj, *value = UNINITIALIZED_PTR;
     const char *attr_name;
     Py_ssize_t size;
@@ -105,8 +99,7 @@ mapping_getoptionalitemstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_getoptionalitem(PyObject *self, PyObject *args)
-{
+mapping_getoptionalitem(PyObject *self, PyObject *args) {
     PyObject *obj, *attr_name, *value = UNINITIALIZED_PTR;
     if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
         return NULL;
@@ -130,8 +123,7 @@ mapping_getoptionalitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-pyiter_next(PyObject *self, PyObject *iter)
-{
+pyiter_next(PyObject *self, PyObject *iter) {
     PyObject *item = PyIter_Next(iter);
     if (item == NULL && !PyErr_Occurred()) {
         Py_RETURN_NONE;
@@ -140,8 +132,7 @@ pyiter_next(PyObject *self, PyObject *iter)
 }
 
 static PyObject *
-pyiter_nextitem(PyObject *self, PyObject *iter)
-{
+pyiter_nextitem(PyObject *self, PyObject *iter) {
     PyObject *item;
     int rc = PyIter_NextItem(iter, &item);
     if (rc < 0) {
@@ -155,7 +146,6 @@ pyiter_nextitem(PyObject *self, PyObject *iter)
     }
     return item;
 }
-
 
 static PyMethodDef test_methods[] = {
     {"object_getoptionalattr", object_getoptionalattr, METH_VARARGS},
@@ -171,8 +161,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Abstract(PyObject *m)
-{
+_PyTestCapi_Init_Abstract(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

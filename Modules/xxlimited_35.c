@@ -6,9 +6,9 @@
  */
 
 // Test the limited C API version 3.5
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #ifndef Py_GIL_DISABLED
-#  define Py_LIMITED_API 0x03050000
+#define Py_LIMITED_API 0x03050000
 #endif
 
 #include "Python.h"
@@ -18,19 +18,17 @@
 static PyObject *ErrorObject;
 
 typedef struct {
-    PyObject_HEAD
-    PyObject            *x_attr;        /* Attributes dictionary */
+    PyObject_HEAD PyObject *x_attr; /* Attributes dictionary */
 } XxoObject;
 
 static PyObject *Xxo_Type;
 
-#define XxoObject_Check(v)      Py_IS_TYPE(v, Xxo_Type)
+#define XxoObject_Check(v) Py_IS_TYPE(v, Xxo_Type)
 
 static XxoObject *
-newXxoObject(PyObject *arg)
-{
+newXxoObject(PyObject *arg) {
     XxoObject *self;
-    self = PyObject_GC_New(XxoObject, (PyTypeObject*)Xxo_Type);
+    self = PyObject_GC_New(XxoObject, (PyTypeObject *)Xxo_Type);
     if (self == NULL)
         return NULL;
     self->x_attr = NULL;
@@ -40,29 +38,25 @@ newXxoObject(PyObject *arg)
 /* Xxo methods */
 
 static int
-Xxo_traverse(XxoObject *self, visitproc visit, void *arg)
-{
+Xxo_traverse(XxoObject *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->x_attr);
     return 0;
 }
 
 static int
-Xxo_clear(XxoObject *self)
-{
+Xxo_clear(XxoObject *self) {
     Py_CLEAR(self->x_attr);
     return 0;
 }
 
 static void
-Xxo_finalize(XxoObject *self)
-{
+Xxo_finalize(XxoObject *self) {
     Py_CLEAR(self->x_attr);
 }
 
 static PyObject *
-Xxo_demo(XxoObject *self, PyObject *args)
-{
+Xxo_demo(XxoObject *self, PyObject *args) {
     PyObject *o = NULL;
     if (!PyArg_ParseTuple(args, "|O:demo", &o))
         return NULL;
@@ -74,20 +68,17 @@ Xxo_demo(XxoObject *self, PyObject *args)
 }
 
 static PyMethodDef Xxo_methods[] = {
-    {"demo",            (PyCFunction)Xxo_demo,  METH_VARARGS,
-        PyDoc_STR("demo() -> None")},
-    {NULL,              NULL}           /* sentinel */
+    {"demo", (PyCFunction)Xxo_demo, METH_VARARGS, PyDoc_STR("demo() -> None")},
+    {NULL, NULL} /* sentinel */
 };
 
 static PyObject *
-Xxo_getattro(XxoObject *self, PyObject *name)
-{
+Xxo_getattro(XxoObject *self, PyObject *name) {
     if (self->x_attr != NULL) {
         PyObject *v = PyDict_GetItemWithError(self->x_attr, name);
         if (v != NULL) {
             return Py_NewRef(v);
-        }
-        else if (PyErr_Occurred()) {
+        } else if (PyErr_Occurred()) {
             return NULL;
         }
     }
@@ -95,8 +86,7 @@ Xxo_getattro(XxoObject *self, PyObject *name)
 }
 
 static int
-Xxo_setattr(XxoObject *self, const char *name, PyObject *v)
-{
+Xxo_setattr(XxoObject *self, const char *name, PyObject *v) {
     if (self->x_attr == NULL) {
         self->x_attr = PyDict_New();
         if (self->x_attr == NULL)
@@ -105,11 +95,9 @@ Xxo_setattr(XxoObject *self, const char *name, PyObject *v)
     if (v == NULL) {
         int rv = PyDict_DelItemString(self->x_attr, name);
         if (rv < 0 && PyErr_ExceptionMatches(PyExc_KeyError))
-            PyErr_SetString(PyExc_AttributeError,
-                "delete non-existing Xxo attribute");
+            PyErr_SetString(PyExc_AttributeError, "delete non-existing Xxo attribute");
         return rv;
-    }
-    else
+    } else
         return PyDict_SetItemString(self->x_attr, name, v);
 }
 
@@ -136,28 +124,27 @@ static PyType_Spec Xxo_Type_spec = {
 
 /* Function of two integers returning integer */
 
-PyDoc_STRVAR(xx_foo_doc,
-"foo(i,j)\n\
+PyDoc_STRVAR(
+    xx_foo_doc,
+    "foo(i,j)\n\
 \n\
-Return the sum of i and j.");
+Return the sum of i and j."
+);
 
 static PyObject *
-xx_foo(PyObject *self, PyObject *args)
-{
+xx_foo(PyObject *self, PyObject *args) {
     long i, j;
     long res;
     if (!PyArg_ParseTuple(args, "ll:foo", &i, &j))
         return NULL;
-    res = i+j; /* XXX Do something here */
+    res = i + j; /* XXX Do something here */
     return PyLong_FromLong(res);
 }
-
 
 /* Function of no arguments returning new Xxo object */
 
 static PyObject *
-xx_new(PyObject *self, PyObject *args)
-{
+xx_new(PyObject *self, PyObject *args) {
     XxoObject *rv;
 
     if (!PyArg_ParseTuple(args, ":new"))
@@ -171,15 +158,13 @@ xx_new(PyObject *self, PyObject *args)
 /* Test bad format character */
 
 static PyObject *
-xx_roj(PyObject *self, PyObject *args)
-{
+xx_roj(PyObject *self, PyObject *args) {
     PyObject *a;
     long b;
     if (!PyArg_ParseTuple(args, "O#:roj", &a, &b))
         return NULL;
     return Py_NewRef(Py_None);
 }
-
 
 /* ---------- */
 
@@ -189,18 +174,13 @@ static PyType_Slot Str_Type_slots[] = {
 };
 
 static PyType_Spec Str_Type_spec = {
-    "xxlimited_35.Str",
-    0,
-    0,
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    Str_Type_slots
+    "xxlimited_35.Str", 0, 0, Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, Str_Type_slots
 };
 
 /* ---------- */
 
 static PyObject *
-null_richcompare(PyObject *self, PyObject *other, int op)
-{
+null_richcompare(PyObject *self, PyObject *other, int op) {
     Py_RETURN_NOTIMPLEMENTED;
 }
 
@@ -213,8 +193,8 @@ static PyType_Slot Null_Type_slots[] = {
 
 static PyType_Spec Null_Type_spec = {
     "xxlimited_35.Null",
-    0,               /* basicsize */
-    0,               /* itemsize */
+    0, /* basicsize */
+    0, /* itemsize */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     Null_Type_slots
 };
@@ -224,21 +204,16 @@ static PyType_Spec Null_Type_spec = {
 /* List of functions defined in the module */
 
 static PyMethodDef xx_methods[] = {
-    {"roj",             xx_roj,         METH_VARARGS,
-        PyDoc_STR("roj(a,b) -> None")},
-    {"foo",             xx_foo,         METH_VARARGS,
-        xx_foo_doc},
-    {"new",             xx_new,         METH_VARARGS,
-        PyDoc_STR("new() -> new Xx object")},
-    {NULL,              NULL}           /* sentinel */
+    {"roj", xx_roj, METH_VARARGS, PyDoc_STR("roj(a,b) -> None")},
+    {"foo", xx_foo, METH_VARARGS, xx_foo_doc},
+    {"new", xx_new, METH_VARARGS, PyDoc_STR("new() -> new Xx object")},
+    {NULL, NULL} /* sentinel */
 };
 
-PyDoc_STRVAR(module_doc,
-"This is a module for testing limited API from Python 3.5.");
+PyDoc_STRVAR(module_doc, "This is a module for testing limited API from Python 3.5.");
 
 static int
-xx_modexec(PyObject *m)
-{
+xx_modexec(PyObject *m) {
     PyObject *o;
 
     /* Due to cross platform compiler issues the slots must be filled
@@ -294,7 +269,6 @@ xx_modexec(PyObject *m)
     return 0;
 }
 
-
 static PyModuleDef_Slot xx_slots[] = {
     {Py_mod_exec, xx_modexec},
 #ifdef Py_GIL_DISABLED
@@ -319,7 +293,6 @@ static struct PyModuleDef xxmodule = {
 /* Export function for the module (*must* be called PyInit_xx) */
 
 PyMODINIT_FUNC
-PyInit_xxlimited_35(void)
-{
+PyInit_xxlimited_35(void) {
     return PyModuleDef_Init(&xxmodule);
 }

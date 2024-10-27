@@ -29,9 +29,9 @@
 #include <wchar.h>
 #include "pycore_getopt.h"
 
-int _PyOS_opterr = 1;                 /* generate error messages */
-Py_ssize_t _PyOS_optind = 1;          /* index into argv array   */
-const wchar_t *_PyOS_optarg = NULL;   /* optional argument       */
+int _PyOS_opterr = 1;               /* generate error messages */
+Py_ssize_t _PyOS_optind = 1;        /* index into argv array   */
+const wchar_t *_PyOS_optarg = NULL; /* optional argument       */
 
 static const wchar_t *opt_ptr = L"";
 
@@ -45,25 +45,23 @@ static const _PyOS_LongOption longopts[] = {
     {L"help-all", 0, 1},
     {L"help-env", 0, 2},
     {L"help-xoptions", 0, 3},
-    {NULL, 0, -1},                     /* sentinel */
+    {NULL, 0, -1}, /* sentinel */
 };
 
-
-void _PyOS_ResetGetOpt(void)
-{
+void
+_PyOS_ResetGetOpt(void) {
     _PyOS_opterr = 1;
     _PyOS_optind = 1;
     _PyOS_optarg = NULL;
     opt_ptr = L"";
 }
 
-int _PyOS_GetOpt(Py_ssize_t argc, wchar_t * const *argv, int *longindex)
-{
+int
+_PyOS_GetOpt(Py_ssize_t argc, wchar_t *const *argv, int *longindex) {
     wchar_t *ptr;
     wchar_t option;
 
     if (*opt_ptr == '\0') {
-
         if (_PyOS_optind >= argc)
             return -1;
 #ifdef MS_WINDOWS
@@ -74,7 +72,7 @@ int _PyOS_GetOpt(Py_ssize_t argc, wchar_t * const *argv, int *longindex)
 #endif
 
         else if (argv[_PyOS_optind][0] != L'-' ||
-                 argv[_PyOS_optind][1] == L'\0' /* lone dash */ )
+                 argv[_PyOS_optind][1] == L'\0' /* lone dash */)
             return -1;
 
         else if (wcscmp(argv[_PyOS_optind], L"--") == 0) {
@@ -124,8 +122,11 @@ int _PyOS_GetOpt(Py_ssize_t argc, wchar_t * const *argv, int *longindex)
         }
         if (_PyOS_optind >= argc) {
             if (_PyOS_opterr) {
-                fprintf(stderr, "Argument expected for the %ls options\n",
-                        argv[_PyOS_optind - 1]);
+                fprintf(
+                    stderr,
+                    "Argument expected for the %ls options\n",
+                    argv[_PyOS_optind - 1]
+                );
             }
             return '_';
         }
@@ -149,15 +150,16 @@ int _PyOS_GetOpt(Py_ssize_t argc, wchar_t * const *argv, int *longindex)
 
     if (*(ptr + 1) == L':') {
         if (*opt_ptr != L'\0') {
-            _PyOS_optarg  = opt_ptr;
+            _PyOS_optarg = opt_ptr;
             opt_ptr = L"";
         }
 
         else {
             if (_PyOS_optind >= argc) {
                 if (_PyOS_opterr) {
-                    fprintf(stderr,
-                        "Argument expected for the -%c option\n", (char)option);
+                    fprintf(
+                        stderr, "Argument expected for the -%c option\n", (char)option
+                    );
                 }
                 return '_';
             }

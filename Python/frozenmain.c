@@ -1,25 +1,26 @@
 /* Python interpreter main program for frozen scripts */
 
 #include "Python.h"
-#include "pycore_pystate.h"       // _Py_GetConfig()
-#include "pycore_runtime.h"       // _PyRuntime_Initialize()
+#include "pycore_pystate.h"  // _Py_GetConfig()
+#include "pycore_runtime.h"  // _PyRuntime_Initialize()
 
 #ifdef HAVE_UNISTD_H
-#  include <unistd.h>             // isatty()
+#include <unistd.h>  // isatty()
 #endif
 
-
 #ifdef MS_WINDOWS
-extern void PyWinFreeze_ExeInit(void);
-extern void PyWinFreeze_ExeTerm(void);
-extern int PyInitFrozenExtensions(void);
+extern void
+PyWinFreeze_ExeInit(void);
+extern void
+PyWinFreeze_ExeTerm(void);
+extern int
+PyInitFrozenExtensions(void);
 #endif
 
 /* Main program */
 
 int
-Py_FrozenMain(int argc, char **argv)
-{
+Py_FrozenMain(int argc, char **argv) {
     PyStatus status = _PyRuntime_Initialize();
     if (PyStatus_Exception(status)) {
         Py_ExitStatusException(status);
@@ -65,8 +66,7 @@ Py_FrozenMain(int argc, char **argv)
 #endif
 
     if (_Py_GetConfig()->verbose) {
-        fprintf(stderr, "Python %s\n%s\n",
-                Py_GetVersion(), Py_GetCopyright());
+        fprintf(stderr, "Python %s\n%s\n", Py_GetVersion(), Py_GetCopyright());
     }
 
     int sts = 1;
@@ -77,8 +77,7 @@ Py_FrozenMain(int argc, char **argv)
     if (n < 0) {
         PyErr_Print();
         sts = 1;
-    }
-    else {
+    } else {
         sts = 0;
     }
 

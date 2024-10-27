@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #ifdef Py_DEBUG
@@ -24,268 +24,530 @@ static inline void
 _PyStaticObjects_CheckRefcnt(PyInterpreterState *interp) {
     /* generated runtime-global */
     // (see pycore_runtime_init_generated.h)
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + -5]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + -4]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + -3]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + -2]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + -1]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 0]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 1]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 2]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 3]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 4]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 5]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 6]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 7]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 8]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 9]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 10]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 11]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 12]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 13]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 14]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 15]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 16]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 17]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 18]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 19]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 20]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 21]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 22]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 23]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 24]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 25]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 26]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 27]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 28]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 29]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 30]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 31]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 32]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 33]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 34]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 35]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 36]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 37]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 38]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 39]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 40]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 41]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 42]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 43]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 44]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 45]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 46]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 47]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 48]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 49]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 50]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 51]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 52]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 53]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 54]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 55]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 56]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 57]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 58]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 59]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 60]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 61]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 62]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 63]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 64]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 65]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 66]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 67]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 68]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 69]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 70]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 71]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 72]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 73]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 74]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 75]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 76]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 77]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 78]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 79]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 80]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 81]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 82]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 83]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 84]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 85]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 86]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 87]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 88]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 89]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 90]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 91]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 92]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 93]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 94]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 95]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 96]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 97]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 98]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 99]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 100]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 101]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 102]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 103]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 104]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 105]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 106]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 107]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 108]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 109]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 110]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 111]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 112]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 113]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 114]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 115]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 116]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 117]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 118]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 119]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 120]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 121]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 122]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 123]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 124]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 125]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 126]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 127]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 128]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 129]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 130]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 131]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 132]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 133]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 134]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 135]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 136]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 137]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 138]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 139]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 140]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 141]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 142]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 143]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 144]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 145]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 146]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 147]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 148]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 149]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 150]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 151]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 152]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 153]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 154]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 155]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 156]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 157]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 158]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 159]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 160]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 161]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 162]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 163]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 164]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 165]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 166]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 167]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 168]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 169]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 170]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 171]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 172]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 173]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 174]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 175]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 176]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 177]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 178]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 179]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 180]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 181]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 182]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 183]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 184]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 185]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 186]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 187]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 188]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 189]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 190]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 191]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 192]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 193]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 194]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 195]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 196]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 197]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 198]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 199]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 200]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 201]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 202]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 203]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 204]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 205]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 206]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 207]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 208]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 209]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 210]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 211]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 212]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 213]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 214]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 215]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 216]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 217]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 218]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 219]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 220]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 221]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 222]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 223]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 224]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 225]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 226]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 227]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 228]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 229]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 230]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 231]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 232]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 233]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 234]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 235]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 236]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 237]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 238]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 239]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 240]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 241]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 242]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 243]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 244]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 245]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 246]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 247]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 248]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 249]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 250]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 251]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 252]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 253]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 254]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 255]);
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints)[_PY_NSMALLNEGINTS + 256]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + -5]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + -4]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + -3]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + -2]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + -1]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 0]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 1]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 2]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 3]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 4]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 5]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 6]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 7]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 8]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 9]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 10]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 11]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 12]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 13]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 14]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 15]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 16]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 17]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 18]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 19]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 20]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 21]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 22]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 23]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 24]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 25]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 26]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 27]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 28]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 29]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 30]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 31]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 32]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 33]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 34]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 35]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 36]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 37]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 38]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 39]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 40]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 41]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 42]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 43]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 44]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 45]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 46]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 47]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 48]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 49]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 50]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 51]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 52]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 53]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 54]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 55]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 56]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 57]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 58]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 59]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 60]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 61]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 62]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 63]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 64]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 65]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 66]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 67]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 68]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 69]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 70]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 71]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 72]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 73]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 74]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 75]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 76]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 77]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 78]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 79]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 80]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 81]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 82]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 83]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 84]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 85]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 86]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 87]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 88]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 89]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 90]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 91]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 92]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 93]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 94]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 95]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 96]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 97]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 98]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 99]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 100]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 101]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 102]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 103]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 104]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 105]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 106]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 107]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 108]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 109]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 110]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 111]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 112]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 113]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 114]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 115]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 116]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 117]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 118]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 119]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 120]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 121]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 122]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 123]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 124]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 125]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 126]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 127]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 128]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 129]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 130]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 131]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 132]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 133]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 134]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 135]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 136]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 137]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 138]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 139]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 140]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 141]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 142]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 143]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 144]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 145]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 146]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 147]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 148]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 149]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 150]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 151]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 152]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 153]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 154]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 155]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 156]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 157]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 158]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 159]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 160]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 161]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 162]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 163]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 164]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 165]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 166]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 167]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 168]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 169]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 170]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 171]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 172]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 173]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 174]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 175]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 176]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 177]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 178]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 179]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 180]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 181]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 182]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 183]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 184]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 185]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 186]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 187]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 188]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 189]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 190]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 191]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 192]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 193]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 194]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 195]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 196]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 197]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 198]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 199]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 200]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 201]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 202]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 203]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 204]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 205]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 206]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 207]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 208]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 209]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 210]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 211]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 212]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 213]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 214]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 215]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 216]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 217]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 218]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 219]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 220]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 221]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 222]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 223]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 224]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 225]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 226]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 227]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 228]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 229]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 230]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 231]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 232]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 233]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 234]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 235]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 236]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 237]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 238]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 239]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 240]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 241]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 242]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 243]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 244]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 245]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 246]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 247]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 248]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 249]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 250]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 251]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 252]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 253]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 254]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 255]);
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(small_ints
+    )[_PY_NSMALLNEGINTS + 256]);
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(bytes_characters)[0]);
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(bytes_characters)[1]);
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_SINGLETON(bytes_characters)[2]);
@@ -727,7 +989,8 @@ _PyStaticObjects_CheckRefcnt(PyInterpreterState *interp) {
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_ID(__subclasshook__));
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_ID(__truediv__));
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_ID(__type_params__));
-    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_ID(__typing_is_unpacked_typevartuple__));
+    _PyStaticObject_CheckRefcnt((PyObject *)&_Py_ID(__typing_is_unpacked_typevartuple__)
+    );
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_ID(__typing_prepare_subst__));
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_ID(__typing_subst__));
     _PyStaticObject_CheckRefcnt((PyObject *)&_Py_ID(__typing_unpacked_tuple_args__));

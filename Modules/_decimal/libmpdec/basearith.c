@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 
 #include <assert.h>
@@ -35,11 +34,9 @@
 #include "constants.h"
 #include "typearith.h"
 
-
 /*********************************************************************/
 /*                   Calculations in base MPD_RADIX                  */
 /*********************************************************************/
-
 
 /*
  * Knuth, TAOCP, Volume 2, 4.3.1:
@@ -48,9 +45,9 @@
  * The calling function has to handle a possible final carry.
  */
 mpd_uint_t
-_mpd_baseadd(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
-             mpd_size_t m, mpd_size_t n)
-{
+_mpd_baseadd(
+    mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v, mpd_size_t m, mpd_size_t n
+) {
     mpd_uint_t s;
     mpd_uint_t carry = 0;
     mpd_size_t i;
@@ -61,7 +58,7 @@ _mpd_baseadd(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
     for (i = 0; i < n; i++) {
         s = u[i] + (v[i] + carry);
         carry = (s < u[i]) | (s >= MPD_RADIX);
-        w[i] = carry ? s-MPD_RADIX : s;
+        w[i] = carry ? s - MPD_RADIX : s;
     }
     /* if there is a carry, propagate it */
     for (; carry && i < m; i++) {
@@ -82,19 +79,19 @@ _mpd_baseadd(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
  * has to make sure that w is big enough.
  */
 void
-_mpd_baseaddto(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n)
-{
+_mpd_baseaddto(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n) {
     mpd_uint_t s;
     mpd_uint_t carry = 0;
     mpd_size_t i;
 
-    if (n == 0) return;
+    if (n == 0)
+        return;
 
     /* add n members of u to w */
     for (i = 0; i < n; i++) {
         s = w[i] + (u[i] + carry);
         carry = (s < w[i]) | (s >= MPD_RADIX);
-        w[i] = carry ? s-MPD_RADIX : s;
+        w[i] = carry ? s - MPD_RADIX : s;
     }
     /* if there is a carry, propagate it */
     for (; carry; i++) {
@@ -109,8 +106,7 @@ _mpd_baseaddto(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n)
  * final carry. Assumption: m > 0.
  */
 mpd_uint_t
-_mpd_shortadd(mpd_uint_t *w, mpd_size_t m, mpd_uint_t v)
-{
+_mpd_shortadd(mpd_uint_t *w, mpd_size_t m, mpd_uint_t v) {
     mpd_uint_t s;
     mpd_uint_t carry;
     mpd_size_t i;
@@ -120,7 +116,7 @@ _mpd_shortadd(mpd_uint_t *w, mpd_size_t m, mpd_uint_t v)
     /* add v to w */
     s = w[0] + v;
     carry = (s < v) | (s >= MPD_RADIX);
-    w[0] = carry ? s-MPD_RADIX : s;
+    w[0] = carry ? s - MPD_RADIX : s;
 
     /* if there is a carry, propagate it */
     for (i = 1; carry && i < m; i++) {
@@ -134,8 +130,7 @@ _mpd_shortadd(mpd_uint_t *w, mpd_size_t m, mpd_uint_t v)
 
 /* Increment u. The calling function has to handle a possible carry. */
 mpd_uint_t
-_mpd_baseincr(mpd_uint_t *u, mpd_size_t n)
-{
+_mpd_baseincr(mpd_uint_t *u, mpd_size_t n) {
     mpd_uint_t s;
     mpd_uint_t carry = 1;
     mpd_size_t i;
@@ -158,9 +153,9 @@ _mpd_baseincr(mpd_uint_t *u, mpd_size_t n)
  *     number in u >= number in v;
  */
 void
-_mpd_basesub(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
-             mpd_size_t m, mpd_size_t n)
-{
+_mpd_basesub(
+    mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v, mpd_size_t m, mpd_size_t n
+) {
     mpd_uint_t d;
     mpd_uint_t borrow = 0;
     mpd_size_t i;
@@ -177,7 +172,7 @@ _mpd_basesub(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
     for (; borrow && i < m; i++) {
         d = u[i] - borrow;
         borrow = (u[i] == 0);
-        w[i] = borrow ? MPD_RADIX-1 : d;
+        w[i] = borrow ? MPD_RADIX - 1 : d;
     }
     /* copy the rest of u */
     for (; i < m; i++) {
@@ -190,13 +185,13 @@ _mpd_basesub(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
  * propagated further, but eventually w can absorb the final borrow.
  */
 void
-_mpd_basesubfrom(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n)
-{
+_mpd_basesubfrom(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n) {
     mpd_uint_t d;
     mpd_uint_t borrow = 0;
     mpd_size_t i;
 
-    if (n == 0) return;
+    if (n == 0)
+        return;
 
     /* subtract n members of u from w */
     for (i = 0; i < n; i++) {
@@ -208,25 +203,24 @@ _mpd_basesubfrom(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n)
     for (; borrow; i++) {
         d = w[i] - borrow;
         borrow = (w[i] == 0);
-        w[i] = borrow ? MPD_RADIX-1 : d;
+        w[i] = borrow ? MPD_RADIX - 1 : d;
     }
 }
 
 /* w := product of u (len n) and v (single word) */
 void
-_mpd_shortmul(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v)
-{
+_mpd_shortmul(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v) {
     mpd_uint_t hi, lo;
     mpd_uint_t carry = 0;
     mpd_size_t i;
 
     assert(n > 0);
 
-    for (i=0; i < n; i++) {
-
+    for (i = 0; i < n; i++) {
         _mpd_mul_words(&hi, &lo, u[i], v);
         lo = carry + lo;
-        if (lo < carry) hi++;
+        if (lo < carry)
+            hi++;
 
         _mpd_div_words_r(&carry, &w[i], hi, lo);
     }
@@ -239,28 +233,29 @@ _mpd_shortmul(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v)
  *     w must be initialized to zero
  */
 void
-_mpd_basemul(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
-             mpd_size_t m, mpd_size_t n)
-{
+_mpd_basemul(
+    mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v, mpd_size_t m, mpd_size_t n
+) {
     mpd_uint_t hi, lo;
     mpd_uint_t carry;
     mpd_size_t i, j;
 
     assert(m > 0 && n > 0);
 
-    for (j=0; j < n; j++) {
+    for (j = 0; j < n; j++) {
         carry = 0;
-        for (i=0; i < m; i++) {
-
+        for (i = 0; i < m; i++) {
             _mpd_mul_words(&hi, &lo, u[i], v[j]);
-            lo = w[i+j] + lo;
-            if (lo < w[i+j]) hi++;
+            lo = w[i + j] + lo;
+            if (lo < w[i + j])
+                hi++;
             lo = carry + lo;
-            if (lo < carry) hi++;
+            if (lo < carry)
+                hi++;
 
-            _mpd_div_words_r(&carry, &w[i+j], hi, lo);
+            _mpd_div_words_r(&carry, &w[i + j], hi, lo);
         }
-        w[j+m] = carry;
+        w[j + m] = carry;
     }
 }
 
@@ -269,19 +264,18 @@ _mpd_basemul(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
  *     w := quotient of u (len n) divided by a single word v
  */
 mpd_uint_t
-_mpd_shortdiv(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v)
-{
+_mpd_shortdiv(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v) {
     mpd_uint_t hi, lo;
     mpd_uint_t rem = 0;
     mpd_size_t i;
 
     assert(n > 0);
 
-    for (i=n-1; i != MPD_SIZE_MAX; i--) {
-
+    for (i = n - 1; i != MPD_SIZE_MAX; i--) {
         _mpd_mul_words(&hi, &lo, rem, MPD_RADIX);
         lo = u[i] + lo;
-        if (lo < u[i]) hi++;
+        if (lo < u[i])
+            hi++;
 
         _mpd_div_words(&w[i], &rem, hi, lo, v);
     }
@@ -300,10 +294,14 @@ _mpd_shortdiv(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v)
  * false.  A return value of -1 indicates an error.
  */
 int
-_mpd_basedivmod(mpd_uint_t *q, mpd_uint_t *r,
-                const mpd_uint_t *uconst, const mpd_uint_t *vconst,
-                mpd_size_t nplusm, mpd_size_t n)
-{
+_mpd_basedivmod(
+    mpd_uint_t *q,
+    mpd_uint_t *r,
+    const mpd_uint_t *uconst,
+    const mpd_uint_t *vconst,
+    mpd_size_t nplusm,
+    mpd_size_t n
+) {
     mpd_uint_t ustatic[MPD_MINALLOC_MAX];
     mpd_uint_t vstatic[MPD_MINALLOC_MAX];
     mpd_uint_t *u = ustatic;
@@ -318,15 +316,15 @@ _mpd_basedivmod(mpd_uint_t *q, mpd_uint_t *r,
     m = sub_size_t(nplusm, n);
 
     /* D1: normalize */
-    d = MPD_RADIX / (vconst[n-1] + 1);
+    d = MPD_RADIX / (vconst[n - 1] + 1);
 
     if (nplusm >= MPD_MINALLOC_MAX) {
-        if ((u = mpd_alloc(nplusm+1, sizeof *u)) == NULL) {
+        if ((u = mpd_alloc(nplusm + 1, sizeof *u)) == NULL) {
             return -1;
         }
     }
     if (n >= MPD_MINALLOC_MAX) {
-        if ((v = mpd_alloc(n+1, sizeof *v)) == NULL) {
+        if ((v = mpd_alloc(n + 1, sizeof *v)) == NULL) {
             mpd_free(u);
             return -1;
         }
@@ -336,42 +334,42 @@ _mpd_basedivmod(mpd_uint_t *q, mpd_uint_t *r,
     _mpd_shortmul(v, vconst, n, d);
 
     /* D2: loop */
-    for (j=m; j != MPD_SIZE_MAX; j--) {
-        assert(2 <= j+n && j+n <= nplusm); /* annotation for scan-build */
+    for (j = m; j != MPD_SIZE_MAX; j--) {
+        assert(2 <= j + n && j + n <= nplusm); /* annotation for scan-build */
 
         /* D3: calculate qhat and rhat */
-        rhat = _mpd_shortdiv(w2, u+j+n-1, 2, v[n-1]);
+        rhat = _mpd_shortdiv(w2, u + j + n - 1, 2, v[n - 1]);
         qhat = w2[1] * MPD_RADIX + w2[0];
 
         while (1) {
             if (qhat < MPD_RADIX) {
-                _mpd_singlemul(w2, qhat, v[n-2]);
+                _mpd_singlemul(w2, qhat, v[n - 2]);
                 if (w2[1] <= rhat) {
-                    if (w2[1] != rhat || w2[0] <= u[j+n-2]) {
+                    if (w2[1] != rhat || w2[0] <= u[j + n - 2]) {
                         break;
                     }
                 }
             }
             qhat -= 1;
-            rhat += v[n-1];
-            if (rhat < v[n-1] || rhat >= MPD_RADIX) {
+            rhat += v[n - 1];
+            if (rhat < v[n - 1] || rhat >= MPD_RADIX) {
                 break;
             }
         }
         /* D4: multiply and subtract */
         carry = 0;
-        for (i=0; i <= n; i++) {
-
+        for (i = 0; i <= n; i++) {
             _mpd_mul_words(&hi, &lo, qhat, v[i]);
 
             lo = carry + lo;
-            if (lo < carry) hi++;
+            if (lo < carry)
+                hi++;
 
             _mpd_div_words_r(&hi, &lo, hi, lo);
 
-            x = u[i+j] - lo;
-            carry = (u[i+j] < x);
-            u[i+j] = carry ? x+MPD_RADIX : x;
+            x = u[i + j] - lo;
+            carry = (u[i + j] < x);
+            u[i + j] = carry ? x + MPD_RADIX : x;
             carry += hi;
         }
         q[j] = qhat;
@@ -379,7 +377,7 @@ _mpd_basedivmod(mpd_uint_t *q, mpd_uint_t *r,
         if (carry) {
             q[j] -= 1;
             /* D6: add back */
-            (void)_mpd_baseadd(u+j, u+j, v, n+1, n);
+            (void)_mpd_baseadd(u + j, u + j, v, n + 1, n);
         }
     }
 
@@ -388,15 +386,15 @@ _mpd_basedivmod(mpd_uint_t *q, mpd_uint_t *r,
         _mpd_shortdiv(r, u, n, d);
         /* we are not interested in the return value here */
         retval = 0;
-    }
-    else {
+    } else {
         retval = !_mpd_isallzero(u, n);
     }
 
-
-if (u != ustatic) mpd_free(u);
-if (v != vstatic) mpd_free(v);
-return retval;
+    if (u != ustatic)
+        mpd_free(u);
+    if (v != vstatic)
+        mpd_free(v);
+    return retval;
 }
 
 /*
@@ -424,12 +422,12 @@ return retval;
  *  otherwise.
  */
 void
-_mpd_baseshiftl(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t n, mpd_size_t m,
-                mpd_size_t shift)
-{
+_mpd_baseshiftl(
+    mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t n, mpd_size_t m, mpd_size_t shift
+) {
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__clang__)
     /* spurious uninitialized warnings */
-    mpd_uint_t l=l, lprev=lprev, h=h;
+    mpd_uint_t l = l, lprev = lprev, h = h;
 #else
     mpd_uint_t l, lprev, h;
 #endif
@@ -441,26 +439,25 @@ _mpd_baseshiftl(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t n, mpd_size_t m,
     _mpd_div_word(&q, &r, (mpd_uint_t)shift, MPD_RDIGITS);
 
     if (r != 0) {
-
         ph = mpd_pow10[r];
 
-        --m; --n;
-        _mpd_divmod_pow10(&h, &lprev, src[m--], MPD_RDIGITS-r);
+        --m;
+        --n;
+        _mpd_divmod_pow10(&h, &lprev, src[m--], MPD_RDIGITS - r);
         if (h != 0) { /* r + msdigits > rdigits <==> h != 0 */
             dest[n--] = h;
         }
         /* write m-1 shifted words */
-        for (; m != MPD_SIZE_MAX; m--,n--) {
-            _mpd_divmod_pow10(&h, &l, src[m], MPD_RDIGITS-r);
+        for (; m != MPD_SIZE_MAX; m--, n--) {
+            _mpd_divmod_pow10(&h, &l, src[m], MPD_RDIGITS - r);
             dest[n] = ph * lprev + h;
             lprev = l;
         }
         /* write least significant word */
         dest[q] = ph * lprev;
-    }
-    else {
+    } else {
         while (--m != MPD_SIZE_MAX) {
-            dest[m+q] = src[m];
+            dest[m + q] = src[m];
         }
     }
 
@@ -493,16 +490,14 @@ _mpd_baseshiftl(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t n, mpd_size_t m,
  * The result has slen-q words if msdigits > r, slen-q-1 words otherwise.
  */
 mpd_uint_t
-_mpd_baseshiftr(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t slen,
-                mpd_size_t shift)
-{
+_mpd_baseshiftr(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t slen, mpd_size_t shift) {
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__clang__)
     /* spurious uninitialized warnings */
-    mpd_uint_t l=l, h=h, hprev=hprev; /* low, high, previous high */
+    mpd_uint_t l = l, h = h, hprev = hprev; /* low, high, previous high */
 #else
     mpd_uint_t l, h, hprev; /* low, high, previous high */
 #endif
-    mpd_uint_t rnd, rest;   /* rounding digit, rest */
+    mpd_uint_t rnd, rest; /* rounding digit, rest */
     mpd_uint_t q, r;
     mpd_size_t i, j;
     mpd_uint_t ph;
@@ -513,17 +508,16 @@ _mpd_baseshiftr(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t slen,
 
     rnd = rest = 0;
     if (r != 0) {
-
-        ph = mpd_pow10[MPD_RDIGITS-r];
+        ph = mpd_pow10[MPD_RDIGITS - r];
 
         _mpd_divmod_pow10(&hprev, &rest, src[q], r);
-        _mpd_divmod_pow10(&rnd, &rest, rest, r-1);
+        _mpd_divmod_pow10(&rnd, &rest, rest, r - 1);
 
         if (rest == 0 && q > 0) {
             rest = !_mpd_isallzero(src, q);
         }
         /* write slen-q-1 words */
-        for (j=0,i=q+1; i<slen; i++,j++) {
+        for (j = 0, i = q + 1; i < slen; i++, j++) {
             _mpd_divmod_pow10(&h, &l, src[i], r);
             dest[j] = ph * l + hprev;
             hprev = h;
@@ -532,15 +526,15 @@ _mpd_baseshiftr(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t slen,
         if (hprev != 0) { /* always the case if slen==q-1 */
             dest[j] = hprev;
         }
-    }
-    else {
+    } else {
         if (q > 0) {
-            _mpd_divmod_pow10(&rnd, &rest, src[q-1], MPD_RDIGITS-1);
+            _mpd_divmod_pow10(&rnd, &rest, src[q - 1], MPD_RDIGITS - 1);
             /* is there any non-zero digit below rnd? */
-            if (rest == 0) rest = !_mpd_isallzero(src, q-1);
+            if (rest == 0)
+                rest = !_mpd_isallzero(src, q - 1);
         }
-        for (j = 0; j < slen-q; j++) {
-            dest[j] = src[q+j];
+        for (j = 0; j < slen - q; j++) {
+            dest[j] = src[q + j];
         }
     }
 
@@ -549,7 +543,6 @@ _mpd_baseshiftr(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t slen,
     /* 6-9  ==> rnd+rest > 0.5   */
     return (rnd == 0 || rnd == 5) ? rnd + !!rest : rnd;
 }
-
 
 /*********************************************************************/
 /*                      Calculations in base b                       */
@@ -560,8 +553,7 @@ _mpd_baseshiftr(mpd_uint_t *dest, mpd_uint_t *src, mpd_size_t slen,
  * final carry. Assumption: m > 0.
  */
 mpd_uint_t
-_mpd_shortadd_b(mpd_uint_t *w, mpd_size_t m, mpd_uint_t v, mpd_uint_t b)
-{
+_mpd_shortadd_b(mpd_uint_t *w, mpd_size_t m, mpd_uint_t v, mpd_uint_t b) {
     mpd_uint_t s;
     mpd_uint_t carry;
     mpd_size_t i;
@@ -571,7 +563,7 @@ _mpd_shortadd_b(mpd_uint_t *w, mpd_size_t m, mpd_uint_t v, mpd_uint_t b)
     /* add v to w */
     s = w[0] + v;
     carry = (s < v) | (s >= b);
-    w[0] = carry ? s-b : s;
+    w[0] = carry ? s - b : s;
 
     /* if there is a carry, propagate it */
     for (i = 1; carry && i < m; i++) {
@@ -585,19 +577,18 @@ _mpd_shortadd_b(mpd_uint_t *w, mpd_size_t m, mpd_uint_t v, mpd_uint_t b)
 
 /* w := product of u (len n) and v (single word). Return carry. */
 mpd_uint_t
-_mpd_shortmul_c(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v)
-{
+_mpd_shortmul_c(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v) {
     mpd_uint_t hi, lo;
     mpd_uint_t carry = 0;
     mpd_size_t i;
 
     assert(n > 0);
 
-    for (i=0; i < n; i++) {
-
+    for (i = 0; i < n; i++) {
         _mpd_mul_words(&hi, &lo, u[i], v);
         lo = carry + lo;
-        if (lo < carry) hi++;
+        if (lo < carry)
+            hi++;
 
         _mpd_div_words_r(&carry, &w[i], hi, lo);
     }
@@ -607,20 +598,20 @@ _mpd_shortmul_c(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v)
 
 /* w := product of u (len n) and v (single word) */
 mpd_uint_t
-_mpd_shortmul_b(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n,
-                mpd_uint_t v, mpd_uint_t b)
-{
+_mpd_shortmul_b(
+    mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v, mpd_uint_t b
+) {
     mpd_uint_t hi, lo;
     mpd_uint_t carry = 0;
     mpd_size_t i;
 
     assert(n > 0);
 
-    for (i=0; i < n; i++) {
-
+    for (i = 0; i < n; i++) {
         _mpd_mul_words(&hi, &lo, u[i], v);
         lo = carry + lo;
-        if (lo < carry) hi++;
+        if (lo < carry)
+            hi++;
 
         _mpd_div_words(&carry, &w[i], hi, lo, b);
     }
@@ -633,20 +624,20 @@ _mpd_shortmul_b(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n,
  *     w := quotient of u (len n) divided by a single word v
  */
 mpd_uint_t
-_mpd_shortdiv_b(mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n,
-                mpd_uint_t v, mpd_uint_t b)
-{
+_mpd_shortdiv_b(
+    mpd_uint_t *w, const mpd_uint_t *u, mpd_size_t n, mpd_uint_t v, mpd_uint_t b
+) {
     mpd_uint_t hi, lo;
     mpd_uint_t rem = 0;
     mpd_size_t i;
 
     assert(n > 0);
 
-    for (i=n-1; i != MPD_SIZE_MAX; i--) {
-
+    for (i = n - 1; i != MPD_SIZE_MAX; i--) {
         _mpd_mul_words(&hi, &lo, rem, b);
         lo = u[i] + lo;
-        if (lo < u[i]) hi++;
+        if (lo < u[i])
+            hi++;
 
         _mpd_div_words(&w[i], &rem, hi, lo, v);
     }

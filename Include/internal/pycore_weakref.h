@@ -5,19 +5,18 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_critical_section.h" // Py_BEGIN_CRITICAL_SECTION()
+#include "pycore_critical_section.h"  // Py_BEGIN_CRITICAL_SECTION()
 #include "pycore_lock.h"
-#include "pycore_object.h"           // _Py_REF_IS_MERGED()
+#include "pycore_object.h"  // _Py_REF_IS_MERGED()
 #include "pycore_pyatomic_ft_wrappers.h"
 
 #ifdef Py_GIL_DISABLED
 
 #define WEAKREF_LIST_LOCK(obj) \
-    _PyInterpreterState_GET()  \
-        ->weakref_locks[((uintptr_t)obj) % NUM_WEAKREF_LIST_LOCKS]
+    _PyInterpreterState_GET()->weakref_locks[((uintptr_t)obj) % NUM_WEAKREF_LIST_LOCKS]
 
 // Lock using the referenced object
 #define LOCK_WEAKREFS(obj) \
@@ -39,8 +38,8 @@ extern "C" {
 
 #endif
 
-static inline int _is_dead(PyObject *obj)
-{
+static inline int
+_is_dead(PyObject *obj) {
     // Explanation for the Py_REFCNT() check: when a weakref's target is part
     // of a long chain of deallocations which triggers the trashcan mechanism,
     // clearing the weakrefs can be delayed long after the target's refcount
@@ -55,10 +54,10 @@ static inline int _is_dead(PyObject *obj)
 #endif
 }
 
-static inline PyObject* _PyWeakref_GET_REF(PyObject *ref_obj)
-{
+static inline PyObject *
+_PyWeakref_GET_REF(PyObject *ref_obj) {
     assert(PyWeakref_Check(ref_obj));
-    PyWeakReference *ref = _Py_CAST(PyWeakReference*, ref_obj);
+    PyWeakReference *ref = _Py_CAST(PyWeakReference *, ref_obj);
 
     PyObject *obj = FT_ATOMIC_LOAD_PTR(ref->wr_object);
     if (obj == Py_None) {
@@ -82,17 +81,16 @@ static inline PyObject* _PyWeakref_GET_REF(PyObject *ref_obj)
     return NULL;
 }
 
-static inline int _PyWeakref_IS_DEAD(PyObject *ref_obj)
-{
+static inline int
+_PyWeakref_IS_DEAD(PyObject *ref_obj) {
     assert(PyWeakref_Check(ref_obj));
     int ret = 0;
-    PyWeakReference *ref = _Py_CAST(PyWeakReference*, ref_obj);
+    PyWeakReference *ref = _Py_CAST(PyWeakReference *, ref_obj);
     PyObject *obj = FT_ATOMIC_LOAD_PTR(ref->wr_object);
     if (obj == Py_None) {
         // clear_weakref() was called
         ret = 1;
-    }
-    else {
+    } else {
         LOCK_WEAKREFS(obj);
         // See _PyWeakref_GET_REF() for the rationale of this test
 #ifdef Py_GIL_DISABLED
@@ -105,11 +103,13 @@ static inline int _PyWeakref_IS_DEAD(PyObject *ref_obj)
     return ret;
 }
 
-extern Py_ssize_t _PyWeakref_GetWeakrefCount(PyObject *obj);
+extern Py_ssize_t
+_PyWeakref_GetWeakrefCount(PyObject *obj);
 
 // Clear all the weak references to obj but leave their callbacks uncalled and
 // intact.
-extern void _PyWeakref_ClearWeakRefsNoCallbacks(PyObject *obj);
+extern void
+_PyWeakref_ClearWeakRefsNoCallbacks(PyObject *obj);
 
 PyAPI_FUNC(int) _PyWeakref_IsDead(PyObject *weakref);
 

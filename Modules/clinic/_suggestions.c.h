@@ -2,24 +2,31 @@
 preserve
 [clinic start generated code]*/
 
-#include "pycore_modsupport.h"    // _PyArg_CheckPositional()
+#include "pycore_modsupport.h"  // _PyArg_CheckPositional()
 
-PyDoc_STRVAR(_suggestions__generate_suggestions__doc__,
-"_generate_suggestions($module, candidates, item, /)\n"
-"--\n"
-"\n"
-"Returns the candidate in candidates that\'s closest to item");
+PyDoc_STRVAR(
+    _suggestions__generate_suggestions__doc__,
+    "_generate_suggestions($module, candidates, item, /)\n"
+    "--\n"
+    "\n"
+    "Returns the candidate in candidates that\'s closest to item"
+);
 
-#define _SUGGESTIONS__GENERATE_SUGGESTIONS_METHODDEF    \
-    {"_generate_suggestions", _PyCFunction_CAST(_suggestions__generate_suggestions), METH_FASTCALL, _suggestions__generate_suggestions__doc__},
+#define _SUGGESTIONS__GENERATE_SUGGESTIONS_METHODDEF        \
+    {"_generate_suggestions",                               \
+     _PyCFunction_CAST(_suggestions__generate_suggestions), \
+     METH_FASTCALL,                                         \
+     _suggestions__generate_suggestions__doc__},
 
 static PyObject *
-_suggestions__generate_suggestions_impl(PyObject *module,
-                                        PyObject *candidates, PyObject *item);
+_suggestions__generate_suggestions_impl(
+    PyObject *module, PyObject *candidates, PyObject *item
+);
 
 static PyObject *
-_suggestions__generate_suggestions(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
-{
+_suggestions__generate_suggestions(
+    PyObject *module, PyObject *const *args, Py_ssize_t nargs
+) {
     PyObject *return_value = NULL;
     PyObject *candidates;
     PyObject *item;

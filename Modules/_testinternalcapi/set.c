@@ -4,10 +4,8 @@
 #include "pycore_critical_section.h"
 #include "pycore_setobject.h"
 
-
 static PyObject *
-set_update(PyObject *self, PyObject *args)
-{
+set_update(PyObject *self, PyObject *args) {
     PyObject *set, *iterable;
     if (!PyArg_ParseTuple(args, "OO", &set, &iterable)) {
         return NULL;
@@ -18,8 +16,7 @@ set_update(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-set_next_entry(PyObject *self, PyObject *args)
-{
+set_next_entry(PyObject *self, PyObject *args) {
     int rc;
     Py_ssize_t pos;
     Py_hash_t hash = (Py_hash_t)UNINITIALIZED_SIZE;
@@ -45,7 +42,6 @@ set_next_entry(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-
 static PyMethodDef TestMethods[] = {
     {"set_update", set_update, METH_VARARGS},
     {"set_next_entry", set_next_entry, METH_VARARGS},
@@ -54,8 +50,7 @@ static PyMethodDef TestMethods[] = {
 };
 
 int
-_PyTestInternalCapi_Init_Set(PyObject *m)
-{
+_PyTestInternalCapi_Init_Set(PyObject *m) {
     if (PyModule_AddFunctions(m, TestMethods) < 0) {
         return -1;
     }

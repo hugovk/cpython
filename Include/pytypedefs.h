@@ -27,4 +27,4 @@ typedef struct _is PyInterpreterState;
 #ifdef __cplusplus
 }
 #endif
-#endif   // !Py_PYTYPEDEFS_H
+#endif  // !Py_PYTYPEDEFS_H

@@ -14,10 +14,8 @@
 #define assert_nogil(x)
 #endif
 
-
 static PyObject *
-test_critical_sections(PyObject *self, PyObject *Py_UNUSED(args))
-{
+test_critical_sections(PyObject *self, PyObject *Py_UNUSED(args)) {
     PyObject *d1 = PyDict_New();
     assert(d1 != NULL);
 
@@ -55,8 +53,7 @@ test_critical_sections(PyObject *self, PyObject *Py_UNUSED(args))
 }
 
 static void
-lock_unlock_object(PyObject *obj, int recurse_depth)
-{
+lock_unlock_object(PyObject *obj, int recurse_depth) {
     Py_BEGIN_CRITICAL_SECTION(obj);
     if (recurse_depth > 0) {
         lock_unlock_object(obj, recurse_depth - 1);
@@ -65,8 +62,7 @@ lock_unlock_object(PyObject *obj, int recurse_depth)
 }
 
 static void
-lock_unlock_two_objects(PyObject *a, PyObject *b, int recurse_depth)
-{
+lock_unlock_two_objects(PyObject *a, PyObject *b, int recurse_depth) {
     Py_BEGIN_CRITICAL_SECTION2(a, b);
     if (recurse_depth > 0) {
         lock_unlock_two_objects(a, b, recurse_depth - 1);
@@ -74,12 +70,10 @@ lock_unlock_two_objects(PyObject *a, PyObject *b, int recurse_depth)
     Py_END_CRITICAL_SECTION2();
 }
 
-
 // Test that nested critical sections do not deadlock if they attempt to lock
 // the same object.
 static PyObject *
-test_critical_sections_nest(PyObject *self, PyObject *Py_UNUSED(args))
-{
+test_critical_sections_nest(PyObject *self, PyObject *Py_UNUSED(args)) {
     PyObject *a = PyDict_New();
     assert(a != NULL);
     PyObject *b = PyDict_New();
@@ -109,8 +103,7 @@ test_critical_sections_nest(PyObject *self, PyObject *Py_UNUSED(args))
 // Test that a critical section is suspended by a Py_BEGIN_ALLOW_THREADS and
 // resumed by a Py_END_ALLOW_THREADS.
 static PyObject *
-test_critical_sections_suspend(PyObject *self, PyObject *Py_UNUSED(args))
-{
+test_critical_sections_suspend(PyObject *self, PyObject *Py_UNUSED(args)) {
     PyObject *a = PyDict_New();
     assert(a != NULL);
 
@@ -118,8 +111,7 @@ test_critical_sections_suspend(PyObject *self, PyObject *Py_UNUSED(args))
     assert_nogil(PyMutex_IsLocked(&a->ob_mutex));
 
     // Py_BEGIN_ALLOW_THREADS should suspend the active critical section
-    Py_BEGIN_ALLOW_THREADS
-    assert_nogil(!PyMutex_IsLocked(&a->ob_mutex));
+    Py_BEGIN_ALLOW_THREADS assert_nogil(!PyMutex_IsLocked(&a->ob_mutex));
     Py_END_ALLOW_THREADS;
 
     // After Py_END_ALLOW_THREADS the critical section should be resumed.
@@ -140,8 +132,7 @@ struct test_data {
 };
 
 static void
-thread_critical_sections(void *arg)
-{
+thread_critical_sections(void *arg) {
     const Py_ssize_t NUM_ITERS = 200;
     struct test_data *test_data = arg;
     PyGILState_STATE gil = PyGILState_Ensure();
@@ -159,9 +150,7 @@ thread_critical_sections(void *arg)
         Py_END_CRITICAL_SECTION2();
 
         Py_BEGIN_CRITICAL_SECTION(test_data->obj3);
-        Py_BEGIN_ALLOW_THREADS
-        Py_END_ALLOW_THREADS
-        Py_END_CRITICAL_SECTION();
+        Py_BEGIN_ALLOW_THREADS Py_END_ALLOW_THREADS Py_END_CRITICAL_SECTION();
     }
 
     PyGILState_Release(gil);
@@ -172,8 +161,7 @@ thread_critical_sections(void *arg)
 }
 
 static PyObject *
-test_critical_sections_threads(PyObject *self, PyObject *Py_UNUSED(args))
-{
+test_critical_sections_threads(PyObject *self, PyObject *Py_UNUSED(args)) {
     const Py_ssize_t NUM_THREADS = 4;
     struct test_data test_data = {
         .obj1 = PyDict_New(),
@@ -197,8 +185,7 @@ test_critical_sections_threads(PyObject *self, PyObject *Py_UNUSED(args))
 }
 
 static void
-pysleep(int ms)
-{
+pysleep(int ms) {
 #ifdef MS_WINDOWS
     Sleep(ms);
 #else
@@ -216,16 +203,14 @@ struct test_data_gc {
 };
 
 static void
-thread_gc(void *arg)
-{
+thread_gc(void *arg) {
     struct test_data_gc *test_data = arg;
     PyGILState_STATE gil = PyGILState_Ensure();
 
     Py_ssize_t id = _Py_atomic_add_ssize(&test_data->id, 1);
     if (id == test_data->num_threads - 1) {
         _PyEvent_Notify(&test_data->ready);
-    }
-    else {
+    } else {
         // wait for all test threads to more reliably reproduce the issue.
         PyEvent_Wait(&test_data->ready);
     }
@@ -237,14 +222,12 @@ thread_gc(void *arg)
         pysleep(5);
         PyGC_Collect();
         Py_END_CRITICAL_SECTION();
-    }
-    else if (id == 1) {
+    } else if (id == 1) {
         pysleep(1);
         Py_BEGIN_CRITICAL_SECTION(test_data->obj);
         pysleep(1);
         Py_END_CRITICAL_SECTION();
-    }
-    else if (id == 2) {
+    } else if (id == 2) {
         // sleep long enough so that thread 0 is waiting to stop the world
         pysleep(6);
         Py_BEGIN_CRITICAL_SECTION(test_data->obj);
@@ -260,8 +243,7 @@ thread_gc(void *arg)
 }
 
 static PyObject *
-test_critical_sections_gc(PyObject *self, PyObject *Py_UNUSED(args))
-{
+test_critical_sections_gc(PyObject *self, PyObject *Py_UNUSED(args)) {
     // gh-118332: Contended critical sections should not deadlock with GC
     const Py_ssize_t NUM_THREADS = 3;
     struct test_data_gc test_data = {
@@ -293,8 +275,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestInternalCapi_Init_CriticalSection(PyObject *mod)
-{
+_PyTestInternalCapi_Init_CriticalSection(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

@@ -6,18 +6,16 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-
 typedef struct {
     uint16_t value_and_backoff;
 } _Py_BackoffCounter;
-
 
 /* 16-bit countdown counters using exponential backoff.
 
@@ -42,14 +40,12 @@ typedef struct {
 #define UNREACHABLE_BACKOFF 15
 
 static inline bool
-is_unreachable_backoff_counter(_Py_BackoffCounter counter)
-{
+is_unreachable_backoff_counter(_Py_BackoffCounter counter) {
     return counter.value_and_backoff == UNREACHABLE_BACKOFF;
 }
 
 static inline _Py_BackoffCounter
-make_backoff_counter(uint16_t value, uint16_t backoff)
-{
+make_backoff_counter(uint16_t value, uint16_t backoff) {
     assert(backoff <= 15);
     assert(value <= 0xFFF);
     _Py_BackoffCounter result;
@@ -58,59 +54,53 @@ make_backoff_counter(uint16_t value, uint16_t backoff)
 }
 
 static inline _Py_BackoffCounter
-forge_backoff_counter(uint16_t counter)
-{
+forge_backoff_counter(uint16_t counter) {
     _Py_BackoffCounter result;
     result.value_and_backoff = counter;
     return result;
 }
 
 static inline _Py_BackoffCounter
-restart_backoff_counter(_Py_BackoffCounter counter)
-{
+restart_backoff_counter(_Py_BackoffCounter counter) {
     assert(!is_unreachable_backoff_counter(counter));
     int backoff = counter.value_and_backoff & 15;
     if (backoff < MAX_BACKOFF) {
         return make_backoff_counter((1 << (backoff + 1)) - 1, backoff + 1);
-    }
-    else {
+    } else {
         return make_backoff_counter((1 << MAX_BACKOFF) - 1, MAX_BACKOFF);
     }
 }
 
 static inline _Py_BackoffCounter
-pause_backoff_counter(_Py_BackoffCounter counter)
-{
+pause_backoff_counter(_Py_BackoffCounter counter) {
     _Py_BackoffCounter result;
     result.value_and_backoff = counter.value_and_backoff | (1 << BACKOFF_BITS);
     return result;
 }
 
 static inline _Py_BackoffCounter
-advance_backoff_counter(_Py_BackoffCounter counter)
-{
+advance_backoff_counter(_Py_BackoffCounter counter) {
     _Py_BackoffCounter result;
     result.value_and_backoff = counter.value_and_backoff - (1 << BACKOFF_BITS);
     return result;
 }
 
 static inline bool
-backoff_counter_triggers(_Py_BackoffCounter counter)
-{
+backoff_counter_triggers(_Py_BackoffCounter counter) {
     /* Test whether the value is zero and the backoff is not UNREACHABLE_BACKOFF */
     return counter.value_and_backoff < UNREACHABLE_BACKOFF;
 }
 
 /* Initial JUMP_BACKWARD counter.
  * This determines when we create a trace for a loop.
-* Backoff sequence 16, 32, 64, 128, 256, 512, 1024, 2048, 4096. */
+ * Backoff sequence 16, 32, 64, 128, 256, 512, 1024, 2048, 4096. */
 #define JUMP_BACKWARD_INITIAL_VALUE 15
 #define JUMP_BACKWARD_INITIAL_BACKOFF 4
 static inline _Py_BackoffCounter
-initial_jump_backoff_counter(void)
-{
-    return make_backoff_counter(JUMP_BACKWARD_INITIAL_VALUE,
-                                JUMP_BACKWARD_INITIAL_BACKOFF);
+initial_jump_backoff_counter(void) {
+    return make_backoff_counter(
+        JUMP_BACKWARD_INITIAL_VALUE, JUMP_BACKWARD_INITIAL_BACKOFF
+    );
 }
 
 /* Initial exit temperature.
@@ -122,16 +112,13 @@ initial_jump_backoff_counter(void)
 #define SIDE_EXIT_INITIAL_BACKOFF 6
 
 static inline _Py_BackoffCounter
-initial_temperature_backoff_counter(void)
-{
-    return make_backoff_counter(SIDE_EXIT_INITIAL_VALUE,
-                                SIDE_EXIT_INITIAL_BACKOFF);
+initial_temperature_backoff_counter(void) {
+    return make_backoff_counter(SIDE_EXIT_INITIAL_VALUE, SIDE_EXIT_INITIAL_BACKOFF);
 }
 
 /* Unreachable backoff counter. */
 static inline _Py_BackoffCounter
-initial_unreachable_backoff_counter(void)
-{
+initial_unreachable_backoff_counter(void) {
     return make_backoff_counter(0, UNREACHABLE_BACKOFF);
 }
 

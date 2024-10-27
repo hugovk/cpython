@@ -19,21 +19,19 @@
 #include "tkinter.h"
 
 int
-Tcl_AppInit(Tcl_Interp *interp)
-{
+Tcl_AppInit(Tcl_Interp *interp) {
     const char *_tkinter_skip_tk_init;
 
-    if (Tcl_Init (interp) == TCL_ERROR)
+    if (Tcl_Init(interp) == TCL_ERROR)
         return TCL_ERROR;
 
 #ifdef WITH_XXX
-        /* Initialize modules that don't require Tk */
+    /* Initialize modules that don't require Tk */
 #endif
 
-    _tkinter_skip_tk_init =     Tcl_GetVar(interp,
-                    "_tkinter_skip_tk_init", TCL_GLOBAL_ONLY);
-    if (_tkinter_skip_tk_init != NULL &&
-                    strcmp(_tkinter_skip_tk_init, "1") == 0) {
+    _tkinter_skip_tk_init =
+        Tcl_GetVar(interp, "_tkinter_skip_tk_init", TCL_GLOBAL_ONLY);
+    if (_tkinter_skip_tk_init != NULL && strcmp(_tkinter_skip_tk_init, "1") == 0) {
         return TCL_OK;
     }
 
@@ -62,8 +60,8 @@ Tcl_AppInit(Tcl_Interp *interp)
 
 #ifdef WITH_TIX
     {
-        extern int Tix_Init(Tcl_Interp *interp);
-        extern int Tix_SafeInit(Tcl_Interp *interp);
+        extern int Tix_Init(Tcl_Interp * interp);
+        extern int Tix_SafeInit(Tcl_Interp * interp);
         Tcl_StaticPackage(NULL, "Tix", Tix_Init, Tix_SafeInit);
     }
 #endif

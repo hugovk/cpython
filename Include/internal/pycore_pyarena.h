@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 typedef struct _arena PyArena;
@@ -35,7 +35,7 @@ typedef struct _arena PyArena;
 // XXX an exception is not set in that case).
 //
 // Export for test_peg_generator
-PyAPI_FUNC(PyArena*) _PyArena_New(void);
+PyAPI_FUNC(PyArena *) _PyArena_New(void);
 
 // Export for test_peg_generator
 PyAPI_FUNC(void) _PyArena_Free(PyArena *);
@@ -53,7 +53,7 @@ PyAPI_FUNC(void) _PyArena_Free(PyArena *);
 // from the arena `ar` become invalid simultaneously.
 //
 // Export for test_peg_generator
-PyAPI_FUNC(void*) _PyArena_Malloc(PyArena *, size_t size);
+PyAPI_FUNC(void *) _PyArena_Malloc(PyArena *, size_t size);
 
 // This routine isn't a proper arena allocation routine.  It takes
 // a PyObject* and records it so that it can be DECREFed when the

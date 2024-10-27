@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030b0000
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030b0000
 
 /* === New Buffer API ============================================
  * Limited API and stable ABI since Python 3.11
@@ -19,10 +19,10 @@ extern "C" {
 
 typedef struct {
     void *buf;
-    PyObject *obj;        /* owned reference */
+    PyObject *obj; /* owned reference */
     Py_ssize_t len;
-    Py_ssize_t itemsize;  /* This is Py_ssize_t so it can be
-                             pointed to by strides in simple case.*/
+    Py_ssize_t itemsize; /* This is Py_ssize_t so it can be
+                            pointed to by strides in simple case.*/
     int readonly;
     int ndim;
     char *format;
@@ -43,23 +43,24 @@ PyAPI_FUNC(int) PyObject_CheckBuffer(PyObject *obj);
    call.
 
    Returns -1 and raises an error on failure and returns 0 on success. */
-PyAPI_FUNC(int) PyObject_GetBuffer(PyObject *obj, Py_buffer *view,
-                                   int flags);
+PyAPI_FUNC(int) PyObject_GetBuffer(PyObject *obj, Py_buffer *view, int flags);
 
 /* Get the memory area pointed to by the indices for the buffer given.
    Note that view->ndim is the assumed size of indices. */
-PyAPI_FUNC(void *) PyBuffer_GetPointer(const Py_buffer *view, const Py_ssize_t *indices);
+PyAPI_FUNC(void *)
+    PyBuffer_GetPointer(const Py_buffer *view, const Py_ssize_t *indices);
 
 /* Return the implied itemsize of the data-format area from a
    struct-style description. */
 PyAPI_FUNC(Py_ssize_t) PyBuffer_SizeFromFormat(const char *format);
 
 /* Implementation in memoryobject.c */
-PyAPI_FUNC(int) PyBuffer_ToContiguous(void *buf, const Py_buffer *view,
-                                      Py_ssize_t len, char order);
+PyAPI_FUNC(int)
+    PyBuffer_ToContiguous(void *buf, const Py_buffer *view, Py_ssize_t len, char order);
 
-PyAPI_FUNC(int) PyBuffer_FromContiguous(const Py_buffer *view, const void *buf,
-                                        Py_ssize_t len, char order);
+PyAPI_FUNC(int) PyBuffer_FromContiguous(
+    const Py_buffer *view, const void *buf, Py_ssize_t len, char order
+);
 
 /* Copy len bytes of data from the contiguous chunk of memory
    pointed to by buf into the buffer exported by obj.  Return
@@ -83,20 +84,18 @@ PyAPI_FUNC(int) PyBuffer_IsContiguous(const Py_buffer *view, char fort);
   (Fortran-style if fort is 'F' or C-style otherwise)
   array of the given shape with the given number of bytes
   per element. */
-PyAPI_FUNC(void) PyBuffer_FillContiguousStrides(int ndims,
-                                               Py_ssize_t *shape,
-                                               Py_ssize_t *strides,
-                                               int itemsize,
-                                               char fort);
+PyAPI_FUNC(void) PyBuffer_FillContiguousStrides(
+    int ndims, Py_ssize_t *shape, Py_ssize_t *strides, int itemsize, char fort
+);
 
 /* Fills in a buffer-info structure correctly for an exporter
    that can only share a contiguous chunk of memory of
    "unsigned bytes" of the given length.
 
    Returns 0 on success and -1 (with raising an error) on error. */
-PyAPI_FUNC(int) PyBuffer_FillInfo(Py_buffer *view, PyObject *o, void *buf,
-                                  Py_ssize_t len, int readonly,
-                                  int flags);
+PyAPI_FUNC(int) PyBuffer_FillInfo(
+    Py_buffer *view, PyObject *o, void *buf, Py_ssize_t len, int readonly, int flags
+);
 
 /* Releases a Py_buffer obtained from getbuffer ParseTuple's "s*". */
 PyAPI_FUNC(void) PyBuffer_Release(Py_buffer *view);
@@ -133,8 +132,7 @@ PyAPI_FUNC(void) PyBuffer_Release(Py_buffer *view);
 #define PyBUF_FULL (PyBUF_INDIRECT | PyBUF_WRITABLE | PyBUF_FORMAT)
 #define PyBUF_FULL_RO (PyBUF_INDIRECT | PyBUF_FORMAT)
 
-
-#define PyBUF_READ  0x100
+#define PyBUF_READ 0x100
 #define PyBUF_WRITE 0x200
 
 #endif /* !Py_LIMITED_API || Py_LIMITED_API >= 3.11 */

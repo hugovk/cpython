@@ -4,9 +4,9 @@
  * foo, bar), only the first one is called the same as the compiled file.
  */
 
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #ifndef Py_GIL_DISABLED
-#  define Py_LIMITED_API 0x030d0000
+#define Py_LIMITED_API 0x030d0000
 #endif
 
 #include <Python.h>
@@ -29,8 +29,8 @@ static struct PyModuleDef _testimportmultiple = {
     NULL
 };
 
-PyMODINIT_FUNC PyInit__testimportmultiple(void)
-{
+PyMODINIT_FUNC
+PyInit__testimportmultiple(void) {
     return PyModuleDef_Init(&_testimportmultiple);
 }
 
@@ -46,8 +46,8 @@ static struct PyModuleDef _foomodule = {
     NULL
 };
 
-PyMODINIT_FUNC PyInit__testimportmultiple_foo(void)
-{
+PyMODINIT_FUNC
+PyInit__testimportmultiple_foo(void) {
     return PyModuleDef_Init(&_foomodule);
 }
 
@@ -63,6 +63,7 @@ static struct PyModuleDef _barmodule = {
     NULL
 };
 
-PyMODINIT_FUNC PyInit__testimportmultiple_bar(void){
+PyMODINIT_FUNC
+PyInit__testimportmultiple_bar(void) {
     return PyModuleDef_Init(&_barmodule);
 }

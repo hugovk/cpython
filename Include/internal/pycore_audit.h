@@ -5,9 +5,8 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
-
 
 /* Runtime audit hook state */
 
@@ -17,17 +16,13 @@ typedef struct _Py_AuditHookEntry {
     void *userData;
 } _Py_AuditHookEntry;
 
-
-extern int _PySys_Audit(
-    PyThreadState *tstate,
-    const char *event,
-    const char *argFormat,
-    ...);
+extern int
+_PySys_Audit(PyThreadState *tstate, const char *event, const char *argFormat, ...);
 
 // _PySys_ClearAuditHooks() must not be exported: use extern rather than
 // PyAPI_FUNC(). We want minimal exposure of this function.
-extern void _PySys_ClearAuditHooks(PyThreadState *tstate);
-
+extern void
+_PySys_ClearAuditHooks(PyThreadState *tstate);
 
 #ifdef __cplusplus
 }

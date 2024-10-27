@@ -1,19 +1,18 @@
 #ifndef Py_INTERNAL_ATEXIT_H
 #define Py_INTERNAL_ATEXIT_H
 
-#include "pycore_lock.h"        // PyMutex
+#include "pycore_lock.h"  // PyMutex
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-
-//###############
-// runtime atexit
+// ###############
+//  runtime atexit
 
 typedef void (*atexit_callbackfunc)(void);
 
@@ -24,9 +23,8 @@ struct _atexit_runtime_state {
     int ncallbacks;
 };
 
-
-//###################
-// interpreter atexit
+// ###################
+//  interpreter atexit
 
 typedef void (*atexit_datacallbackfunc)(void *);
 
@@ -55,10 +53,8 @@ struct atexit_state {
 };
 
 // Export for '_interpchannels' shared extension
-PyAPI_FUNC(int) _Py_AtExit(
-    PyInterpreterState *interp,
-    atexit_datacallbackfunc func,
-    void *data);
+PyAPI_FUNC(int)
+    _Py_AtExit(PyInterpreterState *interp, atexit_datacallbackfunc func, void *data);
 
 #ifdef __cplusplus
 }

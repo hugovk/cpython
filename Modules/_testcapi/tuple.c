@@ -1,17 +1,14 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-tuple_get_size(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+tuple_get_size(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PyTuple_GET_SIZE(obj));
 }
 
 static PyObject *
-tuple_get_item(PyObject *Py_UNUSED(module), PyObject *args)
-{
+tuple_get_item(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "On", &obj, &i)) {
@@ -22,8 +19,7 @@ tuple_get_item(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-tuple_copy(PyObject *tuple)
-{
+tuple_copy(PyObject *tuple) {
     Py_ssize_t size = PyTuple_GET_SIZE(tuple);
     PyObject *newtuple = PyTuple_New(size);
     if (!newtuple) {
@@ -36,8 +32,7 @@ tuple_copy(PyObject *tuple)
 }
 
 static PyObject *
-tuple_set_item(PyObject *Py_UNUSED(module), PyObject *args)
-{
+tuple_set_item(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj, *value, *newtuple;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "OnO", &obj, &i, &value)) {
@@ -54,8 +49,7 @@ tuple_set_item(PyObject *Py_UNUSED(module), PyObject *args)
         PyTuple_SET_ITEM(newtuple, i, Py_XNewRef(value));
         Py_DECREF(val);
         return newtuple;
-    }
-    else {
+    } else {
         NULLABLE(obj);
 
         PyObject *val = PyTuple_GET_ITEM(obj, i);
@@ -66,8 +60,7 @@ tuple_set_item(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-_tuple_resize(PyObject *Py_UNUSED(module), PyObject *args)
-{
+_tuple_resize(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *tup;
     Py_ssize_t newsize;
     int new = 1;
@@ -79,8 +72,7 @@ _tuple_resize(PyObject *Py_UNUSED(module), PyObject *args)
         if (!tup) {
             return NULL;
         }
-    }
-    else {
+    } else {
         NULLABLE(tup);
         Py_XINCREF(tup);
     }
@@ -93,8 +85,7 @@ _tuple_resize(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-_check_tuple_item_is_NULL(PyObject *Py_UNUSED(module), PyObject *args)
-{
+_check_tuple_item_is_NULL(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "On", &obj, &i)) {
@@ -102,7 +93,6 @@ _check_tuple_item_is_NULL(PyObject *Py_UNUSED(module), PyObject *args)
     }
     return PyLong_FromLong(PyTuple_GET_ITEM(obj, i) == NULL);
 }
-
 
 static PyMethodDef test_methods[] = {
     {"tuple_get_size", tuple_get_size, METH_O},
@@ -114,8 +104,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Tuple(PyObject *m)
-{
+_PyTestCapi_Init_Tuple(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

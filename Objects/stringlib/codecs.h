@@ -1,29 +1,27 @@
 /* stringlib: codec implementations */
 
 #if !STRINGLIB_IS_UNICODE
-# error "codecs.h is specific to Unicode"
+#error "codecs.h is specific to Unicode"
 #endif
 
-#include "pycore_bitutils.h"      // _Py_bswap32()
+#include "pycore_bitutils.h"  // _Py_bswap32()
 
 /* Mask to quickly check whether a C 'size_t' contains a
    non-ASCII, UTF8-encoded char. */
 #if (SIZEOF_SIZE_T == 8)
-# define ASCII_CHAR_MASK 0x8080808080808080ULL
+#define ASCII_CHAR_MASK 0x8080808080808080ULL
 #elif (SIZEOF_SIZE_T == 4)
-# define ASCII_CHAR_MASK 0x80808080U
+#define ASCII_CHAR_MASK 0x80808080U
 #else
-# error C 'size_t' size should be either 4 or 8!
+#error C 'size_t' size should be either 4 or 8!
 #endif
 
 /* 10xxxxxx */
 #define IS_CONTINUATION_BYTE(ch) ((ch) >= 0x80 && (ch) < 0xC0)
 
-Py_LOCAL_INLINE(Py_UCS4)
-STRINGLIB(utf8_decode)(const char **inptr, const char *end,
-                       STRINGLIB_CHAR *dest,
-                       Py_ssize_t *outpos)
-{
+Py_LOCAL_INLINE(Py_UCS4) STRINGLIB(utf8_decode)(
+    const char **inptr, const char *end, STRINGLIB_CHAR *dest, Py_ssize_t *outpos
+) {
     Py_UCS4 ch;
     const char *s = *inptr;
     STRINGLIB_CHAR *p = dest + *outpos;
@@ -47,7 +45,7 @@ STRINGLIB(utf8_decode)(const char **inptr, const char *end,
                     /* Read a whole size_t at a time (either 4 or 8 bytes),
                        and do a fast unrolled copy if it only contains ASCII
                        characters. */
-                    size_t value = *(const size_t *) _s;
+                    size_t value = *(const size_t *)_s;
                     if (value & ASCII_CHAR_MASK)
                         break;
 #if PY_LITTLE_ENDIAN
@@ -55,14 +53,14 @@ STRINGLIB(utf8_decode)(const char **inptr, const char *end,
                     _p[1] = (STRINGLIB_CHAR)((value >> 8) & 0xFFu);
                     _p[2] = (STRINGLIB_CHAR)((value >> 16) & 0xFFu);
                     _p[3] = (STRINGLIB_CHAR)((value >> 24) & 0xFFu);
-# if SIZEOF_SIZE_T == 8
+#if SIZEOF_SIZE_T == 8
                     _p[4] = (STRINGLIB_CHAR)((value >> 32) & 0xFFu);
                     _p[5] = (STRINGLIB_CHAR)((value >> 40) & 0xFFu);
                     _p[6] = (STRINGLIB_CHAR)((value >> 48) & 0xFFu);
                     _p[7] = (STRINGLIB_CHAR)((value >> 56) & 0xFFu);
-# endif
+#endif
 #else
-# if SIZEOF_SIZE_T == 8
+#if SIZEOF_SIZE_T == 8
                     _p[0] = (STRINGLIB_CHAR)((value >> 56) & 0xFFu);
                     _p[1] = (STRINGLIB_CHAR)((value >> 48) & 0xFFu);
                     _p[2] = (STRINGLIB_CHAR)((value >> 40) & 0xFFu);
@@ -71,12 +69,12 @@ STRINGLIB(utf8_decode)(const char **inptr, const char *end,
                     _p[5] = (STRINGLIB_CHAR)((value >> 16) & 0xFFu);
                     _p[6] = (STRINGLIB_CHAR)((value >> 8) & 0xFFu);
                     _p[7] = (STRINGLIB_CHAR)(value & 0xFFu);
-# else
+#else
                     _p[0] = (STRINGLIB_CHAR)((value >> 24) & 0xFFu);
                     _p[1] = (STRINGLIB_CHAR)((value >> 16) & 0xFFu);
                     _p[2] = (STRINGLIB_CHAR)((value >> 8) & 0xFFu);
                     _p[3] = (STRINGLIB_CHAR)(value & 0xFFu);
-# endif
+#endif
 #endif
                     _s += SIZEOF_SIZE_T;
                     _p += SIZEOF_SIZE_T;
@@ -112,9 +110,8 @@ STRINGLIB(utf8_decode)(const char **inptr, const char *end,
             if (!IS_CONTINUATION_BYTE(ch2))
                 /* invalid continuation byte */
                 goto InvalidContinuation1;
-            ch = (ch << 6) + ch2 -
-                 ((0xC0 << 6) + 0x80);
-            assert ((ch > 0x007F) && (ch <= 0x07FF));
+            ch = (ch << 6) + ch2 - ((0xC0 << 6) + 0x80);
+            assert((ch > 0x007F) && (ch <= 0x07FF));
             s += 2;
             if (STRINGLIB_MAX_CHAR <= 0x007F ||
                 (STRINGLIB_MAX_CHAR < 0x07FF && ch > STRINGLIB_MAX_CHAR))
@@ -162,9 +159,8 @@ STRINGLIB(utf8_decode)(const char **inptr, const char *end,
                 /* invalid continuation byte */
                 goto InvalidContinuation2;
             }
-            ch = (ch << 12) + (ch2 << 6) + ch3 -
-                 ((0xE0 << 12) + (0x80 << 6) + 0x80);
-            assert ((ch > 0x07FF) && (ch <= 0xFFFF));
+            ch = (ch << 12) + (ch2 << 6) + ch3 - ((0xE0 << 12) + (0x80 << 6) + 0x80);
+            assert((ch > 0x07FF) && (ch <= 0xFFFF));
             s += 3;
             if (STRINGLIB_MAX_CHAR <= 0x07FF ||
                 (STRINGLIB_MAX_CHAR < 0xFFFF && ch > STRINGLIB_MAX_CHAR))
@@ -221,7 +217,7 @@ STRINGLIB(utf8_decode)(const char **inptr, const char *end,
             }
             ch = (ch << 18) + (ch2 << 12) + (ch3 << 6) + ch4 -
                  ((0xF0 << 18) + (0x80 << 12) + (0x80 << 6) + 0x80);
-            assert ((ch > 0xFFFF) && (ch <= 0x10FFFF));
+            assert((ch > 0xFFFF) && (ch <= 0x10FFFF));
             s += 4;
             if (STRINGLIB_MAX_CHAR <= 0xFFFF ||
                 (STRINGLIB_MAX_CHAR < 0x10FFFF && ch > STRINGLIB_MAX_CHAR))
@@ -253,20 +249,19 @@ InvalidContinuation3:
 
 #undef ASCII_CHAR_MASK
 
-
 /* UTF-8 encoder specialized for a Unicode kind to avoid the slow
    PyUnicode_READ() macro. Delete some parts of the code depending on the kind:
    UCS-1 strings don't need to handle surrogates for example. */
-Py_LOCAL_INLINE(char *)
-STRINGLIB(utf8_encoder)(_PyBytesWriter *writer,
-                        PyObject *unicode,
-                        const STRINGLIB_CHAR *data,
-                        Py_ssize_t size,
-                        _Py_error_handler error_handler,
-                        const char *errors)
-{
-    Py_ssize_t i;                /* index into data of next input character */
-    char *p;                     /* next free byte in output buffer */
+Py_LOCAL_INLINE(char *) STRINGLIB(utf8_encoder)(
+    _PyBytesWriter *writer,
+    PyObject *unicode,
+    const STRINGLIB_CHAR *data,
+    Py_ssize_t size,
+    _Py_error_handler error_handler,
+    const char *errors
+) {
+    Py_ssize_t i; /* index into data of next input character */
+    char *p;      /* next free byte in output buffer */
 #if STRINGLIB_SIZEOF_CHAR > 1
     PyObject *error_handler_obj = NULL;
     PyObject *exc = NULL;
@@ -297,12 +292,11 @@ STRINGLIB(utf8_encoder)(_PyBytesWriter *writer,
 
         if (ch < 0x80) {
             /* Encode ASCII */
-            *p++ = (char) ch;
+            *p++ = (char)ch;
 
-        }
-        else
+        } else
 #if STRINGLIB_SIZEOF_CHAR > 1
-        if (ch < 0x0800)
+            if (ch < 0x0800)
 #endif
         {
             /* Encode Latin-1 */
@@ -317,123 +311,130 @@ STRINGLIB(utf8_encoder)(_PyBytesWriter *writer,
                 error_handler = _Py_GetErrorHandler(errors);
             }
 
-            startpos = i-1;
-            endpos = startpos+1;
+            startpos = i - 1;
+            endpos = startpos + 1;
 
-            while ((endpos < size) && Py_UNICODE_IS_SURROGATE(data[endpos]))
-                endpos++;
+            while ((endpos < size) && Py_UNICODE_IS_SURROGATE(data[endpos])) endpos++;
 
             /* Only overallocate the buffer if it's not the last write */
             writer->overallocate = (endpos < size);
 
-            switch (error_handler)
-            {
-            case _Py_ERROR_REPLACE:
-                memset(p, '?', endpos - startpos);
-                p += (endpos - startpos);
-                _Py_FALLTHROUGH;
-            case _Py_ERROR_IGNORE:
-                i += (endpos - startpos - 1);
-                break;
-
-            case _Py_ERROR_SURROGATEPASS:
-                for (k=startpos; k<endpos; k++) {
-                    ch = data[k];
-                    *p++ = (char)(0xe0 | (ch >> 12));
-                    *p++ = (char)(0x80 | ((ch >> 6) & 0x3f));
-                    *p++ = (char)(0x80 | (ch & 0x3f));
-                }
-                i += (endpos - startpos - 1);
-                break;
-
-            case _Py_ERROR_BACKSLASHREPLACE:
-                /* subtract preallocated bytes */
-                writer->min_size -= max_char_size * (endpos - startpos);
-                p = backslashreplace(writer, p,
-                                     unicode, startpos, endpos);
-                if (p == NULL)
-                    goto error;
-                i += (endpos - startpos - 1);
-                break;
-
-            case _Py_ERROR_XMLCHARREFREPLACE:
-                /* subtract preallocated bytes */
-                writer->min_size -= max_char_size * (endpos - startpos);
-                p = xmlcharrefreplace(writer, p,
-                                      unicode, startpos, endpos);
-                if (p == NULL)
-                    goto error;
-                i += (endpos - startpos - 1);
-                break;
-
-            case _Py_ERROR_SURROGATEESCAPE:
-                for (k=startpos; k<endpos; k++) {
-                    ch = data[k];
-                    if (!(0xDC80 <= ch && ch <= 0xDCFF))
-                        break;
-                    *p++ = (char)(ch & 0xff);
-                }
-                if (k >= endpos) {
+            switch (error_handler) {
+                case _Py_ERROR_REPLACE:
+                    memset(p, '?', endpos - startpos);
+                    p += (endpos - startpos);
+                    _Py_FALLTHROUGH;
+                case _Py_ERROR_IGNORE:
                     i += (endpos - startpos - 1);
                     break;
-                }
-                startpos = k;
-                assert(startpos < endpos);
-                _Py_FALLTHROUGH;
-            default:
-                rep = unicode_encode_call_errorhandler(
-                      errors, &error_handler_obj, "utf-8", "surrogates not allowed",
-                      unicode, &exc, startpos, endpos, &newpos);
-                if (!rep)
-                    goto error;
 
-                if (newpos < startpos) {
-                    writer->overallocate = 1;
-                    p = _PyBytesWriter_Prepare(writer, p,
-                                               max_char_size * (startpos - newpos));
+                case _Py_ERROR_SURROGATEPASS:
+                    for (k = startpos; k < endpos; k++) {
+                        ch = data[k];
+                        *p++ = (char)(0xe0 | (ch >> 12));
+                        *p++ = (char)(0x80 | ((ch >> 6) & 0x3f));
+                        *p++ = (char)(0x80 | (ch & 0x3f));
+                    }
+                    i += (endpos - startpos - 1);
+                    break;
+
+                case _Py_ERROR_BACKSLASHREPLACE:
+                    /* subtract preallocated bytes */
+                    writer->min_size -= max_char_size * (endpos - startpos);
+                    p = backslashreplace(writer, p, unicode, startpos, endpos);
                     if (p == NULL)
                         goto error;
-                }
-                else {
-                    /* subtract preallocated bytes */
-                    writer->min_size -= max_char_size * (newpos - startpos);
-                    /* Only overallocate the buffer if it's not the last write */
-                    writer->overallocate = (newpos < size);
-                }
+                    i += (endpos - startpos - 1);
+                    break;
 
-                if (PyBytes_Check(rep)) {
-                    p = _PyBytesWriter_WriteBytes(writer, p,
-                                                  PyBytes_AS_STRING(rep),
-                                                  PyBytes_GET_SIZE(rep));
-                }
-                else {
-                    /* rep is unicode */
-                    if (!PyUnicode_IS_ASCII(rep)) {
-                        raise_encode_exception(&exc, "utf-8", unicode,
-                                               startpos, endpos,
-                                               "surrogates not allowed");
+                case _Py_ERROR_XMLCHARREFREPLACE:
+                    /* subtract preallocated bytes */
+                    writer->min_size -= max_char_size * (endpos - startpos);
+                    p = xmlcharrefreplace(writer, p, unicode, startpos, endpos);
+                    if (p == NULL)
                         goto error;
+                    i += (endpos - startpos - 1);
+                    break;
+
+                case _Py_ERROR_SURROGATEESCAPE:
+                    for (k = startpos; k < endpos; k++) {
+                        ch = data[k];
+                        if (!(0xDC80 <= ch && ch <= 0xDCFF))
+                            break;
+                        *p++ = (char)(ch & 0xff);
+                    }
+                    if (k >= endpos) {
+                        i += (endpos - startpos - 1);
+                        break;
+                    }
+                    startpos = k;
+                    assert(startpos < endpos);
+                    _Py_FALLTHROUGH;
+                default:
+                    rep = unicode_encode_call_errorhandler(
+                        errors,
+                        &error_handler_obj,
+                        "utf-8",
+                        "surrogates not allowed",
+                        unicode,
+                        &exc,
+                        startpos,
+                        endpos,
+                        &newpos
+                    );
+                    if (!rep)
+                        goto error;
+
+                    if (newpos < startpos) {
+                        writer->overallocate = 1;
+                        p = _PyBytesWriter_Prepare(
+                            writer, p, max_char_size * (startpos - newpos)
+                        );
+                        if (p == NULL)
+                            goto error;
+                    } else {
+                        /* subtract preallocated bytes */
+                        writer->min_size -= max_char_size * (newpos - startpos);
+                        /* Only overallocate the buffer if it's not the last write */
+                        writer->overallocate = (newpos < size);
                     }
 
-                    p = _PyBytesWriter_WriteBytes(writer, p,
-                                                  PyUnicode_DATA(rep),
-                                                  PyUnicode_GET_LENGTH(rep));
-                }
+                    if (PyBytes_Check(rep)) {
+                        p = _PyBytesWriter_WriteBytes(
+                            writer, p, PyBytes_AS_STRING(rep), PyBytes_GET_SIZE(rep)
+                        );
+                    } else {
+                        /* rep is unicode */
+                        if (!PyUnicode_IS_ASCII(rep)) {
+                            raise_encode_exception(
+                                &exc,
+                                "utf-8",
+                                unicode,
+                                startpos,
+                                endpos,
+                                "surrogates not allowed"
+                            );
+                            goto error;
+                        }
 
-                if (p == NULL)
-                    goto error;
-                Py_CLEAR(rep);
+                        p = _PyBytesWriter_WriteBytes(
+                            writer, p, PyUnicode_DATA(rep), PyUnicode_GET_LENGTH(rep)
+                        );
+                    }
 
-                i = newpos;
+                    if (p == NULL)
+                        goto error;
+                    Py_CLEAR(rep);
+
+                    i = newpos;
             }
 
             /* If overallocation was disabled, ensure that it was the last
                write. Otherwise, we missed an optimization */
             assert(writer->overallocate || i == size);
-        }
-        else
+        } else
 #if STRINGLIB_SIZEOF_CHAR > 2
-        if (ch < 0x10000)
+            if (ch < 0x10000)
 #endif
         {
             *p++ = (char)(0xe0 | (ch >> 12));
@@ -461,7 +462,7 @@ STRINGLIB(utf8_encoder)(_PyBytesWriter *writer,
     return p;
 
 #if STRINGLIB_SIZEOF_CHAR > 1
- error:
+error:
     Py_XDECREF(rep);
     Py_XDECREF(error_handler_obj);
     Py_XDECREF(exc);
@@ -471,37 +472,39 @@ STRINGLIB(utf8_encoder)(_PyBytesWriter *writer,
 
 /* The pattern for constructing UCS2-repeated masks. */
 #if SIZEOF_LONG == 8
-# define UCS2_REPEAT_MASK 0x0001000100010001ul
+#define UCS2_REPEAT_MASK 0x0001000100010001ul
 #elif SIZEOF_LONG == 4
-# define UCS2_REPEAT_MASK 0x00010001ul
+#define UCS2_REPEAT_MASK 0x00010001ul
 #else
-# error C 'long' size should be either 4 or 8!
+#error C 'long' size should be either 4 or 8!
 #endif
 
 /* The mask for fast checking. */
 #if STRINGLIB_SIZEOF_CHAR == 1
 /* The mask for fast checking of whether a C 'long' contains a
    non-ASCII or non-Latin1 UTF16-encoded characters. */
-# define FAST_CHAR_MASK         (UCS2_REPEAT_MASK * (0xFFFFu & ~STRINGLIB_MAX_CHAR))
+#define FAST_CHAR_MASK (UCS2_REPEAT_MASK * (0xFFFFu & ~STRINGLIB_MAX_CHAR))
 #else
 /* The mask for fast checking of whether a C 'long' may contain
    UTF16-encoded surrogate characters. This is an efficient heuristic,
    assuming that non-surrogate characters with a code point >= 0x8000 are
    rare in most input.
 */
-# define FAST_CHAR_MASK         (UCS2_REPEAT_MASK * 0x8000u)
+#define FAST_CHAR_MASK (UCS2_REPEAT_MASK * 0x8000u)
 #endif
 /* The mask for fast byte-swapping. */
-#define STRIPPED_MASK           (UCS2_REPEAT_MASK * 0x00FFu)
+#define STRIPPED_MASK (UCS2_REPEAT_MASK * 0x00FFu)
 /* Swap bytes. */
-#define SWAB(value)             ((((value) >> 8) & STRIPPED_MASK) | \
-                                 (((value) & STRIPPED_MASK) << 8))
+#define SWAB(value) \
+    ((((value) >> 8) & STRIPPED_MASK) | (((value) & STRIPPED_MASK) << 8))
 
-Py_LOCAL_INLINE(Py_UCS4)
-STRINGLIB(utf16_decode)(const unsigned char **inptr, const unsigned char *e,
-                        STRINGLIB_CHAR *dest, Py_ssize_t *outpos,
-                        int native_ordering)
-{
+Py_LOCAL_INLINE(Py_UCS4) STRINGLIB(utf16_decode)(
+    const unsigned char **inptr,
+    const unsigned char *e,
+    STRINGLIB_CHAR *dest,
+    Py_ssize_t *outpos,
+    int native_ordering
+) {
     Py_UCS4 ch;
     const unsigned char *q = *inptr;
     STRINGLIB_CHAR *p = dest + *outpos;
@@ -521,13 +524,12 @@ STRINGLIB(utf16_decode)(const unsigned char **inptr, const unsigned char *e,
             /* Fast path for runs of in-range non-surrogate chars. */
             const unsigned char *_q = q;
             while (_q + SIZEOF_LONG <= e) {
-                unsigned long block = * (const unsigned long *) _q;
+                unsigned long block = *(const unsigned long *)_q;
                 if (native_ordering) {
                     /* Can use buffer directly */
                     if (block & FAST_CHAR_MASK)
                         break;
-                }
-                else {
+                } else {
                     /* Need to byte-swap */
                     if (block & SWAB(FAST_CHAR_MASK))
                         break;
@@ -538,25 +540,25 @@ STRINGLIB(utf16_decode)(const unsigned char **inptr, const unsigned char *e,
 #endif
                 }
 #if PY_LITTLE_ENDIAN
-# if SIZEOF_LONG == 4
+#if SIZEOF_LONG == 4
                 p[0] = (STRINGLIB_CHAR)(block & 0xFFFFu);
                 p[1] = (STRINGLIB_CHAR)(block >> 16);
-# elif SIZEOF_LONG == 8
+#elif SIZEOF_LONG == 8
                 p[0] = (STRINGLIB_CHAR)(block & 0xFFFFu);
                 p[1] = (STRINGLIB_CHAR)((block >> 16) & 0xFFFFu);
                 p[2] = (STRINGLIB_CHAR)((block >> 32) & 0xFFFFu);
                 p[3] = (STRINGLIB_CHAR)(block >> 48);
-# endif
+#endif
 #else
-# if SIZEOF_LONG == 4
+#if SIZEOF_LONG == 4
                 p[0] = (STRINGLIB_CHAR)(block >> 16);
                 p[1] = (STRINGLIB_CHAR)(block & 0xFFFFu);
-# elif SIZEOF_LONG == 8
+#elif SIZEOF_LONG == 8
                 p[0] = (STRINGLIB_CHAR)(block >> 48);
                 p[1] = (STRINGLIB_CHAR)((block >> 32) & 0xFFFFu);
                 p[2] = (STRINGLIB_CHAR)((block >> 16) & 0xFFFFu);
                 p[3] = (STRINGLIB_CHAR)(block & 0xFFFFu);
-# endif
+#endif
 #endif
                 _q += SIZEOF_LONG;
                 p += SIZEOF_LONG / 2;
@@ -615,14 +617,13 @@ IllegalSurrogate:
 #undef STRIPPED_MASK
 #undef SWAB
 
-
 #if STRINGLIB_MAX_CHAR >= 0x80
-Py_LOCAL_INLINE(Py_ssize_t)
-STRINGLIB(utf16_encode)(const STRINGLIB_CHAR *in,
-                        Py_ssize_t len,
-                        unsigned short **outptr,
-                        int native_ordering)
-{
+Py_LOCAL_INLINE(Py_ssize_t) STRINGLIB(utf16_encode)(
+    const STRINGLIB_CHAR *in,
+    Py_ssize_t len,
+    unsigned short **outptr,
+    int native_ordering
+) {
     unsigned short *out = *outptr;
     const STRINGLIB_CHAR *end = in + len;
 #if STRINGLIB_SIZEOF_CHAR == 1
@@ -633,20 +634,22 @@ STRINGLIB(utf16_encode)(const STRINGLIB_CHAR *in,
             out[1] = in[1];
             out[2] = in[2];
             out[3] = in[3];
-            in += 4; out += 4;
+            in += 4;
+            out += 4;
         }
         while (in < end) {
             *out++ = *in++;
         }
     } else {
-# define SWAB2(CH)  ((CH) << 8) /* high byte is zero */
+#define SWAB2(CH) ((CH) << 8) /* high byte is zero */
         const STRINGLIB_CHAR *unrolled_end = in + _Py_SIZE_ROUND_DOWN(len, 4);
         while (in < unrolled_end) {
             out[0] = SWAB2(in[0]);
             out[1] = SWAB2(in[1]);
             out[2] = SWAB2(in[2]);
             out[3] = SWAB2(in[3]);
-            in += 4; out += 4;
+            in += 4;
+            out += 4;
         }
         while (in < end) {
             Py_UCS4 ch = *in++;
@@ -662,16 +665,15 @@ STRINGLIB(utf16_encode)(const STRINGLIB_CHAR *in,
         const STRINGLIB_CHAR *unrolled_end = in + _Py_SIZE_ROUND_DOWN(len, 4);
         while (in < unrolled_end) {
             /* check if any character is a surrogate character */
-            if (((in[0] ^ 0xd800) &
-                 (in[1] ^ 0xd800) &
-                 (in[2] ^ 0xd800) &
+            if (((in[0] ^ 0xd800) & (in[1] ^ 0xd800) & (in[2] ^ 0xd800) &
                  (in[3] ^ 0xd800) & 0xf800) == 0)
                 break;
             out[0] = in[0];
             out[1] = in[1];
             out[2] = in[2];
             out[3] = in[3];
-            in += 4; out += 4;
+            in += 4;
+            out += 4;
         }
 #endif
         while (in < end) {
@@ -693,21 +695,20 @@ STRINGLIB(utf16_encode)(const STRINGLIB_CHAR *in,
                 *out++ = ch;
         }
     } else {
-#define SWAB2(CH)  (((CH) << 8) | ((CH) >> 8))
+#define SWAB2(CH) (((CH) << 8) | ((CH) >> 8))
 #if STRINGLIB_MAX_CHAR < 0x10000
         const STRINGLIB_CHAR *unrolled_end = in + _Py_SIZE_ROUND_DOWN(len, 4);
         while (in < unrolled_end) {
             /* check if any character is a surrogate character */
-            if (((in[0] ^ 0xd800) &
-                 (in[1] ^ 0xd800) &
-                 (in[2] ^ 0xd800) &
+            if (((in[0] ^ 0xd800) & (in[1] ^ 0xd800) & (in[2] ^ 0xd800) &
                  (in[3] ^ 0xd800) & 0xf800) == 0)
                 break;
             out[0] = SWAB2(in[0]);
             out[1] = SWAB2(in[1]);
             out[2] = SWAB2(in[2]);
             out[3] = SWAB2(in[3]);
-            in += 4; out += 4;
+            in += 4;
+            out += 4;
         }
 #endif
         while (in < end) {
@@ -733,15 +734,14 @@ STRINGLIB(utf16_encode)(const STRINGLIB_CHAR *in,
     }
     *outptr = out;
     return len;
-  fail:
+fail:
     *outptr = out;
     return len - (end - in + 1);
 #endif
 }
 
 static inline uint32_t
-STRINGLIB(SWAB4)(STRINGLIB_CHAR ch)
-{
+STRINGLIB(SWAB4)(STRINGLIB_CHAR ch) {
     uint32_t word = ch;
 #if STRINGLIB_SIZEOF_CHAR == 1
     /* high bytes are zero */
@@ -754,12 +754,9 @@ STRINGLIB(SWAB4)(STRINGLIB_CHAR ch)
 #endif
 }
 
-Py_LOCAL_INLINE(Py_ssize_t)
-STRINGLIB(utf32_encode)(const STRINGLIB_CHAR *in,
-                        Py_ssize_t len,
-                        uint32_t **outptr,
-                        int native_ordering)
-{
+Py_LOCAL_INLINE(Py_ssize_t) STRINGLIB(utf32_encode)(
+    const STRINGLIB_CHAR *in, Py_ssize_t len, uint32_t **outptr, int native_ordering
+) {
     uint32_t *out = *outptr;
     const STRINGLIB_CHAR *end = in + len;
     if (native_ordering) {
@@ -767,9 +764,7 @@ STRINGLIB(utf32_encode)(const STRINGLIB_CHAR *in,
         while (in < unrolled_end) {
 #if STRINGLIB_SIZEOF_CHAR > 1
             /* check if any character is a surrogate character */
-            if (((in[0] ^ 0xd800) &
-                 (in[1] ^ 0xd800) &
-                 (in[2] ^ 0xd800) &
+            if (((in[0] ^ 0xd800) & (in[1] ^ 0xd800) & (in[2] ^ 0xd800) &
                  (in[3] ^ 0xd800) & 0xf800) == 0)
                 break;
 #endif
@@ -777,7 +772,8 @@ STRINGLIB(utf32_encode)(const STRINGLIB_CHAR *in,
             out[1] = in[1];
             out[2] = in[2];
             out[3] = in[3];
-            in += 4; out += 4;
+            in += 4;
+            out += 4;
         }
         while (in < end) {
             Py_UCS4 ch;
@@ -795,9 +791,7 @@ STRINGLIB(utf32_encode)(const STRINGLIB_CHAR *in,
         while (in < unrolled_end) {
 #if STRINGLIB_SIZEOF_CHAR > 1
             /* check if any character is a surrogate character */
-            if (((in[0] ^ 0xd800) &
-                 (in[1] ^ 0xd800) &
-                 (in[2] ^ 0xd800) &
+            if (((in[0] ^ 0xd800) & (in[1] ^ 0xd800) & (in[2] ^ 0xd800) &
                  (in[3] ^ 0xd800) & 0xf800) == 0)
                 break;
 #endif
@@ -805,7 +799,8 @@ STRINGLIB(utf32_encode)(const STRINGLIB_CHAR *in,
             out[1] = STRINGLIB(SWAB4)(in[1]);
             out[2] = STRINGLIB(SWAB4)(in[2]);
             out[3] = STRINGLIB(SWAB4)(in[3]);
-            in += 4; out += 4;
+            in += 4;
+            out += 4;
         }
         while (in < end) {
             Py_UCS4 ch = *in++;
@@ -821,7 +816,7 @@ STRINGLIB(utf32_encode)(const STRINGLIB_CHAR *in,
     *outptr = out;
     return len;
 #if STRINGLIB_SIZEOF_CHAR > 1
-  fail:
+fail:
     *outptr = out;
     return len - (end - in + 1);
 #endif

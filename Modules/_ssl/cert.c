@@ -15,14 +15,13 @@ class _ssl.Certificate "PySSLCertificate *" "PySSLCertificate_Type"
 #include "clinic/cert.c.h"
 
 static PyObject *
-newCertificate(PyTypeObject *type, X509 *cert, int upref)
-{
+newCertificate(PyTypeObject *type, X509 *cert, int upref) {
     PySSLCertificate *self;
 
     assert(type != NULL && type->tp_alloc != NULL);
     assert(cert != NULL);
 
-    self = (PySSLCertificate *) type->tp_alloc(type, 0);
+    self = (PySSLCertificate *)type->tp_alloc(type, 0);
     if (self == NULL) {
         return NULL;
     }
@@ -32,18 +31,18 @@ newCertificate(PyTypeObject *type, X509 *cert, int upref)
     self->cert = cert;
     self->hash = -1;
 
-    return (PyObject *) self;
+    return (PyObject *)self;
 }
 
 static PyObject *
-_PySSL_CertificateFromX509(_sslmodulestate *state, X509 *cert, int upref)
-{
+_PySSL_CertificateFromX509(_sslmodulestate *state, X509 *cert, int upref) {
     return newCertificate(state->PySSLCertificate_Type, cert, upref);
 }
 
-static PyObject*
-_PySSL_CertificateFromX509Stack(_sslmodulestate *state, STACK_OF(X509) *stack, int upref)
-{
+static PyObject *
+_PySSL_CertificateFromX509Stack(
+    _sslmodulestate *state, STACK_OF(X509) * stack, int upref
+) {
     int len, i;
     PyObject *result = NULL;
 
@@ -81,24 +80,23 @@ _ssl_Certificate_public_bytes_impl(PySSLCertificate *self, int format)
 
     bio = BIO_new(BIO_s_mem());
     if (bio == NULL) {
-        PyErr_SetString(state->PySSLErrorObject,
-                        "failed to allocate BIO");
+        PyErr_SetString(state->PySSLErrorObject, "failed to allocate BIO");
         return NULL;
     }
-    switch(format) {
-    case PY_SSL_ENCODING_PEM:
-        retcode = PEM_write_bio_X509(bio, self->cert);
-        break;
-    case PY_SSL_ENCODING_PEM_AUX:
-        retcode = PEM_write_bio_X509_AUX(bio, self->cert);
-        break;
-    case PY_SSL_ENCODING_DER:
-        retcode = i2d_X509_bio(bio, self->cert);
-        break;
-    default:
-        PyErr_SetString(PyExc_ValueError, "Unsupported format");
-        BIO_free(bio);
-        return NULL;
+    switch (format) {
+        case PY_SSL_ENCODING_PEM:
+            retcode = PEM_write_bio_X509(bio, self->cert);
+            break;
+        case PY_SSL_ENCODING_PEM_AUX:
+            retcode = PEM_write_bio_X509_AUX(bio, self->cert);
+            break;
+        case PY_SSL_ENCODING_DER:
+            retcode = i2d_X509_bio(bio, self->cert);
+            break;
+        default:
+            PyErr_SetString(PyExc_ValueError, "Unsupported format");
+            BIO_free(bio);
+            return NULL;
     }
     if (retcode != 1) {
         BIO_free(bio);
@@ -114,7 +112,6 @@ _ssl_Certificate_public_bytes_impl(PySSLCertificate *self, int format)
     return result;
 }
 
-
 /*[clinic input]
 _ssl.Certificate.get_info
 
@@ -127,9 +124,10 @@ _ssl_Certificate_get_info_impl(PySSLCertificate *self)
     return _decode_certificate(get_state_cert(self), self->cert);
 }
 
-static PyObject*
-_x509name_print(_sslmodulestate *state, X509_NAME *name, int indent, unsigned long flags)
-{
+static PyObject *
+_x509name_print(
+    _sslmodulestate *state, X509_NAME *name, int indent, unsigned long flags
+) {
     PyObject *res;
     BIO *biobuf;
 
@@ -154,30 +152,22 @@ _x509name_print(_sslmodulestate *state, X509_NAME *name, int indent, unsigned lo
  */
 
 static PyObject *
-certificate_repr(PySSLCertificate *self)
-{
+certificate_repr(PySSLCertificate *self) {
     PyObject *osubject, *result;
 
     /* subject string is ASCII encoded, UTF-8 chars are quoted */
     osubject = _x509name_print(
-        get_state_cert(self),
-        X509_get_subject_name(self->cert),
-        0,
-        XN_FLAG_RFC2253
+        get_state_cert(self), X509_get_subject_name(self->cert), 0, XN_FLAG_RFC2253
     );
     if (osubject == NULL)
         return NULL;
-    result = PyUnicode_FromFormat(
-        "<%s '%U'>",
-        Py_TYPE(self)->tp_name, osubject
-    );
+    result = PyUnicode_FromFormat("<%s '%U'>", Py_TYPE(self)->tp_name, osubject);
     Py_DECREF(osubject);
     return result;
 }
 
 static Py_hash_t
-certificate_hash(PySSLCertificate *self)
-{
+certificate_hash(PySSLCertificate *self) {
     if (self->hash == (Py_hash_t)-1) {
         unsigned long hash;
         hash = X509_subject_name_hash(self->cert);
@@ -191,8 +181,7 @@ certificate_hash(PySSLCertificate *self)
 }
 
 static PyObject *
-certificate_richcompare(PySSLCertificate *self, PyObject *other, int op)
-{
+certificate_richcompare(PySSLCertificate *self, PyObject *other, int op) {
     int cmp;
     _sslmodulestate *state = get_state_cert(self);
 
@@ -203,7 +192,7 @@ certificate_richcompare(PySSLCertificate *self, PyObject *other, int op)
     if ((op != Py_EQ) && (op != Py_NE)) {
         Py_RETURN_NOTIMPLEMENTED;
     }
-    cmp = X509_cmp(self->cert, ((PySSLCertificate*)other)->cert);
+    cmp = X509_cmp(self->cert, ((PySSLCertificate *)other)->cert);
     if (((op == Py_EQ) && (cmp == 0)) || ((op == Py_NE) && (cmp != 0))) {
         Py_RETURN_TRUE;
     } else {
@@ -212,8 +201,7 @@ certificate_richcompare(PySSLCertificate *self, PyObject *other, int op)
 }
 
 static void
-certificate_dealloc(PySSLCertificate *self)
-{
+certificate_dealloc(PySSLCertificate *self) {
     PyTypeObject *tp = Py_TYPE(self);
     X509_free(self->cert);
     Py_TYPE(self)->tp_free(self);
@@ -222,9 +210,9 @@ certificate_dealloc(PySSLCertificate *self)
 
 static PyMethodDef certificate_methods[] = {
     /* methods */
-    _SSL_CERTIFICATE_PUBLIC_BYTES_METHODDEF
-    _SSL_CERTIFICATE_GET_INFO_METHODDEF
-    {NULL, NULL}
+    _SSL_CERTIFICATE_PUBLIC_BYTES_METHODDEF _SSL_CERTIFICATE_GET_INFO_METHODDEF{
+        NULL, NULL
+    }
 };
 
 static PyType_Slot PySSLCertificate_slots[] = {

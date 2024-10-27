@@ -1,21 +1,22 @@
 /* stringlib: partition implementation */
 
 #ifndef STRINGLIB_FASTSEARCH_H
-#  error must include "stringlib/fastsearch.h" before including this module
+#error must include "stringlib/fastsearch.h" before including this module
 #endif
 
 #if !STRINGLIB_MUTABLE && !defined(STRINGLIB_GET_EMPTY)
-#  error "STRINGLIB_GET_EMPTY must be defined if STRINGLIB_MUTABLE is zero"
+#error "STRINGLIB_GET_EMPTY must be defined if STRINGLIB_MUTABLE is zero"
 #endif
 
-
-Py_LOCAL_INLINE(PyObject*)
-STRINGLIB(partition)(PyObject* str_obj,
-                    const STRINGLIB_CHAR* str, Py_ssize_t str_len,
-                    PyObject* sep_obj,
-                    const STRINGLIB_CHAR* sep, Py_ssize_t sep_len)
-{
-    PyObject* out;
+Py_LOCAL_INLINE(PyObject *) STRINGLIB(partition)(
+    PyObject *str_obj,
+    const STRINGLIB_CHAR *str,
+    Py_ssize_t str_len,
+    PyObject *sep_obj,
+    const STRINGLIB_CHAR *sep,
+    Py_ssize_t sep_len
+) {
+    PyObject *out;
     Py_ssize_t pos;
 
     if (sep_len == 0) {
@@ -41,8 +42,8 @@ STRINGLIB(partition)(PyObject* str_obj,
         }
 #else
         Py_INCREF(str_obj);
-        PyTuple_SET_ITEM(out, 0, (PyObject*) str_obj);
-        PyObject *empty = (PyObject*)STRINGLIB_GET_EMPTY();
+        PyTuple_SET_ITEM(out, 0, (PyObject *)str_obj);
+        PyObject *empty = (PyObject *)STRINGLIB_GET_EMPTY();
         assert(empty != NULL);
         Py_INCREF(empty);
         PyTuple_SET_ITEM(out, 1, empty);
@@ -66,13 +67,15 @@ STRINGLIB(partition)(PyObject* str_obj,
     return out;
 }
 
-Py_LOCAL_INLINE(PyObject*)
-STRINGLIB(rpartition)(PyObject* str_obj,
-                     const STRINGLIB_CHAR* str, Py_ssize_t str_len,
-                     PyObject* sep_obj,
-                     const STRINGLIB_CHAR* sep, Py_ssize_t sep_len)
-{
-    PyObject* out;
+Py_LOCAL_INLINE(PyObject *) STRINGLIB(rpartition)(
+    PyObject *str_obj,
+    const STRINGLIB_CHAR *str,
+    Py_ssize_t str_len,
+    PyObject *sep_obj,
+    const STRINGLIB_CHAR *sep,
+    Py_ssize_t sep_len
+) {
+    PyObject *out;
     Py_ssize_t pos;
 
     if (sep_len == 0) {
@@ -97,14 +100,14 @@ STRINGLIB(rpartition)(PyObject* str_obj,
             return NULL;
         }
 #else
-        PyObject *empty = (PyObject*)STRINGLIB_GET_EMPTY();
+        PyObject *empty = (PyObject *)STRINGLIB_GET_EMPTY();
         assert(empty != NULL);
         Py_INCREF(empty);
         PyTuple_SET_ITEM(out, 0, empty);
         Py_INCREF(empty);
         PyTuple_SET_ITEM(out, 1, empty);
         Py_INCREF(str_obj);
-        PyTuple_SET_ITEM(out, 2, (PyObject*) str_obj);
+        PyTuple_SET_ITEM(out, 2, (PyObject *)str_obj);
 #endif
         return out;
     }
@@ -122,4 +125,3 @@ STRINGLIB(rpartition)(PyObject* str_obj,
 
     return out;
 }
-

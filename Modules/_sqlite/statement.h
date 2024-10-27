@@ -28,15 +28,15 @@
 #include "connection.h"
 #include "sqlite3.h"
 
-typedef struct
-{
-    PyObject_HEAD
-    sqlite3_stmt* st;
+typedef struct {
+    PyObject_HEAD sqlite3_stmt *st;
     int is_dml;
 } pysqlite_Statement;
 
-pysqlite_Statement *pysqlite_statement_create(pysqlite_Connection *connection, PyObject *sql);
+pysqlite_Statement *
+pysqlite_statement_create(pysqlite_Connection *connection, PyObject *sql);
 
-int pysqlite_statement_setup_types(PyObject *module);
+int
+pysqlite_statement_setup_types(PyObject *module);
 
 #endif

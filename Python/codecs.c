@@ -9,25 +9,30 @@ Copyright (c) Corporation for National Research Initiatives.
    ------------------------------------------------------------------------ */
 
 #include "Python.h"
-#include "pycore_call.h"          // _PyObject_CallNoArgs()
-#include "pycore_interp.h"        // PyInterpreterState.codec_search_path
-#include "pycore_lock.h"          // PyMutex
-#include "pycore_pyerrors.h"      // _PyErr_FormatNote()
-#include "pycore_pystate.h"       // _PyInterpreterState_GET()
-#include "pycore_ucnhash.h"       // _PyUnicode_Name_CAPI
+#include "pycore_call.h"      // _PyObject_CallNoArgs()
+#include "pycore_interp.h"    // PyInterpreterState.codec_search_path
+#include "pycore_lock.h"      // PyMutex
+#include "pycore_pyerrors.h"  // _PyErr_FormatNote()
+#include "pycore_pystate.h"   // _PyInterpreterState_GET()
+#include "pycore_ucnhash.h"   // _PyUnicode_Name_CAPI
 
 static const char *codecs_builtin_error_handlers[] = {
-    "strict", "ignore", "replace",
-    "xmlcharrefreplace", "backslashreplace", "namereplace",
-    "surrogatepass", "surrogateescape",
+    "strict",
+    "ignore",
+    "replace",
+    "xmlcharrefreplace",
+    "backslashreplace",
+    "namereplace",
+    "surrogatepass",
+    "surrogateescape",
 };
 
 const char *Py_hexdigits = "0123456789abcdef";
 
 /* --- Codec Registry ----------------------------------------------------- */
 
-int PyCodec_Register(PyObject *search_function)
-{
+int
+PyCodec_Register(PyObject *search_function) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     assert(interp->codecs.initialized);
     if (search_function == NULL) {
@@ -47,13 +52,12 @@ int PyCodec_Register(PyObject *search_function)
 #endif
     return ret;
 
- onError:
+onError:
     return -1;
 }
 
 int
-PyCodec_Unregister(PyObject *search_function)
-{
+PyCodec_Unregister(PyObject *search_function) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     if (interp->codecs.initialized != 1) {
         /* Do nothing if codecs state was cleared (only possible during
@@ -72,7 +76,7 @@ PyCodec_Unregister(PyObject *search_function)
         if (item == search_function) {
             // We hold a reference to the item, so its destructor can't run
             // while we hold search_path_mutex.
-            ret = PyList_SetSlice(codec_search_path, i, i+1, NULL);
+            ret = PyList_SetSlice(codec_search_path, i, i + 1, NULL);
         }
 #ifdef Py_GIL_DISABLED
         PyMutex_Unlock(&interp->codecs.search_path_mutex);
@@ -88,14 +92,14 @@ PyCodec_Unregister(PyObject *search_function)
     return 0;
 }
 
-extern int _Py_normalize_encoding(const char *, char *, size_t);
+extern int
+_Py_normalize_encoding(const char *, char *, size_t);
 
-/* Convert a string to a normalized Python string(decoded from UTF-8): all characters are
-   converted to lower case, spaces and hyphens are replaced with underscores. */
+/* Convert a string to a normalized Python string(decoded from UTF-8): all characters
+   are converted to lower case, spaces and hyphens are replaced with underscores. */
 
-static
-PyObject *normalizestring(const char *string)
-{
+static PyObject *
+normalizestring(const char *string) {
     size_t len = strlen(string);
     char *encoding;
     PyObject *v;
@@ -109,8 +113,7 @@ PyObject *normalizestring(const char *string)
     if (encoding == NULL)
         return PyErr_NoMemory();
 
-    if (!_Py_normalize_encoding(string, encoding, len + 1))
-    {
+    if (!_Py_normalize_encoding(string, encoding, len + 1)) {
         PyErr_SetString(PyExc_RuntimeError, "_Py_normalize_encoding() failed");
         PyMem_Free(encoding);
         return NULL;
@@ -136,8 +139,8 @@ PyObject *normalizestring(const char *string)
 
 */
 
-PyObject *_PyCodec_Lookup(const char *encoding)
-{
+PyObject *
+_PyCodec_Lookup(const char *encoding) {
     if (encoding == NULL) {
         PyErr_BadArgument();
         return NULL;
@@ -172,9 +175,11 @@ PyObject *_PyCodec_Lookup(const char *encoding)
     if (len < 0)
         goto onError;
     if (len == 0) {
-        PyErr_SetString(PyExc_LookupError,
-                        "no codec search functions registered: "
-                        "can't find encoding");
+        PyErr_SetString(
+            PyExc_LookupError,
+            "no codec search functions registered: "
+            "can't find encoding"
+        );
         goto onError;
     }
 
@@ -194,8 +199,9 @@ PyObject *_PyCodec_Lookup(const char *encoding)
             continue;
         }
         if (!PyTuple_Check(result) || PyTuple_GET_SIZE(result) != 4) {
-            PyErr_SetString(PyExc_TypeError,
-                            "codec search functions must return 4-tuples");
+            PyErr_SetString(
+                PyExc_TypeError, "codec search functions must return 4-tuples"
+            );
             Py_DECREF(result);
             goto onError;
         }
@@ -203,8 +209,7 @@ PyObject *_PyCodec_Lookup(const char *encoding)
     }
     if (result == NULL) {
         /* XXX Perhaps we should cache misses too ? */
-        PyErr_Format(PyExc_LookupError,
-                     "unknown encoding: %s", encoding);
+        PyErr_Format(PyExc_LookupError, "unknown encoding: %s", encoding);
         goto onError;
     }
 
@@ -218,32 +223,29 @@ PyObject *_PyCodec_Lookup(const char *encoding)
     Py_DECREF(v);
     return result;
 
- onError:
+onError:
     Py_DECREF(v);
     return NULL;
 }
 
 /* Codec registry encoding check API. */
 
-int PyCodec_KnownEncoding(const char *encoding)
-{
+int
+PyCodec_KnownEncoding(const char *encoding) {
     PyObject *codecs;
 
     codecs = _PyCodec_Lookup(encoding);
     if (!codecs) {
         PyErr_Clear();
         return 0;
-    }
-    else {
+    } else {
         Py_DECREF(codecs);
         return 1;
     }
 }
 
-static
-PyObject *args_tuple(PyObject *object,
-                     const char *errors)
-{
+static PyObject *
+args_tuple(PyObject *object, const char *errors) {
     PyObject *args;
 
     args = PyTuple_New(1 + (errors != NULL));
@@ -265,9 +267,8 @@ PyObject *args_tuple(PyObject *object,
 
 /* Helper function to get a codec item */
 
-static
-PyObject *codec_getitem(const char *encoding, int index)
-{
+static PyObject *
+codec_getitem(const char *encoding, int index) {
     PyObject *codecs;
     PyObject *v;
 
@@ -280,11 +281,10 @@ PyObject *codec_getitem(const char *encoding, int index)
 }
 
 /* Helper functions to create an incremental codec. */
-static
-PyObject *codec_makeincrementalcodec(PyObject *codec_info,
-                                     const char *errors,
-                                     const char *attrname)
-{
+static PyObject *
+codec_makeincrementalcodec(
+    PyObject *codec_info, const char *errors, const char *attrname
+) {
     PyObject *ret, *inccodec;
 
     inccodec = PyObject_GetAttrString(codec_info, attrname);
@@ -298,11 +298,10 @@ PyObject *codec_makeincrementalcodec(PyObject *codec_info,
     return ret;
 }
 
-static
-PyObject *codec_getincrementalcodec(const char *encoding,
-                                    const char *errors,
-                                    const char *attrname)
-{
+static PyObject *
+codec_getincrementalcodec(
+    const char *encoding, const char *errors, const char *attrname
+) {
     PyObject *codec_info, *ret;
 
     codec_info = _PyCodec_Lookup(encoding);
@@ -315,12 +314,10 @@ PyObject *codec_getincrementalcodec(const char *encoding,
 
 /* Helper function to create a stream codec. */
 
-static
-PyObject *codec_getstreamcodec(const char *encoding,
-                               PyObject *stream,
-                               const char *errors,
-                               const int index)
-{
+static PyObject *
+codec_getstreamcodec(
+    const char *encoding, PyObject *stream, const char *errors, const int index
+) {
     PyObject *codecs, *streamcodec, *codeccls;
 
     codecs = _PyCodec_Lookup(encoding);
@@ -339,20 +336,15 @@ PyObject *codec_getstreamcodec(const char *encoding,
 /* Helpers to work with the result of _PyCodec_Lookup
 
  */
-PyObject *_PyCodecInfo_GetIncrementalDecoder(PyObject *codec_info,
-                                             const char *errors)
-{
-    return codec_makeincrementalcodec(codec_info, errors,
-                                      "incrementaldecoder");
+PyObject *
+_PyCodecInfo_GetIncrementalDecoder(PyObject *codec_info, const char *errors) {
+    return codec_makeincrementalcodec(codec_info, errors, "incrementaldecoder");
 }
 
-PyObject *_PyCodecInfo_GetIncrementalEncoder(PyObject *codec_info,
-                                             const char *errors)
-{
-    return codec_makeincrementalcodec(codec_info, errors,
-                                      "incrementalencoder");
+PyObject *
+_PyCodecInfo_GetIncrementalEncoder(PyObject *codec_info, const char *errors) {
+    return codec_makeincrementalcodec(codec_info, errors, "incrementalencoder");
 }
-
 
 /* Convenience APIs to query the Codec registry.
 
@@ -360,39 +352,33 @@ PyObject *_PyCodecInfo_GetIncrementalEncoder(PyObject *codec_info,
 
  */
 
-PyObject *PyCodec_Encoder(const char *encoding)
-{
+PyObject *
+PyCodec_Encoder(const char *encoding) {
     return codec_getitem(encoding, 0);
 }
 
-PyObject *PyCodec_Decoder(const char *encoding)
-{
+PyObject *
+PyCodec_Decoder(const char *encoding) {
     return codec_getitem(encoding, 1);
 }
 
-PyObject *PyCodec_IncrementalEncoder(const char *encoding,
-                                     const char *errors)
-{
+PyObject *
+PyCodec_IncrementalEncoder(const char *encoding, const char *errors) {
     return codec_getincrementalcodec(encoding, errors, "incrementalencoder");
 }
 
-PyObject *PyCodec_IncrementalDecoder(const char *encoding,
-                                     const char *errors)
-{
+PyObject *
+PyCodec_IncrementalDecoder(const char *encoding, const char *errors) {
     return codec_getincrementalcodec(encoding, errors, "incrementaldecoder");
 }
 
-PyObject *PyCodec_StreamReader(const char *encoding,
-                               PyObject *stream,
-                               const char *errors)
-{
+PyObject *
+PyCodec_StreamReader(const char *encoding, PyObject *stream, const char *errors) {
     return codec_getstreamcodec(encoding, stream, errors, 2);
 }
 
-PyObject *PyCodec_StreamWriter(const char *encoding,
-                               PyObject *stream,
-                               const char *errors)
-{
+PyObject *
+PyCodec_StreamWriter(const char *encoding, PyObject *stream, const char *errors) {
     return codec_getstreamcodec(encoding, stream, errors, 3);
 }
 
@@ -402,11 +388,9 @@ PyObject *PyCodec_StreamWriter(const char *encoding,
    errors is passed to the encoder factory as argument if non-NULL. */
 
 static PyObject *
-_PyCodec_EncodeInternal(PyObject *object,
-                        PyObject *encoder,
-                        const char *encoding,
-                        const char *errors)
-{
+_PyCodec_EncodeInternal(
+    PyObject *object, PyObject *encoder, const char *encoding, const char *errors
+) {
     PyObject *args = NULL, *result = NULL;
     PyObject *v = NULL;
 
@@ -420,13 +404,13 @@ _PyCodec_EncodeInternal(PyObject *object,
         goto onError;
     }
 
-    if (!PyTuple_Check(result) ||
-        PyTuple_GET_SIZE(result) != 2) {
-        PyErr_SetString(PyExc_TypeError,
-                        "encoder must return a tuple (object, integer)");
+    if (!PyTuple_Check(result) || PyTuple_GET_SIZE(result) != 2) {
+        PyErr_SetString(
+            PyExc_TypeError, "encoder must return a tuple (object, integer)"
+        );
         goto onError;
     }
-    v = Py_NewRef(PyTuple_GET_ITEM(result,0));
+    v = Py_NewRef(PyTuple_GET_ITEM(result, 0));
     /* We don't check or use the second (integer) entry. */
 
     Py_DECREF(args);
@@ -434,7 +418,7 @@ _PyCodec_EncodeInternal(PyObject *object,
     Py_DECREF(result);
     return v;
 
- onError:
+onError:
     Py_XDECREF(result);
     Py_XDECREF(args);
     Py_XDECREF(encoder);
@@ -447,11 +431,9 @@ _PyCodec_EncodeInternal(PyObject *object,
    errors is passed to the decoder factory as argument if non-NULL. */
 
 static PyObject *
-_PyCodec_DecodeInternal(PyObject *object,
-                        PyObject *decoder,
-                        const char *encoding,
-                        const char *errors)
-{
+_PyCodec_DecodeInternal(
+    PyObject *object, PyObject *decoder, const char *encoding, const char *errors
+) {
     PyObject *args = NULL, *result = NULL;
     PyObject *v;
 
@@ -464,13 +446,13 @@ _PyCodec_DecodeInternal(PyObject *object,
         _PyErr_FormatNote("%s with '%s' codec failed", "decoding", encoding);
         goto onError;
     }
-    if (!PyTuple_Check(result) ||
-        PyTuple_GET_SIZE(result) != 2) {
-        PyErr_SetString(PyExc_TypeError,
-                        "decoder must return a tuple (object,integer)");
+    if (!PyTuple_Check(result) || PyTuple_GET_SIZE(result) != 2) {
+        PyErr_SetString(
+            PyExc_TypeError, "decoder must return a tuple (object,integer)"
+        );
         goto onError;
     }
-    v = Py_NewRef(PyTuple_GET_ITEM(result,0));
+    v = Py_NewRef(PyTuple_GET_ITEM(result, 0));
     /* We don't check or use the second (integer) entry. */
 
     Py_DECREF(args);
@@ -478,7 +460,7 @@ _PyCodec_DecodeInternal(PyObject *object,
     Py_DECREF(result);
     return v;
 
- onError:
+onError:
     Py_XDECREF(args);
     Py_XDECREF(decoder);
     Py_XDECREF(result);
@@ -486,10 +468,8 @@ _PyCodec_DecodeInternal(PyObject *object,
 }
 
 /* Generic encoding/decoding API */
-PyObject *PyCodec_Encode(PyObject *object,
-                         const char *encoding,
-                         const char *errors)
-{
+PyObject *
+PyCodec_Encode(PyObject *object, const char *encoding, const char *errors) {
     PyObject *encoder;
 
     encoder = PyCodec_Encoder(encoding);
@@ -499,10 +479,8 @@ PyObject *PyCodec_Encode(PyObject *object,
     return _PyCodec_EncodeInternal(object, encoder, encoding, errors);
 }
 
-PyObject *PyCodec_Decode(PyObject *object,
-                         const char *encoding,
-                         const char *errors)
-{
+PyObject *
+PyCodec_Decode(PyObject *object, const char *encoding, const char *errors) {
     PyObject *decoder;
 
     decoder = PyCodec_Decoder(encoding);
@@ -513,9 +491,8 @@ PyObject *PyCodec_Decode(PyObject *object,
 }
 
 /* Text encoding/decoding API */
-PyObject * _PyCodec_LookupTextEncoding(const char *encoding,
-                                       const char *alternate_command)
-{
+PyObject *
+_PyCodec_LookupTextEncoding(const char *encoding, const char *alternate_command) {
     PyObject *codec;
     PyObject *attr;
     int is_text_codec;
@@ -539,10 +516,13 @@ PyObject * _PyCodec_LookupTextEncoding(const char *encoding,
             if (is_text_codec <= 0) {
                 Py_DECREF(codec);
                 if (!is_text_codec)
-                    PyErr_Format(PyExc_LookupError,
-                                 "'%.400s' is not a text encoding; "
-                                 "use %s to handle arbitrary codecs",
-                                 encoding, alternate_command);
+                    PyErr_Format(
+                        PyExc_LookupError,
+                        "'%.400s' is not a text encoding; "
+                        "use %s to handle arbitrary codecs",
+                        encoding,
+                        alternate_command
+                    );
                 return NULL;
             }
         }
@@ -552,12 +532,8 @@ PyObject * _PyCodec_LookupTextEncoding(const char *encoding,
     return codec;
 }
 
-
-static
-PyObject *codec_getitem_checked(const char *encoding,
-                                const char *alternate_command,
-                                int index)
-{
+static PyObject *
+codec_getitem_checked(const char *encoding, const char *alternate_command, int index) {
     PyObject *codec;
     PyObject *v;
 
@@ -570,20 +546,18 @@ PyObject *codec_getitem_checked(const char *encoding,
     return v;
 }
 
-static PyObject * _PyCodec_TextEncoder(const char *encoding)
-{
+static PyObject *
+_PyCodec_TextEncoder(const char *encoding) {
     return codec_getitem_checked(encoding, "codecs.encode()", 0);
 }
 
-static PyObject * _PyCodec_TextDecoder(const char *encoding)
-{
+static PyObject *
+_PyCodec_TextDecoder(const char *encoding) {
     return codec_getitem_checked(encoding, "codecs.decode()", 1);
 }
 
-PyObject *_PyCodec_EncodeText(PyObject *object,
-                              const char *encoding,
-                              const char *errors)
-{
+PyObject *
+_PyCodec_EncodeText(PyObject *object, const char *encoding, const char *errors) {
     PyObject *encoder;
 
     encoder = _PyCodec_TextEncoder(encoding);
@@ -593,10 +567,8 @@ PyObject *_PyCodec_EncodeText(PyObject *object,
     return _PyCodec_EncodeInternal(object, encoder, encoding, errors);
 }
 
-PyObject *_PyCodec_DecodeText(PyObject *object,
-                              const char *encoding,
-                              const char *errors)
-{
+PyObject *
+_PyCodec_DecodeText(PyObject *object, const char *encoding, const char *errors) {
     PyObject *decoder;
 
     decoder = _PyCodec_TextDecoder(encoding);
@@ -612,24 +584,24 @@ PyObject *_PyCodec_DecodeText(PyObject *object,
    callback name, when name is specified as the error parameter
    in the call to the encode/decode function.
    Return 0 on success, -1 on error */
-int PyCodec_RegisterError(const char *name, PyObject *error)
-{
+int
+PyCodec_RegisterError(const char *name, PyObject *error) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     assert(interp->codecs.initialized);
     if (!PyCallable_Check(error)) {
         PyErr_SetString(PyExc_TypeError, "handler must be callable");
         return -1;
     }
-    return PyDict_SetItemString(interp->codecs.error_registry,
-                                name, error);
+    return PyDict_SetItemString(interp->codecs.error_registry, name, error);
 }
 
-int _PyCodec_UnregisterError(const char *name)
-{
+int
+_PyCodec_UnregisterError(const char *name) {
     for (size_t i = 0; i < Py_ARRAY_LENGTH(codecs_builtin_error_handlers); ++i) {
         if (strcmp(name, codecs_builtin_error_handlers[i]) == 0) {
-            PyErr_Format(PyExc_ValueError,
-                         "cannot un-register built-in error handler '%s'", name);
+            PyErr_Format(
+                PyExc_ValueError, "cannot un-register built-in error handler '%s'", name
+            );
             return -1;
         }
     }
@@ -641,12 +613,12 @@ int _PyCodec_UnregisterError(const char *name)
 /* Lookup the error handling callback function registered under the
    name error. As a special case NULL can be passed, in which case
    the error handling callback for strict encoding will be returned. */
-PyObject *PyCodec_LookupError(const char *name)
-{
+PyObject *
+PyCodec_LookupError(const char *name) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     assert(interp->codecs.initialized);
 
-    if (name==NULL)
+    if (name == NULL)
         name = "strict";
     PyObject *handler;
     if (PyDict_GetItemStringRef(interp->codecs.error_registry, name, &handler) < 0) {
@@ -659,15 +631,17 @@ PyObject *PyCodec_LookupError(const char *name)
     return handler;
 }
 
-static void wrong_exception_type(PyObject *exc)
-{
-    PyErr_Format(PyExc_TypeError,
-                 "don't know how to handle %.200s in error callback",
-                 Py_TYPE(exc)->tp_name);
+static void
+wrong_exception_type(PyObject *exc) {
+    PyErr_Format(
+        PyExc_TypeError,
+        "don't know how to handle %.200s in error callback",
+        Py_TYPE(exc)->tp_name
+    );
 }
 
-PyObject *PyCodec_StrictErrors(PyObject *exc)
-{
+PyObject *
+PyCodec_StrictErrors(PyObject *exc) {
     if (PyExceptionInstance_Check(exc))
         PyErr_SetObject(PyExceptionInstance_Class(exc), exc);
     else
@@ -675,33 +649,28 @@ PyObject *PyCodec_StrictErrors(PyObject *exc)
     return NULL;
 }
 
-
-PyObject *PyCodec_IgnoreErrors(PyObject *exc)
-{
+PyObject *
+PyCodec_IgnoreErrors(PyObject *exc) {
     Py_ssize_t end;
 
     if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeEncodeError)) {
         if (PyUnicodeEncodeError_GetEnd(exc, &end))
             return NULL;
-    }
-    else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeDecodeError)) {
+    } else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeDecodeError)) {
         if (PyUnicodeDecodeError_GetEnd(exc, &end))
             return NULL;
-    }
-    else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeTranslateError)) {
+    } else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeTranslateError)) {
         if (PyUnicodeTranslateError_GetEnd(exc, &end))
             return NULL;
-    }
-    else {
+    } else {
         wrong_exception_type(exc);
         return NULL;
     }
     return Py_BuildValue("(Nn)", Py_GetConstant(Py_CONSTANT_EMPTY_STR), end);
 }
 
-
-PyObject *PyCodec_ReplaceErrors(PyObject *exc)
-{
+PyObject *
+PyCodec_ReplaceErrors(PyObject *exc) {
     Py_ssize_t start, end, i, len;
 
     if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeEncodeError)) {
@@ -717,19 +686,14 @@ PyObject *PyCodec_ReplaceErrors(PyObject *exc)
             return NULL;
         assert(PyUnicode_KIND(res) == PyUnicode_1BYTE_KIND);
         outp = PyUnicode_1BYTE_DATA(res);
-        for (i = 0; i < len; ++i)
-            outp[i] = '?';
+        for (i = 0; i < len; ++i) outp[i] = '?';
         assert(_PyUnicode_CheckConsistency(res, 1));
         return Py_BuildValue("(Nn)", res, end);
-    }
-    else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeDecodeError)) {
+    } else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeDecodeError)) {
         if (PyUnicodeDecodeError_GetEnd(exc, &end))
             return NULL;
-        return Py_BuildValue("(Cn)",
-                             (int)Py_UNICODE_REPLACEMENT_CHARACTER,
-                             end);
-    }
-    else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeTranslateError)) {
+        return Py_BuildValue("(Cn)", (int)Py_UNICODE_REPLACEMENT_CHARACTER, end);
+    } else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeTranslateError)) {
         PyObject *res;
         Py_UCS2 *outp;
         if (PyUnicodeTranslateError_GetStart(exc, &start))
@@ -742,19 +706,17 @@ PyObject *PyCodec_ReplaceErrors(PyObject *exc)
             return NULL;
         assert(PyUnicode_KIND(res) == PyUnicode_2BYTE_KIND);
         outp = PyUnicode_2BYTE_DATA(res);
-        for (i = 0; i < len; i++)
-            outp[i] = Py_UNICODE_REPLACEMENT_CHARACTER;
+        for (i = 0; i < len; i++) outp[i] = Py_UNICODE_REPLACEMENT_CHARACTER;
         assert(_PyUnicode_CheckConsistency(res, 1));
         return Py_BuildValue("(Nn)", res, end);
-    }
-    else {
+    } else {
         wrong_exception_type(exc);
         return NULL;
     }
 }
 
-PyObject *PyCodec_XMLCharRefReplaceErrors(PyObject *exc)
-{
+PyObject *
+PyCodec_XMLCharRefReplaceErrors(PyObject *exc) {
     if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeEncodeError)) {
         PyObject *restuple;
         PyObject *object;
@@ -771,25 +733,25 @@ PyObject *PyCodec_XMLCharRefReplaceErrors(PyObject *exc)
             return NULL;
         if (!(object = PyUnicodeEncodeError_GetObject(exc)))
             return NULL;
-        if (end - start > PY_SSIZE_T_MAX / (2+7+1))
-            end = start + PY_SSIZE_T_MAX / (2+7+1);
+        if (end - start > PY_SSIZE_T_MAX / (2 + 7 + 1))
+            end = start + PY_SSIZE_T_MAX / (2 + 7 + 1);
         for (i = start, ressize = 0; i < end; ++i) {
             /* object is guaranteed to be "ready" */
             ch = PyUnicode_READ_CHAR(object, i);
-            if (ch<10)
-                ressize += 2+1+1;
-            else if (ch<100)
-                ressize += 2+2+1;
-            else if (ch<1000)
-                ressize += 2+3+1;
-            else if (ch<10000)
-                ressize += 2+4+1;
-            else if (ch<100000)
-                ressize += 2+5+1;
-            else if (ch<1000000)
-                ressize += 2+6+1;
+            if (ch < 10)
+                ressize += 2 + 1 + 1;
+            else if (ch < 100)
+                ressize += 2 + 2 + 1;
+            else if (ch < 1000)
+                ressize += 2 + 3 + 1;
+            else if (ch < 10000)
+                ressize += 2 + 4 + 1;
+            else if (ch < 100000)
+                ressize += 2 + 5 + 1;
+            else if (ch < 1000000)
+                ressize += 2 + 6 + 1;
             else
-                ressize += 2+7+1;
+                ressize += 2 + 7 + 1;
         }
         /* allocate replacement */
         res = PyUnicode_New(ressize, 127);
@@ -805,36 +767,30 @@ PyObject *PyCodec_XMLCharRefReplaceErrors(PyObject *exc)
             ch = PyUnicode_READ_CHAR(object, i);
             *outp++ = '&';
             *outp++ = '#';
-            if (ch<10) {
+            if (ch < 10) {
                 digits = 1;
                 base = 1;
-            }
-            else if (ch<100) {
+            } else if (ch < 100) {
                 digits = 2;
                 base = 10;
-            }
-            else if (ch<1000) {
+            } else if (ch < 1000) {
                 digits = 3;
                 base = 100;
-            }
-            else if (ch<10000) {
+            } else if (ch < 10000) {
                 digits = 4;
                 base = 1000;
-            }
-            else if (ch<100000) {
+            } else if (ch < 100000) {
                 digits = 5;
                 base = 10000;
-            }
-            else if (ch<1000000) {
+            } else if (ch < 1000000) {
                 digits = 6;
                 base = 100000;
-            }
-            else {
+            } else {
                 digits = 7;
                 base = 1000000;
             }
-            while (digits-->0) {
-                *outp++ = '0' + ch/base;
+            while (digits-- > 0) {
+                *outp++ = '0' + ch / base;
                 ch %= base;
                 base /= 10;
             }
@@ -844,15 +800,14 @@ PyObject *PyCodec_XMLCharRefReplaceErrors(PyObject *exc)
         restuple = Py_BuildValue("(Nn)", res, end);
         Py_DECREF(object);
         return restuple;
-    }
-    else {
+    } else {
         wrong_exception_type(exc);
         return NULL;
     }
 }
 
-PyObject *PyCodec_BackslashReplaceErrors(PyObject *exc)
-{
+PyObject *
+PyCodec_BackslashReplaceErrors(PyObject *exc) {
     PyObject *object;
     Py_ssize_t i;
     Py_ssize_t start;
@@ -870,7 +825,7 @@ PyObject *PyCodec_BackslashReplaceErrors(PyObject *exc)
             return NULL;
         if (!(object = PyUnicodeDecodeError_GetObject(exc)))
             return NULL;
-        p = (const unsigned char*)PyBytes_AS_STRING(object);
+        p = (const unsigned char *)PyBytes_AS_STRING(object);
         res = PyUnicode_New(4 * (end - start), 127);
         if (res == NULL) {
             Py_DECREF(object);
@@ -881,8 +836,8 @@ PyObject *PyCodec_BackslashReplaceErrors(PyObject *exc)
             unsigned char c = p[i];
             outp[0] = '\\';
             outp[1] = 'x';
-            outp[2] = Py_hexdigits[(c>>4)&0xf];
-            outp[3] = Py_hexdigits[c&0xf];
+            outp[2] = Py_hexdigits[(c >> 4) & 0xf];
+            outp[3] = Py_hexdigits[c & 0xf];
         }
 
         assert(_PyUnicode_CheckConsistency(res, 1));
@@ -896,33 +851,29 @@ PyObject *PyCodec_BackslashReplaceErrors(PyObject *exc)
             return NULL;
         if (!(object = PyUnicodeEncodeError_GetObject(exc)))
             return NULL;
-    }
-    else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeTranslateError)) {
+    } else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeTranslateError)) {
         if (PyUnicodeTranslateError_GetStart(exc, &start))
             return NULL;
         if (PyUnicodeTranslateError_GetEnd(exc, &end))
             return NULL;
         if (!(object = PyUnicodeTranslateError_GetObject(exc)))
             return NULL;
-    }
-    else {
+    } else {
         wrong_exception_type(exc);
         return NULL;
     }
 
-    if (end - start > PY_SSIZE_T_MAX / (1+1+8))
-        end = start + PY_SSIZE_T_MAX / (1+1+8);
+    if (end - start > PY_SSIZE_T_MAX / (1 + 1 + 8))
+        end = start + PY_SSIZE_T_MAX / (1 + 1 + 8);
     for (i = start, ressize = 0; i < end; ++i) {
         /* object is guaranteed to be "ready" */
         c = PyUnicode_READ_CHAR(object, i);
         if (c >= 0x10000) {
-            ressize += 1+1+8;
-        }
-        else if (c >= 0x100) {
-            ressize += 1+1+4;
-        }
-        else
-            ressize += 1+1+2;
+            ressize += 1 + 1 + 8;
+        } else if (c >= 0x100) {
+            ressize += 1 + 1 + 4;
+        } else
+            ressize += 1 + 1 + 2;
     }
     res = PyUnicode_New(ressize, 127);
     if (res == NULL) {
@@ -935,22 +886,20 @@ PyObject *PyCodec_BackslashReplaceErrors(PyObject *exc)
         *outp++ = '\\';
         if (c >= 0x00010000) {
             *outp++ = 'U';
-            *outp++ = Py_hexdigits[(c>>28)&0xf];
-            *outp++ = Py_hexdigits[(c>>24)&0xf];
-            *outp++ = Py_hexdigits[(c>>20)&0xf];
-            *outp++ = Py_hexdigits[(c>>16)&0xf];
-            *outp++ = Py_hexdigits[(c>>12)&0xf];
-            *outp++ = Py_hexdigits[(c>>8)&0xf];
-        }
-        else if (c >= 0x100) {
+            *outp++ = Py_hexdigits[(c >> 28) & 0xf];
+            *outp++ = Py_hexdigits[(c >> 24) & 0xf];
+            *outp++ = Py_hexdigits[(c >> 20) & 0xf];
+            *outp++ = Py_hexdigits[(c >> 16) & 0xf];
+            *outp++ = Py_hexdigits[(c >> 12) & 0xf];
+            *outp++ = Py_hexdigits[(c >> 8) & 0xf];
+        } else if (c >= 0x100) {
             *outp++ = 'u';
-            *outp++ = Py_hexdigits[(c>>12)&0xf];
-            *outp++ = Py_hexdigits[(c>>8)&0xf];
-        }
-        else
+            *outp++ = Py_hexdigits[(c >> 12) & 0xf];
+            *outp++ = Py_hexdigits[(c >> 8) & 0xf];
+        } else
             *outp++ = 'x';
-        *outp++ = Py_hexdigits[(c>>4)&0xf];
-        *outp++ = Py_hexdigits[c&0xf];
+        *outp++ = Py_hexdigits[(c >> 4) & 0xf];
+        *outp++ = Py_hexdigits[c & 0xf];
     }
 
     assert(_PyUnicode_CheckConsistency(res, 1));
@@ -958,8 +907,8 @@ PyObject *PyCodec_BackslashReplaceErrors(PyObject *exc)
     return Py_BuildValue("(Nn)", res, end);
 }
 
-PyObject *PyCodec_NameReplaceErrors(PyObject *exc)
-{
+PyObject *
+PyCodec_NameReplaceErrors(PyObject *exc) {
     if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeEncodeError)) {
         PyObject *restuple;
         PyObject *object;
@@ -986,26 +935,22 @@ PyObject *PyCodec_NameReplaceErrors(PyObject *exc)
             /* object is guaranteed to be "ready" */
             c = PyUnicode_READ_CHAR(object, i);
             if (ucnhash_capi->getname(c, buffer, sizeof(buffer), 1)) {
-                replsize = 1+1+1+(int)strlen(buffer)+1;
-            }
-            else if (c >= 0x10000) {
-                replsize = 1+1+8;
-            }
-            else if (c >= 0x100) {
-                replsize = 1+1+4;
-            }
-            else
-                replsize = 1+1+2;
+                replsize = 1 + 1 + 1 + (int)strlen(buffer) + 1;
+            } else if (c >= 0x10000) {
+                replsize = 1 + 1 + 8;
+            } else if (c >= 0x100) {
+                replsize = 1 + 1 + 4;
+            } else
+                replsize = 1 + 1 + 2;
             if (ressize > PY_SSIZE_T_MAX - replsize)
                 break;
             ressize += replsize;
         }
         end = i;
         res = PyUnicode_New(ressize, 127);
-        if (res==NULL)
+        if (res == NULL)
             return NULL;
-        for (i = start, outp = PyUnicode_1BYTE_DATA(res);
-            i < end; ++i) {
+        for (i = start, outp = PyUnicode_1BYTE_DATA(res); i < end; ++i) {
             c = PyUnicode_READ_CHAR(object, i);
             *outp++ = '\\';
             if (ucnhash_capi->getname(c, buffer, sizeof(buffer), 1)) {
@@ -1018,22 +963,20 @@ PyObject *PyCodec_NameReplaceErrors(PyObject *exc)
             }
             if (c >= 0x00010000) {
                 *outp++ = 'U';
-                *outp++ = Py_hexdigits[(c>>28)&0xf];
-                *outp++ = Py_hexdigits[(c>>24)&0xf];
-                *outp++ = Py_hexdigits[(c>>20)&0xf];
-                *outp++ = Py_hexdigits[(c>>16)&0xf];
-                *outp++ = Py_hexdigits[(c>>12)&0xf];
-                *outp++ = Py_hexdigits[(c>>8)&0xf];
-            }
-            else if (c >= 0x100) {
+                *outp++ = Py_hexdigits[(c >> 28) & 0xf];
+                *outp++ = Py_hexdigits[(c >> 24) & 0xf];
+                *outp++ = Py_hexdigits[(c >> 20) & 0xf];
+                *outp++ = Py_hexdigits[(c >> 16) & 0xf];
+                *outp++ = Py_hexdigits[(c >> 12) & 0xf];
+                *outp++ = Py_hexdigits[(c >> 8) & 0xf];
+            } else if (c >= 0x100) {
                 *outp++ = 'u';
-                *outp++ = Py_hexdigits[(c>>12)&0xf];
-                *outp++ = Py_hexdigits[(c>>8)&0xf];
-            }
-            else
+                *outp++ = Py_hexdigits[(c >> 12) & 0xf];
+                *outp++ = Py_hexdigits[(c >> 8) & 0xf];
+            } else
                 *outp++ = 'x';
-            *outp++ = Py_hexdigits[(c>>4)&0xf];
-            *outp++ = Py_hexdigits[c&0xf];
+            *outp++ = Py_hexdigits[(c >> 4) & 0xf];
+            *outp++ = Py_hexdigits[c & 0xf];
         }
 
         assert(outp == PyUnicode_1BYTE_DATA(res) + ressize);
@@ -1041,34 +984,30 @@ PyObject *PyCodec_NameReplaceErrors(PyObject *exc)
         restuple = Py_BuildValue("(Nn)", res, end);
         Py_DECREF(object);
         return restuple;
-    }
-    else {
+    } else {
         wrong_exception_type(exc);
         return NULL;
     }
 }
 
-#define ENC_UNKNOWN     -1
-#define ENC_UTF8        0
-#define ENC_UTF16BE     1
-#define ENC_UTF16LE     2
-#define ENC_UTF32BE     3
-#define ENC_UTF32LE     4
+#define ENC_UNKNOWN -1
+#define ENC_UTF8 0
+#define ENC_UTF16BE 1
+#define ENC_UTF16LE 2
+#define ENC_UTF32BE 3
+#define ENC_UTF32LE 4
 
 static int
-get_standard_encoding(const char *encoding, int *bytelength)
-{
-    if (Py_TOLOWER(encoding[0]) == 'u' &&
-        Py_TOLOWER(encoding[1]) == 't' &&
+get_standard_encoding(const char *encoding, int *bytelength) {
+    if (Py_TOLOWER(encoding[0]) == 'u' && Py_TOLOWER(encoding[1]) == 't' &&
         Py_TOLOWER(encoding[2]) == 'f') {
         encoding += 3;
-        if (*encoding == '-' || *encoding == '_' )
+        if (*encoding == '-' || *encoding == '_')
             encoding++;
         if (encoding[0] == '8' && encoding[1] == '\0') {
             *bytelength = 3;
             return ENC_UTF8;
-        }
-        else if (encoding[0] == '1' && encoding[1] == '6') {
+        } else if (encoding[0] == '1' && encoding[1] == '6') {
             encoding += 2;
             *bytelength = 2;
             if (*encoding == '\0') {
@@ -1078,7 +1017,7 @@ get_standard_encoding(const char *encoding, int *bytelength)
                 return ENC_UTF16LE;
 #endif
             }
-            if (*encoding == '-' || *encoding == '_' )
+            if (*encoding == '-' || *encoding == '_')
                 encoding++;
             if (Py_TOLOWER(encoding[1]) == 'e' && encoding[2] == '\0') {
                 if (Py_TOLOWER(encoding[0]) == 'b')
@@ -1086,8 +1025,7 @@ get_standard_encoding(const char *encoding, int *bytelength)
                 if (Py_TOLOWER(encoding[0]) == 'l')
                     return ENC_UTF16LE;
             }
-        }
-        else if (encoding[0] == '3' && encoding[1] == '2') {
+        } else if (encoding[0] == '3' && encoding[1] == '2') {
             encoding += 2;
             *bytelength = 4;
             if (*encoding == '\0') {
@@ -1097,7 +1035,7 @@ get_standard_encoding(const char *encoding, int *bytelength)
                 return ENC_UTF32LE;
 #endif
             }
-            if (*encoding == '-' || *encoding == '_' )
+            if (*encoding == '-' || *encoding == '_')
                 encoding++;
             if (Py_TOLOWER(encoding[1]) == 'e' && encoding[2] == '\0') {
                 if (Py_TOLOWER(encoding[0]) == 'b')
@@ -1106,8 +1044,7 @@ get_standard_encoding(const char *encoding, int *bytelength)
                     return ENC_UTF32LE;
             }
         }
-    }
-    else if (strcmp(encoding, "CP_UTF8") == 0) {
+    } else if (strcmp(encoding, "CP_UTF8") == 0) {
         *bytelength = 3;
         return ENC_UTF8;
     }
@@ -1117,8 +1054,7 @@ get_standard_encoding(const char *encoding, int *bytelength)
 /* This handler is declared static until someone demonstrates
    a need to call it directly. */
 static PyObject *
-PyCodec_SurrogatePassErrors(PyObject *exc)
-{
+PyCodec_SurrogatePassErrors(PyObject *exc) {
     PyObject *restuple;
     PyObject *object;
     PyObject *encode;
@@ -1158,12 +1094,12 @@ PyCodec_SurrogatePassErrors(PyObject *exc)
 
         if (end - start > PY_SSIZE_T_MAX / bytelength)
             end = start + PY_SSIZE_T_MAX / bytelength;
-        res = PyBytes_FromStringAndSize(NULL, bytelength*(end-start));
+        res = PyBytes_FromStringAndSize(NULL, bytelength * (end - start));
         if (!res) {
             Py_DECREF(object);
             return NULL;
         }
-        outp = (unsigned char*)PyBytes_AsString(res);
+        outp = (unsigned char *)PyBytes_AsString(res);
         for (i = start; i < end; i++) {
             /* object is guaranteed to be "ready" */
             Py_UCS4 ch = PyUnicode_READ_CHAR(object, i);
@@ -1175,39 +1111,38 @@ PyCodec_SurrogatePassErrors(PyObject *exc)
                 return NULL;
             }
             switch (code) {
-            case ENC_UTF8:
-                *outp++ = (unsigned char)(0xe0 | (ch >> 12));
-                *outp++ = (unsigned char)(0x80 | ((ch >> 6) & 0x3f));
-                *outp++ = (unsigned char)(0x80 | (ch & 0x3f));
-                break;
-            case ENC_UTF16LE:
-                *outp++ = (unsigned char) ch;
-                *outp++ = (unsigned char)(ch >> 8);
-                break;
-            case ENC_UTF16BE:
-                *outp++ = (unsigned char)(ch >> 8);
-                *outp++ = (unsigned char) ch;
-                break;
-            case ENC_UTF32LE:
-                *outp++ = (unsigned char) ch;
-                *outp++ = (unsigned char)(ch >> 8);
-                *outp++ = (unsigned char)(ch >> 16);
-                *outp++ = (unsigned char)(ch >> 24);
-                break;
-            case ENC_UTF32BE:
-                *outp++ = (unsigned char)(ch >> 24);
-                *outp++ = (unsigned char)(ch >> 16);
-                *outp++ = (unsigned char)(ch >> 8);
-                *outp++ = (unsigned char) ch;
-                break;
+                case ENC_UTF8:
+                    *outp++ = (unsigned char)(0xe0 | (ch >> 12));
+                    *outp++ = (unsigned char)(0x80 | ((ch >> 6) & 0x3f));
+                    *outp++ = (unsigned char)(0x80 | (ch & 0x3f));
+                    break;
+                case ENC_UTF16LE:
+                    *outp++ = (unsigned char)ch;
+                    *outp++ = (unsigned char)(ch >> 8);
+                    break;
+                case ENC_UTF16BE:
+                    *outp++ = (unsigned char)(ch >> 8);
+                    *outp++ = (unsigned char)ch;
+                    break;
+                case ENC_UTF32LE:
+                    *outp++ = (unsigned char)ch;
+                    *outp++ = (unsigned char)(ch >> 8);
+                    *outp++ = (unsigned char)(ch >> 16);
+                    *outp++ = (unsigned char)(ch >> 24);
+                    break;
+                case ENC_UTF32BE:
+                    *outp++ = (unsigned char)(ch >> 24);
+                    *outp++ = (unsigned char)(ch >> 16);
+                    *outp++ = (unsigned char)(ch >> 8);
+                    *outp++ = (unsigned char)ch;
+                    break;
             }
         }
         restuple = Py_BuildValue("(On)", res, end);
         Py_DECREF(res);
         Py_DECREF(object);
         return restuple;
-    }
-    else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeDecodeError)) {
+    } else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeDecodeError)) {
         const unsigned char *p;
         Py_UCS4 ch = 0;
         if (PyUnicodeDecodeError_GetStart(exc, &start))
@@ -1216,7 +1151,7 @@ PyCodec_SurrogatePassErrors(PyObject *exc)
             return NULL;
         if (!(object = PyUnicodeDecodeError_GetObject(exc)))
             return NULL;
-        p = (const unsigned char*)PyBytes_AS_STRING(object);
+        p = (const unsigned char *)PyBytes_AS_STRING(object);
         if (!(encode = PyUnicodeDecodeError_GetEncoding(exc))) {
             Py_DECREF(object);
             return NULL;
@@ -1240,26 +1175,26 @@ PyCodec_SurrogatePassErrors(PyObject *exc)
         p += start;
         if (PyBytes_GET_SIZE(object) - start >= bytelength) {
             switch (code) {
-            case ENC_UTF8:
-                if ((p[0] & 0xf0) == 0xe0 &&
-                    (p[1] & 0xc0) == 0x80 &&
-                    (p[2] & 0xc0) == 0x80) {
-                    /* it's a three-byte code */
-                    ch = ((p[0] & 0x0f) << 12) + ((p[1] & 0x3f) << 6) + (p[2] & 0x3f);
-                }
-                break;
-            case ENC_UTF16LE:
-                ch = p[1] << 8 | p[0];
-                break;
-            case ENC_UTF16BE:
-                ch = p[0] << 8 | p[1];
-                break;
-            case ENC_UTF32LE:
-                ch = (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
-                break;
-            case ENC_UTF32BE:
-                ch = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
-                break;
+                case ENC_UTF8:
+                    if ((p[0] & 0xf0) == 0xe0 && (p[1] & 0xc0) == 0x80 &&
+                        (p[2] & 0xc0) == 0x80) {
+                        /* it's a three-byte code */
+                        ch = ((p[0] & 0x0f) << 12) + ((p[1] & 0x3f) << 6) +
+                             (p[2] & 0x3f);
+                    }
+                    break;
+                case ENC_UTF16LE:
+                    ch = p[1] << 8 | p[0];
+                    break;
+                case ENC_UTF16BE:
+                    ch = p[0] << 8 | p[1];
+                    break;
+                case ENC_UTF32LE:
+                    ch = (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
+                    break;
+                case ENC_UTF32BE:
+                    ch = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+                    break;
             }
         }
 
@@ -1273,16 +1208,14 @@ PyCodec_SurrogatePassErrors(PyObject *exc)
         if (res == NULL)
             return NULL;
         return Py_BuildValue("(Nn)", res, start + bytelength);
-    }
-    else {
+    } else {
         wrong_exception_type(exc);
         return NULL;
     }
 }
 
 static PyObject *
-PyCodec_SurrogateEscapeErrors(PyObject *exc)
-{
+PyCodec_SurrogateEscapeErrors(PyObject *exc) {
     PyObject *restuple;
     PyObject *object;
     Py_ssize_t i;
@@ -1298,7 +1231,7 @@ PyCodec_SurrogateEscapeErrors(PyObject *exc)
             return NULL;
         if (!(object = PyUnicodeEncodeError_GetObject(exc)))
             return NULL;
-        res = PyBytes_FromStringAndSize(NULL, end-start);
+        res = PyBytes_FromStringAndSize(NULL, end - start);
         if (!res) {
             Py_DECREF(object);
             return NULL;
@@ -1320,8 +1253,7 @@ PyCodec_SurrogateEscapeErrors(PyObject *exc)
         Py_DECREF(res);
         Py_DECREF(object);
         return restuple;
-    }
-    else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeDecodeError)) {
+    } else if (PyObject_TypeCheck(exc, (PyTypeObject *)PyExc_UnicodeDecodeError)) {
         PyObject *str;
         const unsigned char *p;
         Py_UCS2 ch[4]; /* decode up to 4 bad bytes. */
@@ -1332,12 +1264,12 @@ PyCodec_SurrogateEscapeErrors(PyObject *exc)
             return NULL;
         if (!(object = PyUnicodeDecodeError_GetObject(exc)))
             return NULL;
-        p = (const unsigned char*)PyBytes_AS_STRING(object);
-        while (consumed < 4 && consumed < end-start) {
+        p = (const unsigned char *)PyBytes_AS_STRING(object);
+        while (consumed < 4 && consumed < end - start) {
             /* Refuse to escape ASCII bytes. */
-            if (p[start+consumed] < 128)
+            if (p[start + consumed] < 128)
                 break;
-            ch[consumed] = 0xdc00 + p[start+consumed];
+            ch[consumed] = 0xdc00 + p[start + consumed];
             consumed++;
         }
         Py_DECREF(object);
@@ -1349,146 +1281,100 @@ PyCodec_SurrogateEscapeErrors(PyObject *exc)
         str = PyUnicode_FromKindAndData(PyUnicode_2BYTE_KIND, ch, consumed);
         if (str == NULL)
             return NULL;
-        return Py_BuildValue("(Nn)", str, start+consumed);
-    }
-    else {
+        return Py_BuildValue("(Nn)", str, start + consumed);
+    } else {
         wrong_exception_type(exc);
         return NULL;
     }
 }
 
-
-static PyObject *strict_errors(PyObject *self, PyObject *exc)
-{
+static PyObject *
+strict_errors(PyObject *self, PyObject *exc) {
     return PyCodec_StrictErrors(exc);
 }
 
-
-static PyObject *ignore_errors(PyObject *self, PyObject *exc)
-{
+static PyObject *
+ignore_errors(PyObject *self, PyObject *exc) {
     return PyCodec_IgnoreErrors(exc);
 }
 
-
-static PyObject *replace_errors(PyObject *self, PyObject *exc)
-{
+static PyObject *
+replace_errors(PyObject *self, PyObject *exc) {
     return PyCodec_ReplaceErrors(exc);
 }
 
-
-static PyObject *xmlcharrefreplace_errors(PyObject *self, PyObject *exc)
-{
+static PyObject *
+xmlcharrefreplace_errors(PyObject *self, PyObject *exc) {
     return PyCodec_XMLCharRefReplaceErrors(exc);
 }
 
-
-static PyObject *backslashreplace_errors(PyObject *self, PyObject *exc)
-{
+static PyObject *
+backslashreplace_errors(PyObject *self, PyObject *exc) {
     return PyCodec_BackslashReplaceErrors(exc);
 }
 
-static PyObject *namereplace_errors(PyObject *self, PyObject *exc)
-{
+static PyObject *
+namereplace_errors(PyObject *self, PyObject *exc) {
     return PyCodec_NameReplaceErrors(exc);
 }
 
-static PyObject *surrogatepass_errors(PyObject *self, PyObject *exc)
-{
+static PyObject *
+surrogatepass_errors(PyObject *self, PyObject *exc) {
     return PyCodec_SurrogatePassErrors(exc);
 }
 
-static PyObject *surrogateescape_errors(PyObject *self, PyObject *exc)
-{
+static PyObject *
+surrogateescape_errors(PyObject *self, PyObject *exc) {
     return PyCodec_SurrogateEscapeErrors(exc);
 }
 
 PyStatus
-_PyCodec_InitRegistry(PyInterpreterState *interp)
-{
+_PyCodec_InitRegistry(PyInterpreterState *interp) {
     static struct {
         const char *name;
         PyMethodDef def;
-    } methods[] =
-    {
-        {
-            "strict",
-            {
-                "strict_errors",
-                strict_errors,
-                METH_O,
-                PyDoc_STR("Implements the 'strict' error handling, which "
-                          "raises a UnicodeError on coding errors.")
-            }
-        },
-        {
-            "ignore",
-            {
-                "ignore_errors",
-                ignore_errors,
-                METH_O,
-                PyDoc_STR("Implements the 'ignore' error handling, which "
-                          "ignores malformed data and continues.")
-            }
-        },
-        {
-            "replace",
-            {
-                "replace_errors",
-                replace_errors,
-                METH_O,
-                PyDoc_STR("Implements the 'replace' error handling, which "
-                          "replaces malformed data with a replacement marker.")
-            }
-        },
-        {
-            "xmlcharrefreplace",
-            {
-                "xmlcharrefreplace_errors",
-                xmlcharrefreplace_errors,
-                METH_O,
-                PyDoc_STR("Implements the 'xmlcharrefreplace' error handling, "
-                          "which replaces an unencodable character with the "
-                          "appropriate XML character reference.")
-            }
-        },
-        {
-            "backslashreplace",
-            {
-                "backslashreplace_errors",
-                backslashreplace_errors,
-                METH_O,
-                PyDoc_STR("Implements the 'backslashreplace' error handling, "
-                          "which replaces malformed data with a backslashed "
-                          "escape sequence.")
-            }
-        },
-        {
-            "namereplace",
-            {
-                "namereplace_errors",
-                namereplace_errors,
-                METH_O,
-                PyDoc_STR("Implements the 'namereplace' error handling, "
-                          "which replaces an unencodable character with a "
-                          "\\N{...} escape sequence.")
-            }
-        },
-        {
-            "surrogatepass",
-            {
-                "surrogatepass",
-                surrogatepass_errors,
-                METH_O
-            }
-        },
-        {
-            "surrogateescape",
-            {
-                "surrogateescape",
-                surrogateescape_errors,
-                METH_O
-            }
-        }
+    } methods[] = {
+        {"strict",
+         {"strict_errors",
+          strict_errors,
+          METH_O,
+          PyDoc_STR("Implements the 'strict' error handling, which "
+                    "raises a UnicodeError on coding errors.")}},
+        {"ignore",
+         {"ignore_errors",
+          ignore_errors,
+          METH_O,
+          PyDoc_STR("Implements the 'ignore' error handling, which "
+                    "ignores malformed data and continues.")}},
+        {"replace",
+         {"replace_errors",
+          replace_errors,
+          METH_O,
+          PyDoc_STR("Implements the 'replace' error handling, which "
+                    "replaces malformed data with a replacement marker.")}},
+        {"xmlcharrefreplace",
+         {"xmlcharrefreplace_errors",
+          xmlcharrefreplace_errors,
+          METH_O,
+          PyDoc_STR("Implements the 'xmlcharrefreplace' error handling, "
+                    "which replaces an unencodable character with the "
+                    "appropriate XML character reference.")}},
+        {"backslashreplace",
+         {"backslashreplace_errors",
+          backslashreplace_errors,
+          METH_O,
+          PyDoc_STR("Implements the 'backslashreplace' error handling, "
+                    "which replaces malformed data with a backslashed "
+                    "escape sequence.")}},
+        {"namereplace",
+         {"namereplace_errors",
+          namereplace_errors,
+          METH_O,
+          PyDoc_STR("Implements the 'namereplace' error handling, "
+                    "which replaces an unencodable character with a "
+                    "\\N{...} escape sequence.")}},
+        {"surrogatepass", {"surrogatepass", surrogatepass_errors, METH_O}},
+        {"surrogateescape", {"surrogateescape", surrogateescape_errors, METH_O}}
     };
     // ensure that the built-in error handlers' names are kept in sync
     assert(Py_ARRAY_LENGTH(methods) == Py_ARRAY_LENGTH(codecs_builtin_error_handlers));
@@ -1512,8 +1398,8 @@ _PyCodec_InitRegistry(PyInterpreterState *interp)
             return PyStatus_NoMemory();
         }
 
-        int res = PyDict_SetItemString(interp->codecs.error_registry,
-                                       methods[i].name, func);
+        int res =
+            PyDict_SetItemString(interp->codecs.error_registry, methods[i].name, func);
         Py_DECREF(func);
         if (res < 0) {
             return PyStatus_Error("Failed to insert into codec error registry");
@@ -1534,8 +1420,7 @@ _PyCodec_InitRegistry(PyInterpreterState *interp)
 }
 
 void
-_PyCodec_Fini(PyInterpreterState *interp)
-{
+_PyCodec_Fini(PyInterpreterState *interp) {
     Py_CLEAR(interp->codecs.search_path);
     Py_CLEAR(interp->codecs.search_cache);
     Py_CLEAR(interp->codecs.error_registry);

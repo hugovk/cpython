@@ -29,7 +29,7 @@ Py_DEPRECATED(3.12) PyAPI_DATA(int) Py_LegacyWindowsStdioFlag;
 /* this is a wrapper around getenv() that pays attention to
    Py_IgnoreEnvironmentFlag.  It should be used for getting variables like
    PYTHONPATH and PYTHONHOME from the environment */
-PyAPI_FUNC(char*) Py_GETENV(const char *name);
+PyAPI_FUNC(char *) Py_GETENV(const char *name);
 
 #ifdef __cplusplus
 }

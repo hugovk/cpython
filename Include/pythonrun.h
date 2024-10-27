@@ -13,10 +13,9 @@ PyAPI_FUNC(void) PyErr_Print(void);
 PyAPI_FUNC(void) PyErr_PrintEx(int);
 PyAPI_FUNC(void) PyErr_Display(PyObject *, PyObject *, PyObject *);
 
-#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030C0000
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030C0000
 PyAPI_FUNC(void) PyErr_DisplayException(PyObject *);
 #endif
-
 
 /* Stuff with no proper home (yet) */
 PyAPI_DATA(int) (*PyOS_InputHook)(void);
@@ -26,7 +25,8 @@ PyAPI_DATA(int) (*PyOS_InputHook)(void);
    to an 8k margin. */
 #define PYOS_STACK_MARGIN 2048
 
-#if defined(WIN32) && !defined(MS_WIN64) && !defined(_M_ARM) && defined(_MSC_VER) && _MSC_VER >= 1300
+#if defined(WIN32) && !defined(MS_WIN64) && !defined(_M_ARM) && defined(_MSC_VER) && \
+    _MSC_VER >= 1300
 /* Enable stack checking under Microsoft C */
 // When changing the platforms, ensure PyOS_CheckStack() docs are still correct
 #define USE_STACKCHECK
@@ -38,9 +38,9 @@ PyAPI_FUNC(int) PyOS_CheckStack(void);
 #endif
 
 #ifndef Py_LIMITED_API
-#  define Py_CPYTHON_PYTHONRUN_H
-#  include "cpython/pythonrun.h"
-#  undef Py_CPYTHON_PYTHONRUN_H
+#define Py_CPYTHON_PYTHONRUN_H
+#include "cpython/pythonrun.h"
+#undef Py_CPYTHON_PYTHONRUN_H
 #endif
 
 #ifdef __cplusplus

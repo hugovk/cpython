@@ -5,22 +5,22 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#  define PyTuple_MAXSAVESIZE 20     // Largest tuple to save on freelist
-#  define Py_tuple_MAXFREELIST 2000  // Maximum number of tuples of each size to save
-#  define Py_lists_MAXFREELIST 80
-#  define Py_dicts_MAXFREELIST 80
-#  define Py_dictkeys_MAXFREELIST 80
-#  define Py_floats_MAXFREELIST 100
-#  define Py_slices_MAXFREELIST 1
-#  define Py_contexts_MAXFREELIST 255
-#  define Py_async_gens_MAXFREELIST 80
-#  define Py_async_gen_asends_MAXFREELIST 80
-#  define Py_futureiters_MAXFREELIST 255
-#  define Py_object_stack_chunks_MAXFREELIST 4
-#  define Py_unicode_writers_MAXFREELIST 1
+#define PyTuple_MAXSAVESIZE 20     // Largest tuple to save on freelist
+#define Py_tuple_MAXFREELIST 2000  // Maximum number of tuples of each size to save
+#define Py_lists_MAXFREELIST 80
+#define Py_dicts_MAXFREELIST 80
+#define Py_dictkeys_MAXFREELIST 80
+#define Py_floats_MAXFREELIST 100
+#define Py_slices_MAXFREELIST 1
+#define Py_contexts_MAXFREELIST 255
+#define Py_async_gens_MAXFREELIST 80
+#define Py_async_gen_asends_MAXFREELIST 80
+#define Py_futureiters_MAXFREELIST 255
+#define Py_object_stack_chunks_MAXFREELIST 4
+#define Py_unicode_writers_MAXFREELIST 1
 
 // A generic freelist of either PyObjects or other data structures.
 struct _Py_freelist {

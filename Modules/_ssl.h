@@ -39,9 +39,7 @@ typedef struct {
 
 static struct PyModuleDef _sslmodule_def;
 
-Py_LOCAL_INLINE(_sslmodulestate*)
-get_ssl_state(PyObject *module)
-{
+Py_LOCAL_INLINE(_sslmodulestate *) get_ssl_state(PyObject *module) {
     void *state = PyModule_GetState(module);
     assert(state != NULL);
     return (_sslmodulestate *)state;
@@ -60,21 +58,22 @@ get_ssl_state(PyObject *module)
  */
 
 enum py_ssl_encoding {
-    PY_SSL_ENCODING_PEM=X509_FILETYPE_PEM,
-    PY_SSL_ENCODING_DER=X509_FILETYPE_ASN1,
-    PY_SSL_ENCODING_PEM_AUX=X509_FILETYPE_PEM + 0x100,
+    PY_SSL_ENCODING_PEM = X509_FILETYPE_PEM,
+    PY_SSL_ENCODING_DER = X509_FILETYPE_ASN1,
+    PY_SSL_ENCODING_PEM_AUX = X509_FILETYPE_PEM + 0x100,
 };
 
 typedef struct {
-    PyObject_HEAD
-    X509 *cert;
+    PyObject_HEAD X509 *cert;
     Py_hash_t hash;
 } PySSLCertificate;
 
 /* ************************************************************************
  * helpers and utils
  */
-static PyObject *_PySSL_BytesFromBIO(_sslmodulestate *state, BIO *bio);
-static PyObject *_PySSL_UnicodeFromBIO(_sslmodulestate *state, BIO *bio, const char *error);
+static PyObject *
+_PySSL_BytesFromBIO(_sslmodulestate *state, BIO *bio);
+static PyObject *
+_PySSL_UnicodeFromBIO(_sslmodulestate *state, BIO *bio, const char *error);
 
 #endif /* Py_SSL_H */

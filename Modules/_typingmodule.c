@@ -6,7 +6,7 @@
 
 #include "Python.h"
 #include "pycore_interp.h"
-#include "pycore_pystate.h"       // _PyInterpreterState_GET()
+#include "pycore_pystate.h"  // _PyInterpreterState_GET()
 #include "pycore_typevarobject.h"
 #include "clinic/_typingmodule.c.h"
 
@@ -33,24 +33,18 @@ _typing__idfunc(PyObject *module, PyObject *x)
     return Py_NewRef(x);
 }
 
+static PyMethodDef typing_methods[] = {_TYPING__IDFUNC_METHODDEF{NULL, NULL, 0, NULL}};
 
-static PyMethodDef typing_methods[] = {
-    _TYPING__IDFUNC_METHODDEF
-    {NULL, NULL, 0, NULL}
-};
-
-PyDoc_STRVAR(typing_doc,
-"Primitives and accelerators for the typing module.\n");
+PyDoc_STRVAR(typing_doc, "Primitives and accelerators for the typing module.\n");
 
 static int
-_typing_exec(PyObject *m)
-{
+_typing_exec(PyObject *m) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
 
-#define EXPORT_TYPE(name, typename) \
-    if (PyModule_AddObjectRef(m, name, \
-                              (PyObject *)interp->cached_objects.typename) < 0) { \
-        return -1; \
+#define EXPORT_TYPE(name, typename)                                                   \
+    if (PyModule_AddObjectRef(m, name, (PyObject *)interp->cached_objects.typename) < \
+        0) {                                                                          \
+        return -1;                                                                    \
     }
 
     EXPORT_TYPE("TypeVar", typevar_type);
@@ -77,19 +71,18 @@ static struct PyModuleDef_Slot _typingmodule_slots[] = {
 };
 
 static struct PyModuleDef typingmodule = {
-        PyModuleDef_HEAD_INIT,
-        "_typing",
-        typing_doc,
-        0,
-        typing_methods,
-        _typingmodule_slots,
-        NULL,
-        NULL,
-        NULL
+    PyModuleDef_HEAD_INIT,
+    "_typing",
+    typing_doc,
+    0,
+    typing_methods,
+    _typingmodule_slots,
+    NULL,
+    NULL,
+    NULL
 };
 
 PyMODINIT_FUNC
-PyInit__typing(void)
-{
+PyInit__typing(void) {
     return PyModuleDef_Init(&typingmodule);
 }

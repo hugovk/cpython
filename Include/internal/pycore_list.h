@@ -5,21 +5,21 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-PyAPI_FUNC(PyObject*) _PyList_Extend(PyListObject *, PyObject *);
-extern void _PyList_DebugMallocStats(FILE *out);
+PyAPI_FUNC(PyObject *) _PyList_Extend(PyListObject *, PyObject *);
+extern void
+_PyList_DebugMallocStats(FILE *out);
 
 #define _PyList_ITEMS(op) _Py_RVALUE(_PyList_CAST(op)->ob_item)
 
-PyAPI_FUNC(int)
-_PyList_AppendTakeRefListResize(PyListObject *self, PyObject *newitem);
+PyAPI_FUNC(int) _PyList_AppendTakeRefListResize(PyListObject *self, PyObject *newitem);
 
-// In free-threaded build: self should be locked by the caller, if it should be thread-safe.
+// In free-threaded build: self should be locked by the caller, if it should be
+// thread-safe.
 static inline int
-_PyList_AppendTakeRef(PyListObject *self, PyObject *newitem)
-{
+_PyList_AppendTakeRef(PyListObject *self, PyObject *newitem) {
     assert(self != NULL && newitem != NULL);
     assert(PyList_Check(self));
     Py_ssize_t len = Py_SIZE(self);
@@ -39,8 +39,7 @@ _PyList_AppendTakeRef(PyListObject *self, PyObject *newitem)
 
 // Repeat the bytes of a buffer in place
 static inline void
-_Py_memory_repeat(char* dest, Py_ssize_t len_dest, Py_ssize_t len_src)
-{
+_Py_memory_repeat(char *dest, Py_ssize_t len_dest, Py_ssize_t len_src) {
     assert(len_src > 0);
     Py_ssize_t copied = len_src;
     while (copied < len_dest) {
@@ -51,17 +50,16 @@ _Py_memory_repeat(char* dest, Py_ssize_t len_dest, Py_ssize_t len_src)
 }
 
 typedef struct {
-    PyObject_HEAD
-    Py_ssize_t it_index;
+    PyObject_HEAD Py_ssize_t it_index;
     PyListObject *it_seq; /* Set to NULL when iterator is exhausted */
 } _PyListIterObject;
 
 union _PyStackRef;
 
-PyAPI_FUNC(PyObject *)_PyList_FromStackRefSteal(const union _PyStackRef *src, Py_ssize_t n);
-
+PyAPI_FUNC(PyObject *)
+    _PyList_FromStackRefSteal(const union _PyStackRef *src, Py_ssize_t n);
 
 #ifdef __cplusplus
 }
 #endif
-#endif   /* !Py_INTERNAL_LIST_H */
+#endif /* !Py_INTERNAL_LIST_H */

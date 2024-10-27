@@ -1,6 +1,6 @@
 /* ABCMeta implementation */
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
@@ -16,25 +16,22 @@ module _abc
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=964f5328e1aefcda]*/
 
-PyDoc_STRVAR(_abc__doc__,
-"Module contains faster C implementation of abc.ABCMeta");
+PyDoc_STRVAR(_abc__doc__, "Module contains faster C implementation of abc.ABCMeta");
 
 typedef struct {
     PyTypeObject *_abc_data_type;
     uint64_t abc_invalidation_counter;
 } _abcmodule_state;
 
-static inline _abcmodule_state*
-get_abc_state(PyObject *module)
-{
+static inline _abcmodule_state *
+get_abc_state(PyObject *module) {
     void *state = _PyModule_GetState(module);
     assert(state != NULL);
     return (_abcmodule_state *)state;
 }
 
 static inline uint64_t
-get_invalidation_counter(_abcmodule_state *state)
-{
+get_invalidation_counter(_abcmodule_state *state) {
 #ifdef Py_GIL_DISABLED
     return _Py_atomic_load_uint64(&state->abc_invalidation_counter);
 #else
@@ -43,8 +40,7 @@ get_invalidation_counter(_abcmodule_state *state)
 }
 
 static inline void
-increment_invalidation_counter(_abcmodule_state *state)
-{
+increment_invalidation_counter(_abcmodule_state *state) {
 #ifdef Py_GIL_DISABLED
     _Py_atomic_add_uint64(&state->abc_invalidation_counter, 1);
 #else
@@ -57,19 +53,18 @@ increment_invalidation_counter(_abcmodule_state *state)
    since they are never iterated over. */
 typedef struct {
     PyObject_HEAD
-    /* These sets of weak references are lazily created. Once created, they
-       will point to the same sets until the ABCMeta object is destroyed or
-       cleared, both of which will only happen while the object is visible to a
-       single thread. */
-    PyObject *_abc_registry;
+        /* These sets of weak references are lazily created. Once created, they
+           will point to the same sets until the ABCMeta object is destroyed or
+           cleared, both of which will only happen while the object is visible to a
+           single thread. */
+        PyObject *_abc_registry;
     PyObject *_abc_cache;
     PyObject *_abc_negative_cache;
     uint64_t _abc_negative_cache_version;
 } _abc_data;
 
 static inline uint64_t
-get_cache_version(_abc_data *impl)
-{
+get_cache_version(_abc_data *impl) {
 #ifdef Py_GIL_DISABLED
     return _Py_atomic_load_uint64(&impl->_abc_negative_cache_version);
 #else
@@ -78,8 +73,7 @@ get_cache_version(_abc_data *impl)
 }
 
 static inline void
-set_cache_version(_abc_data *impl, uint64_t version)
-{
+set_cache_version(_abc_data *impl, uint64_t version) {
 #ifdef Py_GIL_DISABLED
     _Py_atomic_store_uint64(&impl->_abc_negative_cache_version, version);
 #else
@@ -88,8 +82,7 @@ set_cache_version(_abc_data *impl, uint64_t version)
 }
 
 static int
-abc_data_traverse(_abc_data *self, visitproc visit, void *arg)
-{
+abc_data_traverse(_abc_data *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->_abc_registry);
     Py_VISIT(self->_abc_cache);
@@ -98,8 +91,7 @@ abc_data_traverse(_abc_data *self, visitproc visit, void *arg)
 }
 
 static int
-abc_data_clear(_abc_data *self)
-{
+abc_data_clear(_abc_data *self) {
     Py_CLEAR(self->_abc_registry);
     Py_CLEAR(self->_abc_cache);
     Py_CLEAR(self->_abc_negative_cache);
@@ -107,8 +99,7 @@ abc_data_clear(_abc_data *self)
 }
 
 static void
-abc_data_dealloc(_abc_data *self)
-{
+abc_data_dealloc(_abc_data *self) {
     PyObject_GC_UnTrack(self);
     PyTypeObject *tp = Py_TYPE(self);
     (void)abc_data_clear(self);
@@ -117,9 +108,8 @@ abc_data_dealloc(_abc_data *self)
 }
 
 static PyObject *
-abc_data_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    _abc_data *self = (_abc_data *) type->tp_alloc(type, 0);
+abc_data_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
+    _abc_data *self = (_abc_data *)type->tp_alloc(type, 0);
     _abcmodule_state *state = NULL;
     if (self == NULL) {
         return NULL;
@@ -135,11 +125,10 @@ abc_data_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->_abc_cache = NULL;
     self->_abc_negative_cache = NULL;
     self->_abc_negative_cache_version = get_invalidation_counter(state);
-    return (PyObject *) self;
+    return (PyObject *)self;
 }
 
-PyDoc_STRVAR(abc_data_doc,
-"Internal state held by ABC machinery.");
+PyDoc_STRVAR(abc_data_doc, "Internal state held by ABC machinery.");
 
 static PyType_Slot _abc_data_type_spec_slots[] = {
     {Py_tp_doc, (void *)abc_data_doc},
@@ -158,8 +147,7 @@ static PyType_Spec _abc_data_type_spec = {
 };
 
 static _abc_data *
-_get_impl(PyObject *module, PyObject *self)
-{
+_get_impl(PyObject *module, PyObject *self) {
     _abcmodule_state *state = get_abc_state(module);
     PyObject *impl = PyObject_GetAttr(self, &_Py_ID(_abc_impl));
     if (impl == NULL) {
@@ -174,8 +162,7 @@ _get_impl(PyObject *module, PyObject *self)
 }
 
 static int
-_in_weak_set(_abc_data *impl, PyObject **pset, PyObject *obj)
-{
+_in_weak_set(_abc_data *impl, PyObject **pset, PyObject *obj) {
     PyObject *set;
     Py_BEGIN_CRITICAL_SECTION(impl);
     set = *pset;
@@ -197,8 +184,7 @@ _in_weak_set(_abc_data *impl, PyObject **pset, PyObject *obj)
 }
 
 static PyObject *
-_destroy(PyObject *setweakref, PyObject *objweakref)
-{
+_destroy(PyObject *setweakref, PyObject *objweakref) {
     PyObject *set = _PyWeakref_GET_REF(setweakref);
     if (set == NULL) {
         Py_RETURN_NONE;
@@ -211,13 +197,10 @@ _destroy(PyObject *setweakref, PyObject *objweakref)
     Py_RETURN_NONE;
 }
 
-static PyMethodDef _destroy_def = {
-    "_destroy", (PyCFunction) _destroy, METH_O
-};
+static PyMethodDef _destroy_def = {"_destroy", (PyCFunction)_destroy, METH_O};
 
 static int
-_add_to_weak_set(_abc_data *impl, PyObject **pset, PyObject *obj)
-{
+_add_to_weak_set(_abc_data *impl, PyObject **pset, PyObject *obj) {
     PyObject *set;
     Py_BEGIN_CRITICAL_SECTION(impl);
     set = *pset;
@@ -343,11 +326,13 @@ _abc__get_dump(PyObject *module, PyObject *self)
     }
     PyObject *res;
     Py_BEGIN_CRITICAL_SECTION(impl);
-    res = Py_BuildValue("NNNK",
-                        PySet_New(impl->_abc_registry),
-                        PySet_New(impl->_abc_cache),
-                        PySet_New(impl->_abc_negative_cache),
-                        get_cache_version(impl));
+    res = Py_BuildValue(
+        "NNNK",
+        PySet_New(impl->_abc_registry),
+        PySet_New(impl->_abc_cache),
+        PySet_New(impl->_abc_negative_cache),
+        get_cache_version(impl)
+    );
     Py_END_CRITICAL_SECTION();
     Py_DECREF(impl);
     return res;
@@ -355,8 +340,7 @@ _abc__get_dump(PyObject *module, PyObject *self)
 
 // Compute set of abstract method names.
 static int
-compute_abstract_methods(PyObject *self)
-{
+compute_abstract_methods(PyObject *self) {
     int ret = -1;
     PyObject *abstracts = PyFrozenSet_New(NULL);
     if (abstracts == NULL) {
@@ -380,14 +364,15 @@ compute_abstract_methods(PyObject *self)
     assert(PyList_Check(items));
     for (Py_ssize_t pos = 0; pos < PyList_GET_SIZE(items); pos++) {
         PyObject *it = PySequence_Fast(
-                PyList_GET_ITEM(items, pos),
-                "items() returned non-iterable");
+            PyList_GET_ITEM(items, pos), "items() returned non-iterable"
+        );
         if (!it) {
             goto error;
         }
         if (PySequence_Fast_GET_SIZE(it) != 2) {
-            PyErr_SetString(PyExc_TypeError,
-                            "items() returned item which size is not 2");
+            PyErr_SetString(
+                PyExc_TypeError, "items() returned item which size is not 2"
+            );
             Py_DECREF(it);
             goto error;
         }
@@ -399,8 +384,7 @@ compute_abstract_methods(PyObject *self)
         // So we need to keep strong reference for key
         Py_INCREF(key);
         int is_abstract = _PyObject_IsAbstract(value);
-        if (is_abstract < 0 ||
-                (is_abstract && PySet_Add(abstracts, key) < 0)) {
+        if (is_abstract < 0 || (is_abstract && PySet_Add(abstracts, key) < 0)) {
             Py_DECREF(it);
             Py_DECREF(key);
             goto error;
@@ -423,8 +407,9 @@ compute_abstract_methods(PyObject *self)
         PyObject *item = PyTuple_GET_ITEM(bases, pos);  // borrowed
         PyObject *base_abstracts, *iter;
 
-        if (PyObject_GetOptionalAttr(item, &_Py_ID(__abstractmethods__),
-                                 &base_abstracts) < 0) {
+        if (PyObject_GetOptionalAttr(
+                item, &_Py_ID(__abstractmethods__), &base_abstracts
+            ) < 0) {
             goto error;
         }
         if (base_abstracts == NULL) {
@@ -449,9 +434,7 @@ compute_abstract_methods(PyObject *self)
 
             int is_abstract = _PyObject_IsAbstract(value);
             Py_DECREF(value);
-            if (is_abstract < 0 ||
-                    (is_abstract && PySet_Add(abstracts, key) < 0))
-            {
+            if (is_abstract < 0 || (is_abstract && PySet_Add(abstracts, key) < 0)) {
                 Py_DECREF(key);
                 Py_DECREF(iter);
                 goto error;
@@ -530,7 +513,11 @@ _abc__abc_init(PyObject *module, PyObject *self)
             return NULL;
         }
         if ((val & COLLECTION_FLAGS) == COLLECTION_FLAGS) {
-            PyErr_SetString(PyExc_TypeError, "__abc_tpflags__ cannot be both Py_TPFLAGS_SEQUENCE and Py_TPFLAGS_MAPPING");
+            PyErr_SetString(
+                PyExc_TypeError,
+                "__abc_tpflags__ cannot be both Py_TPFLAGS_SEQUENCE and "
+                "Py_TPFLAGS_MAPPING"
+            );
             return NULL;
         }
         _PyType_SetFlags((PyTypeObject *)self, 0, val & COLLECTION_FLAGS);
@@ -558,7 +545,7 @@ _abc__abc_register_impl(PyObject *module, PyObject *self, PyObject *subclass)
     }
     int result = PyObject_IsSubclass(subclass, self);
     if (result > 0) {
-        return Py_NewRef(subclass);  /* Already a subclass. */
+        return Py_NewRef(subclass); /* Already a subclass. */
     }
     if (result < 0) {
         return NULL;
@@ -592,14 +579,13 @@ _abc__abc_register_impl(PyObject *module, PyObject *self, PyObject *subclass)
         unsigned long collection_flag =
             PyType_GetFlags((PyTypeObject *)self) & COLLECTION_FLAGS;
         if (collection_flag) {
-            _PyType_SetFlagsRecursive((PyTypeObject *)subclass,
-                                      COLLECTION_FLAGS,
-                                      collection_flag);
+            _PyType_SetFlagsRecursive(
+                (PyTypeObject *)subclass, COLLECTION_FLAGS, collection_flag
+            );
         }
     }
     return Py_NewRef(subclass);
 }
-
 
 /*[clinic input]
 _abc._abc_instancecheck
@@ -612,8 +598,7 @@ Internal ABC helper for instance checks. Should be never used outside abc module
 [clinic start generated code]*/
 
 static PyObject *
-_abc__abc_instancecheck_impl(PyObject *module, PyObject *self,
-                             PyObject *instance)
+_abc__abc_instancecheck_impl(PyObject *module, PyObject *self, PyObject *instance)
 /*[clinic end generated code: output=b8b5148f63b6b56f input=a4f4525679261084]*/
 {
     PyObject *subtype, *result = NULL, *subclass = NULL;
@@ -638,7 +623,8 @@ _abc__abc_instancecheck_impl(PyObject *module, PyObject *self,
     }
     subtype = (PyObject *)Py_TYPE(instance);
     if (subtype == subclass) {
-        if (get_cache_version(impl) == get_invalidation_counter(get_abc_state(module))) {
+        if (get_cache_version(impl) ==
+            get_invalidation_counter(get_abc_state(module))) {
             incache = _in_weak_set(impl, &impl->_abc_negative_cache, subclass);
             if (incache < 0) {
                 goto end;
@@ -649,29 +635,27 @@ _abc__abc_instancecheck_impl(PyObject *module, PyObject *self,
             }
         }
         /* Fall back to the subclass check. */
-        result = PyObject_CallMethodOneArg(self, &_Py_ID(__subclasscheck__),
-                                           subclass);
+        result = PyObject_CallMethodOneArg(self, &_Py_ID(__subclasscheck__), subclass);
         goto end;
     }
-    result = PyObject_CallMethodOneArg(self, &_Py_ID(__subclasscheck__),
-                                       subclass);
+    result = PyObject_CallMethodOneArg(self, &_Py_ID(__subclasscheck__), subclass);
     if (result == NULL) {
         goto end;
     }
 
     switch (PyObject_IsTrue(result)) {
-    case -1:
-        Py_SETREF(result, NULL);
-        break;
-    case 0:
-        Py_DECREF(result);
-        result = PyObject_CallMethodOneArg(self, &_Py_ID(__subclasscheck__),
-                                           subtype);
-        break;
-    case 1:  // Nothing to do.
-        break;
-    default:
-        Py_UNREACHABLE();
+        case -1:
+            Py_SETREF(result, NULL);
+            break;
+        case 0:
+            Py_DECREF(result);
+            result =
+                PyObject_CallMethodOneArg(self, &_Py_ID(__subclasscheck__), subtype);
+            break;
+        case 1:  // Nothing to do.
+            break;
+        default:
+            Py_UNREACHABLE();
     }
 
 end:
@@ -680,12 +664,11 @@ end:
     return result;
 }
 
-
 // Return -1 when exception occurred.
 // Return 1 when result is set.
 // Return 0 otherwise.
-static int subclasscheck_check_registry(_abc_data *impl, PyObject *subclass,
-                                        PyObject **result);
+static int
+subclasscheck_check_registry(_abc_data *impl, PyObject *subclass, PyObject **result);
 
 /*[clinic input]
 _abc._abc_subclasscheck
@@ -698,8 +681,7 @@ Internal ABC helper for subclasss checks. Should be never used outside abc modul
 [clinic start generated code]*/
 
 static PyObject *
-_abc__abc_subclasscheck_impl(PyObject *module, PyObject *self,
-                             PyObject *subclass)
+_abc__abc_subclasscheck_impl(PyObject *module, PyObject *self, PyObject *subclass)
 /*[clinic end generated code: output=b56c9e4a530e3894 input=1d947243409d10b8]*/
 {
     if (!PyType_Check(subclass)) {
@@ -739,8 +721,7 @@ _abc__abc_subclasscheck_impl(PyObject *module, PyObject *self,
             goto end;
         }
         set_cache_version(impl, invalidation_counter);
-    }
-    else {
+    } else {
         incache = _in_weak_set(impl, &impl->_abc_negative_cache, subclass);
         if (incache < 0) {
             goto end;
@@ -753,7 +734,8 @@ _abc__abc_subclasscheck_impl(PyObject *module, PyObject *self,
 
     /* 3. Check the subclass hook. */
     ok = PyObject_CallMethodOneArg(
-            (PyObject *)self, &_Py_ID(__subclasshook__), subclass);
+        (PyObject *)self, &_Py_ID(__subclasshook__), subclass
+    );
     if (ok == NULL) {
         goto end;
     }
@@ -775,8 +757,11 @@ _abc__abc_subclasscheck_impl(PyObject *module, PyObject *self,
     }
     if (ok != Py_NotImplemented) {
         Py_DECREF(ok);
-        PyErr_SetString(PyExc_AssertionError, "__subclasshook__ must return either"
-                                              " False, True, or NotImplemented");
+        PyErr_SetString(
+            PyExc_AssertionError,
+            "__subclasshook__ must return either"
+            " False, True, or NotImplemented"
+        );
         goto end;
     }
     Py_DECREF(ok);
@@ -836,11 +821,8 @@ end:
     return Py_XNewRef(result);
 }
 
-
 static int
-subclasscheck_check_registry(_abc_data *impl, PyObject *subclass,
-                             PyObject **result)
-{
+subclasscheck_check_registry(_abc_data *impl, PyObject *subclass, PyObject **result) {
     // Fast path: check subclass is in weakref directly.
     int ret = _in_weak_set(impl, &impl->_abc_registry, subclass);
     if (ret < 0) {
@@ -921,23 +903,20 @@ _abc_get_cache_token_impl(PyObject *module)
 }
 
 static struct PyMethodDef _abcmodule_methods[] = {
-    _ABC_GET_CACHE_TOKEN_METHODDEF
-    _ABC__ABC_INIT_METHODDEF
-    _ABC__RESET_REGISTRY_METHODDEF
-    _ABC__RESET_CACHES_METHODDEF
-    _ABC__GET_DUMP_METHODDEF
-    _ABC__ABC_REGISTER_METHODDEF
-    _ABC__ABC_INSTANCECHECK_METHODDEF
-    _ABC__ABC_SUBCLASSCHECK_METHODDEF
-    {NULL,       NULL}          /* sentinel */
+    _ABC_GET_CACHE_TOKEN_METHODDEF _ABC__ABC_INIT_METHODDEF
+        _ABC__RESET_REGISTRY_METHODDEF _ABC__RESET_CACHES_METHODDEF
+            _ABC__GET_DUMP_METHODDEF _ABC__ABC_REGISTER_METHODDEF
+                _ABC__ABC_INSTANCECHECK_METHODDEF _ABC__ABC_SUBCLASSCHECK_METHODDEF{
+                    NULL, NULL
+                } /* sentinel */
 };
 
 static int
-_abcmodule_exec(PyObject *module)
-{
+_abcmodule_exec(PyObject *module) {
     _abcmodule_state *state = get_abc_state(module);
     state->abc_invalidation_counter = 0;
-    state->_abc_data_type = (PyTypeObject *)PyType_FromModuleAndSpec(module, &_abc_data_type_spec, NULL);
+    state->_abc_data_type =
+        (PyTypeObject *)PyType_FromModuleAndSpec(module, &_abc_data_type_spec, NULL);
     if (state->_abc_data_type == NULL) {
         return -1;
     }
@@ -946,24 +925,21 @@ _abcmodule_exec(PyObject *module)
 }
 
 static int
-_abcmodule_traverse(PyObject *module, visitproc visit, void *arg)
-{
+_abcmodule_traverse(PyObject *module, visitproc visit, void *arg) {
     _abcmodule_state *state = get_abc_state(module);
     Py_VISIT(state->_abc_data_type);
     return 0;
 }
 
 static int
-_abcmodule_clear(PyObject *module)
-{
+_abcmodule_clear(PyObject *module) {
     _abcmodule_state *state = get_abc_state(module);
     Py_CLEAR(state->_abc_data_type);
     return 0;
 }
 
 static void
-_abcmodule_free(void *module)
-{
+_abcmodule_free(void *module) {
     _abcmodule_clear((PyObject *)module);
 }
 
@@ -987,7 +963,6 @@ static struct PyModuleDef _abcmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit__abc(void)
-{
+PyInit__abc(void) {
     return PyModuleDef_Init(&_abcmodule);
 }

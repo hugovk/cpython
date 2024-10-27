@@ -1,12 +1,12 @@
 #ifndef Py_CPYTHON_DESCROBJECT_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
-typedef PyObject *(*wrapperfunc)(PyObject *self, PyObject *args,
-                                 void *wrapped);
+typedef PyObject *(*wrapperfunc)(PyObject *self, PyObject *args, void *wrapped);
 
-typedef PyObject *(*wrapperfunc_kwds)(PyObject *self, PyObject *args,
-                                      void *wrapped, PyObject *kwds);
+typedef PyObject *(*wrapperfunc_kwds)(
+    PyObject *self, PyObject *args, void *wrapped, PyObject *kwds
+);
 
 struct wrapperbase {
     const char *name;
@@ -24,8 +24,7 @@ struct wrapperbase {
 /* Various kinds of descriptor objects */
 
 typedef struct {
-    PyObject_HEAD
-    PyTypeObject *d_type;
+    PyObject_HEAD PyTypeObject *d_type;
     PyObject *d_name;
     PyObject *d_qualname;
 } PyDescrObject;
@@ -57,6 +56,5 @@ typedef struct {
     void *d_wrapped; /* This can be any function pointer */
 } PyWrapperDescrObject;
 
-PyAPI_FUNC(PyObject *) PyDescr_NewWrapper(PyTypeObject *,
-                                                struct wrapperbase *, void *);
+PyAPI_FUNC(PyObject *) PyDescr_NewWrapper(PyTypeObject *, struct wrapperbase *, void *);
 PyAPI_FUNC(int) PyDescr_IsData(PyObject *);

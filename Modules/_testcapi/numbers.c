@@ -1,27 +1,25 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-number_check(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+number_check(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyNumber_Check(obj));
 }
 
-#define BINARYFUNC(funcsuffix, methsuffix)                           \
-    static PyObject *                                                \
-    number_##methsuffix(PyObject *Py_UNUSED(module), PyObject *args) \
-    {                                                                \
-        PyObject *o1, *o2;                                           \
-                                                                     \
-        if (!PyArg_ParseTuple(args, "OO", &o1, &o2)) {               \
-            return NULL;                                             \
-        }                                                            \
-                                                                     \
-        NULLABLE(o1);                                                \
-        NULLABLE(o2);                                                \
-        return PyNumber_##funcsuffix(o1, o2);                        \
+#define BINARYFUNC(funcsuffix, methsuffix)             \
+    static PyObject *number_##methsuffix(              \
+        PyObject *Py_UNUSED(module), PyObject *args    \
+    ) {                                                \
+        PyObject *o1, *o2;                             \
+                                                       \
+        if (!PyArg_ParseTuple(args, "OO", &o1, &o2)) { \
+            return NULL;                               \
+        }                                              \
+                                                       \
+        NULLABLE(o1);                                  \
+        NULLABLE(o2);                                  \
+        return PyNumber_##funcsuffix(o1, o2);          \
     };
 
 BINARYFUNC(Add, add)
@@ -33,29 +31,27 @@ BINARYFUNC(TrueDivide, truedivide)
 BINARYFUNC(Remainder, remainder)
 BINARYFUNC(Divmod, divmod)
 
-#define TERNARYFUNC(funcsuffix, methsuffix)                          \
-    static PyObject *                                                \
-    number_##methsuffix(PyObject *Py_UNUSED(module), PyObject *args) \
-    {                                                                \
-        PyObject *o1, *o2, *o3 = Py_None;                            \
-                                                                     \
-        if (!PyArg_ParseTuple(args, "OO|O", &o1, &o2, &o3)) {        \
-            return NULL;                                             \
-        }                                                            \
-                                                                     \
-        NULLABLE(o1);                                                \
-        NULLABLE(o2);                                                \
-        return PyNumber_##funcsuffix(o1, o2, o3);                    \
+#define TERNARYFUNC(funcsuffix, methsuffix)                   \
+    static PyObject *number_##methsuffix(                     \
+        PyObject *Py_UNUSED(module), PyObject *args           \
+    ) {                                                       \
+        PyObject *o1, *o2, *o3 = Py_None;                     \
+                                                              \
+        if (!PyArg_ParseTuple(args, "OO|O", &o1, &o2, &o3)) { \
+            return NULL;                                      \
+        }                                                     \
+                                                              \
+        NULLABLE(o1);                                         \
+        NULLABLE(o2);                                         \
+        return PyNumber_##funcsuffix(o1, o2, o3);             \
     };
 
 TERNARYFUNC(Power, power)
 
-#define UNARYFUNC(funcsuffix, methsuffix)                            \
-    static PyObject *                                                \
-    number_##methsuffix(PyObject *Py_UNUSED(module), PyObject *obj)  \
-    {                                                                \
-        NULLABLE(obj);                                               \
-        return PyNumber_##funcsuffix(obj);                           \
+#define UNARYFUNC(funcsuffix, methsuffix)                                              \
+    static PyObject *number_##methsuffix(PyObject *Py_UNUSED(module), PyObject *obj) { \
+        NULLABLE(obj);                                                                 \
+        return PyNumber_##funcsuffix(obj);                                             \
     };
 
 UNARYFUNC(Negative, negative)
@@ -90,8 +86,7 @@ UNARYFUNC(Float, float)
 UNARYFUNC(Index, index)
 
 static PyObject *
-number_tobase(PyObject *Py_UNUSED(module), PyObject *args)
-{
+number_tobase(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *n;
     int base;
 
@@ -104,8 +99,7 @@ number_tobase(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-number_asssizet(PyObject *Py_UNUSED(module), PyObject *args)
-{
+number_asssizet(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *o, *exc;
     Py_ssize_t ret;
 
@@ -123,7 +117,6 @@ number_asssizet(PyObject *Py_UNUSED(module), PyObject *args)
 
     return PyLong_FromSsize_t(ret);
 }
-
 
 static PyMethodDef test_methods[] = {
     {"number_check", number_check, METH_O},
@@ -167,8 +160,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Numbers(PyObject *mod)
-{
+_PyTestCapi_Init_Numbers(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

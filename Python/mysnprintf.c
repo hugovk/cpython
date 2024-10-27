@@ -38,8 +38,7 @@
 */
 
 int
-PyOS_snprintf(char *str, size_t size, const  char  *format, ...)
-{
+PyOS_snprintf(char *str, size_t size, const char *format, ...) {
     int rc;
     va_list va;
 
@@ -50,14 +49,13 @@ PyOS_snprintf(char *str, size_t size, const  char  *format, ...)
 }
 
 int
-PyOS_vsnprintf(char *str, size_t size, const char  *format, va_list va)
-{
+PyOS_vsnprintf(char *str, size_t size, const char *format, va_list va) {
     assert(str != NULL);
     assert(size > 0);
     assert(size <= (INT_MAX - 1));
     assert(format != NULL);
 
-    int len;  /* # bytes written, excluding \0 */
+    int len; /* # bytes written, excluding \0 */
     /* We take a size_t as input but return an int.  Sanity check
      * our input so that it won't cause an overflow in the
      * vsnprintf return value.  */
@@ -74,7 +72,7 @@ PyOS_vsnprintf(char *str, size_t size, const char  *format, va_list va)
 
 Done:
     if (size > 0) {
-        str[size-1] = '\0';
+        str[size - 1] = '\0';
     }
     return len;
 }

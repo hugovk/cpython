@@ -1,38 +1,32 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-object_repr(PyObject *self, PyObject *arg)
-{
+object_repr(PyObject *self, PyObject *arg) {
     NULLABLE(arg);
     return PyObject_Repr(arg);
 }
 
 static PyObject *
-object_ascii(PyObject *self, PyObject *arg)
-{
+object_ascii(PyObject *self, PyObject *arg) {
     NULLABLE(arg);
     return PyObject_ASCII(arg);
 }
 
 static PyObject *
-object_str(PyObject *self, PyObject *arg)
-{
+object_str(PyObject *self, PyObject *arg) {
     NULLABLE(arg);
     return PyObject_Str(arg);
 }
 
 static PyObject *
-object_bytes(PyObject *self, PyObject *arg)
-{
+object_bytes(PyObject *self, PyObject *arg) {
     NULLABLE(arg);
     return PyObject_Bytes(arg);
 }
 
 static PyObject *
-object_getattr(PyObject *self, PyObject *args)
-{
+object_getattr(PyObject *self, PyObject *args) {
     PyObject *obj, *attr_name;
     if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
         return NULL;
@@ -43,8 +37,7 @@ object_getattr(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_getattrstring(PyObject *self, PyObject *args)
-{
+object_getattrstring(PyObject *self, PyObject *args) {
     PyObject *obj;
     const char *attr_name;
     Py_ssize_t size;
@@ -56,8 +49,7 @@ object_getattrstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_hasattr(PyObject *self, PyObject *args)
-{
+object_hasattr(PyObject *self, PyObject *args) {
     PyObject *obj, *attr_name;
     if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
         return NULL;
@@ -68,8 +60,7 @@ object_hasattr(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_hasattrstring(PyObject *self, PyObject *args)
-{
+object_hasattrstring(PyObject *self, PyObject *args) {
     PyObject *obj;
     const char *attr_name;
     Py_ssize_t size;
@@ -81,8 +72,7 @@ object_hasattrstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_setattr(PyObject *self, PyObject *args)
-{
+object_setattr(PyObject *self, PyObject *args) {
     PyObject *obj, *attr_name, *value;
     if (!PyArg_ParseTuple(args, "OOO", &obj, &attr_name, &value)) {
         return NULL;
@@ -94,8 +84,7 @@ object_setattr(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_setattrstring(PyObject *self, PyObject *args)
-{
+object_setattrstring(PyObject *self, PyObject *args) {
     PyObject *obj, *value;
     const char *attr_name;
     Py_ssize_t size;
@@ -108,10 +97,9 @@ object_setattrstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_delattr(PyObject *self, PyObject *args)
-{
+object_delattr(PyObject *self, PyObject *args) {
     PyObject *obj, *attr_name;
-if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
+    if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
         return NULL;
     }
     NULLABLE(obj);
@@ -120,8 +108,7 @@ if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
 }
 
 static PyObject *
-object_delattrstring(PyObject *self, PyObject *args)
-{
+object_delattrstring(PyObject *self, PyObject *args) {
     PyObject *obj;
     const char *attr_name;
     Py_ssize_t size;
@@ -133,36 +120,31 @@ object_delattrstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-number_check(PyObject *self, PyObject *obj)
-{
+number_check(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyBool_FromLong(PyNumber_Check(obj));
 }
 
 static PyObject *
-mapping_check(PyObject *self, PyObject *obj)
-{
+mapping_check(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyMapping_Check(obj));
 }
 
 static PyObject *
-mapping_size(PyObject *self, PyObject *obj)
-{
+mapping_size(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PyMapping_Size(obj));
 }
 
 static PyObject *
-mapping_length(PyObject *self, PyObject *obj)
-{
+mapping_length(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PyMapping_Length(obj));
 }
 
 static PyObject *
-object_getitem(PyObject *self, PyObject *args)
-{
+object_getitem(PyObject *self, PyObject *args) {
     PyObject *mapping, *key;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &key)) {
         return NULL;
@@ -173,8 +155,7 @@ object_getitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_getitemstring(PyObject *self, PyObject *args)
-{
+mapping_getitemstring(PyObject *self, PyObject *args) {
     PyObject *mapping;
     const char *key;
     Py_ssize_t size;
@@ -186,8 +167,7 @@ mapping_getitemstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_haskey(PyObject *self, PyObject *args)
-{
+mapping_haskey(PyObject *self, PyObject *args) {
     PyObject *mapping, *key;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &key)) {
         return NULL;
@@ -198,8 +178,7 @@ mapping_haskey(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_haskeystring(PyObject *self, PyObject *args)
-{
+mapping_haskeystring(PyObject *self, PyObject *args) {
     PyObject *mapping;
     const char *key;
     Py_ssize_t size;
@@ -211,8 +190,7 @@ mapping_haskeystring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_haskeywitherror(PyObject *self, PyObject *args)
-{
+mapping_haskeywitherror(PyObject *self, PyObject *args) {
     PyObject *mapping, *key;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &key)) {
         return NULL;
@@ -223,8 +201,7 @@ mapping_haskeywitherror(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_haskeystringwitherror(PyObject *self, PyObject *args)
-{
+mapping_haskeystringwitherror(PyObject *self, PyObject *args) {
     PyObject *mapping;
     const char *key;
     Py_ssize_t size;
@@ -236,8 +213,7 @@ mapping_haskeystringwitherror(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_setitem(PyObject *self, PyObject *args)
-{
+object_setitem(PyObject *self, PyObject *args) {
     PyObject *mapping, *key, *value;
     if (!PyArg_ParseTuple(args, "OOO", &mapping, &key, &value)) {
         return NULL;
@@ -249,8 +225,7 @@ object_setitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_setitemstring(PyObject *self, PyObject *args)
-{
+mapping_setitemstring(PyObject *self, PyObject *args) {
     PyObject *mapping, *value;
     const char *key;
     Py_ssize_t size;
@@ -263,8 +238,7 @@ mapping_setitemstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-object_delitem(PyObject *self, PyObject *args)
-{
+object_delitem(PyObject *self, PyObject *args) {
     PyObject *mapping, *key;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &key)) {
         return NULL;
@@ -275,8 +249,7 @@ object_delitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_delitem(PyObject *self, PyObject *args)
-{
+mapping_delitem(PyObject *self, PyObject *args) {
     PyObject *mapping, *key;
     if (!PyArg_ParseTuple(args, "OO", &mapping, &key)) {
         return NULL;
@@ -287,8 +260,7 @@ mapping_delitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_delitemstring(PyObject *self, PyObject *args)
-{
+mapping_delitemstring(PyObject *self, PyObject *args) {
     PyObject *mapping;
     const char *key;
     Py_ssize_t size;
@@ -300,51 +272,43 @@ mapping_delitemstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-mapping_keys(PyObject *self, PyObject *obj)
-{
+mapping_keys(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyMapping_Keys(obj);
 }
 
 static PyObject *
-mapping_values(PyObject *self, PyObject *obj)
-{
+mapping_values(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyMapping_Values(obj);
 }
 
 static PyObject *
-mapping_items(PyObject *self, PyObject *obj)
-{
+mapping_items(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyMapping_Items(obj);
 }
 
-
 static PyObject *
-sequence_check(PyObject* self, PyObject *obj)
-{
+sequence_check(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PySequence_Check(obj));
 }
 
 static PyObject *
-sequence_size(PyObject* self, PyObject *obj)
-{
+sequence_size(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PySequence_Size(obj));
 }
 
 static PyObject *
-sequence_length(PyObject* self, PyObject *obj)
-{
+sequence_length(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PySequence_Length(obj));
 }
 
 static PyObject *
-sequence_concat(PyObject *self, PyObject *args)
-{
+sequence_concat(PyObject *self, PyObject *args) {
     PyObject *seq1, *seq2;
     if (!PyArg_ParseTuple(args, "OO", &seq1, &seq2)) {
         return NULL;
@@ -356,8 +320,7 @@ sequence_concat(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_repeat(PyObject *self, PyObject *args)
-{
+sequence_repeat(PyObject *self, PyObject *args) {
     PyObject *seq;
     Py_ssize_t count;
     if (!PyArg_ParseTuple(args, "On", &seq, &count)) {
@@ -369,8 +332,7 @@ sequence_repeat(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_inplaceconcat(PyObject *self, PyObject *args)
-{
+sequence_inplaceconcat(PyObject *self, PyObject *args) {
     PyObject *seq1, *seq2;
     if (!PyArg_ParseTuple(args, "OO", &seq1, &seq2)) {
         return NULL;
@@ -382,8 +344,7 @@ sequence_inplaceconcat(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_inplacerepeat(PyObject *self, PyObject *args)
-{
+sequence_inplacerepeat(PyObject *self, PyObject *args) {
     PyObject *seq;
     Py_ssize_t count;
     if (!PyArg_ParseTuple(args, "On", &seq, &count)) {
@@ -395,8 +356,7 @@ sequence_inplacerepeat(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_getitem(PyObject *self, PyObject *args)
-{
+sequence_getitem(PyObject *self, PyObject *args) {
     PyObject *seq;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "On", &seq, &i)) {
@@ -408,8 +368,7 @@ sequence_getitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_setitem(PyObject *self, PyObject *args)
-{
+sequence_setitem(PyObject *self, PyObject *args) {
     Py_ssize_t i;
     PyObject *seq, *val;
     if (!PyArg_ParseTuple(args, "OnO", &seq, &i, &val)) {
@@ -421,10 +380,8 @@ sequence_setitem(PyObject *self, PyObject *args)
     RETURN_INT(PySequence_SetItem(seq, i, val));
 }
 
-
 static PyObject *
-sequence_delitem(PyObject *self, PyObject *args)
-{
+sequence_delitem(PyObject *self, PyObject *args) {
     Py_ssize_t i;
     PyObject *seq;
     if (!PyArg_ParseTuple(args, "On", &seq, &i)) {
@@ -436,8 +393,7 @@ sequence_delitem(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_setslice(PyObject* self, PyObject *args)
-{
+sequence_setslice(PyObject *self, PyObject *args) {
     PyObject *sequence, *obj;
     Py_ssize_t i1, i2;
     if (!PyArg_ParseTuple(args, "OnnO", &sequence, &i1, &i2, &obj)) {
@@ -450,8 +406,7 @@ sequence_setslice(PyObject* self, PyObject *args)
 }
 
 static PyObject *
-sequence_delslice(PyObject *self, PyObject *args)
-{
+sequence_delslice(PyObject *self, PyObject *args) {
     PyObject *sequence;
     Py_ssize_t i1, i2;
     if (!PyArg_ParseTuple(args, "Onn", &sequence, &i1, &i2)) {
@@ -463,8 +418,7 @@ sequence_delslice(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_count(PyObject *self, PyObject *args)
-{
+sequence_count(PyObject *self, PyObject *args) {
     PyObject *seq, *value;
     if (!PyArg_ParseTuple(args, "OO", &seq, &value)) {
         return NULL;
@@ -476,8 +430,7 @@ sequence_count(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_contains(PyObject *self, PyObject *args)
-{
+sequence_contains(PyObject *self, PyObject *args) {
     PyObject *seq, *value;
     if (!PyArg_ParseTuple(args, "OO", &seq, &value)) {
         return NULL;
@@ -489,8 +442,7 @@ sequence_contains(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_index(PyObject *self, PyObject *args)
-{
+sequence_index(PyObject *self, PyObject *args) {
     PyObject *seq, *value;
     if (!PyArg_ParseTuple(args, "OO", &seq, &value)) {
         return NULL;
@@ -502,19 +454,16 @@ sequence_index(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-sequence_list(PyObject *self, PyObject *obj)
-{
+sequence_list(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PySequence_List(obj);
 }
 
 static PyObject *
-sequence_tuple(PyObject *self, PyObject *obj)
-{
+sequence_tuple(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PySequence_Tuple(obj);
 }
-
 
 static PyMethodDef test_methods[] = {
     {"object_repr", object_repr, METH_O},
@@ -572,8 +521,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_Abstract(PyObject *m)
-{
+_PyTestLimitedCAPI_Init_Abstract(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

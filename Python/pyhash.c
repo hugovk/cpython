@@ -4,14 +4,14 @@
    All the utility functions (_Py_Hash*()) return "-1" to signify an error.
 */
 #include "Python.h"
-#include "pycore_pyhash.h"        // _Py_HashSecret_t
+#include "pycore_pyhash.h"  // _Py_HashSecret_t
 
 #ifdef __APPLE__
-#  include <libkern/OSByteOrder.h>
+#include <libkern/OSByteOrder.h>
 #elif defined(HAVE_LE64TOH) && defined(HAVE_ENDIAN_H)
-#  include <endian.h>
+#include <endian.h>
 #elif defined(HAVE_LE64TOH) && defined(HAVE_SYS_ENDIAN_H)
-#  include <sys/endian.h>
+#include <sys/endian.h>
 #endif
 
 _Py_HashSecret_t _Py_HashSecret = {{0}};
@@ -84,8 +84,7 @@ static Py_ssize_t hashstats[Py_HASH_STATS_MAX + 1] = {0};
    */
 
 Py_hash_t
-_Py_HashDouble(PyObject *inst, double v)
-{
+_Py_HashDouble(PyObject *inst, double v) {
     int e, sign;
     double m;
     Py_uhash_t x, y;
@@ -110,9 +109,9 @@ _Py_HashDouble(PyObject *inst, double v)
     x = 0;
     while (m) {
         x = ((x << 28) & _PyHASH_MODULUS) | x >> (_PyHASH_BITS - 28);
-        m *= 268435456.0;  /* 2**28 */
+        m *= 268435456.0; /* 2**28 */
         e -= 28;
-        y = (Py_uhash_t)m;  /* pull out integer part */
+        y = (Py_uhash_t)m; /* pull out integer part */
         m -= y;
         x += y;
         if (x >= _PyHASH_MODULUS)
@@ -120,7 +119,7 @@ _Py_HashDouble(PyObject *inst, double v)
     }
 
     /* adjust for the exponent;  first reduce it modulo _PyHASH_BITS */
-    e = e >= 0 ? e % _PyHASH_BITS : _PyHASH_BITS-1-((-1-e) % _PyHASH_BITS);
+    e = e >= 0 ? e % _PyHASH_BITS : _PyHASH_BITS - 1 - ((-1 - e) % _PyHASH_BITS);
     x = ((x << e) & _PyHASH_MODULUS) | x >> (_PyHASH_BITS - e);
 
     x = x * sign;
@@ -130,8 +129,7 @@ _Py_HashDouble(PyObject *inst, double v)
 }
 
 Py_hash_t
-Py_HashPointer(const void *ptr)
-{
+Py_HashPointer(const void *ptr) {
     Py_hash_t hash = _Py_HashPointerRaw(ptr);
     if (hash == -1) {
         hash = -2;
@@ -140,14 +138,12 @@ Py_HashPointer(const void *ptr)
 }
 
 Py_hash_t
-PyObject_GenericHash(PyObject *obj)
-{
+PyObject_GenericHash(PyObject *obj) {
     return Py_HashPointer(obj);
 }
 
 Py_hash_t
-Py_HashBuffer(const void *ptr, Py_ssize_t len)
-{
+Py_HashBuffer(const void *ptr, Py_ssize_t len) {
     /*
       We make the hash of the empty string be 0, rather than using
       (prefix ^ suffix), since this slightly obfuscates the hash secret
@@ -168,23 +164,36 @@ Py_HashBuffer(const void *ptr, Py_ssize_t len)
         const unsigned char *p = ptr;
         hash = 5381; /* DJBX33A starts with 5381 */
 
-        switch(len) {
+        switch (len) {
             /* ((hash << 5) + hash) + *p == hash * 33 + *p */
-            case 7: hash = ((hash << 5) + hash) + *p++; _Py_FALLTHROUGH;
-            case 6: hash = ((hash << 5) + hash) + *p++; _Py_FALLTHROUGH;
-            case 5: hash = ((hash << 5) + hash) + *p++; _Py_FALLTHROUGH;
-            case 4: hash = ((hash << 5) + hash) + *p++; _Py_FALLTHROUGH;
-            case 3: hash = ((hash << 5) + hash) + *p++; _Py_FALLTHROUGH;
-            case 2: hash = ((hash << 5) + hash) + *p++; _Py_FALLTHROUGH;
-            case 1: hash = ((hash << 5) + hash) + *p++; break;
+            case 7:
+                hash = ((hash << 5) + hash) + *p++;
+                _Py_FALLTHROUGH;
+            case 6:
+                hash = ((hash << 5) + hash) + *p++;
+                _Py_FALLTHROUGH;
+            case 5:
+                hash = ((hash << 5) + hash) + *p++;
+                _Py_FALLTHROUGH;
+            case 4:
+                hash = ((hash << 5) + hash) + *p++;
+                _Py_FALLTHROUGH;
+            case 3:
+                hash = ((hash << 5) + hash) + *p++;
+                _Py_FALLTHROUGH;
+            case 2:
+                hash = ((hash << 5) + hash) + *p++;
+                _Py_FALLTHROUGH;
+            case 1:
+                hash = ((hash << 5) + hash) + *p++;
+                break;
             default:
                 Py_UNREACHABLE();
         }
         hash ^= len;
-        hash ^= (Py_uhash_t) _Py_HashSecret.djbx33a.suffix;
+        hash ^= (Py_uhash_t)_Py_HashSecret.djbx33a.suffix;
         x = (Py_hash_t)hash;
-    }
-    else
+    } else
 #endif /* Py_HASH_CUTOFF */
     {
         x = PyHash_Func.hash(ptr, len);
@@ -197,8 +206,7 @@ Py_HashBuffer(const void *ptr, Py_ssize_t len)
 }
 
 void
-_PyHash_Fini(void)
-{
+_PyHash_Fini(void) {
 #ifdef Py_HASH_STATS
     fprintf(stderr, "len   calls    total\n");
     Py_ssize_t total = 0;
@@ -212,37 +220,45 @@ _PyHash_Fini(void)
 }
 
 PyHash_FuncDef *
-PyHash_GetFuncDef(void)
-{
+PyHash_GetFuncDef(void) {
     return &PyHash_Func;
 }
 
 /* Optimized memcpy() for Windows */
 #ifdef _MSC_VER
-#  if SIZEOF_PY_UHASH_T == 4
-#    define PY_UHASH_CPY(dst, src) do {                                    \
-       dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3]; \
-       } while(0)
-#  elif SIZEOF_PY_UHASH_T == 8
-#    define PY_UHASH_CPY(dst, src) do {                                    \
-       dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3]; \
-       dst[4] = src[4]; dst[5] = src[5]; dst[6] = src[6]; dst[7] = src[7]; \
-       } while(0)
-#  else
-#    error SIZEOF_PY_UHASH_T must be 4 or 8
-#  endif /* SIZEOF_PY_UHASH_T */
-#else /* not Windows */
-#  define PY_UHASH_CPY(dst, src) memcpy(dst, src, SIZEOF_PY_UHASH_T)
+#if SIZEOF_PY_UHASH_T == 4
+#define PY_UHASH_CPY(dst, src) \
+    do {                       \
+        dst[0] = src[0];       \
+        dst[1] = src[1];       \
+        dst[2] = src[2];       \
+        dst[3] = src[3];       \
+    } while (0)
+#elif SIZEOF_PY_UHASH_T == 8
+#define PY_UHASH_CPY(dst, src) \
+    do {                       \
+        dst[0] = src[0];       \
+        dst[1] = src[1];       \
+        dst[2] = src[2];       \
+        dst[3] = src[3];       \
+        dst[4] = src[4];       \
+        dst[5] = src[5];       \
+        dst[6] = src[6];       \
+        dst[7] = src[7];       \
+    } while (0)
+#else
+#error SIZEOF_PY_UHASH_T must be 4 or 8
+#endif /* SIZEOF_PY_UHASH_T */
+#else  /* not Windows */
+#define PY_UHASH_CPY(dst, src) memcpy(dst, src, SIZEOF_PY_UHASH_T)
 #endif /* _MSC_VER */
-
 
 #if Py_HASH_ALGORITHM == Py_HASH_FNV
 /* **************************************************************************
  * Modified Fowler-Noll-Vo (FNV) hash function
  */
 static Py_hash_t
-fnv(const void *src, Py_ssize_t len)
-{
+fnv(const void *src, Py_ssize_t len) {
     const unsigned char *p = src;
     Py_uhash_t x;
     Py_ssize_t remainder, blocks;
@@ -262,29 +278,28 @@ fnv(const void *src, Py_ssize_t len)
     }
     blocks = (len - remainder) / SIZEOF_PY_UHASH_T;
 
-    x = (Py_uhash_t) _Py_HashSecret.fnv.prefix;
-    x ^= (Py_uhash_t) *p << 7;
+    x = (Py_uhash_t)_Py_HashSecret.fnv.prefix;
+    x ^= (Py_uhash_t)*p << 7;
     while (blocks--) {
         PY_UHASH_CPY(block.bytes, p);
         x = (PyHASH_MULTIPLIER * x) ^ block.value;
         p += SIZEOF_PY_UHASH_T;
     }
     /* add remainder */
-    for (; remainder > 0; remainder--)
-        x = (PyHASH_MULTIPLIER * x) ^ (Py_uhash_t) *p++;
-    x ^= (Py_uhash_t) len;
-    x ^= (Py_uhash_t) _Py_HashSecret.fnv.suffix;
-    if (x == (Py_uhash_t) -1) {
-        x = (Py_uhash_t) -2;
+    for (; remainder > 0; remainder--) x = (PyHASH_MULTIPLIER * x) ^ (Py_uhash_t)*p++;
+    x ^= (Py_uhash_t)len;
+    x ^= (Py_uhash_t)_Py_HashSecret.fnv.suffix;
+    if (x == (Py_uhash_t)-1) {
+        x = (Py_uhash_t)-2;
     }
     return x;
 }
 
-static PyHash_FuncDef PyHash_Func = {fnv, "fnv", 8 * SIZEOF_PY_HASH_T,
-                                     16 * SIZEOF_PY_HASH_T};
+static PyHash_FuncDef PyHash_Func = {
+    fnv, "fnv", 8 * SIZEOF_PY_HASH_T, 16 * SIZEOF_PY_HASH_T
+};
 
 #endif /* Py_HASH_ALGORITHM == Py_HASH_FNV */
-
 
 /* **************************************************************************
  <MIT License>
@@ -329,48 +344,45 @@ static PyHash_FuncDef PyHash_Func = {fnv, "fnv", 8 * SIZEOF_PY_HASH_T,
  * the hash values' least significant bits.
  */
 #if PY_LITTLE_ENDIAN
-#  define _le64toh(x) ((uint64_t)(x))
+#define _le64toh(x) ((uint64_t)(x))
 #elif defined(__APPLE__)
-#  define _le64toh(x) OSSwapLittleToHostInt64(x)
+#define _le64toh(x) OSSwapLittleToHostInt64(x)
 #elif defined(HAVE_LETOH64)
-#  define _le64toh(x) le64toh(x)
+#define _le64toh(x) le64toh(x)
 #else
-#  define _le64toh(x) (((uint64_t)(x) << 56) | \
-                      (((uint64_t)(x) << 40) & 0xff000000000000ULL) | \
-                      (((uint64_t)(x) << 24) & 0xff0000000000ULL) | \
-                      (((uint64_t)(x) << 8)  & 0xff00000000ULL) | \
-                      (((uint64_t)(x) >> 8)  & 0xff000000ULL) | \
-                      (((uint64_t)(x) >> 24) & 0xff0000ULL) | \
-                      (((uint64_t)(x) >> 40) & 0xff00ULL) | \
-                      ((uint64_t)(x)  >> 56))
+#define _le64toh(x)                                                                   \
+    (((uint64_t)(x) << 56) | (((uint64_t)(x) << 40) & 0xff000000000000ULL) |          \
+     (((uint64_t)(x) << 24) & 0xff0000000000ULL) |                                    \
+     (((uint64_t)(x) << 8) & 0xff00000000ULL) |                                       \
+     (((uint64_t)(x) >> 8) & 0xff000000ULL) | (((uint64_t)(x) >> 24) & 0xff0000ULL) | \
+     (((uint64_t)(x) >> 40) & 0xff00ULL) | ((uint64_t)(x) >> 56))
 #endif
-
 
 #ifdef _MSC_VER
-#  define ROTATE(x, b)  _rotl64(x, b)
+#define ROTATE(x, b) _rotl64(x, b)
 #else
-#  define ROTATE(x, b) (uint64_t)( ((x) << (b)) | ( (x) >> (64 - (b))) )
+#define ROTATE(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
 #endif
 
-#define HALF_ROUND(a,b,c,d,s,t)     \
-    a += b; c += d;                 \
-    b = ROTATE(b, s) ^ a;           \
-    d = ROTATE(d, t) ^ c;           \
+#define HALF_ROUND(a, b, c, d, s, t) \
+    a += b;                          \
+    c += d;                          \
+    b = ROTATE(b, s) ^ a;            \
+    d = ROTATE(d, t) ^ c;            \
     a = ROTATE(a, 32);
 
-#define SINGLE_ROUND(v0,v1,v2,v3)   \
-    HALF_ROUND(v0,v1,v2,v3,13,16);  \
-    HALF_ROUND(v2,v1,v0,v3,17,21);
+#define SINGLE_ROUND(v0, v1, v2, v3)    \
+    HALF_ROUND(v0, v1, v2, v3, 13, 16); \
+    HALF_ROUND(v2, v1, v0, v3, 17, 21);
 
-#define DOUBLE_ROUND(v0,v1,v2,v3)   \
-    SINGLE_ROUND(v0,v1,v2,v3);      \
-    SINGLE_ROUND(v0,v1,v2,v3);
-
+#define DOUBLE_ROUND(v0, v1, v2, v3) \
+    SINGLE_ROUND(v0, v1, v2, v3);    \
+    SINGLE_ROUND(v0, v1, v2, v3);
 
 static uint64_t
 siphash13(uint64_t k0, uint64_t k1, const void *src, Py_ssize_t src_sz) {
     uint64_t b = (uint64_t)src_sz << 56;
-    const uint8_t *in = (const uint8_t*)src;
+    const uint8_t *in = (const uint8_t *)src;
 
     uint64_t v0 = k0 ^ 0x736f6d6570736575ULL;
     uint64_t v1 = k1 ^ 0x646f72616e646f6dULL;
@@ -387,30 +399,44 @@ siphash13(uint64_t k0, uint64_t k1, const void *src, Py_ssize_t src_sz) {
         in += sizeof(mi);
         src_sz -= sizeof(mi);
         v3 ^= mi;
-        SINGLE_ROUND(v0,v1,v2,v3);
+        SINGLE_ROUND(v0, v1, v2, v3);
         v0 ^= mi;
     }
 
     t = 0;
     pt = (uint8_t *)&t;
     switch (src_sz) {
-        case 7: pt[6] = in[6]; _Py_FALLTHROUGH;
-        case 6: pt[5] = in[5]; _Py_FALLTHROUGH;
-        case 5: pt[4] = in[4]; _Py_FALLTHROUGH;
-        case 4: memcpy(pt, in, sizeof(uint32_t)); break;
-        case 3: pt[2] = in[2]; _Py_FALLTHROUGH;
-        case 2: pt[1] = in[1]; _Py_FALLTHROUGH;
-        case 1: pt[0] = in[0]; break;
+        case 7:
+            pt[6] = in[6];
+            _Py_FALLTHROUGH;
+        case 6:
+            pt[5] = in[5];
+            _Py_FALLTHROUGH;
+        case 5:
+            pt[4] = in[4];
+            _Py_FALLTHROUGH;
+        case 4:
+            memcpy(pt, in, sizeof(uint32_t));
+            break;
+        case 3:
+            pt[2] = in[2];
+            _Py_FALLTHROUGH;
+        case 2:
+            pt[1] = in[1];
+            _Py_FALLTHROUGH;
+        case 1:
+            pt[0] = in[0];
+            break;
     }
     b |= _le64toh(t);
 
     v3 ^= b;
-    SINGLE_ROUND(v0,v1,v2,v3);
+    SINGLE_ROUND(v0, v1, v2, v3);
     v0 ^= b;
     v2 ^= 0xff;
-    SINGLE_ROUND(v0,v1,v2,v3);
-    SINGLE_ROUND(v0,v1,v2,v3);
-    SINGLE_ROUND(v0,v1,v2,v3);
+    SINGLE_ROUND(v0, v1, v2, v3);
+    SINGLE_ROUND(v0, v1, v2, v3);
+    SINGLE_ROUND(v0, v1, v2, v3);
 
     /* modified */
     t = (v0 ^ v1) ^ (v2 ^ v3);
@@ -421,7 +447,7 @@ siphash13(uint64_t k0, uint64_t k1, const void *src, Py_ssize_t src_sz) {
 static uint64_t
 siphash24(uint64_t k0, uint64_t k1, const void *src, Py_ssize_t src_sz) {
     uint64_t b = (uint64_t)src_sz << 56;
-    const uint8_t *in = (const uint8_t*)src;
+    const uint8_t *in = (const uint8_t *)src;
 
     uint64_t v0 = k0 ^ 0x736f6d6570736575ULL;
     uint64_t v1 = k1 ^ 0x646f72616e646f6dULL;
@@ -438,29 +464,43 @@ siphash24(uint64_t k0, uint64_t k1, const void *src, Py_ssize_t src_sz) {
         in += sizeof(mi);
         src_sz -= sizeof(mi);
         v3 ^= mi;
-        DOUBLE_ROUND(v0,v1,v2,v3);
+        DOUBLE_ROUND(v0, v1, v2, v3);
         v0 ^= mi;
     }
 
     t = 0;
     pt = (uint8_t *)&t;
     switch (src_sz) {
-        case 7: pt[6] = in[6]; _Py_FALLTHROUGH;
-        case 6: pt[5] = in[5]; _Py_FALLTHROUGH;
-        case 5: pt[4] = in[4]; _Py_FALLTHROUGH;
-        case 4: memcpy(pt, in, sizeof(uint32_t)); break;
-        case 3: pt[2] = in[2]; _Py_FALLTHROUGH;
-        case 2: pt[1] = in[1]; _Py_FALLTHROUGH;
-        case 1: pt[0] = in[0]; break;
+        case 7:
+            pt[6] = in[6];
+            _Py_FALLTHROUGH;
+        case 6:
+            pt[5] = in[5];
+            _Py_FALLTHROUGH;
+        case 5:
+            pt[4] = in[4];
+            _Py_FALLTHROUGH;
+        case 4:
+            memcpy(pt, in, sizeof(uint32_t));
+            break;
+        case 3:
+            pt[2] = in[2];
+            _Py_FALLTHROUGH;
+        case 2:
+            pt[1] = in[1];
+            _Py_FALLTHROUGH;
+        case 1:
+            pt[0] = in[0];
+            break;
     }
     b |= _le64toh(t);
 
     v3 ^= b;
-    DOUBLE_ROUND(v0,v1,v2,v3);
+    DOUBLE_ROUND(v0, v1, v2, v3);
     v0 ^= b;
     v2 ^= 0xff;
-    DOUBLE_ROUND(v0,v1,v2,v3);
-    DOUBLE_ROUND(v0,v1,v2,v3);
+    DOUBLE_ROUND(v0, v1, v2, v3);
+    DOUBLE_ROUND(v0, v1, v2, v3);
 
     /* modified */
     t = (v0 ^ v1) ^ (v2 ^ v3);
@@ -469,18 +509,19 @@ siphash24(uint64_t k0, uint64_t k1, const void *src, Py_ssize_t src_sz) {
 #endif
 
 uint64_t
-_Py_KeyedHash(uint64_t key, const void *src, Py_ssize_t src_sz)
-{
+_Py_KeyedHash(uint64_t key, const void *src, Py_ssize_t src_sz) {
     return siphash13(key, 0, src, src_sz);
 }
-
 
 #if Py_HASH_ALGORITHM == Py_HASH_SIPHASH13
 static Py_hash_t
 pysiphash(const void *src, Py_ssize_t src_sz) {
     return (Py_hash_t)siphash13(
-        _le64toh(_Py_HashSecret.siphash.k0), _le64toh(_Py_HashSecret.siphash.k1),
-        src, src_sz);
+        _le64toh(_Py_HashSecret.siphash.k0),
+        _le64toh(_Py_HashSecret.siphash.k1),
+        src,
+        src_sz
+    );
 }
 
 static PyHash_FuncDef PyHash_Func = {pysiphash, "siphash13", 64, 128};
@@ -490,8 +531,11 @@ static PyHash_FuncDef PyHash_Func = {pysiphash, "siphash13", 64, 128};
 static Py_hash_t
 pysiphash(const void *src, Py_ssize_t src_sz) {
     return (Py_hash_t)siphash24(
-        _le64toh(_Py_HashSecret.siphash.k0), _le64toh(_Py_HashSecret.siphash.k1),
-        src, src_sz);
+        _le64toh(_Py_HashSecret.siphash.k0),
+        _le64toh(_Py_HashSecret.siphash.k1),
+        src,
+        src_sz
+    );
 }
 
 static PyHash_FuncDef PyHash_Func = {pysiphash, "siphash24", 64, 128};

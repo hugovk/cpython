@@ -3,12 +3,10 @@
 
 #include "clinic/_tracemalloc.c.h"
 
-
 /*[clinic input]
 module _tracemalloc
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=708a98302fc46e5f]*/
-
 
 /*[clinic input]
 _tracemalloc.is_tracing
@@ -23,7 +21,6 @@ _tracemalloc_is_tracing_impl(PyObject *module)
     return PyBool_FromLong(_PyTraceMalloc_IsTracing());
 }
 
-
 /*[clinic input]
 _tracemalloc.clear_traces
 
@@ -37,7 +34,6 @@ _tracemalloc_clear_traces_impl(PyObject *module)
     _PyTraceMalloc_ClearTraces();
     Py_RETURN_NONE;
 }
-
 
 /*[clinic input]
 _tracemalloc._get_traces
@@ -56,8 +52,6 @@ _tracemalloc__get_traces_impl(PyObject *module)
 {
     return _PyTraceMalloc_GetTraces();
 }
-
-
 
 /*[clinic input]
 _tracemalloc._get_object_traceback
@@ -78,7 +72,6 @@ _tracemalloc__get_object_traceback(PyObject *module, PyObject *obj)
 {
     return _PyTraceMalloc_GetObjectTraceback(obj);
 }
-
 
 /*[clinic input]
 _tracemalloc.start
@@ -102,7 +95,6 @@ _tracemalloc_start_impl(PyObject *module, int nframe)
     Py_RETURN_NONE;
 }
 
-
 /*[clinic input]
 _tracemalloc.stop
 
@@ -118,7 +110,6 @@ _tracemalloc_stop_impl(PyObject *module)
     _PyTraceMalloc_Stop();
     Py_RETURN_NONE;
 }
-
 
 /*[clinic input]
 _tracemalloc.get_traceback_limit
@@ -150,7 +141,6 @@ _tracemalloc_get_tracemalloc_memory_impl(PyObject *module)
 {
     return PyLong_FromSize_t(_PyTraceMalloc_GetMemory());
 }
-
 
 /*[clinic input]
 _tracemalloc.get_traced_memory
@@ -184,24 +174,19 @@ _tracemalloc_reset_peak_impl(PyObject *module)
     Py_RETURN_NONE;
 }
 
-
 static PyMethodDef module_methods[] = {
-    _TRACEMALLOC_IS_TRACING_METHODDEF
-    _TRACEMALLOC_CLEAR_TRACES_METHODDEF
-    _TRACEMALLOC__GET_TRACES_METHODDEF
-    _TRACEMALLOC__GET_OBJECT_TRACEBACK_METHODDEF
-    _TRACEMALLOC_START_METHODDEF
-    _TRACEMALLOC_STOP_METHODDEF
-    _TRACEMALLOC_GET_TRACEBACK_LIMIT_METHODDEF
-    _TRACEMALLOC_GET_TRACEMALLOC_MEMORY_METHODDEF
-    _TRACEMALLOC_GET_TRACED_MEMORY_METHODDEF
-    _TRACEMALLOC_RESET_PEAK_METHODDEF
+    _TRACEMALLOC_IS_TRACING_METHODDEF _TRACEMALLOC_CLEAR_TRACES_METHODDEF
+        _TRACEMALLOC__GET_TRACES_METHODDEF _TRACEMALLOC__GET_OBJECT_TRACEBACK_METHODDEF
+            _TRACEMALLOC_START_METHODDEF _TRACEMALLOC_STOP_METHODDEF
+                _TRACEMALLOC_GET_TRACEBACK_LIMIT_METHODDEF
+                    _TRACEMALLOC_GET_TRACEMALLOC_MEMORY_METHODDEF
+                        _TRACEMALLOC_GET_TRACED_MEMORY_METHODDEF
+                            _TRACEMALLOC_RESET_PEAK_METHODDEF
     /* sentinel */
     {NULL, NULL}
 };
 
-PyDoc_STRVAR(module_doc,
-"Debug module to trace memory blocks allocated by Python.");
+PyDoc_STRVAR(module_doc, "Debug module to trace memory blocks allocated by Python.");
 
 static struct PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT,
@@ -213,8 +198,7 @@ static struct PyModuleDef module_def = {
 };
 
 PyMODINIT_FUNC
-PyInit__tracemalloc(void)
-{
+PyInit__tracemalloc(void) {
     PyObject *m;
     m = PyModule_Create(&module_def);
     if (m == NULL)

@@ -26,38 +26,38 @@
 
 #undef VA_LIST_IS_ARRAY
 #if defined(__LP64__) && defined(__x86_64__)
-#  define VA_LIST_IS_ARRAY 1
+#define VA_LIST_IS_ARRAY 1
 #endif
 
 #undef HAVE_LARGEFILE_SUPPORT
 #ifndef __LP64__
-#   define HAVE_LARGEFILE_SUPPORT 1
+#define HAVE_LARGEFILE_SUPPORT 1
 #endif
 
 #undef SIZEOF_LONG
 #ifdef __LP64__
-#  define SIZEOF__BOOL            1
-#  define SIZEOF__BOOL            1
-#  define SIZEOF_LONG             8
-#  define SIZEOF_PTHREAD_T        8
-#  define SIZEOF_SIZE_T           8
-#  define SIZEOF_TIME_T           8
-#  define SIZEOF_VOID_P           8
-#  define SIZEOF_UINTPTR_T        8
-#  define SIZEOF_PTHREAD_T        8
+#define SIZEOF__BOOL 1
+#define SIZEOF__BOOL 1
+#define SIZEOF_LONG 8
+#define SIZEOF_PTHREAD_T 8
+#define SIZEOF_SIZE_T 8
+#define SIZEOF_TIME_T 8
+#define SIZEOF_VOID_P 8
+#define SIZEOF_UINTPTR_T 8
+#define SIZEOF_PTHREAD_T 8
 #else
-#  ifdef __ppc__
-#     define SIZEOF__BOOL         4
-#  else
-#     define SIZEOF__BOOL         1
-#  endif
-#  define SIZEOF_LONG             4
-#  define SIZEOF_PTHREAD_T        4
-#  define SIZEOF_SIZE_T           4
-#  define SIZEOF_TIME_T           4
-#  define SIZEOF_VOID_P           4
-#  define SIZEOF_UINTPTR_T        4
-#  define SIZEOF_PTHREAD_T        4
+#ifdef __ppc__
+#define SIZEOF__BOOL 4
+#else
+#define SIZEOF__BOOL 1
+#endif
+#define SIZEOF_LONG 4
+#define SIZEOF_PTHREAD_T 4
+#define SIZEOF_SIZE_T 4
+#define SIZEOF_TIME_T 4
+#define SIZEOF_VOID_P 4
+#define SIZEOF_UINTPTR_T 4
+#define SIZEOF_PTHREAD_T 4
 #endif
 
 // macOS 10.4 (the first release to support 64-bit code
@@ -67,25 +67,25 @@
 // In 64-bit mode setpgrp always has no arguments, in 32-bit
 // mode that depends on the compilation environment
 #if defined(__LP64__)
-#   undef SETPGRP_HAVE_ARG
+#undef SETPGRP_HAVE_ARG
 #endif
 
 #ifdef __BIG_ENDIAN__
-#  define WORDS_BIGENDIAN 1
-#  define DOUBLE_IS_BIG_ENDIAN_IEEE754
+#define WORDS_BIGENDIAN 1
+#define DOUBLE_IS_BIG_ENDIAN_IEEE754
 #else
-#  define DOUBLE_IS_LITTLE_ENDIAN_IEEE754
+#define DOUBLE_IS_LITTLE_ENDIAN_IEEE754
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)
-#  define HAVE_GCC_ASM_FOR_X87
-#  define ALIGNOF_MAX_ALIGN_T 16
-#  define HAVE_GCC_ASM_FOR_X64 1
-#  define SIZEOF_LONG_DOUBLE 16
+#define HAVE_GCC_ASM_FOR_X87
+#define ALIGNOF_MAX_ALIGN_T 16
+#define HAVE_GCC_ASM_FOR_X64 1
+#define SIZEOF_LONG_DOUBLE 16
 #else
-#  define ALIGNOF_MAX_ALIGN_T 8
-#  define SIZEOF_LONG_DOUBLE 8
+#define ALIGNOF_MAX_ALIGN_T 8
+#define SIZEOF_LONG_DOUBLE 8
 #endif
 
-#endif   // __APPLE__
-#endif   // !PY_MACCONFIG_H
+#endif  // __APPLE__
+#endif  // !PY_MACCONFIG_H

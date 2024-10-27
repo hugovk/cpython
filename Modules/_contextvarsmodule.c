@@ -7,7 +7,6 @@ module _contextvars
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=a0955718c8b8cea6]*/
 
-
 /*[clinic input]
 _contextvars.copy_context
 [clinic start generated code]*/
@@ -19,17 +18,14 @@ _contextvars_copy_context_impl(PyObject *module)
     return PyContext_CopyCurrent();
 }
 
-
 PyDoc_STRVAR(module_doc, "Context Variables");
 
 static PyMethodDef _contextvars_methods[] = {
-    _CONTEXTVARS_COPY_CONTEXT_METHODDEF
-    {NULL, NULL}
+    _CONTEXTVARS_COPY_CONTEXT_METHODDEF{NULL, NULL}
 };
 
 static int
-_contextvars_exec(PyObject *m)
-{
+_contextvars_exec(PyObject *m) {
     if (PyModule_AddType(m, &PyContext_Type) < 0) {
         return -1;
     }
@@ -50,19 +46,18 @@ static struct PyModuleDef_Slot _contextvars_slots[] = {
 };
 
 static struct PyModuleDef _contextvarsmodule = {
-    PyModuleDef_HEAD_INIT,      /* m_base */
-    "_contextvars",             /* m_name */
-    module_doc,                 /* m_doc */
-    0,                          /* m_size */
-    _contextvars_methods,       /* m_methods */
-    _contextvars_slots,         /* m_slots */
-    NULL,                       /* m_traverse */
-    NULL,                       /* m_clear */
-    NULL,                       /* m_free */
+    PyModuleDef_HEAD_INIT, /* m_base */
+    "_contextvars",        /* m_name */
+    module_doc,            /* m_doc */
+    0,                     /* m_size */
+    _contextvars_methods,  /* m_methods */
+    _contextvars_slots,    /* m_slots */
+    NULL,                  /* m_traverse */
+    NULL,                  /* m_clear */
+    NULL,                  /* m_free */
 };
 
 PyMODINIT_FUNC
-PyInit__contextvars(void)
-{
+PyInit__contextvars(void) {
     return PyModuleDef_Init(&_contextvarsmodule);
 }

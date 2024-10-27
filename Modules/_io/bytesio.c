@@ -1,8 +1,8 @@
 #include "Python.h"
 #include "pycore_object.h"
-#include "pycore_sysmodule.h"     // _PySys_GetSizeOf()
+#include "pycore_sysmodule.h"  // _PySys_GetSizeOf()
 
-#include <stddef.h>               // offsetof()
+#include <stddef.h>  // offsetof()
 #include "_iomodule.h"
 
 /*[clinic input]
@@ -12,8 +12,7 @@ class _io.BytesIO "bytesio *" "clinic_state()->PyBytesIO_Type"
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=48ede2f330f847c3]*/
 
 typedef struct {
-    PyObject_HEAD
-    PyObject *buf;
+    PyObject_HEAD PyObject *buf;
     Py_ssize_t pos;
     Py_ssize_t string_size;
     PyObject *dict;
@@ -22,8 +21,7 @@ typedef struct {
 } bytesio;
 
 typedef struct {
-    PyObject_HEAD
-    bytesio *source;
+    PyObject_HEAD bytesio *source;
 } bytesiobuf;
 
 /* The bytesio object can be in three states:
@@ -34,8 +32,7 @@ typedef struct {
 */
 
 static int
-check_closed(bytesio *self)
-{
+check_closed(bytesio *self) {
     if (self->buf == NULL) {
         PyErr_SetString(PyExc_ValueError, "I/O operation on closed file.");
         return 1;
@@ -44,35 +41,33 @@ check_closed(bytesio *self)
 }
 
 static int
-check_exports(bytesio *self)
-{
+check_exports(bytesio *self) {
     if (self->exports > 0) {
-        PyErr_SetString(PyExc_BufferError,
-                        "Existing exports of data: object cannot be re-sized");
+        PyErr_SetString(
+            PyExc_BufferError, "Existing exports of data: object cannot be re-sized"
+        );
         return 1;
     }
     return 0;
 }
 
-#define CHECK_CLOSED(self)                                  \
-    if (check_closed(self)) {                               \
-        return NULL;                                        \
+#define CHECK_CLOSED(self)    \
+    if (check_closed(self)) { \
+        return NULL;          \
     }
 
-#define CHECK_EXPORTS(self) \
+#define CHECK_EXPORTS(self)    \
     if (check_exports(self)) { \
-        return NULL; \
+        return NULL;           \
     }
 
 #define SHARED_BUF(self) (Py_REFCNT((self)->buf) > 1)
-
 
 /* Internal routine to get a line from the buffer of a BytesIO
    object. Returns the length between the current position to the
    next newline character. */
 static Py_ssize_t
-scan_eol(bytesio *self, Py_ssize_t len)
-{
+scan_eol(bytesio *self, Py_ssize_t len) {
     const char *start, *n;
     Py_ssize_t maxlen;
 
@@ -105,8 +100,7 @@ scan_eol(bytesio *self, Py_ssize_t len)
    The caller should ensure that the 'size' argument is non-negative and
    not lesser than self->string_size.  Returns 0 on success, -1 otherwise. */
 static int
-unshare_buffer(bytesio *self, size_t size)
-{
+unshare_buffer(bytesio *self, size_t size) {
     PyObject *new_buf;
     assert(SHARED_BUF(self));
     assert(self->exports == 0);
@@ -114,8 +108,7 @@ unshare_buffer(bytesio *self, size_t size)
     new_buf = PyBytes_FromStringAndSize(NULL, size);
     if (new_buf == NULL)
         return -1;
-    memcpy(PyBytes_AS_STRING(new_buf), PyBytes_AS_STRING(self->buf),
-           self->string_size);
+    memcpy(PyBytes_AS_STRING(new_buf), PyBytes_AS_STRING(self->buf), self->string_size);
     Py_SETREF(self->buf, new_buf);
     return 0;
 }
@@ -124,8 +117,7 @@ unshare_buffer(bytesio *self, size_t size)
    The caller should ensure that the 'size' argument is non-negative.  Returns
    0 on success, -1 otherwise. */
 static int
-resize_buffer(bytesio *self, size_t size)
-{
+resize_buffer(bytesio *self, size_t size) {
     assert(self->buf != NULL);
     assert(self->exports == 0);
 
@@ -141,16 +133,13 @@ resize_buffer(bytesio *self, size_t size)
     if (size < alloc / 2) {
         /* Major downsize; resize down to exact size. */
         alloc = size + 1;
-    }
-    else if (size < alloc) {
+    } else if (size < alloc) {
         /* Within allocated size; quick exit */
         return 0;
-    }
-    else if (size <= alloc * 1.125) {
+    } else if (size <= alloc * 1.125) {
         /* Moderate upsize; overallocate similar to list_resize() */
         alloc = size + (size >> 3) + (size < 9 ? 3 : 6);
-    }
-    else {
+    } else {
         /* Major upsize; resize up to exact size */
         alloc = size + 1;
     }
@@ -158,17 +147,15 @@ resize_buffer(bytesio *self, size_t size)
     if (SHARED_BUF(self)) {
         if (unshare_buffer(self, alloc) < 0)
             return -1;
-    }
-    else {
+    } else {
         if (_PyBytes_Resize(&self->buf, alloc) < 0)
             return -1;
     }
 
     return 0;
 
-  overflow:
-    PyErr_SetString(PyExc_OverflowError,
-                    "new buffer size too large");
+overflow:
+    PyErr_SetString(PyExc_OverflowError, "new buffer size too large");
     return -1;
 }
 
@@ -177,8 +164,7 @@ resize_buffer(bytesio *self, size_t size)
    Inlining is disabled because it's significantly decreases performance
    of writelines() in PGO build. */
 Py_NO_INLINE static Py_ssize_t
-write_bytes(bytesio *self, PyObject *b)
-{
+write_bytes(bytesio *self, PyObject *b) {
     if (check_closed(self)) {
         return -1;
     }
@@ -202,8 +188,7 @@ write_bytes(bytesio *self, PyObject *b)
             len = -1;
             goto done;
         }
-    }
-    else if (SHARED_BUF(self)) {
+    } else if (SHARED_BUF(self)) {
         if (unshare_buffer(self, Py_MAX(endpos, (size_t)self->string_size)) < 0) {
             len = -1;
             goto done;
@@ -219,8 +204,11 @@ write_bytes(bytesio *self, PyObject *b)
           |   |            <--to pad-->|<---to write--->    |
           0   buf                   position
         */
-        memset(PyBytes_AS_STRING(self->buf) + self->string_size, '\0',
-               (self->pos - self->string_size) * sizeof(char));
+        memset(
+            PyBytes_AS_STRING(self->buf) + self->string_size,
+            '\0',
+            (self->pos - self->string_size) * sizeof(char)
+        );
     }
 
     /* Copy the data to the internal buffer, overwriting some of the existing
@@ -233,18 +221,16 @@ write_bytes(bytesio *self, PyObject *b)
         self->string_size = endpos;
     }
 
-  done:
+done:
     PyBuffer_Release(&buf);
     return len;
 }
 
 static PyObject *
-bytesio_get_closed(bytesio *self, void *Py_UNUSED(ignored))
-{
+bytesio_get_closed(bytesio *self, void *Py_UNUSED(ignored)) {
     if (self->buf == NULL) {
         Py_RETURN_TRUE;
-    }
-    else {
+    } else {
         Py_RETURN_FALSE;
     }
 }
@@ -325,11 +311,11 @@ _io_BytesIO_getbuffer_impl(bytesio *self, PyTypeObject *cls)
 
     CHECK_CLOSED(self);
 
-    buf = (bytesiobuf *) type->tp_alloc(type, 0);
+    buf = (bytesiobuf *)type->tp_alloc(type, 0);
     if (buf == NULL)
         return NULL;
-    buf->source = (bytesio*)Py_NewRef(self);
-    view = PyMemoryView_FromObject((PyObject *) buf);
+    buf->source = (bytesio *)Py_NewRef(self);
+    view = PyMemoryView_FromObject((PyObject *)buf);
     Py_DECREF(buf);
     return view;
 }
@@ -346,15 +332,15 @@ _io_BytesIO_getvalue_impl(bytesio *self)
 {
     CHECK_CLOSED(self);
     if (self->string_size <= 1 || self->exports > 0)
-        return PyBytes_FromStringAndSize(PyBytes_AS_STRING(self->buf),
-                                         self->string_size);
+        return PyBytes_FromStringAndSize(
+            PyBytes_AS_STRING(self->buf), self->string_size
+        );
 
     if (self->string_size != PyBytes_GET_SIZE(self->buf)) {
         if (SHARED_BUF(self)) {
             if (unshare_buffer(self, self->string_size) < 0)
                 return NULL;
-        }
-        else {
+        } else {
             if (_PyBytes_Resize(&self->buf, self->string_size) < 0)
                 return NULL;
         }
@@ -393,14 +379,12 @@ _io_BytesIO_tell_impl(bytesio *self)
 }
 
 static PyObject *
-read_bytes(bytesio *self, Py_ssize_t size)
-{
+read_bytes(bytesio *self, Py_ssize_t size) {
     const char *output;
 
     assert(self->buf != NULL);
     assert(size <= self->string_size);
-    if (size > 1 &&
-        self->pos == 0 && size == PyBytes_GET_SIZE(self->buf) &&
+    if (size > 1 && self->pos == 0 && size == PyBytes_GET_SIZE(self->buf) &&
         self->exports == 0) {
         self->pos += size;
         return Py_NewRef(self->buf);
@@ -440,7 +424,6 @@ _io_BytesIO_read_impl(bytesio *self, Py_ssize_t size)
 
     return read_bytes(self, size);
 }
-
 
 /*[clinic input]
 _io.BytesIO.read1
@@ -511,14 +494,15 @@ _io_BytesIO_readlines_impl(bytesio *self, PyObject *arg)
         maxsize = PyLong_AsSsize_t(arg);
         if (maxsize == -1 && PyErr_Occurred())
             return NULL;
-    }
-    else if (arg == Py_None) {
+    } else if (arg == Py_None) {
         /* No size limit, by default. */
         maxsize = -1;
-    }
-    else {
-        PyErr_Format(PyExc_TypeError, "integer argument expected, got '%s'",
-                     Py_TYPE(arg)->tp_name);
+    } else {
+        PyErr_Format(
+            PyExc_TypeError,
+            "integer argument expected, got '%s'",
+            Py_TYPE(arg)->tp_name
+        );
         return NULL;
     }
 
@@ -545,7 +529,7 @@ _io_BytesIO_readlines_impl(bytesio *self, PyObject *arg)
     }
     return result;
 
-  on_error:
+on_error:
     Py_DECREF(result);
     return NULL;
 }
@@ -605,8 +589,7 @@ _io_BytesIO_truncate_impl(bytesio *self, Py_ssize_t size)
     CHECK_EXPORTS(self);
 
     if (size < 0) {
-        PyErr_Format(PyExc_ValueError,
-                     "negative size value %zd", size);
+        PyErr_Format(PyExc_ValueError, "negative size value %zd", size);
         return NULL;
     }
 
@@ -620,8 +603,7 @@ _io_BytesIO_truncate_impl(bytesio *self, Py_ssize_t size)
 }
 
 static PyObject *
-bytesio_iternext(bytesio *self)
-{
+bytesio_iternext(bytesio *self) {
     Py_ssize_t n;
 
     CHECK_CLOSED(self);
@@ -656,8 +638,7 @@ _io_BytesIO_seek_impl(bytesio *self, Py_ssize_t pos, int whence)
     CHECK_CLOSED(self);
 
     if (pos < 0 && whence == 0) {
-        PyErr_Format(PyExc_ValueError,
-                     "negative seek value %zd", pos);
+        PyErr_Format(PyExc_ValueError, "negative seek value %zd", pos);
         return NULL;
     }
 
@@ -666,23 +647,20 @@ _io_BytesIO_seek_impl(bytesio *self, Py_ssize_t pos, int whence)
        whence = 2: offset relative the end of the string. */
     if (whence == 1) {
         if (pos > PY_SSIZE_T_MAX - self->pos) {
-            PyErr_SetString(PyExc_OverflowError,
-                            "new position too large");
+            PyErr_SetString(PyExc_OverflowError, "new position too large");
             return NULL;
         }
         pos += self->pos;
-    }
-    else if (whence == 2) {
+    } else if (whence == 2) {
         if (pos > PY_SSIZE_T_MAX - self->string_size) {
-            PyErr_SetString(PyExc_OverflowError,
-                            "new position too large");
+            PyErr_SetString(PyExc_OverflowError, "new position too large");
             return NULL;
         }
         pos += self->string_size;
-    }
-    else if (whence != 0) {
-        PyErr_Format(PyExc_ValueError,
-                     "invalid whence (%i, should be 0, 1 or 2)", whence);
+    } else if (whence != 0) {
+        PyErr_Format(
+            PyExc_ValueError, "invalid whence (%i, should be 0, 1 or 2)", whence
+        );
         return NULL;
     }
 
@@ -783,8 +761,7 @@ _io_BytesIO_close_impl(bytesio *self)
  */
 
 static PyObject *
-bytesio_getstate(bytesio *self, PyObject *Py_UNUSED(ignored))
-{
+bytesio_getstate(bytesio *self, PyObject *Py_UNUSED(ignored)) {
     PyObject *initvalue = _io_BytesIO_getvalue_impl(self);
     PyObject *dict;
     PyObject *state;
@@ -793,8 +770,7 @@ bytesio_getstate(bytesio *self, PyObject *Py_UNUSED(ignored))
         return NULL;
     if (self->dict == NULL) {
         dict = Py_NewRef(Py_None);
-    }
-    else {
+    } else {
         dict = PyDict_Copy(self->dict);
         if (dict == NULL) {
             Py_DECREF(initvalue);
@@ -808,8 +784,7 @@ bytesio_getstate(bytesio *self, PyObject *Py_UNUSED(ignored))
 }
 
 static PyObject *
-bytesio_setstate(bytesio *self, PyObject *state)
-{
+bytesio_setstate(bytesio *self, PyObject *state) {
     PyObject *result;
     PyObject *position_obj;
     PyObject *dict;
@@ -821,9 +796,12 @@ bytesio_setstate(bytesio *self, PyObject *state)
        someday to extend the object's state without breaking
        backward-compatibility. */
     if (!PyTuple_Check(state) || PyTuple_GET_SIZE(state) < 3) {
-        PyErr_Format(PyExc_TypeError,
-                     "%.200s.__setstate__ argument should be 3-tuple, got %.200s",
-                     Py_TYPE(self)->tp_name, Py_TYPE(state)->tp_name);
+        PyErr_Format(
+            PyExc_TypeError,
+            "%.200s.__setstate__ argument should be 3-tuple, got %.200s",
+            Py_TYPE(self)->tp_name,
+            Py_TYPE(state)->tp_name
+        );
         return NULL;
     }
     CHECK_EXPORTS(self);
@@ -844,17 +822,18 @@ bytesio_setstate(bytesio *self, PyObject *state)
        object internal state against erroneous (or malicious) inputs. */
     position_obj = PyTuple_GET_ITEM(state, 1);
     if (!PyLong_Check(position_obj)) {
-        PyErr_Format(PyExc_TypeError,
-                     "second item of state must be an integer, not %.200s",
-                     Py_TYPE(position_obj)->tp_name);
+        PyErr_Format(
+            PyExc_TypeError,
+            "second item of state must be an integer, not %.200s",
+            Py_TYPE(position_obj)->tp_name
+        );
         return NULL;
     }
     pos = PyLong_AsSsize_t(position_obj);
     if (pos == -1 && PyErr_Occurred())
         return NULL;
     if (pos < 0) {
-        PyErr_SetString(PyExc_ValueError,
-                        "position value cannot be negative");
+        PyErr_SetString(PyExc_ValueError, "position value cannot be negative");
         return NULL;
     }
     self->pos = pos;
@@ -863,9 +842,11 @@ bytesio_setstate(bytesio *self, PyObject *state)
     dict = PyTuple_GET_ITEM(state, 2);
     if (dict != Py_None) {
         if (!PyDict_Check(dict)) {
-            PyErr_Format(PyExc_TypeError,
-                         "third item of state should be a dict, got a %.200s",
-                         Py_TYPE(dict)->tp_name);
+            PyErr_Format(
+                PyExc_TypeError,
+                "third item of state should be a dict, got a %.200s",
+                Py_TYPE(dict)->tp_name
+            );
             return NULL;
         }
         if (self->dict) {
@@ -873,8 +854,7 @@ bytesio_setstate(bytesio *self, PyObject *state)
                completely. However, it seems more practical to just update it. */
             if (PyDict_Update(self->dict, dict) < 0)
                 return NULL;
-        }
-        else {
+        } else {
             self->dict = Py_NewRef(dict);
         }
     }
@@ -883,26 +863,25 @@ bytesio_setstate(bytesio *self, PyObject *state)
 }
 
 static void
-bytesio_dealloc(bytesio *self)
-{
+bytesio_dealloc(bytesio *self) {
     PyTypeObject *tp = Py_TYPE(self);
     _PyObject_GC_UNTRACK(self);
     if (self->exports > 0) {
-        PyErr_SetString(PyExc_SystemError,
-                        "deallocated BytesIO object has exported buffers");
+        PyErr_SetString(
+            PyExc_SystemError, "deallocated BytesIO object has exported buffers"
+        );
         PyErr_Print();
     }
     Py_CLEAR(self->buf);
     Py_CLEAR(self->dict);
     if (self->weakreflist != NULL)
-        PyObject_ClearWeakRefs((PyObject *) self);
+        PyObject_ClearWeakRefs((PyObject *)self);
     tp->tp_free(self);
     Py_DECREF(tp);
 }
 
 static PyObject *
-bytesio_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
+bytesio_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     bytesio *self;
 
     assert(type != NULL && type->tp_alloc != NULL);
@@ -938,16 +917,16 @@ _io_BytesIO___init___impl(bytesio *self, PyObject *initvalue)
     self->pos = 0;
 
     if (self->exports > 0) {
-        PyErr_SetString(PyExc_BufferError,
-                        "Existing exports of data: object cannot be re-sized");
+        PyErr_SetString(
+            PyExc_BufferError, "Existing exports of data: object cannot be re-sized"
+        );
         return -1;
     }
     if (initvalue && initvalue != Py_None) {
         if (PyBytes_CheckExact(initvalue)) {
             Py_XSETREF(self->buf, Py_NewRef(initvalue));
             self->string_size = PyBytes_GET_SIZE(initvalue);
-        }
-        else {
+        } else {
             PyObject *res;
             res = _io_BytesIO_write(self, initvalue);
             if (res == NULL)
@@ -961,8 +940,7 @@ _io_BytesIO___init___impl(bytesio *self, PyObject *initvalue)
 }
 
 static PyObject *
-bytesio_sizeof(bytesio *self, void *unused)
-{
+bytesio_sizeof(bytesio *self, void *unused) {
     size_t res = _PyObject_SIZE(Py_TYPE(self));
     if (self->buf && !SHARED_BUF(self)) {
         size_t s = _PySys_GetSizeOf(self->buf);
@@ -975,8 +953,7 @@ bytesio_sizeof(bytesio *self, void *unused)
 }
 
 static int
-bytesio_traverse(bytesio *self, visitproc visit, void *arg)
-{
+bytesio_traverse(bytesio *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->dict);
     Py_VISIT(self->buf);
@@ -984,8 +961,7 @@ bytesio_traverse(bytesio *self, visitproc visit, void *arg)
 }
 
 static int
-bytesio_clear(bytesio *self)
-{
+bytesio_clear(bytesio *self) {
     Py_CLEAR(self->dict);
     if (self->exports == 0) {
         Py_CLEAR(self->buf);
@@ -993,40 +969,35 @@ bytesio_clear(bytesio *self)
     return 0;
 }
 
-
 #define clinic_state() (find_io_state_by_def(Py_TYPE(self)))
 #include "clinic/bytesio.c.h"
 #undef clinic_state
 
 static PyGetSetDef bytesio_getsetlist[] = {
-    {"closed",  (getter)bytesio_get_closed, NULL,
-     "True if the file is closed."},
-    {NULL},            /* sentinel */
+    {"closed", (getter)bytesio_get_closed, NULL, "True if the file is closed."},
+    {NULL}, /* sentinel */
 };
 
 static struct PyMethodDef bytesio_methods[] = {
-    _IO_BYTESIO_READABLE_METHODDEF
-    _IO_BYTESIO_SEEKABLE_METHODDEF
-    _IO_BYTESIO_WRITABLE_METHODDEF
-    _IO_BYTESIO_CLOSE_METHODDEF
-    _IO_BYTESIO_FLUSH_METHODDEF
-    _IO_BYTESIO_ISATTY_METHODDEF
-    _IO_BYTESIO_TELL_METHODDEF
-    _IO_BYTESIO_WRITE_METHODDEF
-    _IO_BYTESIO_WRITELINES_METHODDEF
-    _IO_BYTESIO_READ1_METHODDEF
-    _IO_BYTESIO_READINTO_METHODDEF
-    _IO_BYTESIO_READLINE_METHODDEF
-    _IO_BYTESIO_READLINES_METHODDEF
-    _IO_BYTESIO_READ_METHODDEF
-    _IO_BYTESIO_GETBUFFER_METHODDEF
-    _IO_BYTESIO_GETVALUE_METHODDEF
-    _IO_BYTESIO_SEEK_METHODDEF
-    _IO_BYTESIO_TRUNCATE_METHODDEF
-    {"__getstate__",  (PyCFunction)bytesio_getstate,  METH_NOARGS, NULL},
-    {"__setstate__",  (PyCFunction)bytesio_setstate,  METH_O, NULL},
-    {"__sizeof__", (PyCFunction)bytesio_sizeof,     METH_NOARGS, NULL},
-    {NULL, NULL}        /* sentinel */
+    _IO_BYTESIO_READABLE_METHODDEF _IO_BYTESIO_SEEKABLE_METHODDEF
+        _IO_BYTESIO_WRITABLE_METHODDEF _IO_BYTESIO_CLOSE_METHODDEF
+            _IO_BYTESIO_FLUSH_METHODDEF _IO_BYTESIO_ISATTY_METHODDEF
+                _IO_BYTESIO_TELL_METHODDEF _IO_BYTESIO_WRITE_METHODDEF
+                    _IO_BYTESIO_WRITELINES_METHODDEF _IO_BYTESIO_READ1_METHODDEF
+                        _IO_BYTESIO_READINTO_METHODDEF _IO_BYTESIO_READLINE_METHODDEF
+                            _IO_BYTESIO_READLINES_METHODDEF _IO_BYTESIO_READ_METHODDEF
+                                _IO_BYTESIO_GETBUFFER_METHODDEF
+                                    _IO_BYTESIO_GETVALUE_METHODDEF
+                                        _IO_BYTESIO_SEEK_METHODDEF
+                                            _IO_BYTESIO_TRUNCATE_METHODDEF{
+                                                "__getstate__",
+                                                (PyCFunction)bytesio_getstate,
+                                                METH_NOARGS,
+                                                NULL
+                                            },
+    {"__setstate__", (PyCFunction)bytesio_setstate, METH_O, NULL},
+    {"__sizeof__", (PyCFunction)bytesio_sizeof, METH_NOARGS, NULL},
+    {NULL, NULL} /* sentinel */
 };
 
 static PyMemberDef bytesio_members[] = {
@@ -1053,8 +1024,9 @@ static PyType_Slot bytesio_slots[] = {
 PyType_Spec bytesio_spec = {
     .name = "_io.BytesIO",
     .basicsize = sizeof(bytesio),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC |
-              Py_TPFLAGS_IMMUTABLETYPE),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC |
+         Py_TPFLAGS_IMMUTABLETYPE),
     .slots = bytesio_slots,
 };
 
@@ -1065,13 +1037,13 @@ PyType_Spec bytesio_spec = {
  */
 
 static int
-bytesiobuf_getbuffer(bytesiobuf *obj, Py_buffer *view, int flags)
-{
-    bytesio *b = (bytesio *) obj->source;
+bytesiobuf_getbuffer(bytesiobuf *obj, Py_buffer *view, int flags) {
+    bytesio *b = (bytesio *)obj->source;
 
     if (view == NULL) {
-        PyErr_SetString(PyExc_BufferError,
-            "bytesiobuf_getbuffer: view==NULL argument is obsolete");
+        PyErr_SetString(
+            PyExc_BufferError, "bytesiobuf_getbuffer: view==NULL argument is obsolete"
+        );
         return -1;
     }
     if (b->exports == 0 && SHARED_BUF(b)) {
@@ -1080,31 +1052,28 @@ bytesiobuf_getbuffer(bytesiobuf *obj, Py_buffer *view, int flags)
     }
 
     /* cannot fail if view != NULL and readonly == 0 */
-    (void)PyBuffer_FillInfo(view, (PyObject*)obj,
-                            PyBytes_AS_STRING(b->buf), b->string_size,
-                            0, flags);
+    (void)PyBuffer_FillInfo(
+        view, (PyObject *)obj, PyBytes_AS_STRING(b->buf), b->string_size, 0, flags
+    );
     b->exports++;
     return 0;
 }
 
 static void
-bytesiobuf_releasebuffer(bytesiobuf *obj, Py_buffer *view)
-{
-    bytesio *b = (bytesio *) obj->source;
+bytesiobuf_releasebuffer(bytesiobuf *obj, Py_buffer *view) {
+    bytesio *b = (bytesio *)obj->source;
     b->exports--;
 }
 
 static int
-bytesiobuf_traverse(bytesiobuf *self, visitproc visit, void *arg)
-{
+bytesiobuf_traverse(bytesiobuf *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->source);
     return 0;
 }
 
 static void
-bytesiobuf_dealloc(bytesiobuf *self)
-{
+bytesiobuf_dealloc(bytesiobuf *self) {
     PyTypeObject *tp = Py_TYPE(self);
     /* bpo-31095: UnTrack is needed before calling any callbacks */
     PyObject_GC_UnTrack(self);
@@ -1126,7 +1095,8 @@ static PyType_Slot bytesiobuf_slots[] = {
 PyType_Spec bytesiobuf_spec = {
     .name = "_io._BytesIOBuffer",
     .basicsize = sizeof(bytesiobuf),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
-              Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_DISALLOW_INSTANTIATION),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE |
+         Py_TPFLAGS_DISALLOW_INSTANTIATION),
     .slots = bytesiobuf_slots,
 };

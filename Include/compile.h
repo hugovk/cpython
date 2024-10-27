@@ -11,9 +11,9 @@ extern "C" {
 #define Py_func_type_input 345
 
 #ifndef Py_LIMITED_API
-#  define Py_CPYTHON_COMPILE_H
-#  include "cpython/compile.h"
-#  undef Py_CPYTHON_COMPILE_H
+#define Py_CPYTHON_COMPILE_H
+#include "cpython/compile.h"
+#undef Py_CPYTHON_COMPILE_H
 #endif
 
 #ifdef __cplusplus

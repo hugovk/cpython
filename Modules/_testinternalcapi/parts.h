@@ -5,14 +5,18 @@
 #undef NDEBUG
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
 
-int _PyTestInternalCapi_Init_Lock(PyObject *module);
-int _PyTestInternalCapi_Init_PyTime(PyObject *module);
-int _PyTestInternalCapi_Init_Set(PyObject *module);
-int _PyTestInternalCapi_Init_CriticalSection(PyObject *module);
+int
+_PyTestInternalCapi_Init_Lock(PyObject *module);
+int
+_PyTestInternalCapi_Init_PyTime(PyObject *module);
+int
+_PyTestInternalCapi_Init_Set(PyObject *module);
+int
+_PyTestInternalCapi_Init_CriticalSection(PyObject *module);
 
-#endif // Py_TESTINTERNALCAPI_PARTS_H
+#endif  // Py_TESTINTERNALCAPI_PARTS_H

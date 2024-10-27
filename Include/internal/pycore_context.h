@@ -2,10 +2,10 @@
 #define Py_INTERNAL_CONTEXT_H
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_hamt.h"          // PyHamtObject
+#include "pycore_hamt.h"  // PyHamtObject
 
 #define CONTEXT_MAX_WATCHERS 8
 
@@ -13,8 +13,8 @@ extern PyTypeObject _PyContextTokenMissing_Type;
 
 /* runtime lifecycle */
 
-PyStatus _PyContext_Init(PyInterpreterState *);
-
+PyStatus
+_PyContext_Init(PyInterpreterState *);
 
 /* other API */
 
@@ -23,17 +23,14 @@ typedef struct {
 } _PyContextTokenMissing;
 
 struct _pycontextobject {
-    PyObject_HEAD
-    PyContext *ctx_prev;
+    PyObject_HEAD PyContext *ctx_prev;
     PyHamtObject *ctx_vars;
     PyObject *ctx_weakreflist;
     int ctx_entered;
 };
 
-
 struct _pycontextvarobject {
-    PyObject_HEAD
-    PyObject *var_name;
+    PyObject_HEAD PyObject *var_name;
     PyObject *var_default;
 #ifndef Py_GIL_DISABLED
     PyObject *var_cached;
@@ -43,19 +40,15 @@ struct _pycontextvarobject {
     Py_hash_t var_hash;
 };
 
-
 struct _pycontexttokenobject {
-    PyObject_HEAD
-    PyContext *tok_ctx;
+    PyObject_HEAD PyContext *tok_ctx;
     PyContextVar *tok_var;
     PyObject *tok_oldval;
     int tok_used;
 };
 
-
 // _testinternalcapi.hamt() used by tests.
 // Export for '_testcapi' shared extension
-PyAPI_FUNC(PyObject*) _PyContext_NewHamtForTests(void);
-
+PyAPI_FUNC(PyObject *) _PyContext_NewHamtForTests(void);
 
 #endif /* !Py_INTERNAL_CONTEXT_H */

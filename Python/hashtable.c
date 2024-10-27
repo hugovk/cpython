@@ -45,81 +45,67 @@
 */
 
 #include "Python.h"
-#include "pycore_hashtable.h"     // export _Py_hashtable_new()
-#include "pycore_pyhash.h"        // _Py_HashPointerRaw()
+#include "pycore_hashtable.h"  // export _Py_hashtable_new()
+#include "pycore_pyhash.h"     // _Py_HashPointerRaw()
 
 #define HASHTABLE_MIN_SIZE 16
 #define HASHTABLE_HIGH 0.50
 #define HASHTABLE_LOW 0.10
 #define HASHTABLE_REHASH_FACTOR 2.0 / (HASHTABLE_LOW + HASHTABLE_HIGH)
 
-#define BUCKETS_HEAD(SLIST) \
-        ((_Py_hashtable_entry_t *)_Py_SLIST_HEAD(&(SLIST)))
+#define BUCKETS_HEAD(SLIST) ((_Py_hashtable_entry_t *)_Py_SLIST_HEAD(&(SLIST)))
 #define TABLE_HEAD(HT, BUCKET) \
-        ((_Py_hashtable_entry_t *)_Py_SLIST_HEAD(&(HT)->buckets[BUCKET]))
-#define ENTRY_NEXT(ENTRY) \
-        ((_Py_hashtable_entry_t *)_Py_SLIST_ITEM_NEXT(ENTRY))
+    ((_Py_hashtable_entry_t *)_Py_SLIST_HEAD(&(HT)->buckets[BUCKET]))
+#define ENTRY_NEXT(ENTRY) ((_Py_hashtable_entry_t *)_Py_SLIST_ITEM_NEXT(ENTRY))
 
 /* Forward declaration */
-static int hashtable_rehash(_Py_hashtable_t *ht);
+static int
+hashtable_rehash(_Py_hashtable_t *ht);
 
 static void
-_Py_slist_init(_Py_slist_t *list)
-{
+_Py_slist_init(_Py_slist_t *list) {
     list->head = NULL;
 }
 
-
 static void
-_Py_slist_prepend(_Py_slist_t *list, _Py_slist_item_t *item)
-{
+_Py_slist_prepend(_Py_slist_t *list, _Py_slist_item_t *item) {
     item->next = list->head;
     list->head = item;
 }
 
-
 static void
-_Py_slist_remove(_Py_slist_t *list, _Py_slist_item_t *previous,
-                 _Py_slist_item_t *item)
-{
+_Py_slist_remove(
+    _Py_slist_t *list, _Py_slist_item_t *previous, _Py_slist_item_t *item
+) {
     if (previous != NULL)
         previous->next = item->next;
     else
         list->head = item->next;
 }
 
-
 Py_uhash_t
-_Py_hashtable_hash_ptr(const void *key)
-{
+_Py_hashtable_hash_ptr(const void *key) {
     return (Py_uhash_t)_Py_HashPointerRaw(key);
 }
 
-
 int
-_Py_hashtable_compare_direct(const void *key1, const void *key2)
-{
+_Py_hashtable_compare_direct(const void *key1, const void *key2) {
     return (key1 == key2);
 }
 
-
 /* makes sure the real size of the buckets array is a power of 2 */
 static size_t
-round_size(size_t s)
-{
+round_size(size_t s) {
     size_t i;
     if (s < HASHTABLE_MIN_SIZE)
         return HASHTABLE_MIN_SIZE;
     i = 1;
-    while (i < s)
-        i <<= 1;
+    while (i < s) i <<= 1;
     return i;
 }
 
-
 size_t
-_Py_hashtable_size(const _Py_hashtable_t *ht)
-{
+_Py_hashtable_size(const _Py_hashtable_t *ht) {
     size_t size = sizeof(_Py_hashtable_t);
     /* buckets */
     size += ht->nbuckets * sizeof(_Py_hashtable_entry_t *);
@@ -128,17 +114,13 @@ _Py_hashtable_size(const _Py_hashtable_t *ht)
     return size;
 }
 
-
 size_t
-_Py_hashtable_len(const _Py_hashtable_t *ht)
-{
+_Py_hashtable_len(const _Py_hashtable_t *ht) {
     return ht->nentries;
 }
 
-
 _Py_hashtable_entry_t *
-_Py_hashtable_get_entry_generic(_Py_hashtable_t *ht, const void *key)
-{
+_Py_hashtable_get_entry_generic(_Py_hashtable_t *ht, const void *key) {
     Py_uhash_t key_hash = ht->hash_func(key);
     size_t index = key_hash & (ht->nbuckets - 1);
     _Py_hashtable_entry_t *entry = TABLE_HEAD(ht, index);
@@ -154,13 +136,11 @@ _Py_hashtable_get_entry_generic(_Py_hashtable_t *ht, const void *key)
     return entry;
 }
 
-
 // Specialized for:
 // hash_func == _Py_hashtable_hash_ptr
 // compare_func == _Py_hashtable_compare_direct
 static _Py_hashtable_entry_t *
-_Py_hashtable_get_entry_ptr(_Py_hashtable_t *ht, const void *key)
-{
+_Py_hashtable_get_entry_ptr(_Py_hashtable_t *ht, const void *key) {
     Py_uhash_t key_hash = _Py_hashtable_hash_ptr(key);
     size_t index = key_hash & (ht->nbuckets - 1);
     _Py_hashtable_entry_t *entry = TABLE_HEAD(ht, index);
@@ -177,10 +157,8 @@ _Py_hashtable_get_entry_ptr(_Py_hashtable_t *ht, const void *key)
     return entry;
 }
 
-
-void*
-_Py_hashtable_steal(_Py_hashtable_t *ht, const void *key)
-{
+void *
+_Py_hashtable_steal(_Py_hashtable_t *ht, const void *key) {
     Py_uhash_t key_hash = ht->hash_func(key);
     size_t index = key_hash & (ht->nbuckets - 1);
 
@@ -198,8 +176,9 @@ _Py_hashtable_steal(_Py_hashtable_t *ht, const void *key)
         entry = ENTRY_NEXT(entry);
     }
 
-    _Py_slist_remove(&ht->buckets[index], (_Py_slist_item_t *)previous,
-                     (_Py_slist_item_t *)entry);
+    _Py_slist_remove(
+        &ht->buckets[index], (_Py_slist_item_t *)previous, (_Py_slist_item_t *)entry
+    );
     ht->nentries--;
 
     void *value = entry->value;
@@ -212,10 +191,8 @@ _Py_hashtable_steal(_Py_hashtable_t *ht, const void *key)
     return value;
 }
 
-
 int
-_Py_hashtable_set(_Py_hashtable_t *ht, const void *key, void *value)
-{
+_Py_hashtable_set(_Py_hashtable_t *ht, const void *key, void *value) {
     _Py_hashtable_entry_t *entry;
 
 #ifndef NDEBUG
@@ -246,29 +223,24 @@ _Py_hashtable_set(_Py_hashtable_t *ht, const void *key, void *value)
     }
 
     size_t index = entry->key_hash & (ht->nbuckets - 1);
-    _Py_slist_prepend(&ht->buckets[index], (_Py_slist_item_t*)entry);
+    _Py_slist_prepend(&ht->buckets[index], (_Py_slist_item_t *)entry);
     return 0;
 }
 
-
-void*
-_Py_hashtable_get(_Py_hashtable_t *ht, const void *key)
-{
+void *
+_Py_hashtable_get(_Py_hashtable_t *ht, const void *key) {
     _Py_hashtable_entry_t *entry = ht->get_entry_func(ht, key);
     if (entry != NULL) {
         return entry->value;
-    }
-    else {
+    } else {
         return NULL;
     }
 }
 
-
 int
-_Py_hashtable_foreach(_Py_hashtable_t *ht,
-                      _Py_hashtable_foreach_func func,
-                      void *user_data)
-{
+_Py_hashtable_foreach(
+    _Py_hashtable_t *ht, _Py_hashtable_foreach_func func, void *user_data
+) {
     for (size_t hv = 0; hv < ht->nbuckets; hv++) {
         _Py_hashtable_entry_t *entry = TABLE_HEAD(ht, hv);
         while (entry != NULL) {
@@ -282,10 +254,8 @@ _Py_hashtable_foreach(_Py_hashtable_t *ht,
     return 0;
 }
 
-
 static int
-hashtable_rehash(_Py_hashtable_t *ht)
-{
+hashtable_rehash(_Py_hashtable_t *ht) {
     size_t new_size = round_size((size_t)(ht->nentries * HASHTABLE_REHASH_FACTOR));
     if (new_size == ht->nbuckets) {
         return 0;
@@ -306,7 +276,7 @@ hashtable_rehash(_Py_hashtable_t *ht)
             _Py_hashtable_entry_t *next = ENTRY_NEXT(entry);
             size_t entry_index = entry->key_hash & (new_size - 1);
 
-            _Py_slist_prepend(&new_buckets[entry_index], (_Py_slist_item_t*)entry);
+            _Py_slist_prepend(&new_buckets[entry_index], (_Py_slist_item_t *)entry);
 
             entry = next;
         }
@@ -318,20 +288,19 @@ hashtable_rehash(_Py_hashtable_t *ht)
     return 0;
 }
 
-
 _Py_hashtable_t *
-_Py_hashtable_new_full(_Py_hashtable_hash_func hash_func,
-                       _Py_hashtable_compare_func compare_func,
-                       _Py_hashtable_destroy_func key_destroy_func,
-                       _Py_hashtable_destroy_func value_destroy_func,
-                       _Py_hashtable_allocator_t *allocator)
-{
+_Py_hashtable_new_full(
+    _Py_hashtable_hash_func hash_func,
+    _Py_hashtable_compare_func compare_func,
+    _Py_hashtable_destroy_func key_destroy_func,
+    _Py_hashtable_destroy_func value_destroy_func,
+    _Py_hashtable_allocator_t *allocator
+) {
     _Py_hashtable_allocator_t alloc;
     if (allocator == NULL) {
         alloc.malloc = PyMem_Malloc;
         alloc.free = PyMem_Free;
-    }
-    else {
+    } else {
         alloc = *allocator;
     }
 
@@ -357,27 +326,22 @@ _Py_hashtable_new_full(_Py_hashtable_hash_func hash_func,
     ht->key_destroy_func = key_destroy_func;
     ht->value_destroy_func = value_destroy_func;
     ht->alloc = alloc;
-    if (ht->hash_func == _Py_hashtable_hash_ptr
-        && ht->compare_func == _Py_hashtable_compare_direct)
-    {
+    if (ht->hash_func == _Py_hashtable_hash_ptr &&
+        ht->compare_func == _Py_hashtable_compare_direct) {
         ht->get_entry_func = _Py_hashtable_get_entry_ptr;
     }
     return ht;
 }
 
-
 _Py_hashtable_t *
-_Py_hashtable_new(_Py_hashtable_hash_func hash_func,
-                  _Py_hashtable_compare_func compare_func)
-{
-    return _Py_hashtable_new_full(hash_func, compare_func,
-                                  NULL, NULL, NULL);
+_Py_hashtable_new(
+    _Py_hashtable_hash_func hash_func, _Py_hashtable_compare_func compare_func
+) {
+    return _Py_hashtable_new_full(hash_func, compare_func, NULL, NULL, NULL);
 }
 
-
 static void
-_Py_hashtable_destroy_entry(_Py_hashtable_t *ht, _Py_hashtable_entry_t *entry)
-{
+_Py_hashtable_destroy_entry(_Py_hashtable_t *ht, _Py_hashtable_entry_t *entry) {
     if (ht->key_destroy_func) {
         ht->key_destroy_func(entry->key);
     }
@@ -387,11 +351,9 @@ _Py_hashtable_destroy_entry(_Py_hashtable_t *ht, _Py_hashtable_entry_t *entry)
     ht->alloc.free(entry);
 }
 
-
 void
-_Py_hashtable_clear(_Py_hashtable_t *ht)
-{
-    for (size_t i=0; i < ht->nbuckets; i++) {
+_Py_hashtable_clear(_Py_hashtable_t *ht) {
+    for (size_t i = 0; i < ht->nbuckets; i++) {
         _Py_hashtable_entry_t *entry = TABLE_HEAD(ht, i);
         while (entry != NULL) {
             _Py_hashtable_entry_t *next = ENTRY_NEXT(entry);
@@ -406,10 +368,8 @@ _Py_hashtable_clear(_Py_hashtable_t *ht)
     (void)hashtable_rehash(ht);
 }
 
-
 void
-_Py_hashtable_destroy(_Py_hashtable_t *ht)
-{
+_Py_hashtable_destroy(_Py_hashtable_t *ht) {
     for (size_t i = 0; i < ht->nbuckets; i++) {
         _Py_hashtable_entry_t *entry = TABLE_HEAD(ht, i);
         while (entry) {

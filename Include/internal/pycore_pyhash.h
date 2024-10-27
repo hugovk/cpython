@@ -2,13 +2,12 @@
 #define Py_INTERNAL_PYHASH_H
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 // Similar to Py_HashPointer(), but don't replace -1 with -2.
 static inline Py_hash_t
-_Py_HashPointerRaw(const void *ptr)
-{
+_Py_HashPointerRaw(const void *ptr) {
     uintptr_t x = (uintptr_t)ptr;
     Py_BUILD_ASSERT(sizeof(x) == sizeof(ptr));
 
@@ -70,7 +69,6 @@ PyAPI_DATA(_Py_HashSecret_t) _Py_HashSecret;
 extern int _Py_HashSecret_Initialized;
 #endif
 
-
 struct pyhash_runtime_state {
     struct {
 #ifndef MS_WINDOWS
@@ -78,27 +76,27 @@ struct pyhash_runtime_state {
         dev_t st_dev;
         ino_t st_ino;
 #else
-    // This is a placeholder so the struct isn't empty on Windows.
-    int _not_used;
+        // This is a placeholder so the struct isn't empty on Windows.
+        int _not_used;
 #endif
     } urandom_cache;
 };
 
 #ifndef MS_WINDOWS
-# define _py_urandom_cache_INIT \
-    { \
-        .fd = -1, \
+#define _py_urandom_cache_INIT \
+    {                          \
+        .fd = -1,              \
     }
 #else
-# define _py_urandom_cache_INIT {0}
+#define _py_urandom_cache_INIT {0}
 #endif
 
-#define pyhash_state_INIT \
-    { \
+#define pyhash_state_INIT                        \
+    {                                            \
         .urandom_cache = _py_urandom_cache_INIT, \
     }
 
-
-extern uint64_t _Py_KeyedHash(uint64_t key, const void *src, Py_ssize_t src_sz);
+extern uint64_t
+_Py_KeyedHash(uint64_t key, const void *src, Py_ssize_t src_sz);
 
 #endif  // !Py_INTERNAL_PYHASH_H

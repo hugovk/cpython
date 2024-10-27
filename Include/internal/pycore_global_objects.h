@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #include "pycore_context.h"         // _PyContextTokenMissing
@@ -15,19 +15,15 @@ extern "C" {
 #include "pycore_hashtable.h"       // _Py_hashtable_t
 #include "pycore_typeobject.h"      // pytype_slotdef
 
-
 // These would be in pycore_long.h if it weren't for an include cycle.
-#define _PY_NSMALLPOSINTS           257
-#define _PY_NSMALLNEGINTS           5
-
+#define _PY_NSMALLPOSINTS 257
+#define _PY_NSMALLNEGINTS 5
 
 // Only immutable objects should be considered runtime-global.
 // All others must be per-interpreter.
 
-#define _Py_GLOBAL_OBJECT(NAME) \
-    _PyRuntime.static_objects.NAME
-#define _Py_SINGLETON(NAME) \
-    _Py_GLOBAL_OBJECT(singletons.NAME)
+#define _Py_GLOBAL_OBJECT(NAME) _PyRuntime.static_objects.NAME
+#define _Py_SINGLETON(NAME) _Py_GLOBAL_OBJECT(singletons.NAME)
 
 struct _Py_cached_objects {
     // XXX We could statically allocate the hashtable.
@@ -60,8 +56,7 @@ struct _Py_static_objects {
     } singletons;
 };
 
-#define _Py_INTERP_CACHED_OBJECT(interp, NAME) \
-    (interp)->cached_objects.NAME
+#define _Py_INTERP_CACHED_OBJECT(interp, NAME) (interp)->cached_objects.NAME
 
 struct _Py_interp_cached_objects {
     PyObject *interned_strings;
@@ -81,8 +76,7 @@ struct _Py_interp_cached_objects {
     PyTypeObject *constevaluator_type;
 };
 
-#define _Py_INTERP_STATIC_OBJECT(interp, NAME) \
-    (interp)->static_objects.NAME
+#define _Py_INTERP_STATIC_OBJECT(interp, NAME) (interp)->static_objects.NAME
 #define _Py_INTERP_SINGLETON(interp, NAME) \
     _Py_INTERP_STATIC_OBJECT(interp, singletons.NAME)
 
@@ -95,7 +89,6 @@ struct _Py_interp_static_objects {
         PyBaseExceptionObject last_resort_memory_error;
     } singletons;
 };
-
 
 #ifdef __cplusplus
 }

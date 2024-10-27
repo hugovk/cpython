@@ -11,7 +11,7 @@
   See the source code for LLVMFuzzerTestOneInput for details. */
 
 #ifndef Py_BUILD_CORE
-#  define Py_BUILD_CORE 1
+#define Py_BUILD_CORE 1
 #endif
 
 #include <Python.h>
@@ -19,10 +19,12 @@
 #include <inttypes.h>
 
 /*  Fuzz PyFloat_FromString as a proxy for float(str). */
-static int fuzz_builtin_float(const char* data, size_t size) {
-    PyObject* s = PyBytes_FromStringAndSize(data, size);
-    if (s == NULL) return 0;
-    PyObject* f = PyFloat_FromString(s);
+static int
+fuzz_builtin_float(const char *data, size_t size) {
+    PyObject *s = PyBytes_FromStringAndSize(data, size);
+    if (s == NULL)
+        return 0;
+    PyObject *f = PyFloat_FromString(s);
     if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_ValueError)) {
         PyErr_Clear();
     }
@@ -35,7 +37,8 @@ static int fuzz_builtin_float(const char* data, size_t size) {
 #define MAX_INT_TEST_SIZE 0x10000
 
 /* Fuzz PyLong_FromUnicodeObject as a proxy for int(str). */
-static int fuzz_builtin_int(const char* data, size_t size) {
+static int
+fuzz_builtin_int(const char *data, size_t size) {
     /* Ignore test cases with very long ints to avoid timeouts
        int("9" * 1000000) is not a very interesting test caase */
     if (size > MAX_INT_TEST_SIZE) {
@@ -56,14 +59,14 @@ static int fuzz_builtin_int(const char* data, size_t size) {
         base = -base;
     }
 
-    PyObject* s = PyUnicode_FromStringAndSize(data, size);
+    PyObject *s = PyUnicode_FromStringAndSize(data, size);
     if (s == NULL) {
         if (PyErr_ExceptionMatches(PyExc_UnicodeDecodeError)) {
             PyErr_Clear();
         }
         return 0;
     }
-    PyObject* l = PyLong_FromUnicodeObject(s, base);
+    PyObject *l = PyLong_FromUnicodeObject(s, base);
     if (l == NULL && PyErr_ExceptionMatches(PyExc_ValueError)) {
         PyErr_Clear();
     }
@@ -74,8 +77,9 @@ static int fuzz_builtin_int(const char* data, size_t size) {
 }
 
 /* Fuzz PyUnicode_FromStringAndSize as a proxy for unicode(str). */
-static int fuzz_builtin_unicode(const char* data, size_t size) {
-    PyObject* s = PyUnicode_FromStringAndSize(data, size);
+static int
+fuzz_builtin_unicode(const char *data, size_t size) {
+    PyObject *s = PyUnicode_FromStringAndSize(data, size);
     if (s == NULL && PyErr_ExceptionMatches(PyExc_UnicodeDecodeError)) {
         PyErr_Clear();
     }
@@ -83,13 +87,13 @@ static int fuzz_builtin_unicode(const char* data, size_t size) {
     return 0;
 }
 
-
-PyObject* struct_unpack_method = NULL;
-PyObject* struct_error = NULL;
+PyObject *struct_unpack_method = NULL;
+PyObject *struct_error = NULL;
 /* Called by LLVMFuzzerTestOneInput for initialization */
-static int init_struct_unpack(void) {
+static int
+init_struct_unpack(void) {
     /* Import struct.unpack */
-    PyObject* struct_module = PyImport_ImportModule("struct");
+    PyObject *struct_module = PyImport_ImportModule("struct");
     if (struct_module == NULL) {
         return 0;
     }
@@ -101,10 +105,11 @@ static int init_struct_unpack(void) {
     return struct_unpack_method != NULL;
 }
 /* Fuzz struct.unpack(x, y) */
-static int fuzz_struct_unpack(const char* data, size_t size) {
+static int
+fuzz_struct_unpack(const char *data, size_t size) {
     /* Everything up to the first null byte is considered the
        format. Everything after is the buffer */
-    const char* first_null = memchr(data, '\0', size);
+    const char *first_null = memchr(data, '\0', size);
     if (first_null == NULL) {
         return 0;
     }
@@ -112,18 +117,18 @@ static int fuzz_struct_unpack(const char* data, size_t size) {
     size_t format_length = first_null - data;
     size_t buffer_length = size - format_length - 1;
 
-    PyObject* pattern = PyBytes_FromStringAndSize(data, format_length);
+    PyObject *pattern = PyBytes_FromStringAndSize(data, format_length);
     if (pattern == NULL) {
         return 0;
     }
-    PyObject* buffer = PyBytes_FromStringAndSize(first_null + 1, buffer_length);
+    PyObject *buffer = PyBytes_FromStringAndSize(first_null + 1, buffer_length);
     if (buffer == NULL) {
         Py_DECREF(pattern);
         return 0;
     }
 
-    PyObject* unpacked = PyObject_CallFunctionObjArgs(
-        struct_unpack_method, pattern, buffer, NULL);
+    PyObject *unpacked =
+        PyObject_CallFunctionObjArgs(struct_unpack_method, pattern, buffer, NULL);
     /* Ignore any overflow errors, these are easily triggered accidentally */
     if (unpacked == NULL && PyErr_ExceptionMatches(PyExc_OverflowError)) {
         PyErr_Clear();
@@ -145,14 +150,14 @@ static int fuzz_struct_unpack(const char* data, size_t size) {
     return 0;
 }
 
-
 #define MAX_JSON_TEST_SIZE 0x100000
 
-PyObject* json_loads_method = NULL;
+PyObject *json_loads_method = NULL;
 /* Called by LLVMFuzzerTestOneInput for initialization */
-static int init_json_loads(void) {
+static int
+init_json_loads(void) {
     /* Import json.loads */
-    PyObject* json_module = PyImport_ImportModule("json");
+    PyObject *json_module = PyImport_ImportModule("json");
     if (json_module == NULL) {
         return 0;
     }
@@ -160,28 +165,28 @@ static int init_json_loads(void) {
     return json_loads_method != NULL;
 }
 /* Fuzz json.loads(x) */
-static int fuzz_json_loads(const char* data, size_t size) {
+static int
+fuzz_json_loads(const char *data, size_t size) {
     /* Since python supports arbitrarily large ints in JSON,
        long inputs can lead to timeouts on boring inputs like
        `json.loads("9" * 100000)` */
     if (size > MAX_JSON_TEST_SIZE) {
         return 0;
     }
-    PyObject* input_bytes = PyBytes_FromStringAndSize(data, size);
+    PyObject *input_bytes = PyBytes_FromStringAndSize(data, size);
     if (input_bytes == NULL) {
         return 0;
     }
-    PyObject* parsed = PyObject_CallOneArg(json_loads_method, input_bytes);
+    PyObject *parsed = PyObject_CallOneArg(json_loads_method, input_bytes);
     if (parsed == NULL) {
         /* Ignore ValueError as the fuzzer will more than likely
            generate some invalid json and values */
         if (PyErr_ExceptionMatches(PyExc_ValueError) ||
-        /* Ignore RecursionError as the fuzzer generates long sequences of
-           arrays such as `[[[...` */
+            /* Ignore RecursionError as the fuzzer generates long sequences of
+               arrays such as `[[[...` */
             PyErr_ExceptionMatches(PyExc_RecursionError) ||
-        /* Ignore unicode errors, invalid byte sequences are common */
-            PyErr_ExceptionMatches(PyExc_UnicodeDecodeError)
-        ) {
+            /* Ignore unicode errors, invalid byte sequences are common */
+            PyErr_ExceptionMatches(PyExc_UnicodeDecodeError)) {
             PyErr_Clear();
         }
     }
@@ -192,13 +197,14 @@ static int fuzz_json_loads(const char* data, size_t size) {
 
 #define MAX_RE_TEST_SIZE 0x10000
 
-PyObject* re_compile_method = NULL;
-PyObject* re_error_exception = NULL;
+PyObject *re_compile_method = NULL;
+PyObject *re_error_exception = NULL;
 int RE_FLAG_DEBUG = 0;
 /* Called by LLVMFuzzerTestOneInput for initialization */
-static int init_sre_compile(void) {
+static int
+init_sre_compile(void) {
     /* Import sre_compile.compile and sre.error */
-    PyObject* re_module = PyImport_ImportModule("re");
+    PyObject *re_module = PyImport_ImportModule("re");
     if (re_module == NULL) {
         return 0;
     }
@@ -211,7 +217,7 @@ static int init_sre_compile(void) {
     if (re_error_exception == NULL) {
         return 0;
     }
-    PyObject* debug_flag = PyObject_GetAttrString(re_module, "DEBUG");
+    PyObject *debug_flag = PyObject_GetAttrString(re_module, "DEBUG");
     if (debug_flag == NULL) {
         return 0;
     }
@@ -219,7 +225,8 @@ static int init_sre_compile(void) {
     return 1;
 }
 /* Fuzz re.compile(x) */
-static int fuzz_sre_compile(const char* data, size_t size) {
+static int
+fuzz_sre_compile(const char *data, size_t size) {
     /* Ignore really long regex patterns that will timeout the fuzzer */
     if (size > MAX_RE_TEST_SIZE) {
         return 0;
@@ -228,25 +235,25 @@ static int fuzz_sre_compile(const char* data, size_t size) {
     if (size < 2) {
         return 0;
     }
-    uint16_t flags = ((uint16_t*) data)[0];
+    uint16_t flags = ((uint16_t *)data)[0];
     /* We remove the SRE_FLAG_DEBUG if present. This is because it
        prints to stdout which greatly decreases fuzzing speed */
     flags &= ~RE_FLAG_DEBUG;
 
     /* Pull the pattern from the remaining bytes */
-    PyObject* pattern_bytes = PyBytes_FromStringAndSize(data + 2, size - 2);
+    PyObject *pattern_bytes = PyBytes_FromStringAndSize(data + 2, size - 2);
     if (pattern_bytes == NULL) {
         return 0;
     }
-    PyObject* flags_obj = PyLong_FromUnsignedLong(flags);
+    PyObject *flags_obj = PyLong_FromUnsignedLong(flags);
     if (flags_obj == NULL) {
         Py_DECREF(pattern_bytes);
         return 0;
     }
 
     /* compiled = re.compile(data[2:], data[0:2] */
-    PyObject* compiled = PyObject_CallFunctionObjArgs(
-        re_compile_method, pattern_bytes, flags_obj, NULL);
+    PyObject *compiled =
+        PyObject_CallFunctionObjArgs(re_compile_method, pattern_bytes, flags_obj, NULL);
     /* Ignore ValueError as the fuzzer will more than likely
        generate some invalid combination of flags */
     if (compiled == NULL && PyErr_ExceptionMatches(PyExc_ValueError)) {
@@ -257,8 +264,7 @@ static int fuzz_sre_compile(const char* data, size_t size) {
     if (compiled == NULL && (PyErr_ExceptionMatches(PyExc_OverflowError) ||
                              PyErr_ExceptionMatches(PyExc_AssertionError) ||
                              PyErr_ExceptionMatches(PyExc_RecursionError) ||
-                             PyErr_ExceptionMatches(PyExc_IndexError))
-    ) {
+                             PyErr_ExceptionMatches(PyExc_IndexError))) {
         PyErr_Clear();
     }
     /* Ignore re.error */
@@ -275,22 +281,30 @@ static int fuzz_sre_compile(const char* data, size_t size) {
 /* Some random patterns used to test re.match.
    Be careful not to add catostraphically slow regexes here, we want to
    exercise the matching code without causing timeouts.*/
-static const char* regex_patterns[] = {
-    ".", "^", "abc", "abc|def", "^xxx$", "\\b", "()", "[a-zA-Z0-9]",
-    "abc+", "[^A-Z]", "[x]", "(?=)", "a{z}", "a+b", "a*?", "a??", "a+?",
-    "{}", "a{,}", "{", "}", "^\\(*\\d{3}\\)*( |-)*\\d{3}( |-)*\\d{4}$",
+static const char *regex_patterns[] = {
+    ".",       "^",
+    "abc",     "abc|def",
+    "^xxx$",   "\\b",
+    "()",      "[a-zA-Z0-9]",
+    "abc+",    "[^A-Z]",
+    "[x]",     "(?=)",
+    "a{z}",    "a+b",
+    "a*?",     "a??",
+    "a+?",     "{}",
+    "a{,}",    "{",
+    "}",       "^\\(*\\d{3}\\)*( |-)*\\d{3}( |-)*\\d{4}$",
     "(?:a*)*", "a{1,2}?"
 };
 const size_t NUM_PATTERNS = sizeof(regex_patterns) / sizeof(regex_patterns[0]);
-PyObject** compiled_patterns = NULL;
+PyObject **compiled_patterns = NULL;
 /* Called by LLVMFuzzerTestOneInput for initialization */
-static int init_sre_match(void) {
-    PyObject* re_module = PyImport_ImportModule("re");
+static int
+init_sre_match(void) {
+    PyObject *re_module = PyImport_ImportModule("re");
     if (re_module == NULL) {
         return 0;
     }
-    compiled_patterns = (PyObject**) PyMem_RawMalloc(
-        sizeof(PyObject*) * NUM_PATTERNS);
+    compiled_patterns = (PyObject **)PyMem_RawMalloc(sizeof(PyObject *) * NUM_PATTERNS);
     if (compiled_patterns == NULL) {
         PyErr_NoMemory();
         return 0;
@@ -298,8 +312,8 @@ static int init_sre_match(void) {
 
     /* Precompile all the regex patterns on the first run for faster fuzzing */
     for (size_t i = 0; i < NUM_PATTERNS; i++) {
-        PyObject* compiled = PyObject_CallMethod(
-            re_module, "compile", "y", regex_patterns[i]);
+        PyObject *compiled =
+            PyObject_CallMethod(re_module, "compile", "y", regex_patterns[i]);
         /* Bail if any of the patterns fail to compile */
         if (compiled == NULL) {
             return 0;
@@ -309,25 +323,26 @@ static int init_sre_match(void) {
     return 1;
 }
 /* Fuzz re.match(x) */
-static int fuzz_sre_match(const char* data, size_t size) {
+static int
+fuzz_sre_match(const char *data, size_t size) {
     if (size < 1 || size > MAX_RE_TEST_SIZE) {
         return 0;
     }
     /* Use the first byte as a uint8_t specifying the index of the
        regex to use */
-    unsigned char idx = (unsigned char) data[0];
+    unsigned char idx = (unsigned char)data[0];
     idx = idx % NUM_PATTERNS;
 
     /* Pull the string to match from the remaining bytes */
-    PyObject* to_match = PyBytes_FromStringAndSize(data + 1, size - 1);
+    PyObject *to_match = PyBytes_FromStringAndSize(data + 1, size - 1);
     if (to_match == NULL) {
         return 0;
     }
 
-    PyObject* pattern = compiled_patterns[idx];
-    PyObject* match_callable = PyObject_GetAttrString(pattern, "match");
+    PyObject *pattern = compiled_patterns[idx];
+    PyObject *match_callable = PyObject_GetAttrString(pattern, "match");
 
-    PyObject* matches = PyObject_CallOneArg(match_callable, to_match);
+    PyObject *matches = PyObject_CallOneArg(match_callable, to_match);
 
     Py_XDECREF(matches);
     Py_DECREF(match_callable);
@@ -336,10 +351,11 @@ static int fuzz_sre_match(const char* data, size_t size) {
 }
 
 #define MAX_CSV_TEST_SIZE 0x100000
-PyObject* csv_module = NULL;
-PyObject* csv_error = NULL;
+PyObject *csv_module = NULL;
+PyObject *csv_error = NULL;
 /* Called by LLVMFuzzerTestOneInput for initialization */
-static int init_csv_reader(void) {
+static int
+init_csv_reader(void) {
     /* Import csv and csv.Error */
     csv_module = PyImport_ImportModule("csv");
     if (csv_module == NULL) {
@@ -349,7 +365,8 @@ static int init_csv_reader(void) {
     return csv_error != NULL;
 }
 /* Fuzz csv.reader([x]) */
-static int fuzz_csv_reader(const char* data, size_t size) {
+static int
+fuzz_csv_reader(const char *data, size_t size) {
     if (size < 1 || size > MAX_CSV_TEST_SIZE) {
         return 0;
     }
@@ -359,7 +376,7 @@ static int fuzz_csv_reader(const char* data, size_t size) {
         return 0;
     }
 
-    PyObject* s = PyUnicode_FromString(data);
+    PyObject *s = PyUnicode_FromString(data);
     /* Ignore exceptions until we have a valid string */
     if (s == NULL) {
         PyErr_Clear();
@@ -367,16 +384,16 @@ static int fuzz_csv_reader(const char* data, size_t size) {
     }
 
     /* Split on \n so we can test multiple lines */
-    PyObject* lines = PyObject_CallMethod(s, "split", "s", "\n");
+    PyObject *lines = PyObject_CallMethod(s, "split", "s", "\n");
     if (lines == NULL) {
         Py_DECREF(s);
         return 0;
     }
 
-    PyObject* reader = PyObject_CallMethod(csv_module, "reader", "N", lines);
+    PyObject *reader = PyObject_CallMethod(csv_module, "reader", "N", lines);
     if (reader) {
         /* Consume all of the reader as an iterator */
-        PyObject* parsed_line;
+        PyObject *parsed_line;
         while ((parsed_line = PyIter_Next(reader))) {
             Py_DECREF(parsed_line);
         }
@@ -394,10 +411,11 @@ static int fuzz_csv_reader(const char* data, size_t size) {
 }
 
 #define MAX_AST_LITERAL_EVAL_TEST_SIZE 0x100000
-PyObject* ast_literal_eval_method = NULL;
+PyObject *ast_literal_eval_method = NULL;
 /* Called by LLVMFuzzerTestOneInput for initialization */
-static int init_ast_literal_eval(void) {
-    PyObject* ast_module = PyImport_ImportModule("ast");
+static int
+init_ast_literal_eval(void) {
+    PyObject *ast_module = PyImport_ImportModule("ast");
     if (ast_module == NULL) {
         return 0;
     }
@@ -405,7 +423,8 @@ static int init_ast_literal_eval(void) {
     return ast_literal_eval_method != NULL;
 }
 /* Fuzz ast.literal_eval(x) */
-static int fuzz_ast_literal_eval(const char* data, size_t size) {
+static int
+fuzz_ast_literal_eval(const char *data, size_t size) {
     if (size > MAX_AST_LITERAL_EVAL_TEST_SIZE) {
         return 0;
     }
@@ -415,21 +434,20 @@ static int fuzz_ast_literal_eval(const char* data, size_t size) {
         return 0;
     }
 
-    PyObject* s = PyUnicode_FromString(data);
+    PyObject *s = PyUnicode_FromString(data);
     /* Ignore exceptions until we have a valid string */
     if (s == NULL) {
         PyErr_Clear();
         return 0;
     }
 
-    PyObject* literal = PyObject_CallOneArg(ast_literal_eval_method, s);
+    PyObject *literal = PyObject_CallOneArg(ast_literal_eval_method, s);
     /* Ignore some common errors thrown by ast.literal_eval */
     if (literal == NULL && (PyErr_ExceptionMatches(PyExc_ValueError) ||
                             PyErr_ExceptionMatches(PyExc_TypeError) ||
                             PyErr_ExceptionMatches(PyExc_SyntaxError) ||
                             PyErr_ExceptionMatches(PyExc_MemoryError) ||
-                            PyErr_ExceptionMatches(PyExc_RecursionError))
-    ) {
+                            PyErr_ExceptionMatches(PyExc_RecursionError))) {
         PyErr_Clear();
     }
 
@@ -439,11 +457,12 @@ static int fuzz_ast_literal_eval(const char* data, size_t size) {
 }
 
 #define MAX_ELEMENTTREE_PARSEWHOLE_TEST_SIZE 0x100000
-PyObject* xmlparser_type = NULL;
-PyObject* bytesio_type = NULL;
+PyObject *xmlparser_type = NULL;
+PyObject *bytesio_type = NULL;
 /* Called by LLVMFuzzerTestOneInput for initialization */
-static int init_elementtree_parsewhole(void) {
-    PyObject* elementtree_module = PyImport_ImportModule("_elementtree");
+static int
+init_elementtree_parsewhole(void) {
+    PyObject *elementtree_module = PyImport_ImportModule("_elementtree");
     if (elementtree_module == NULL) {
         return 0;
     }
@@ -453,8 +472,7 @@ static int init_elementtree_parsewhole(void) {
         return 0;
     }
 
-
-    PyObject* io_module = PyImport_ImportModule("io");
+    PyObject *io_module = PyImport_ImportModule("io");
     if (io_module == NULL) {
         return 0;
     }
@@ -467,7 +485,8 @@ static int init_elementtree_parsewhole(void) {
     return 1;
 }
 /* Fuzz _elementtree.XMLParser._parse_whole(x) */
-static int fuzz_elementtree_parsewhole(const char* data, size_t size) {
+static int
+fuzz_elementtree_parsewhole(const char *data, size_t size) {
     if (size > MAX_ELEMENTTREE_PARSEWHOLE_TEST_SIZE) {
         return 0;
     }
@@ -486,7 +505,8 @@ static int fuzz_elementtree_parsewhole(const char* data, size_t size) {
         abort();
     }
 
-    PyObject *result = PyObject_CallMethod(xmlparser_instance, "_parse_whole", "O", input);
+    PyObject *result =
+        PyObject_CallMethod(xmlparser_instance, "_parse_whole", "O", input);
     if (result == NULL) {
         /* Ignore exception here, which can be caused by invalid XML input */
         PyErr_Clear();
@@ -510,7 +530,8 @@ const size_t NUM_OPTIMIZE_VALS = sizeof(optimize_vals) / sizeof(optimize_vals[0]
 
 /* Fuzz `PyCompileStringExFlags` using a variety of input parameters.
  * That function is essentially behind the `compile` builtin */
-static int fuzz_pycompile(const char* data, size_t size) {
+static int
+fuzz_pycompile(const char *data, size_t size) {
     // Ignore overly-large inputs, and account for a NUL terminator
     if (size > MAX_PYCOMPILE_TEST_SIZE - 1) {
         return 0;
@@ -522,11 +543,11 @@ static int fuzz_pycompile(const char* data, size_t size) {
     }
 
     // Use first byte to determine element of `start_vals` to use
-    unsigned char start_idx = (unsigned char) data[0];
+    unsigned char start_idx = (unsigned char)data[0];
     int start = start_vals[start_idx % NUM_START_VALS];
 
     // Use second byte to determine element of `optimize_vals` to use
-    unsigned char optimize_idx = (unsigned char) data[1];
+    unsigned char optimize_idx = (unsigned char)data[1];
     int optimize = optimize_vals[optimize_idx % NUM_OPTIMIZE_VALS];
 
     char pycompile_scratch[MAX_PYCOMPILE_TEST_SIZE];
@@ -547,7 +568,9 @@ static int fuzz_pycompile(const char* data, size_t size) {
     // It would be good to test various combinations of these, too.
     PyCompilerFlags *flags = NULL;
 
-    PyObject *result = Py_CompileStringExFlags(pycompile_scratch, "<fuzz input>", start, flags, optimize);
+    PyObject *result = Py_CompileStringExFlags(
+        pycompile_scratch, "<fuzz input>", start, flags, optimize
+    );
     if (result == NULL) {
         /* Compilation failed, most likely from a syntax error. If it was a
            SystemError we abort. There's no non-bug reason to raise a
@@ -565,8 +588,9 @@ static int fuzz_pycompile(const char* data, size_t size) {
 }
 
 /* Run fuzzer and abort on failure. */
-static int _run_fuzz(const uint8_t *data, size_t size, int(*fuzzer)(const char* , size_t)) {
-    int rv = fuzzer((const char*) data, size);
+static int
+_run_fuzz(const uint8_t *data, size_t size, int (*fuzzer)(const char *, size_t)) {
+    int rv = fuzzer((const char *)data, size);
     if (PyErr_Occurred()) {
         /* Fuzz tests should handle expected errors for themselves.
            This is last-ditch check in case they didn't. */
@@ -578,10 +602,13 @@ static int _run_fuzz(const uint8_t *data, size_t size, int(*fuzzer)(const char* 
 }
 
 /* CPython generates a lot of leak warnings for whatever reason. */
-int __lsan_is_turned_off(void) { return 1; }
+int
+__lsan_is_turned_off(void) {
+    return 1;
+}
 
-
-int LLVMFuzzerInitialize(int *argc, char ***argv) {
+int
+LLVMFuzzerInitialize(int *argc, char ***argv) {
     PyConfig config;
     PyConfig_InitPythonConfig(&config);
     config.install_signal_handlers = 0;
@@ -614,7 +641,8 @@ fail:
    future use -- we propagate the return values for that future case.
    (And we bitwise or when running multiple tests to verify that normally we
    only return 0.) */
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+int
+LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     assert(Py_IsInitialized());
 
     int rv = 0;
@@ -709,5 +737,5 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 #if !defined(_Py_FUZZ_ONE) || defined(_Py_FUZZ_fuzz_pycompile)
     rv |= _run_fuzz(data, size, fuzz_pycompile);
 #endif
-  return rv;
+    return rv;
 }

@@ -1,15 +1,13 @@
 #define PYTESTCAPI_NEED_INTERNAL_API
 #include "parts.h"
 #include "util.h"
-#include "pycore_fileutils.h"     // _Py_IsValidFD()
+#include "pycore_fileutils.h"  // _Py_IsValidFD()
 
 #include <stdio.h>
 #include <errno.h>
 
-
 static PyObject *
-run_stringflags(PyObject *mod, PyObject *pos_args)
-{
+run_stringflags(PyObject *mod, PyObject *pos_args) {
     const char *str;
     Py_ssize_t size;
     int start;
@@ -20,9 +18,17 @@ run_stringflags(PyObject *mod, PyObject *pos_args)
     int cf_flags = 0;
     int cf_feature_version = 0;
 
-    if (!PyArg_ParseTuple(pos_args, "z#iO|Oii",
-                          &str, &size, &start, &globals, &locals,
-                          &cf_flags, &cf_feature_version)) {
+    if (!PyArg_ParseTuple(
+            pos_args,
+            "z#iO|Oii",
+            &str,
+            &size,
+            &start,
+            &globals,
+            &locals,
+            &cf_flags,
+            &cf_feature_version
+        )) {
         return NULL;
     }
 
@@ -38,8 +44,7 @@ run_stringflags(PyObject *mod, PyObject *pos_args)
 }
 
 static PyObject *
-run_fileexflags(PyObject *mod, PyObject *pos_args)
-{
+run_fileexflags(PyObject *mod, PyObject *pos_args) {
     PyObject *result = NULL;
     const char *filename = NULL;
     Py_ssize_t filename_size;
@@ -54,9 +59,18 @@ run_fileexflags(PyObject *mod, PyObject *pos_args)
 
     FILE *fp = NULL;
 
-    if (!PyArg_ParseTuple(pos_args, "z#iO|Oiii",
-                          &filename, &filename_size, &start, &globals, &locals,
-                          &closeit, &cf_flags, &cf_feature_version)) {
+    if (!PyArg_ParseTuple(
+            pos_args,
+            "z#iO|Oiii",
+            &filename,
+            &filename_size,
+            &start,
+            &globals,
+            &locals,
+            &closeit,
+            &cf_flags,
+            &cf_feature_version
+        )) {
         return NULL;
     }
 
@@ -104,8 +118,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Run(PyObject *mod)
-{
+_PyTestCapi_Init_Run(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

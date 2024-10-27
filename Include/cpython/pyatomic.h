@@ -84,7 +84,7 @@
 //       ...
 
 #ifndef Py_CPYTHON_ATOMIC_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 // --- _Py_atomic_add --------------------------------------------------------
@@ -129,7 +129,6 @@ _Py_atomic_add_uintptr(uintptr_t *obj, uintptr_t value);
 static inline Py_ssize_t
 _Py_atomic_add_ssize(Py_ssize_t *obj, Py_ssize_t value);
 
-
 // --- _Py_atomic_compare_exchange -------------------------------------------
 // Performs an atomic compare-and-exchange.
 //
@@ -159,7 +158,9 @@ static inline int
 _Py_atomic_compare_exchange_intptr(intptr_t *obj, intptr_t *expected, intptr_t desired);
 
 static inline int
-_Py_atomic_compare_exchange_uint(unsigned int *obj, unsigned int *expected, unsigned int desired);
+_Py_atomic_compare_exchange_uint(
+    unsigned int *obj, unsigned int *expected, unsigned int desired
+);
 
 static inline int
 _Py_atomic_compare_exchange_uint8(uint8_t *obj, uint8_t *expected, uint8_t desired);
@@ -174,16 +175,19 @@ static inline int
 _Py_atomic_compare_exchange_uint64(uint64_t *obj, uint64_t *expected, uint64_t desired);
 
 static inline int
-_Py_atomic_compare_exchange_uintptr(uintptr_t *obj, uintptr_t *expected, uintptr_t desired);
+_Py_atomic_compare_exchange_uintptr(
+    uintptr_t *obj, uintptr_t *expected, uintptr_t desired
+);
 
 static inline int
-_Py_atomic_compare_exchange_ssize(Py_ssize_t *obj, Py_ssize_t *expected, Py_ssize_t desired);
+_Py_atomic_compare_exchange_ssize(
+    Py_ssize_t *obj, Py_ssize_t *expected, Py_ssize_t desired
+);
 
 // NOTE: `obj` and `expected` are logically `void**` types, but we use `void*`
 // so that we can pass types like `PyObject**` without a cast.
 static inline int
 _Py_atomic_compare_exchange_ptr(void *obj, void *expected, void *value);
-
 
 // --- _Py_atomic_exchange ---------------------------------------------------
 // Atomically replaces `*obj` with `value` and returns the previous value of `*obj`.
@@ -230,7 +234,6 @@ _Py_atomic_exchange_ssize(Py_ssize_t *obj, Py_ssize_t value);
 static inline void *
 _Py_atomic_exchange_ptr(void *obj, void *value);
 
-
 // --- _Py_atomic_and --------------------------------------------------------
 // Performs `*obj &= value` atomically and returns the previous value of `*obj`.
 
@@ -249,7 +252,6 @@ _Py_atomic_and_uint64(uint64_t *obj, uint64_t value);
 static inline uintptr_t
 _Py_atomic_and_uintptr(uintptr_t *obj, uintptr_t value);
 
-
 // --- _Py_atomic_or ---------------------------------------------------------
 // Performs `*obj |= value` atomically and returns the previous value of `*obj`.
 
@@ -267,7 +269,6 @@ _Py_atomic_or_uint64(uint64_t *obj, uint64_t value);
 
 static inline uintptr_t
 _Py_atomic_or_uintptr(uintptr_t *obj, uintptr_t value);
-
 
 // --- _Py_atomic_load -------------------------------------------------------
 // Atomically loads `*obj` (sequential consistency)
@@ -313,7 +314,6 @@ _Py_atomic_load_ssize(const Py_ssize_t *obj);
 
 static inline void *
 _Py_atomic_load_ptr(const void *obj);
-
 
 // --- _Py_atomic_load_relaxed -----------------------------------------------
 // Loads `*obj` (relaxed consistency, i.e., no ordering)
@@ -406,8 +406,7 @@ static inline void
 _Py_atomic_store_ptr(void *obj, void *value);
 
 static inline void
-_Py_atomic_store_ssize(Py_ssize_t* obj, Py_ssize_t value);
-
+_Py_atomic_store_ssize(Py_ssize_t *obj, Py_ssize_t value);
 
 // --- _Py_atomic_store_relaxed ----------------------------------------------
 // Stores `*obj = value` (relaxed consistency, i.e., no ordering)
@@ -431,7 +430,7 @@ static inline void
 _Py_atomic_store_intptr_relaxed(intptr_t *obj, intptr_t value);
 
 static inline void
-_Py_atomic_store_uint8_relaxed(uint8_t* obj, uint8_t value);
+_Py_atomic_store_uint8_relaxed(uint8_t *obj, uint8_t value);
 
 static inline void
 _Py_atomic_store_uint16_relaxed(uint16_t *obj, uint16_t value);
@@ -455,9 +454,7 @@ static inline void
 _Py_atomic_store_ssize_relaxed(Py_ssize_t *obj, Py_ssize_t value);
 
 static inline void
-_Py_atomic_store_ullong_relaxed(unsigned long long *obj,
-                                unsigned long long value);
-
+_Py_atomic_store_ullong_relaxed(unsigned long long *obj, unsigned long long value);
 
 // --- _Py_atomic_load_ptr_acquire / _Py_atomic_store_ptr_release ------------
 
@@ -499,71 +496,63 @@ _Py_atomic_load_uint32_acquire(const uint32_t *obj);
 static inline Py_ssize_t
 _Py_atomic_load_ssize_acquire(const Py_ssize_t *obj);
 
-
-
-
 // --- _Py_atomic_fence ------------------------------------------------------
 
 // Sequential consistency fence. C11 fences have complex semantics. When
 // possible, use the atomic operations on variables defined above, which
 // generally do not require explicit use of a fence.
 // See https://en.cppreference.com/w/cpp/atomic/atomic_thread_fence
-static inline void _Py_atomic_fence_seq_cst(void);
+static inline void
+_Py_atomic_fence_seq_cst(void);
 
 // Acquire fence
-static inline void _Py_atomic_fence_acquire(void);
+static inline void
+_Py_atomic_fence_acquire(void);
 
 // Release fence
-static inline void _Py_atomic_fence_release(void);
-
+static inline void
+_Py_atomic_fence_release(void);
 
 #ifndef _Py_USE_GCC_BUILTIN_ATOMICS
-#  if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))
-#    define _Py_USE_GCC_BUILTIN_ATOMICS 1
-#  elif defined(__clang__)
-#    if __has_builtin(__atomic_load)
-#      define _Py_USE_GCC_BUILTIN_ATOMICS 1
-#    endif
-#  endif
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))
+#define _Py_USE_GCC_BUILTIN_ATOMICS 1
+#elif defined(__clang__)
+#if __has_builtin(__atomic_load)
+#define _Py_USE_GCC_BUILTIN_ATOMICS 1
+#endif
+#endif
 #endif
 
 #if _Py_USE_GCC_BUILTIN_ATOMICS
-#  define Py_ATOMIC_GCC_H
-#  include "cpython/pyatomic_gcc.h"
-#  undef Py_ATOMIC_GCC_H
+#define Py_ATOMIC_GCC_H
+#include "cpython/pyatomic_gcc.h"
+#undef Py_ATOMIC_GCC_H
 #elif __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_ATOMICS__)
-#  define Py_ATOMIC_STD_H
-#  include "cpython/pyatomic_std.h"
-#  undef Py_ATOMIC_STD_H
+#define Py_ATOMIC_STD_H
+#include "cpython/pyatomic_std.h"
+#undef Py_ATOMIC_STD_H
 #elif defined(_MSC_VER)
-#  define Py_ATOMIC_MSC_H
-#  include "cpython/pyatomic_msc.h"
-#  undef Py_ATOMIC_MSC_H
+#define Py_ATOMIC_MSC_H
+#include "cpython/pyatomic_msc.h"
+#undef Py_ATOMIC_MSC_H
 #else
-#  error "no available pyatomic implementation for this platform/compiler"
+#error "no available pyatomic implementation for this platform/compiler"
 #endif
-
 
 // --- aliases ---------------------------------------------------------------
 
 #if SIZEOF_LONG == 8
-# define _Py_atomic_load_ulong(p) \
-    _Py_atomic_load_uint64((uint64_t *)p)
-# define _Py_atomic_load_ulong_relaxed(p) \
-    _Py_atomic_load_uint64_relaxed((uint64_t *)p)
-# define _Py_atomic_store_ulong(p, v) \
-    _Py_atomic_store_uint64((uint64_t *)p, v)
-# define _Py_atomic_store_ulong_relaxed(p, v) \
+#define _Py_atomic_load_ulong(p) _Py_atomic_load_uint64((uint64_t *)p)
+#define _Py_atomic_load_ulong_relaxed(p) _Py_atomic_load_uint64_relaxed((uint64_t *)p)
+#define _Py_atomic_store_ulong(p, v) _Py_atomic_store_uint64((uint64_t *)p, v)
+#define _Py_atomic_store_ulong_relaxed(p, v) \
     _Py_atomic_store_uint64_relaxed((uint64_t *)p, v)
 #elif SIZEOF_LONG == 4
-# define _Py_atomic_load_ulong(p) \
-    _Py_atomic_load_uint32((uint32_t *)p)
-# define _Py_atomic_load_ulong_relaxed(p) \
-    _Py_atomic_load_uint32_relaxed((uint32_t *)p)
-# define _Py_atomic_store_ulong(p, v) \
-    _Py_atomic_store_uint32((uint32_t *)p, v)
-# define _Py_atomic_store_ulong_relaxed(p, v) \
+#define _Py_atomic_load_ulong(p) _Py_atomic_load_uint32((uint32_t *)p)
+#define _Py_atomic_load_ulong_relaxed(p) _Py_atomic_load_uint32_relaxed((uint32_t *)p)
+#define _Py_atomic_store_ulong(p, v) _Py_atomic_store_uint32((uint32_t *)p, v)
+#define _Py_atomic_store_ulong_relaxed(p, v) \
     _Py_atomic_store_uint32_relaxed((uint32_t *)p, v)
 #else
-# error "long must be 4 or 8 bytes in size"
+#error "long must be 4 or 8 bytes in size"
 #endif  // SIZEOF_LONG

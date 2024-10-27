@@ -1,8 +1,8 @@
 #include "Python.h"
-#include "pycore_code.h"          // _PyCode_GetVarnames()
+#include "pycore_code.h"  // _PyCode_GetVarnames()
 #include "pycore_frame.h"
-#include "pycore_pyerrors.h"      // export _Py_UTF8_Edit_Cost()
-#include "pycore_runtime.h"       // _Py_ID()
+#include "pycore_pyerrors.h"  // export _Py_UTF8_Edit_Cost()
+#include "pycore_runtime.h"   // _Py_ID()
 
 #define MAX_CANDIDATE_ITEMS 750
 #define MAX_STRING_SIZE 40
@@ -13,8 +13,7 @@
 #define LEAST_FIVE_BITS(n) ((n) & 31)
 
 static inline int
-substitution_cost(char a, char b)
-{
+substitution_cost(char a, char b) {
     if (LEAST_FIVE_BITS(a) != LEAST_FIVE_BITS(b)) {
         // Not the same, not a case flip.
         return MOVE_COST;
@@ -36,10 +35,14 @@ substitution_cost(char a, char b)
 
 /* Calculate the Levenshtein distance between string1 and string2 */
 static Py_ssize_t
-levenshtein_distance(const char *a, size_t a_size,
-                     const char *b, size_t b_size,
-                     size_t max_cost, size_t *buffer)
-{
+levenshtein_distance(
+    const char *a,
+    size_t a_size,
+    const char *b,
+    size_t b_size,
+    size_t max_cost,
+    size_t *buffer
+) {
     // Both strings are the same (by identity)
     if (a == b) {
         return 0;
@@ -47,10 +50,12 @@ levenshtein_distance(const char *a, size_t a_size,
 
     // Trim away common affixes.
     while (a_size && b_size && a[0] == b[0]) {
-        a++; a_size--;
-        b++; b_size--;
+        a++;
+        a_size--;
+        b++;
+        b_size--;
     }
-    while (a_size && b_size && a[a_size-1] == b[b_size-1]) {
+    while (a_size && b_size && a[a_size - 1] == b[b_size - 1]) {
         a_size--;
         b_size--;
     }
@@ -63,8 +68,12 @@ levenshtein_distance(const char *a, size_t a_size,
 
     // Prefer shorter buffer
     if (b_size < a_size) {
-        const char *t = a; a = b; b = t;
-        size_t t_size = a_size; a_size = b_size; b_size = t_size;
+        const char *t = a;
+        a = b;
+        b = t;
+        size_t t_size = a_size;
+        a_size = b_size;
+        b_size = t_size;
     }
 
     // quick fail when a match is impossible.
@@ -89,7 +98,6 @@ levenshtein_distance(const char *a, size_t a_size,
         size_t distance = result = b_index * MOVE_COST;
         size_t minimum = SIZE_MAX;
         for (size_t index = 0; index < a_size; index++) {
-
             // cost(b[:b_index+1], a[:index+1]) = min(
             //     // 1) substitute
             //     cost(b[:b_index], a[:index])
@@ -124,9 +132,7 @@ levenshtein_distance(const char *a, size_t a_size,
 }
 
 PyObject *
-_Py_CalculateSuggestions(PyObject *dir,
-                      PyObject *name)
-{
+_Py_CalculateSuggestions(PyObject *dir, PyObject *name) {
     assert(!PyErr_Occurred());
     assert(PyList_CheckExact(dir));
 
@@ -161,9 +167,9 @@ _Py_CalculateSuggestions(PyObject *dir,
         Py_ssize_t max_distance = (name_size + item_size + 3) * MOVE_COST / 6;
         // Don't take matches we've already beaten.
         max_distance = Py_MIN(max_distance, suggestion_distance - 1);
-        Py_ssize_t current_distance =
-            levenshtein_distance(name_str, name_size, item_str,
-                                 item_size, max_distance, buffer);
+        Py_ssize_t current_distance = levenshtein_distance(
+            name_str, name_size, item_str, item_size, max_distance, buffer
+        );
         if (current_distance > max_distance) {
             continue;
         }
@@ -177,8 +183,7 @@ _Py_CalculateSuggestions(PyObject *dir,
 }
 
 Py_ssize_t
-_Py_UTF8_Edit_Cost(PyObject *a, PyObject *b, Py_ssize_t max_cost)
-{
+_Py_UTF8_Edit_Cost(PyObject *a, PyObject *b, Py_ssize_t max_cost) {
     assert(PyUnicode_Check(a) && PyUnicode_Check(b));
     Py_ssize_t size_a, size_b;
     const char *utf8_a = PyUnicode_AsUTF8AndSize(a, &size_a);
@@ -197,9 +202,8 @@ _Py_UTF8_Edit_Cost(PyObject *a, PyObject *b, Py_ssize_t max_cost)
         PyErr_NoMemory();
         return -1;
     }
-    Py_ssize_t res = levenshtein_distance(utf8_a, size_a,
-                                    utf8_b, size_b, max_cost, buffer);
+    Py_ssize_t res =
+        levenshtein_distance(utf8_a, size_a, utf8_b, size_b, max_cost, buffer);
     PyMem_Free(buffer);
     return res;
 }
-

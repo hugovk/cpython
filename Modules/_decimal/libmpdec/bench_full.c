@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 
 #include <stdint.h>
@@ -33,17 +32,14 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 static void
-err_exit(const char *msg)
-{
+err_exit(const char *msg) {
     fprintf(stderr, "%s\n", msg);
     exit(1);
 }
 
 static mpd_t *
-new_mpd(void)
-{
+new_mpd(void) {
     mpd_t *x = mpd_qnew();
     if (x == NULL) {
         err_exit("out of memory");
@@ -62,8 +58,7 @@ new_mpd(void)
  * escaped and can be used for coloring.
  */
 static int
-color_point(const mpd_t *x0, const mpd_t *y0, const long maxiter, mpd_context_t *ctx)
-{
+color_point(const mpd_t *x0, const mpd_t *y0, const long maxiter, mpd_context_t *ctx) {
     mpd_t *x, *y, *sq_x, *sq_y;
     mpd_t *two, *four, *c;
     long i;
@@ -111,8 +106,7 @@ color_point(const mpd_t *x0, const mpd_t *y0, const long maxiter, mpd_context_t 
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
     mpd_context_t ctx;
     mpd_t *x0, *y0;
     mpd_t *sqrt_2, *xstep, *ystep;
@@ -122,7 +116,6 @@ main(int argc, char **argv)
     int points[40][80];
     int i, j;
     clock_t start_clock, end_clock;
-
 
     if (argc != 3) {
         fprintf(stderr, "usage: ./bench prec iter\n");
@@ -163,14 +156,11 @@ main(int argc, char **argv)
         for (j = 0; j < 80; j++) {
             if (points[i][j] == iter) {
                 putchar('*');
-            }
-            else if (points[i][j] >= 10) {
+            } else if (points[i][j] >= 10) {
                 putchar('+');
-            }
-            else if (points[i][j] >= 5) {
+            } else if (points[i][j] >= 5) {
                 putchar('.');
-            }
-            else {
+            } else {
                 putchar(' ');
             }
         }
@@ -181,7 +171,7 @@ main(int argc, char **argv)
     (void)points; /* suppress gcc warning */
 #endif
 
-    printf("time: %f\n\n", (double)(end_clock-start_clock)/(double)CLOCKS_PER_SEC);
+    printf("time: %f\n\n", (double)(end_clock - start_clock) / (double)CLOCKS_PER_SEC);
 
     mpd_del(y0);
     mpd_del(x0);

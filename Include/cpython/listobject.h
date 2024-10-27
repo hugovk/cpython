@@ -1,11 +1,11 @@
 #ifndef Py_CPYTHON_LISTOBJECT_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 typedef struct {
     PyObject_VAR_HEAD
-    /* Vector of pointers to list elements.  list[0] is ob_item[0], etc. */
-    PyObject **ob_item;
+        /* Vector of pointers to list elements.  list[0] is ob_item[0], etc. */
+        PyObject **ob_item;
 
     /* ob_item contains space for 'allocated' elements.  The number
      * currently in use is ob_size.
@@ -22,12 +22,12 @@ typedef struct {
 } PyListObject;
 
 /* Cast argument to PyListObject* type. */
-#define _PyList_CAST(op) \
-    (assert(PyList_Check(op)), _Py_CAST(PyListObject*, (op)))
+#define _PyList_CAST(op) (assert(PyList_Check(op)), _Py_CAST(PyListObject *, (op)))
 
 // Macros and static inline functions, trading safety for speed
 
-static inline Py_ssize_t PyList_GET_SIZE(PyObject *op) {
+static inline Py_ssize_t
+PyList_GET_SIZE(PyObject *op) {
     PyListObject *list = _PyList_CAST(op);
 #ifdef Py_GIL_DISABLED
     return _Py_atomic_load_ssize_relaxed(&(_PyVarObject_CAST(list)->ob_size));

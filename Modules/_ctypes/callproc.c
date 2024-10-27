@@ -11,7 +11,6 @@
  *   related.
  */
 
-
 /*
   How are functions called, and how are parameters converted to C ?
 
@@ -60,11 +59,10 @@ module _ctypes
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=476a19c49b31a75c]*/
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
-
 
 #include <stdbool.h>
 
@@ -101,21 +99,20 @@ module _ctypes
 #define DONT_USE_SEH
 #endif
 
-#include "pycore_runtime.h"       // _PyRuntime
-#include "pycore_global_objects.h"// _Py_ID()
-#include "pycore_traceback.h"     // _PyTraceback_Add()
+#include "pycore_runtime.h"         // _PyRuntime
+#include "pycore_global_objects.h"  // _Py_ID()
+#include "pycore_traceback.h"       // _PyTraceback_Add()
 
 #if defined(Py_HAVE_C_COMPLEX) && defined(Py_FFI_SUPPORT_C_COMPLEX)
-#include "../_complex.h"          // complex
+#include "../_complex.h"  // complex
 #endif
 
 #include "clinic/callproc.c.h"
 
 #define CTYPES_CAPSULE_NAME_PYMEM "_ctypes pymem"
 
-
-static void pymem_destructor(PyObject *ptr)
-{
+static void
+pymem_destructor(PyObject *ptr) {
     void *p = PyCapsule_GetPointer(ptr, CTYPES_CAPSULE_NAME_PYMEM);
     if (p) {
         PyMem_Free(p);
@@ -157,13 +154,11 @@ static void pymem_destructor(PyObject *ptr)
   kept alive in the thread state dictionary as long as the thread itself.
 */
 PyObject *
-_ctypes_get_errobj(ctypes_state *st, int **pspace)
-{
+_ctypes_get_errobj(ctypes_state *st, int **pspace) {
     PyObject *dict = PyThreadState_GetDict();
     PyObject *errobj;
     if (dict == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "cannot get thread state");
+        PyErr_SetString(PyExc_RuntimeError, "cannot get thread state");
         return NULL;
     }
     if (st->error_object_name == NULL) {
@@ -177,13 +172,13 @@ _ctypes_get_errobj(ctypes_state *st, int **pspace)
     }
     if (errobj) {
         if (!PyCapsule_IsValid(errobj, CTYPES_CAPSULE_NAME_PYMEM)) {
-            PyErr_SetString(PyExc_RuntimeError,
-                "ctypes.error_object is an invalid capsule");
+            PyErr_SetString(
+                PyExc_RuntimeError, "ctypes.error_object is an invalid capsule"
+            );
             Py_DECREF(errobj);
             return NULL;
         }
-    }
-    else {
+    } else {
         void *space = PyMem_Calloc(2, sizeof(int));
         if (space == NULL)
             return NULL;
@@ -202,8 +197,7 @@ _ctypes_get_errobj(ctypes_state *st, int **pspace)
 }
 
 static PyObject *
-get_error_internal(PyObject *self, PyObject *args, int index)
-{
+get_error_internal(PyObject *self, PyObject *args, int index) {
     int *space;
     ctypes_state *st = get_module_state(self);
     PyObject *errobj = _ctypes_get_errobj(st, &space);
@@ -217,8 +211,7 @@ get_error_internal(PyObject *self, PyObject *args, int index)
 }
 
 static PyObject *
-set_error_internal(PyObject *self, PyObject *args, int index)
-{
+set_error_internal(PyObject *self, PyObject *args, int index) {
     int new_errno, old_errno;
     PyObject *errobj;
     int *space;
@@ -237,8 +230,7 @@ set_error_internal(PyObject *self, PyObject *args, int index)
 }
 
 static PyObject *
-get_errno(PyObject *self, PyObject *args)
-{
+get_errno(PyObject *self, PyObject *args) {
     if (PySys_Audit("ctypes.get_errno", NULL) < 0) {
         return NULL;
     }
@@ -246,8 +238,7 @@ get_errno(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-set_errno(PyObject *self, PyObject *args)
-{
+set_errno(PyObject *self, PyObject *args) {
     if (PySys_Audit("ctypes.set_errno", "O", args) < 0) {
         return NULL;
     }
@@ -257,8 +248,7 @@ set_errno(PyObject *self, PyObject *args)
 #ifdef MS_WIN32
 
 static PyObject *
-get_last_error(PyObject *self, PyObject *args)
-{
+get_last_error(PyObject *self, PyObject *args) {
     if (PySys_Audit("ctypes.get_last_error", NULL) < 0) {
         return NULL;
     }
@@ -266,38 +256,37 @@ get_last_error(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-set_last_error(PyObject *self, PyObject *args)
-{
+set_last_error(PyObject *self, PyObject *args) {
     if (PySys_Audit("ctypes.set_last_error", "O", args) < 0) {
         return NULL;
     }
     return set_error_internal(self, args, 1);
 }
 
-static WCHAR *FormatError(DWORD code)
-{
+static WCHAR *
+FormatError(DWORD code) {
     WCHAR *lpMsgBuf;
     DWORD n;
-    n = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                       FORMAT_MESSAGE_FROM_SYSTEM |
-                       FORMAT_MESSAGE_IGNORE_INSERTS,
-                       NULL,
-                       code,
-                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
-               (LPWSTR) &lpMsgBuf,
-               0,
-               NULL);
+    n = FormatMessageW(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+            FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        code,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
+        (LPWSTR)&lpMsgBuf,
+        0,
+        NULL
+    );
     if (n) {
-        while (iswspace(lpMsgBuf[n-1]))
-            --n;
+        while (iswspace(lpMsgBuf[n - 1])) --n;
         lpMsgBuf[n] = L'\0'; /* rstrip() */
     }
     return lpMsgBuf;
 }
 
 #ifndef DONT_USE_SEH
-static void SetException(DWORD code, EXCEPTION_RECORD *pr)
-{
+static void
+SetException(DWORD code, EXCEPTION_RECORD *pr) {
     if (PySys_Audit("ctypes.set_exception", "I", code) < 0) {
         /* An exception was set by the audit hook */
         return;
@@ -308,149 +297,138 @@ static void SetException(DWORD code, EXCEPTION_RECORD *pr)
     information not included in the error code. We handle those here and
     delegate all others to the generic function. */
     switch (code) {
-    case EXCEPTION_ACCESS_VIOLATION:
-        /* The thread attempted to read from or write
-           to a virtual address for which it does not
-           have the appropriate access. */
-        if (pr->ExceptionInformation[0] == 0)
-            PyErr_Format(PyExc_OSError,
-                         "exception: access violation reading %p",
-                         pr->ExceptionInformation[1]);
-        else
-            PyErr_Format(PyExc_OSError,
-                         "exception: access violation writing %p",
-                         pr->ExceptionInformation[1]);
-        break;
+        case EXCEPTION_ACCESS_VIOLATION:
+            /* The thread attempted to read from or write
+               to a virtual address for which it does not
+               have the appropriate access. */
+            if (pr->ExceptionInformation[0] == 0)
+                PyErr_Format(
+                    PyExc_OSError,
+                    "exception: access violation reading %p",
+                    pr->ExceptionInformation[1]
+                );
+            else
+                PyErr_Format(
+                    PyExc_OSError,
+                    "exception: access violation writing %p",
+                    pr->ExceptionInformation[1]
+                );
+            break;
 
-    case EXCEPTION_BREAKPOINT:
-        /* A breakpoint was encountered. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: breakpoint encountered");
-        break;
+        case EXCEPTION_BREAKPOINT:
+            /* A breakpoint was encountered. */
+            PyErr_SetString(PyExc_OSError, "exception: breakpoint encountered");
+            break;
 
-    case EXCEPTION_DATATYPE_MISALIGNMENT:
-        /* The thread attempted to read or write data that is
-           misaligned on hardware that does not provide
-           alignment. For example, 16-bit values must be
-           aligned on 2-byte boundaries, 32-bit values on
-           4-byte boundaries, and so on. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: datatype misalignment");
-        break;
+        case EXCEPTION_DATATYPE_MISALIGNMENT:
+            /* The thread attempted to read or write data that is
+               misaligned on hardware that does not provide
+               alignment. For example, 16-bit values must be
+               aligned on 2-byte boundaries, 32-bit values on
+               4-byte boundaries, and so on. */
+            PyErr_SetString(PyExc_OSError, "exception: datatype misalignment");
+            break;
 
-    case EXCEPTION_SINGLE_STEP:
-        /* A trace trap or other single-instruction mechanism
-           signaled that one instruction has been executed. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: single step");
-        break;
+        case EXCEPTION_SINGLE_STEP:
+            /* A trace trap or other single-instruction mechanism
+               signaled that one instruction has been executed. */
+            PyErr_SetString(PyExc_OSError, "exception: single step");
+            break;
 
-    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-        /* The thread attempted to access an array element
-           that is out of bounds, and the underlying hardware
-           supports bounds checking. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: array bounds exceeded");
-        break;
+        case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+            /* The thread attempted to access an array element
+               that is out of bounds, and the underlying hardware
+               supports bounds checking. */
+            PyErr_SetString(PyExc_OSError, "exception: array bounds exceeded");
+            break;
 
-    case EXCEPTION_FLT_DENORMAL_OPERAND:
-        /* One of the operands in a floating-point operation
-           is denormal. A denormal value is one that is too
-           small to represent as a standard floating-point
-           value. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: floating-point operand denormal");
-        break;
+        case EXCEPTION_FLT_DENORMAL_OPERAND:
+            /* One of the operands in a floating-point operation
+               is denormal. A denormal value is one that is too
+               small to represent as a standard floating-point
+               value. */
+            PyErr_SetString(
+                PyExc_OSError, "exception: floating-point operand denormal"
+            );
+            break;
 
-    case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-        /* The thread attempted to divide a floating-point
-           value by a floating-point divisor of zero. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: float divide by zero");
-        break;
+        case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+            /* The thread attempted to divide a floating-point
+               value by a floating-point divisor of zero. */
+            PyErr_SetString(PyExc_OSError, "exception: float divide by zero");
+            break;
 
-    case EXCEPTION_FLT_INEXACT_RESULT:
-        /* The result of a floating-point operation cannot be
-           represented exactly as a decimal fraction. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: float inexact");
-        break;
+        case EXCEPTION_FLT_INEXACT_RESULT:
+            /* The result of a floating-point operation cannot be
+               represented exactly as a decimal fraction. */
+            PyErr_SetString(PyExc_OSError, "exception: float inexact");
+            break;
 
-    case EXCEPTION_FLT_INVALID_OPERATION:
-        /* This exception represents any floating-point
-           exception not included in this list. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: float invalid operation");
-        break;
+        case EXCEPTION_FLT_INVALID_OPERATION:
+            /* This exception represents any floating-point
+               exception not included in this list. */
+            PyErr_SetString(PyExc_OSError, "exception: float invalid operation");
+            break;
 
-    case EXCEPTION_FLT_OVERFLOW:
-        /* The exponent of a floating-point operation is
-           greater than the magnitude allowed by the
-           corresponding type. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: float overflow");
-        break;
+        case EXCEPTION_FLT_OVERFLOW:
+            /* The exponent of a floating-point operation is
+               greater than the magnitude allowed by the
+               corresponding type. */
+            PyErr_SetString(PyExc_OSError, "exception: float overflow");
+            break;
 
-    case EXCEPTION_FLT_STACK_CHECK:
-        /* The stack overflowed or underflowed as the result
-           of a floating-point operation. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: stack over/underflow");
-        break;
+        case EXCEPTION_FLT_STACK_CHECK:
+            /* The stack overflowed or underflowed as the result
+               of a floating-point operation. */
+            PyErr_SetString(PyExc_OSError, "exception: stack over/underflow");
+            break;
 
-    case EXCEPTION_STACK_OVERFLOW:
-        /* The stack overflowed or underflowed as the result
-           of a floating-point operation. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: stack overflow");
-        break;
+        case EXCEPTION_STACK_OVERFLOW:
+            /* The stack overflowed or underflowed as the result
+               of a floating-point operation. */
+            PyErr_SetString(PyExc_OSError, "exception: stack overflow");
+            break;
 
-    case EXCEPTION_FLT_UNDERFLOW:
-        /* The exponent of a floating-point operation is less
-           than the magnitude allowed by the corresponding
-           type. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: float underflow");
-        break;
+        case EXCEPTION_FLT_UNDERFLOW:
+            /* The exponent of a floating-point operation is less
+               than the magnitude allowed by the corresponding
+               type. */
+            PyErr_SetString(PyExc_OSError, "exception: float underflow");
+            break;
 
-    case EXCEPTION_INT_DIVIDE_BY_ZERO:
-        /* The thread attempted to divide an integer value by
-           an integer divisor of zero. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: integer divide by zero");
-        break;
+        case EXCEPTION_INT_DIVIDE_BY_ZERO:
+            /* The thread attempted to divide an integer value by
+               an integer divisor of zero. */
+            PyErr_SetString(PyExc_OSError, "exception: integer divide by zero");
+            break;
 
-    case EXCEPTION_INT_OVERFLOW:
-        /* The result of an integer operation caused a carry
-           out of the most significant bit of the result. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: integer overflow");
-        break;
+        case EXCEPTION_INT_OVERFLOW:
+            /* The result of an integer operation caused a carry
+               out of the most significant bit of the result. */
+            PyErr_SetString(PyExc_OSError, "exception: integer overflow");
+            break;
 
-    case EXCEPTION_PRIV_INSTRUCTION:
-        /* The thread attempted to execute an instruction
-           whose operation is not allowed in the current
-           machine mode. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: privileged instruction");
-        break;
+        case EXCEPTION_PRIV_INSTRUCTION:
+            /* The thread attempted to execute an instruction
+               whose operation is not allowed in the current
+               machine mode. */
+            PyErr_SetString(PyExc_OSError, "exception: privileged instruction");
+            break;
 
-    case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-        /* The thread attempted to continue execution after a
-           noncontinuable exception occurred. */
-        PyErr_SetString(PyExc_OSError,
-                        "exception: nocontinuable");
-        break;
+        case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+            /* The thread attempted to continue execution after a
+               noncontinuable exception occurred. */
+            PyErr_SetString(PyExc_OSError, "exception: nocontinuable");
+            break;
 
-    default:
-        PyErr_SetFromWindowsErr(code);
-        break;
+        default:
+            PyErr_SetFromWindowsErr(code);
+            break;
     }
 }
 
-static DWORD HandleException(EXCEPTION_POINTERS *ptrs,
-                             DWORD *pdw, EXCEPTION_RECORD *record)
-{
+static DWORD
+HandleException(EXCEPTION_POINTERS *ptrs, DWORD *pdw, EXCEPTION_RECORD *record) {
     *pdw = ptrs->ExceptionRecord->ExceptionCode;
     *record = *ptrs->ExceptionRecord;
     /* We don't want to catch breakpoint exceptions, they are used to attach
@@ -463,8 +441,7 @@ static DWORD HandleException(EXCEPTION_POINTERS *ptrs,
 #endif
 
 static PyObject *
-check_hresult(PyObject *self, PyObject *args)
-{
+check_hresult(PyObject *self, PyObject *args) {
     HRESULT hr;
     if (!PyArg_ParseTuple(args, "i", &hr))
         return NULL;
@@ -478,8 +455,7 @@ check_hresult(PyObject *self, PyObject *args)
 /**************************************************************/
 
 PyCArgObject *
-PyCArgObject_new(ctypes_state *st)
-{
+PyCArgObject_new(ctypes_state *st) {
     PyCArgObject *p;
     p = PyObject_GC_New(PyCArgObject, st->PyCArg_Type);
     if (p == NULL)
@@ -493,23 +469,20 @@ PyCArgObject_new(ctypes_state *st)
 }
 
 static int
-PyCArg_traverse(PyCArgObject *self, visitproc visit, void *arg)
-{
+PyCArg_traverse(PyCArgObject *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->obj);
     return 0;
 }
 
 static int
-PyCArg_clear(PyCArgObject *self)
-{
+PyCArg_clear(PyCArgObject *self) {
     Py_CLEAR(self->obj);
     return 0;
 }
 
 static void
-PyCArg_dealloc(PyCArgObject *self)
-{
+PyCArg_dealloc(PyCArgObject *self) {
     PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack(self);
     (void)PyCArg_clear(self);
@@ -518,84 +491,85 @@ PyCArg_dealloc(PyCArgObject *self)
 }
 
 static int
-is_literal_char(unsigned char c)
-{
+is_literal_char(unsigned char c) {
     return c < 128 && _PyUnicode_IsPrintable(c) && c != '\\' && c != '\'';
 }
 
 static PyObject *
-PyCArg_repr(PyCArgObject *self)
-{
-    switch(self->tag) {
-    case 'b':
-    case 'B':
-        return PyUnicode_FromFormat("<cparam '%c' (%d)>",
-            self->tag, self->value.b);
-    case 'h':
-    case 'H':
-        return PyUnicode_FromFormat("<cparam '%c' (%d)>",
-            self->tag, self->value.h);
-    case 'i':
-    case 'I':
-        return PyUnicode_FromFormat("<cparam '%c' (%d)>",
-            self->tag, self->value.i);
-    case 'l':
-    case 'L':
-        return PyUnicode_FromFormat("<cparam '%c' (%ld)>",
-            self->tag, self->value.l);
+PyCArg_repr(PyCArgObject *self) {
+    switch (self->tag) {
+        case 'b':
+        case 'B':
+            return PyUnicode_FromFormat("<cparam '%c' (%d)>", self->tag, self->value.b);
+        case 'h':
+        case 'H':
+            return PyUnicode_FromFormat("<cparam '%c' (%d)>", self->tag, self->value.h);
+        case 'i':
+        case 'I':
+            return PyUnicode_FromFormat("<cparam '%c' (%d)>", self->tag, self->value.i);
+        case 'l':
+        case 'L':
+            return PyUnicode_FromFormat(
+                "<cparam '%c' (%ld)>", self->tag, self->value.l
+            );
 
-    case 'q':
-    case 'Q':
-        return PyUnicode_FromFormat("<cparam '%c' (%lld)>",
-            self->tag, self->value.q);
-    case 'd':
-    case 'f': {
-        PyObject *f = PyFloat_FromDouble((self->tag == 'f') ? self->value.f : self->value.d);
-        if (f == NULL) {
-            return NULL;
+        case 'q':
+        case 'Q':
+            return PyUnicode_FromFormat(
+                "<cparam '%c' (%lld)>", self->tag, self->value.q
+            );
+        case 'd':
+        case 'f': {
+            PyObject *f =
+                PyFloat_FromDouble((self->tag == 'f') ? self->value.f : self->value.d);
+            if (f == NULL) {
+                return NULL;
+            }
+            PyObject *result = PyUnicode_FromFormat("<cparam '%c' (%R)>", self->tag, f);
+            Py_DECREF(f);
+            return result;
         }
-        PyObject *result = PyUnicode_FromFormat("<cparam '%c' (%R)>", self->tag, f);
-        Py_DECREF(f);
-        return result;
-    }
-    case 'c':
-        if (is_literal_char((unsigned char)self->value.c)) {
-            return PyUnicode_FromFormat("<cparam '%c' ('%c')>",
-                self->tag, self->value.c);
-        }
-        else {
-            return PyUnicode_FromFormat("<cparam '%c' ('\\x%02x')>",
-                self->tag, (unsigned char)self->value.c);
-        }
+        case 'c':
+            if (is_literal_char((unsigned char)self->value.c)) {
+                return PyUnicode_FromFormat(
+                    "<cparam '%c' ('%c')>", self->tag, self->value.c
+                );
+            } else {
+                return PyUnicode_FromFormat(
+                    "<cparam '%c' ('\\x%02x')>", self->tag, (unsigned char)self->value.c
+                );
+            }
 
-/* Hm, are these 'z' and 'Z' codes useful at all?
-   Shouldn't they be replaced by the functionality of create_string_buffer()
-   and c_wstring() ?
-*/
-    case 'z':
-    case 'Z':
-    case 'P':
-        return PyUnicode_FromFormat("<cparam '%c' (%p)>",
-            self->tag, self->value.p);
-        break;
+            /* Hm, are these 'z' and 'Z' codes useful at all?
+               Shouldn't they be replaced by the functionality of create_string_buffer()
+               and c_wstring() ?
+            */
+        case 'z':
+        case 'Z':
+        case 'P':
+            return PyUnicode_FromFormat("<cparam '%c' (%p)>", self->tag, self->value.p);
+            break;
 
-    default:
-        if (is_literal_char((unsigned char)self->tag)) {
-            return PyUnicode_FromFormat("<cparam '%c' at %p>",
-                (unsigned char)self->tag, (void *)self);
-        }
-        else {
-            return PyUnicode_FromFormat("<cparam 0x%02x at %p>",
-                (unsigned char)self->tag, (void *)self);
-        }
+        default:
+            if (is_literal_char((unsigned char)self->tag)) {
+                return PyUnicode_FromFormat(
+                    "<cparam '%c' at %p>", (unsigned char)self->tag, (void *)self
+                );
+            } else {
+                return PyUnicode_FromFormat(
+                    "<cparam 0x%02x at %p>", (unsigned char)self->tag, (void *)self
+                );
+            }
     }
 }
 
 static PyMemberDef PyCArgType_members[] = {
-    { "_obj", _Py_T_OBJECT,
-      offsetof(PyCArgObject, obj), Py_READONLY,
-      "the wrapped object" },
-    { NULL },
+    {"_obj",
+     _Py_T_OBJECT,
+     offsetof(PyCArgObject, obj),
+     Py_READONLY,
+     "the wrapped object"},
+    {NULL},
 };
 
 static PyType_Slot carg_slots[] = {
@@ -610,8 +584,9 @@ static PyType_Slot carg_slots[] = {
 PyType_Spec carg_spec = {
     .name = "_ctypes.CArgObject",
     .basicsize = sizeof(PyCArgObject),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
-              Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_DISALLOW_INSTANTIATION),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE |
+         Py_TPFLAGS_DISALLOW_INSTANTIATION),
     .slots = carg_slots,
 };
 
@@ -671,9 +646,8 @@ struct argument {
 /*
  * Convert a single Python object into a PyCArgObject and return it.
  */
-static int ConvParam(ctypes_state *st,
-                     PyObject *obj, Py_ssize_t index, struct argument *pa)
-{
+static int
+ConvParam(ctypes_state *st, PyObject *obj, Py_ssize_t index, struct argument *pa) {
     pa->keep = NULL; /* so we cannot forget it later */
 
     StgInfo *info;
@@ -717,8 +691,7 @@ static int ConvParam(ctypes_state *st,
             PyErr_Clear();
             pa->value.i = PyLong_AsLong(obj);
             if (pa->value.i == -1 && PyErr_Occurred()) {
-                PyErr_SetString(PyExc_OverflowError,
-                                "int too long to convert");
+                PyErr_SetString(PyExc_OverflowError, "int too long to convert");
                 return -1;
             }
         }
@@ -737,7 +710,8 @@ static int ConvParam(ctypes_state *st,
         pa->value.p = PyUnicode_AsWideCharString(obj, NULL);
         if (pa->value.p == NULL)
             return -1;
-        pa->keep = PyCapsule_New(pa->value.p, CTYPES_CAPSULE_NAME_PYMEM, pymem_destructor);
+        pa->keep =
+            PyCapsule_New(pa->value.p, CTYPES_CAPSULE_NAME_PYMEM, pymem_destructor);
         if (!pa->keep) {
             PyMem_Free(pa->value.p);
             return -1;
@@ -761,9 +735,11 @@ static int ConvParam(ctypes_state *st,
             Py_DECREF(arg);
             return result;
         }
-        PyErr_Format(PyExc_TypeError,
-                     "Don't know how to convert parameter %d",
-                     Py_SAFE_DOWNCAST(index, Py_ssize_t, int));
+        PyErr_Format(
+            PyExc_TypeError,
+            "Don't know how to convert parameter %d",
+            Py_SAFE_DOWNCAST(index, Py_ssize_t, int)
+        );
         return -1;
     }
 }
@@ -774,13 +750,13 @@ Per: https://msdn.microsoft.com/en-us/library/7572ztz4.aspx
 To be returned by value in RAX, user-defined types must have a length
 of 1, 2, 4, 8, 16, 32, or 64 bits
 */
-int can_return_struct_as_int(size_t s)
-{
+int
+can_return_struct_as_int(size_t s) {
     return s == 1 || s == 2 || s == 4;
 }
 
-int can_return_struct_as_sint64(size_t s)
-{
+int
+can_return_struct_as_sint64(size_t s) {
 #ifdef _M_ARM
     // 8 byte structs cannot be returned in a register on ARM32
     return 0;
@@ -790,10 +766,9 @@ int can_return_struct_as_sint64(size_t s)
 }
 #endif
 
-
 // returns NULL with exception set on error
-ffi_type *_ctypes_get_ffi_type(ctypes_state *st, PyObject *obj)
-{
+ffi_type *
+_ctypes_get_ffi_type(ctypes_state *st, PyObject *obj) {
     if (obj == NULL) {
         return &ffi_type_sint;
     }
@@ -813,13 +788,12 @@ ffi_type *_ctypes_get_ffi_type(ctypes_state *st, PyObject *obj)
     if (info->ffi_type_pointer.type == FFI_TYPE_STRUCT) {
         if (can_return_struct_as_int(info->ffi_type_pointer.size))
             return &ffi_type_sint32;
-        else if (can_return_struct_as_sint64 (info->ffi_type_pointer.size))
+        else if (can_return_struct_as_sint64(info->ffi_type_pointer.size))
             return &ffi_type_sint64;
     }
 #endif
     return &info->ffi_type_pointer;
 }
-
 
 /*
  * libffi uses:
@@ -833,16 +807,18 @@ ffi_type *_ctypes_get_ffi_type(ctypes_state *st, PyObject *obj)
  *
  * void ffi_call(ffi_cif *cif, void *fn, void *rvalue, void **avalues);
  */
-static int _call_function_pointer(ctypes_state *st,
-                                  int flags,
-                                  PPROC pProc,
-                                  void **avalues,
-                                  ffi_type **atypes,
-                                  ffi_type *restype,
-                                  void *resmem,
-                                  int argcount,
-                                  int argtypecount)
-{
+static int
+_call_function_pointer(
+    ctypes_state *st,
+    int flags,
+    PPROC pProc,
+    void **avalues,
+    ffi_type **atypes,
+    ffi_type *restype,
+    void *resmem,
+    int argcount,
+    int argtypecount
+) {
     PyThreadState *_save = NULL; /* For Py_BLOCK_THREADS and Py_UNBLOCK_THREADS */
     PyObject *error_object = NULL;
     int *space;
@@ -854,8 +830,7 @@ static int _call_function_pointer(ctypes_state *st,
 #endif
     /* XXX check before here */
     if (restype == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "No ffi_type for result");
+        PyErr_SetString(PyExc_RuntimeError, "No ffi_type for result");
         return -1;
     }
 
@@ -865,17 +840,18 @@ static int _call_function_pointer(ctypes_state *st,
         cc = FFI_STDCALL;
 #endif
 
-#   ifdef USING_APPLE_OS_LIBFFI
-#    ifdef HAVE_BUILTIN_AVAILABLE
-#      define HAVE_FFI_PREP_CIF_VAR_RUNTIME __builtin_available(macos 10.15, ios 13, watchos 6, tvos 13, *)
-#    else
-#      define HAVE_FFI_PREP_CIF_VAR_RUNTIME (ffi_prep_cif_var != NULL)
-#    endif
-#   elif HAVE_FFI_PREP_CIF_VAR
-#      define HAVE_FFI_PREP_CIF_VAR_RUNTIME true
-#   else
-#      define HAVE_FFI_PREP_CIF_VAR_RUNTIME false
-#   endif
+#ifdef USING_APPLE_OS_LIBFFI
+#ifdef HAVE_BUILTIN_AVAILABLE
+#define HAVE_FFI_PREP_CIF_VAR_RUNTIME \
+    __builtin_available(macos 10.15, ios 13, watchos 6, tvos 13, *)
+#else
+#define HAVE_FFI_PREP_CIF_VAR_RUNTIME (ffi_prep_cif_var != NULL)
+#endif
+#elif HAVE_FFI_PREP_CIF_VAR
+#define HAVE_FFI_PREP_CIF_VAR_RUNTIME true
+#else
+#define HAVE_FFI_PREP_CIF_VAR_RUNTIME false
+#endif
 
     /* Even on Apple-arm64 the calling convention for variadic functions coincides
      * with the standard calling convention in the case that the function called
@@ -883,7 +859,7 @@ static int _call_function_pointer(ctypes_state *st,
      * set on variadic functions.   We treat a function as variadic if it is called
      * with a nonzero number of variadic arguments */
     bool is_variadic = (argtypecount != 0 && argcount > argtypecount);
-    (void) is_variadic;
+    (void)is_variadic;
 
 #if defined(__APPLE__) && defined(__arm64__)
     if (is_variadic) {
@@ -898,24 +874,14 @@ static int _call_function_pointer(ctypes_state *st,
 #if HAVE_FFI_PREP_CIF_VAR
     if (is_variadic) {
         if (HAVE_FFI_PREP_CIF_VAR_RUNTIME) {
-            if (FFI_OK != ffi_prep_cif_var(&cif,
-                                        cc,
-                                        argtypecount,
-                                        argcount,
-                                        restype,
-                                        atypes)) {
-                PyErr_SetString(PyExc_RuntimeError,
-                                "ffi_prep_cif_var failed");
+            if (FFI_OK !=
+                ffi_prep_cif_var(&cif, cc, argtypecount, argcount, restype, atypes)) {
+                PyErr_SetString(PyExc_RuntimeError, "ffi_prep_cif_var failed");
                 return -1;
             }
         } else {
-            if (FFI_OK != ffi_prep_cif(&cif,
-                                       cc,
-                                       argcount,
-                                       restype,
-                                       atypes)) {
-                PyErr_SetString(PyExc_RuntimeError,
-                                "ffi_prep_cif failed");
+            if (FFI_OK != ffi_prep_cif(&cif, cc, argcount, restype, atypes)) {
+                PyErr_SetString(PyExc_RuntimeError, "ffi_prep_cif failed");
                 return -1;
             }
         }
@@ -923,13 +889,8 @@ static int _call_function_pointer(ctypes_state *st,
 #endif
 
     {
-        if (FFI_OK != ffi_prep_cif(&cif,
-                                   cc,
-                                   argcount,
-                                   restype,
-                                   atypes)) {
-            PyErr_SetString(PyExc_RuntimeError,
-                            "ffi_prep_cif failed");
+        if (FFI_OK != ffi_prep_cif(&cif, cc, argcount, restype, atypes)) {
+            PyErr_SetString(PyExc_RuntimeError, "ffi_prep_cif failed");
             return -1;
         }
     }
@@ -940,12 +901,11 @@ static int _call_function_pointer(ctypes_state *st,
             return -1;
     }
     if ((flags & FUNCFLAG_PYTHONAPI) == 0)
-        Py_UNBLOCK_THREADS
-    if (flags & FUNCFLAG_USE_ERRNO) {
-        int temp = space[0];
-        space[0] = errno;
-        errno = temp;
-    }
+        Py_UNBLOCK_THREADS if (flags & FUNCFLAG_USE_ERRNO) {
+            int temp = space[0];
+            space[0] = errno;
+            errno = temp;
+        }
 #ifdef MS_WIN32
     if (flags & FUNCFLAG_USE_LASTERROR) {
         int temp = space[1];
@@ -956,12 +916,10 @@ static int _call_function_pointer(ctypes_state *st,
     __try {
 #endif
 #endif
-                ffi_call(&cif, (void *)pProc, resmem, avalues);
+        ffi_call(&cif, (void *)pProc, resmem, avalues);
 #ifdef MS_WIN32
 #ifndef DONT_USE_SEH
-    }
-    __except (HandleException(GetExceptionInformation(),
-                              &dwExceptionCode, &record)) {
+    } __except (HandleException(GetExceptionInformation(), &dwExceptionCode, &record)) {
         ;
     }
 #endif
@@ -977,8 +935,7 @@ static int _call_function_pointer(ctypes_state *st,
         errno = temp;
     }
     if ((flags & FUNCFLAG_PYTHONAPI) == 0)
-        Py_BLOCK_THREADS
-    Py_XDECREF(error_object);
+        Py_BLOCK_THREADS Py_XDECREF(error_object);
 #ifdef MS_WIN32
 #ifndef DONT_USE_SEH
     if (dwExceptionCode) {
@@ -1002,9 +959,8 @@ static int _call_function_pointer(ctypes_state *st,
  * - If restype is another ctypes type, return an instance of that.
  * - Otherwise, call restype and return the result.
  */
-static PyObject *GetResult(ctypes_state *st,
-                           PyObject *restype, void *result, PyObject *checker)
-{
+static PyObject *
+GetResult(ctypes_state *st, PyObject *restype, void *result, PyObject *checker) {
     PyObject *retval, *v;
 
     if (restype == NULL)
@@ -1031,8 +987,7 @@ static PyObject *GetResult(ctypes_state *st,
         if (info->getfunc == _ctypes_get_fielddesc("O")->getfunc) {
             Py_DECREF(retval);
         }
-    }
-    else {
+    } else {
         retval = PyCData_FromBaseObj(st, restype, NULL, 0, result);
     }
     if (!checker || !retval)
@@ -1040,7 +995,7 @@ static PyObject *GetResult(ctypes_state *st,
 
     v = PyObject_CallOneArg(checker, retval);
     if (v == NULL)
-        _PyTraceback_Add("GetResult", "_ctypes/callproc.c", __LINE__-2);
+        _PyTraceback_Add("GetResult", "_ctypes/callproc.c", __LINE__ - 2);
     Py_DECREF(retval);
     return v;
 }
@@ -1049,8 +1004,8 @@ static PyObject *GetResult(ctypes_state *st,
  * Raise a new exception 'exc_class', adding additional text to the original
  * exception string.
  */
-void _ctypes_extend_error(PyObject *exc_class, const char *fmt, ...)
-{
+void
+_ctypes_extend_error(PyObject *exc_class, const char *fmt, ...) {
     va_list vargs;
 
     va_start(vargs, fmt);
@@ -1070,16 +1025,14 @@ void _ctypes_extend_error(PyObject *exc_class, const char *fmt, ...)
         if (s == NULL) {
             goto error;
         }
-    }
-    else {
+    } else {
         PyErr_Clear();
     }
 
     PyObject *msg_str = PyObject_Str(exc);
     if (msg_str) {
         PyUnicode_AppendAndDel(&s, msg_str);
-    }
-    else {
+    } else {
         PyErr_Clear();
         PyUnicode_AppendAndDel(&s, PyUnicode_FromString("???"));
     }
@@ -1092,18 +1045,16 @@ error:
     Py_XDECREF(s);
 }
 
-
 #ifdef MS_WIN32
 
 static PyObject *
-GetComError(ctypes_state *st, HRESULT errcode, GUID *riid, IUnknown *pIunk)
-{
+GetComError(ctypes_state *st, HRESULT errcode, GUID *riid, IUnknown *pIunk) {
     HRESULT hr;
     ISupportErrorInfo *psei = NULL;
     IErrorInfo *pei = NULL;
-    BSTR descr=NULL, helpfile=NULL, source=NULL;
+    BSTR descr = NULL, helpfile = NULL, source = NULL;
     GUID guid;
-    DWORD helpcontext=0;
+    DWORD helpcontext = 0;
     LPOLESTR progid;
     PyObject *obj;
     LPOLESTR text;
@@ -1113,7 +1064,9 @@ GetComError(ctypes_state *st, HRESULT errcode, GUID *riid, IUnknown *pIunk)
     */
     Py_BEGIN_ALLOW_THREADS
 
-    hr = pIunk->lpVtbl->QueryInterface(pIunk, &IID_ISupportErrorInfo, (void **)&psei);
+        hr = pIunk->lpVtbl->QueryInterface(
+            pIunk, &IID_ISupportErrorInfo, (void **)&psei
+        );
     if (FAILED(hr))
         goto failed;
 
@@ -1134,19 +1087,16 @@ GetComError(ctypes_state *st, HRESULT errcode, GUID *riid, IUnknown *pIunk)
 
     pei->lpVtbl->Release(pei);
 
-  failed:
+failed:
     Py_END_ALLOW_THREADS
 
-    progid = NULL;
+        progid = NULL;
     ProgIDFromCLSID(&guid, &progid);
 
     text = FormatError(errcode);
     obj = Py_BuildValue(
-        "iu(uuuiu)",
-        errcode,
-        text,
-        descr, source, helpfile, helpcontext,
-        progid);
+        "iu(uuuiu)", errcode, text, descr, source, helpfile, helpcontext, progid
+    );
     if (obj) {
         PyErr_SetObject((PyObject *)st->PyComError_Type, obj);
         Py_DECREF(obj);
@@ -1178,20 +1128,22 @@ GetComError(ctypes_state *st, HRESULT errcode, GUID *riid, IUnknown *pIunk)
  *
  * - XXX various requirements for restype, not yet collected
  */
-PyObject *_ctypes_callproc(ctypes_state *st,
-                    PPROC pProc,
-                    PyObject *argtuple,
+PyObject *
+_ctypes_callproc(
+    ctypes_state *st,
+    PPROC pProc,
+    PyObject *argtuple,
 #ifdef MS_WIN32
-                    IUnknown *pIunk,
-                    GUID *iid,
+    IUnknown *pIunk,
+    GUID *iid,
 #endif
-                    int flags,
-                    PyObject *argtypes, /* misleading name: This is a tuple of
-                                           methods, not types: the .from_param
-                                           class methods of the types */
-            PyObject *restype,
-            PyObject *checker)
-{
+    int flags,
+    PyObject *argtypes, /* misleading name: This is a tuple of
+                           methods, not types: the .from_param
+                           class methods of the types */
+    PyObject *restype,
+    PyObject *checker
+) {
     Py_ssize_t i, n, argcount, argtype_count;
     void *resbuf;
     struct argument *args, *pa;
@@ -1207,10 +1159,13 @@ PyObject *_ctypes_callproc(ctypes_state *st,
         ++argcount;
 #endif
 
-    if (argcount > CTYPES_MAX_ARGCOUNT)
-    {
-        PyErr_Format(st->PyExc_ArgError, "too many arguments (%zi), maximum is %i",
-                     argcount, CTYPES_MAX_ARGCOUNT);
+    if (argcount > CTYPES_MAX_ARGCOUNT) {
+        PyErr_Format(
+            st->PyExc_ArgError,
+            "too many arguments (%zi), maximum is %i",
+            argcount,
+            CTYPES_MAX_ARGCOUNT
+        );
         return NULL;
     }
 
@@ -1232,7 +1187,7 @@ PyObject *_ctypes_callproc(ctypes_state *st,
         PyObject *arg;
         int err;
 
-        arg = PyTuple_GET_ITEM(argtuple, i);            /* borrowed ref */
+        arg = PyTuple_GET_ITEM(argtuple, i); /* borrowed ref */
         /* For cdecl functions, we allow more actual arguments
            than the length of the argtypes tuple.
            This is checked in _ctypes::PyCFuncPtr_Call
@@ -1242,20 +1197,20 @@ PyObject *_ctypes_callproc(ctypes_state *st,
             converter = PyTuple_GET_ITEM(argtypes, i);
             v = PyObject_CallOneArg(converter, arg);
             if (v == NULL) {
-                _ctypes_extend_error(st->PyExc_ArgError, "argument %zd: ", i+1);
+                _ctypes_extend_error(st->PyExc_ArgError, "argument %zd: ", i + 1);
                 goto cleanup;
             }
 
-            err = ConvParam(st, v, i+1, pa);
+            err = ConvParam(st, v, i + 1, pa);
             Py_DECREF(v);
             if (-1 == err) {
-                _ctypes_extend_error(st->PyExc_ArgError, "argument %zd: ", i+1);
+                _ctypes_extend_error(st->PyExc_ArgError, "argument %zd: ", i + 1);
                 goto cleanup;
             }
         } else {
-            err = ConvParam(st, arg, i+1, pa);
+            err = ConvParam(st, arg, i + 1, pa);
             if (-1 == err) {
-                _ctypes_extend_error(st->PyExc_ArgError, "argument %zd: ", i+1);
+                _ctypes_extend_error(st->PyExc_ArgError, "argument %zd: ", i + 1);
                 goto cleanup; /* leaking ? */
             }
         }
@@ -1294,22 +1249,28 @@ PyObject *_ctypes_callproc(ctypes_state *st,
             if (atypes[i]->type == FFI_TYPE_STRUCT)
                 memcpy(tmp, args[i].value.p, size);
             else
-                memcpy(tmp, (void*)&args[i].value, size);
+                memcpy(tmp, (void *)&args[i].value, size);
 
             avalues[i] = tmp;
-        }
-        else
+        } else
 #endif
-        if (atypes[i]->type == FFI_TYPE_STRUCT)
+            if (atypes[i]->type == FFI_TYPE_STRUCT)
             avalues[i] = (void *)args[i].value.p;
         else
             avalues[i] = (void *)&args[i].value;
     }
 
-    if (-1 == _call_function_pointer(st, flags, pProc, avalues, atypes,
-                                     rtype, resbuf,
-                                     Py_SAFE_DOWNCAST(argcount, Py_ssize_t, int),
-                                     Py_SAFE_DOWNCAST(argtype_count, Py_ssize_t, int)))
+    if (-1 == _call_function_pointer(
+                  st,
+                  flags,
+                  pProc,
+                  avalues,
+                  atypes,
+                  rtype,
+                  resbuf,
+                  Py_SAFE_DOWNCAST(argcount, Py_ssize_t, int),
+                  Py_SAFE_DOWNCAST(argtype_count, Py_ssize_t, int)
+              ))
         goto cleanup;
 
 #ifdef WORDS_BIGENDIAN
@@ -1323,10 +1284,8 @@ PyObject *_ctypes_callproc(ctypes_state *st,
       especially why adjusting for ffi_type_float must be avoided on
       64-bit platforms.
      */
-    if (rtype->type != FFI_TYPE_FLOAT
-        && rtype->type != FFI_TYPE_STRUCT
-        && rtype->size < sizeof(ffi_arg))
-    {
+    if (rtype->type != FFI_TYPE_FLOAT && rtype->type != FFI_TYPE_STRUCT &&
+        rtype->size < sizeof(ffi_arg)) {
         resbuf = (char *)resbuf + sizeof(ffi_arg) - rtype->size;
     }
 #endif
@@ -1345,15 +1304,13 @@ PyObject *_ctypes_callproc(ctypes_state *st,
     } else
 #endif
         retval = GetResult(st, restype, resbuf, checker);
-  cleanup:
-    for (i = 0; i < argcount; ++i)
-        Py_XDECREF(args[i].keep);
+cleanup:
+    for (i = 0; i < argcount; ++i) Py_XDECREF(args[i].keep);
     return retval;
 }
 
 static int
-_parse_voidp(PyObject *obj, void **address)
-{
+_parse_voidp(PyObject *obj, void **address) {
     *address = PyLong_AsVoidPtr(obj);
     if (*address == NULL)
         return 0;
@@ -1362,13 +1319,15 @@ _parse_voidp(PyObject *obj, void **address)
 
 #ifdef MS_WIN32
 
-PyDoc_STRVAR(format_error_doc,
-"FormatError([integer]) -> string\n\
+PyDoc_STRVAR(
+    format_error_doc,
+    "FormatError([integer]) -> string\n\
 \n\
 Convert a win32 error code into a string. If the error code is not\n\
-given, the return value of a call to GetLastError() is used.\n");
-static PyObject *format_error(PyObject *self, PyObject *args)
-{
+given, the return value of a call to GetLastError() is used.\n"
+);
+static PyObject *
+format_error(PyObject *self, PyObject *args) {
     PyObject *result;
     wchar_t *lpMsgBuf;
     DWORD code = 0;
@@ -1386,15 +1345,17 @@ static PyObject *format_error(PyObject *self, PyObject *args)
     return result;
 }
 
-PyDoc_STRVAR(load_library_doc,
-"LoadLibrary(name, load_flags) -> handle\n\
+PyDoc_STRVAR(
+    load_library_doc,
+    "LoadLibrary(name, load_flags) -> handle\n\
 \n\
 Load an executable (usually a DLL), and return a handle to it.\n\
 The handle may be used to locate exported functions in this\n\
 module. load_flags are as defined for LoadLibraryEx in the\n\
-Windows API.\n");
-static PyObject *load_library(PyObject *self, PyObject *args)
-{
+Windows API.\n"
+);
+static PyObject *
+load_library(PyObject *self, PyObject *args) {
     PyObject *nameobj;
     int load_flags = 0;
     HMODULE hMod;
@@ -1412,20 +1373,22 @@ static PyObject *load_library(PyObject *self, PyObject *args)
         return NULL;
 
     Py_BEGIN_ALLOW_THREADS
-    /* bpo-36085: Limit DLL search directories to avoid pre-loading
-     * attacks and enable use of the AddDllDirectory function.
-     */
-    hMod = LoadLibraryExW(name, NULL, (DWORD)load_flags);
+        /* bpo-36085: Limit DLL search directories to avoid pre-loading
+         * attacks and enable use of the AddDllDirectory function.
+         */
+        hMod = LoadLibraryExW(name, NULL, (DWORD)load_flags);
     err = hMod ? 0 : GetLastError();
     Py_END_ALLOW_THREADS
 
-    PyMem_Free(name);
+        PyMem_Free(name);
     if (err == ERROR_MOD_NOT_FOUND) {
-        PyErr_Format(PyExc_FileNotFoundError,
-                     ("Could not find module '%.500S' (or one of its "
-                      "dependencies). Try using the full path with "
-                      "constructor syntax."),
-                     nameobj);
+        PyErr_Format(
+            PyExc_FileNotFoundError,
+            ("Could not find module '%.500S' (or one of its "
+             "dependencies). Try using the full path with "
+             "constructor syntax."),
+            nameobj
+        );
         return NULL;
     } else if (err) {
         return PyErr_SetFromWindowsErr(err);
@@ -1437,35 +1400,34 @@ static PyObject *load_library(PyObject *self, PyObject *args)
 #endif
 }
 
-PyDoc_STRVAR(free_library_doc,
-"FreeLibrary(handle) -> void\n\
+PyDoc_STRVAR(
+    free_library_doc,
+    "FreeLibrary(handle) -> void\n\
 \n\
-Free the handle of an executable previously loaded by LoadLibrary.\n");
-static PyObject *free_library(PyObject *self, PyObject *args)
-{
+Free the handle of an executable previously loaded by LoadLibrary.\n"
+);
+static PyObject *
+free_library(PyObject *self, PyObject *args) {
     void *hMod;
     BOOL result;
     DWORD err;
     if (!PyArg_ParseTuple(args, "O&:FreeLibrary", &_parse_voidp, &hMod))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS
-    result = FreeLibrary((HMODULE)hMod);
+    Py_BEGIN_ALLOW_THREADS result = FreeLibrary((HMODULE)hMod);
     err = result ? 0 : GetLastError();
     Py_END_ALLOW_THREADS
 
-    if (!result) {
+        if (!result) {
         return PyErr_SetFromWindowsErr(err);
     }
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(copy_com_pointer_doc,
-"CopyComPointer(src, dst) -> HRESULT value\n");
+PyDoc_STRVAR(copy_com_pointer_doc, "CopyComPointer(src, dst) -> HRESULT value\n");
 
 static PyObject *
-copy_com_pointer(PyObject *self, PyObject *args)
-{
+copy_com_pointer(PyObject *self, PyObject *args) {
     PyObject *p1, *p2, *r = NULL;
     struct argument a, b;
     IUnknown *src, **pdst;
@@ -1488,7 +1450,7 @@ copy_com_pointer(PyObject *self, PyObject *args)
         *pdst = src;
         r = PyLong_FromLong(S_OK);
     }
-  done:
+done:
     Py_XDECREF(a.keep);
     Py_XDECREF(b.keep);
     return r;
@@ -1496,26 +1458,29 @@ copy_com_pointer(PyObject *self, PyObject *args)
 #else
 #ifdef __APPLE__
 #ifdef HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH
-#  ifdef HAVE_BUILTIN_AVAILABLE
-#    define HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH_RUNTIME \
-        __builtin_available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-#  else
-#    define HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH_RUNTIME \
-         (_dyld_shared_cache_contains_path != NULL)
-#  endif
+#ifdef HAVE_BUILTIN_AVAILABLE
+#define HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH_RUNTIME \
+    __builtin_available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+#else
+#define HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH_RUNTIME \
+    (_dyld_shared_cache_contains_path != NULL)
+#endif
 #else
 // Support the deprecated case of compiling on an older macOS version
 static void *libsystem_b_handle;
 static bool (*_dyld_shared_cache_contains_path)(const char *path);
 
-__attribute__((constructor)) void load_dyld_shared_cache_contains_path(void) {
+__attribute__((constructor)) void
+load_dyld_shared_cache_contains_path(void) {
     libsystem_b_handle = dlopen("/usr/lib/libSystem.B.dylib", RTLD_LAZY);
     if (libsystem_b_handle != NULL) {
-        _dyld_shared_cache_contains_path = dlsym(libsystem_b_handle, "_dyld_shared_cache_contains_path");
+        _dyld_shared_cache_contains_path =
+            dlsym(libsystem_b_handle, "_dyld_shared_cache_contains_path");
     }
 }
 
-__attribute__((destructor)) void unload_dyld_shared_cache_contains_path(void) {
+__attribute__((destructor)) void
+unload_dyld_shared_cache_contains_path(void) {
     if (libsystem_b_handle != NULL) {
         dlclose(libsystem_b_handle);
     }
@@ -1524,46 +1489,48 @@ __attribute__((destructor)) void unload_dyld_shared_cache_contains_path(void) {
     _dyld_shared_cache_contains_path != NULL
 #endif
 
-static PyObject *py_dyld_shared_cache_contains_path(PyObject *self, PyObject *args)
-{
-     PyObject *name, *name2;
-     char *name_str;
+static PyObject *
+py_dyld_shared_cache_contains_path(PyObject *self, PyObject *args) {
+    PyObject *name, *name2;
+    char *name_str;
 
-     if (HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH_RUNTIME) {
-         int r;
+    if (HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH_RUNTIME) {
+        int r;
 
-         if (!PyArg_ParseTuple(args, "O", &name))
-             return NULL;
+        if (!PyArg_ParseTuple(args, "O", &name))
+            return NULL;
 
-         if (name == Py_None)
-             Py_RETURN_FALSE;
+        if (name == Py_None)
+            Py_RETURN_FALSE;
 
-         if (PyUnicode_FSConverter(name, &name2) == 0)
-             return NULL;
-         name_str = PyBytes_AS_STRING(name2);
+        if (PyUnicode_FSConverter(name, &name2) == 0)
+            return NULL;
+        name_str = PyBytes_AS_STRING(name2);
 
-         r = _dyld_shared_cache_contains_path(name_str);
-         Py_DECREF(name2);
+        r = _dyld_shared_cache_contains_path(name_str);
+        Py_DECREF(name2);
 
-         if (r) {
-             Py_RETURN_TRUE;
-         } else {
-             Py_RETURN_FALSE;
-         }
+        if (r) {
+            Py_RETURN_TRUE;
+        } else {
+            Py_RETURN_FALSE;
+        }
 
-     } else {
-         PyErr_SetString(PyExc_NotImplementedError, "_dyld_shared_cache_contains_path symbol is missing");
-         return NULL;
-     }
-
- }
+    } else {
+        PyErr_SetString(
+            PyExc_NotImplementedError,
+            "_dyld_shared_cache_contains_path symbol is missing"
+        );
+        return NULL;
+    }
+}
 #endif
 
-static PyObject *py_dl_open(PyObject *self, PyObject *args)
-{
+static PyObject *
+py_dl_open(PyObject *self, PyObject *args) {
     PyObject *name, *name2;
     const char *name_str;
-    void * handle;
+    void *handle;
 #if HAVE_DECL_RTLD_LOCAL
     int mode = RTLD_NOW | RTLD_LOCAL;
 #else
@@ -1590,43 +1557,39 @@ static PyObject *py_dl_open(PyObject *self, PyObject *args)
         const char *errmsg = dlerror();
         if (!errmsg)
             errmsg = "dlopen() error";
-        PyErr_SetString(PyExc_OSError,
-                               errmsg);
+        PyErr_SetString(PyExc_OSError, errmsg);
         return NULL;
     }
     return PyLong_FromVoidPtr(handle);
 }
 
-static PyObject *py_dl_close(PyObject *self, PyObject *args)
-{
+static PyObject *
+py_dl_close(PyObject *self, PyObject *args) {
     void *handle;
 
     if (!PyArg_ParseTuple(args, "O&:dlclose", &_parse_voidp, &handle))
         return NULL;
     if (dlclose(handle)) {
-        PyErr_SetString(PyExc_OSError,
-                               dlerror());
+        PyErr_SetString(PyExc_OSError, dlerror());
         return NULL;
     }
     Py_RETURN_NONE;
 }
 
-static PyObject *py_dl_sym(PyObject *self, PyObject *args)
-{
+static PyObject *
+py_dl_sym(PyObject *self, PyObject *args) {
     char *name;
     void *handle;
     void *ptr;
 
-    if (!PyArg_ParseTuple(args, "O&s:dlsym",
-                          &_parse_voidp, &handle, &name))
+    if (!PyArg_ParseTuple(args, "O&s:dlsym", &_parse_voidp, &handle, &name))
         return NULL;
     if (PySys_Audit("ctypes.dlsym/handle", "O", args) < 0) {
         return NULL;
     }
-    ptr = dlsym((void*)handle, name);
+    ptr = dlsym((void *)handle, name);
     if (!ptr) {
-        PyErr_SetString(PyExc_OSError,
-                               dlerror());
+        PyErr_SetString(PyExc_OSError, dlerror());
         return NULL;
     }
     return PyLong_FromVoidPtr(ptr);
@@ -1639,34 +1602,33 @@ static PyObject *py_dl_sym(PyObject *self, PyObject *args)
  * XXX Needs to accept more arguments: flags, argtypes, restype
  */
 static PyObject *
-call_function(PyObject *self, PyObject *args)
-{
+call_function(PyObject *self, PyObject *args) {
     void *func;
     PyObject *arguments;
     PyObject *result;
 
-    if (!PyArg_ParseTuple(args,
-                          "O&O!",
-                          &_parse_voidp, &func,
-                          &PyTuple_Type, &arguments))
+    if (!PyArg_ParseTuple(
+            args, "O&O!", &_parse_voidp, &func, &PyTuple_Type, &arguments
+        ))
         return NULL;
-    if (PySys_Audit("ctypes.call_function", "nO",
-                    (Py_ssize_t)func, arguments) < 0) {
+    if (PySys_Audit("ctypes.call_function", "nO", (Py_ssize_t)func, arguments) < 0) {
         return NULL;
     }
 
     ctypes_state *st = get_module_state(self);
-    result = _ctypes_callproc(st,
-                        (PPROC)func,
-                        arguments,
+    result = _ctypes_callproc(
+        st,
+        (PPROC)func,
+        arguments,
 #ifdef MS_WIN32
-                        NULL,
-                        NULL,
+        NULL,
+        NULL,
 #endif
-                        0, /* flags */
-                NULL, /* self->argtypes */
-                NULL, /* self->restype */
-                NULL); /* checker */
+        0,    /* flags */
+        NULL, /* self->argtypes */
+        NULL, /* self->restype */
+        NULL
+    ); /* checker */
     return result;
 }
 
@@ -1676,48 +1638,48 @@ call_function(PyObject *self, PyObject *args)
  * XXX Needs to accept more arguments: flags, argtypes, restype
  */
 static PyObject *
-call_cdeclfunction(PyObject *self, PyObject *args)
-{
+call_cdeclfunction(PyObject *self, PyObject *args) {
     void *func;
     PyObject *arguments;
     PyObject *result;
 
-    if (!PyArg_ParseTuple(args,
-                          "O&O!",
-                          &_parse_voidp, &func,
-                          &PyTuple_Type, &arguments))
+    if (!PyArg_ParseTuple(
+            args, "O&O!", &_parse_voidp, &func, &PyTuple_Type, &arguments
+        ))
         return NULL;
-    if (PySys_Audit("ctypes.call_function", "nO",
-                    (Py_ssize_t)func, arguments) < 0) {
+    if (PySys_Audit("ctypes.call_function", "nO", (Py_ssize_t)func, arguments) < 0) {
         return NULL;
     }
 
     ctypes_state *st = get_module_state(self);
-    result = _ctypes_callproc(st,
-                        (PPROC)func,
-                        arguments,
+    result = _ctypes_callproc(
+        st,
+        (PPROC)func,
+        arguments,
 #ifdef MS_WIN32
-                        NULL,
-                        NULL,
+        NULL,
+        NULL,
 #endif
-                        FUNCFLAG_CDECL, /* flags */
-                        NULL, /* self->argtypes */
-                        NULL, /* self->restype */
-                        NULL); /* checker */
+        FUNCFLAG_CDECL, /* flags */
+        NULL,           /* self->argtypes */
+        NULL,           /* self->restype */
+        NULL
+    ); /* checker */
     return result;
 }
 
 /*****************************************************************
  * functions
  */
-PyDoc_STRVAR(sizeof_doc,
-"sizeof(C type) -> integer\n"
-"sizeof(C instance) -> integer\n"
-"Return the size in bytes of a C instance");
+PyDoc_STRVAR(
+    sizeof_doc,
+    "sizeof(C type) -> integer\n"
+    "sizeof(C instance) -> integer\n"
+    "Return the size in bytes of a C instance"
+);
 
 static PyObject *
-sizeof_func(PyObject *self, PyObject *obj)
-{
+sizeof_func(PyObject *self, PyObject *obj) {
     ctypes_state *st = get_module_state(self);
 
     StgInfo *info;
@@ -1731,19 +1693,19 @@ sizeof_func(PyObject *self, PyObject *obj)
     if (CDataObject_Check(st, obj)) {
         return PyLong_FromSsize_t(((CDataObject *)obj)->b_size);
     }
-    PyErr_SetString(PyExc_TypeError,
-                    "this type has no size");
+    PyErr_SetString(PyExc_TypeError, "this type has no size");
     return NULL;
 }
 
-PyDoc_STRVAR(alignment_doc,
-"alignment(C type) -> integer\n"
-"alignment(C instance) -> integer\n"
-"Return the alignment requirements of a C instance");
+PyDoc_STRVAR(
+    alignment_doc,
+    "alignment(C type) -> integer\n"
+    "alignment(C instance) -> integer\n"
+    "Return the alignment requirements of a C instance"
+);
 
 static PyObject *
-align_func(PyObject *self, PyObject *obj)
-{
+align_func(PyObject *self, PyObject *obj) {
     ctypes_state *st = get_module_state(self);
     StgInfo *info;
     if (PyStgInfo_FromAny(st, obj, &info) < 0) {
@@ -1752,30 +1714,29 @@ align_func(PyObject *self, PyObject *obj)
     if (info) {
         return PyLong_FromSsize_t(info->align);
     }
-    PyErr_SetString(PyExc_TypeError,
-                    "no alignment info");
+    PyErr_SetString(PyExc_TypeError, "no alignment info");
     return NULL;
 }
 
-PyDoc_STRVAR(byref_doc,
-"byref(C instance[, offset=0]) -> byref-object\n"
-"Return a pointer lookalike to a C instance, only usable\n"
-"as function argument");
+PyDoc_STRVAR(
+    byref_doc,
+    "byref(C instance[, offset=0]) -> byref-object\n"
+    "Return a pointer lookalike to a C instance, only usable\n"
+    "as function argument"
+);
 
 /*
  * We must return something which can be converted to a parameter,
  * but still has a reference to self.
  */
 static PyObject *
-byref(PyObject *self, PyObject *args)
-{
+byref(PyObject *self, PyObject *args) {
     PyCArgObject *parg;
     PyObject *obj;
     PyObject *pyoffset = NULL;
     Py_ssize_t offset = 0;
 
-    if (!PyArg_UnpackTuple(args, "byref", 1, 2,
-                           &obj, &pyoffset))
+    if (!PyArg_UnpackTuple(args, "byref", 1, 2, &obj, &pyoffset))
         return NULL;
     if (pyoffset) {
         offset = PyNumber_AsSsize_t(pyoffset, NULL);
@@ -1784,9 +1745,11 @@ byref(PyObject *self, PyObject *args)
     }
     ctypes_state *st = get_module_state(self);
     if (!CDataObject_Check(st, obj)) {
-        PyErr_Format(PyExc_TypeError,
-                     "byref() argument must be a ctypes instance, not '%s'",
-                     Py_TYPE(obj)->tp_name);
+        PyErr_Format(
+            PyExc_TypeError,
+            "byref() argument must be a ctypes instance, not '%s'",
+            Py_TYPE(obj)->tp_name
+        );
         return NULL;
     }
 
@@ -1801,17 +1764,17 @@ byref(PyObject *self, PyObject *args)
     return (PyObject *)parg;
 }
 
-PyDoc_STRVAR(addressof_doc,
-"addressof(C instance) -> integer\n"
-"Return the address of the C instance internal buffer");
+PyDoc_STRVAR(
+    addressof_doc,
+    "addressof(C instance) -> integer\n"
+    "Return the address of the C instance internal buffer"
+);
 
 static PyObject *
-addressof(PyObject *self, PyObject *obj)
-{
+addressof(PyObject *self, PyObject *obj) {
     ctypes_state *st = get_module_state(self);
     if (!CDataObject_Check(st, obj)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "invalid type");
+        PyErr_SetString(PyExc_TypeError, "invalid type");
         return NULL;
     }
     if (PySys_Audit("ctypes.addressof", "(O)", obj) < 0) {
@@ -1821,15 +1784,13 @@ addressof(PyObject *self, PyObject *obj)
 }
 
 static int
-converter(PyObject *obj, void **address)
-{
+converter(PyObject *obj, void **address) {
     *address = PyLong_AsVoidPtr(obj);
     return *address != NULL;
 }
 
 static PyObject *
-My_PyObj_FromPtr(PyObject *self, PyObject *args)
-{
+My_PyObj_FromPtr(PyObject *self, PyObject *args) {
     PyObject *ob;
     if (!PyArg_ParseTuple(args, "O&:PyObj_FromPtr", converter, &ob)) {
         return NULL;
@@ -1841,30 +1802,25 @@ My_PyObj_FromPtr(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-My_Py_INCREF(PyObject *self, PyObject *arg)
-{
+My_Py_INCREF(PyObject *self, PyObject *arg) {
     Py_INCREF(arg); /* that's what this function is for */
     Py_INCREF(arg); /* that for returning it */
     return arg;
 }
 
 static PyObject *
-My_Py_DECREF(PyObject *self, PyObject *arg)
-{
+My_Py_DECREF(PyObject *self, PyObject *arg) {
     Py_DECREF(arg); /* that's what this function is for */
     Py_INCREF(arg); /* that's for returning it */
     return arg;
 }
 
 static PyObject *
-resize(PyObject *self, PyObject *args)
-{
+resize(PyObject *self, PyObject *args) {
     CDataObject *obj;
     Py_ssize_t size;
 
-    if (!PyArg_ParseTuple(args,
-                          "On:resize",
-                          &obj, &size))
+    if (!PyArg_ParseTuple(args, "On:resize", &obj, &size))
         return NULL;
 
     ctypes_state *st = get_module_state(self);
@@ -1874,19 +1830,18 @@ resize(PyObject *self, PyObject *args)
         return NULL;
     }
     if (info == NULL) {
-        PyErr_SetString(PyExc_TypeError,
-                        "expected ctypes instance");
+        PyErr_SetString(PyExc_TypeError, "expected ctypes instance");
         return NULL;
     }
     if (size < info->size) {
-        PyErr_Format(PyExc_ValueError,
-                     "minimum size is %zd",
-                     info->size);
+        PyErr_Format(PyExc_ValueError, "minimum size is %zd", info->size);
         return NULL;
     }
     if (obj->b_needsfree == 0) {
-        PyErr_Format(PyExc_ValueError,
-                     "Memory cannot be resized because this object doesn't own it");
+        PyErr_Format(
+            PyExc_ValueError,
+            "Memory cannot be resized because this object doesn't own it"
+        );
         return NULL;
     }
     if ((size_t)size <= sizeof(obj->b_value)) {
@@ -1904,19 +1859,18 @@ resize(PyObject *self, PyObject *args)
         obj->b_ptr = ptr;
         obj->b_size = size;
     } else {
-        void * ptr = PyMem_Realloc(obj->b_ptr, size);
+        void *ptr = PyMem_Realloc(obj->b_ptr, size);
         if (ptr == NULL)
             return PyErr_NoMemory();
         obj->b_ptr = ptr;
         obj->b_size = size;
     }
-  done:
+done:
     Py_RETURN_NONE;
 }
 
 static PyObject *
-unpickle(PyObject *self, PyObject *args)
-{
+unpickle(PyObject *self, PyObject *args) {
     PyObject *typ, *state, *meth, *obj, *result;
 
     if (!PyArg_ParseTuple(args, "OO!", &typ, &PyTuple_Type, &state))
@@ -1974,10 +1928,12 @@ create_pointer_type(PyObject *module, PyObject *cls)
     // not found
     if (PyUnicode_CheckExact(cls)) {
         PyObject *name = PyUnicode_FromFormat("LP_%U", cls);
-        result = PyObject_CallFunction((PyObject *)Py_TYPE(st->PyCPointer_Type),
-                                       "N(O){}",
-                                       name,
-                                       st->PyCPointer_Type);
+        result = PyObject_CallFunction(
+            (PyObject *)Py_TYPE(st->PyCPointer_Type),
+            "N(O){}",
+            name,
+            st->PyCPointer_Type
+        );
         if (result == NULL)
             return result;
         key = PyLong_FromVoidPtr(result);
@@ -1988,11 +1944,14 @@ create_pointer_type(PyObject *module, PyObject *cls)
     } else if (PyType_Check(cls)) {
         typ = (PyTypeObject *)cls;
         PyObject *name = PyUnicode_FromFormat("LP_%s", typ->tp_name);
-        result = PyObject_CallFunction((PyObject *)Py_TYPE(st->PyCPointer_Type),
-                                       "N(O){sO}",
-                                       name,
-                                       st->PyCPointer_Type,
-                                       "_type_", cls);
+        result = PyObject_CallFunction(
+            (PyObject *)Py_TYPE(st->PyCPointer_Type),
+            "N(O){sO}",
+            name,
+            st->PyCPointer_Type,
+            "_type_",
+            cls
+        );
         if (result == NULL)
             return result;
         key = Py_NewRef(cls);
@@ -2030,7 +1989,8 @@ create_pointer_inst(PyObject *module, PyObject *arg)
     PyObject *typ;
 
     ctypes_state *st = get_module_state(module);
-    if (PyDict_GetItemRef(st->_ctypes_ptrtype_cache, (PyObject *)Py_TYPE(arg), &typ) < 0) {
+    if (PyDict_GetItemRef(st->_ctypes_ptrtype_cache, (PyObject *)Py_TYPE(arg), &typ) <
+        0) {
         return NULL;
     }
     if (typ == NULL) {
@@ -2044,8 +2004,7 @@ create_pointer_inst(PyObject *module, PyObject *arg)
 }
 
 static PyObject *
-buffer_info(PyObject *self, PyObject *arg)
-{
+buffer_info(PyObject *self, PyObject *arg) {
     PyObject *shape;
     Py_ssize_t i;
 
@@ -2055,8 +2014,7 @@ buffer_info(PyObject *self, PyObject *arg)
         return NULL;
     }
     if (info == NULL) {
-        PyErr_SetString(PyExc_TypeError,
-                        "not a ctypes type or object");
+        PyErr_SetString(PyExc_TypeError, "not a ctypes type or object");
         return NULL;
     }
     shape = PyTuple_New(info->ndim);
@@ -2072,14 +2030,12 @@ buffer_info(PyObject *self, PyObject *arg)
     return Py_BuildValue("siN", info->format, info->ndim, shape);
 }
 
-
-
 PyMethodDef _ctypes_module_methods[] = {
     {"get_errno", get_errno, METH_NOARGS},
     {"set_errno", set_errno, METH_VARARGS},
-    CREATE_POINTER_TYPE_METHODDEF
-    CREATE_POINTER_INST_METHODDEF
-    {"_unpickle", unpickle, METH_VARARGS },
+    CREATE_POINTER_TYPE_METHODDEF CREATE_POINTER_INST_METHODDEF{
+        "_unpickle", unpickle, METH_VARARGS
+    },
     {"buffer_info", buffer_info, METH_O, "Return buffer interface information"},
     {"resize", resize, METH_VARARGS, "Resize the memory buffer of a ctypes instance"},
 #ifdef MS_WIN32
@@ -2091,28 +2047,33 @@ PyMethodDef _ctypes_module_methods[] = {
     {"FreeLibrary", free_library, METH_VARARGS, free_library_doc},
     {"_check_HRESULT", check_hresult, METH_VARARGS},
 #else
-    {"dlopen", py_dl_open, METH_VARARGS,
+    {"dlopen",
+     py_dl_open,
+     METH_VARARGS,
      "dlopen(name, flag={RTLD_GLOBAL|RTLD_LOCAL}) open a shared library"},
     {"dlclose", py_dl_close, METH_VARARGS, "dlclose a library"},
     {"dlsym", py_dl_sym, METH_VARARGS, "find symbol in shared library"},
 #endif
 #ifdef __APPLE__
-     {"_dyld_shared_cache_contains_path", py_dyld_shared_cache_contains_path, METH_VARARGS, "check if path is in the shared cache"},
+    {"_dyld_shared_cache_contains_path",
+     py_dyld_shared_cache_contains_path,
+     METH_VARARGS,
+     "check if path is in the shared cache"},
 #endif
     {"alignment", align_func, METH_O, alignment_doc},
     {"sizeof", sizeof_func, METH_O, sizeof_doc},
     {"byref", byref, METH_VARARGS, byref_doc},
     {"addressof", addressof, METH_O, addressof_doc},
-    {"call_function", call_function, METH_VARARGS },
-    {"call_cdeclfunction", call_cdeclfunction, METH_VARARGS },
-    {"PyObj_FromPtr", My_PyObj_FromPtr, METH_VARARGS },
-    {"Py_INCREF", My_Py_INCREF, METH_O },
-    {"Py_DECREF", My_Py_DECREF, METH_O },
-    {NULL,      NULL}        /* Sentinel */
+    {"call_function", call_function, METH_VARARGS},
+    {"call_cdeclfunction", call_cdeclfunction, METH_VARARGS},
+    {"PyObj_FromPtr", My_PyObj_FromPtr, METH_VARARGS},
+    {"Py_INCREF", My_Py_INCREF, METH_O},
+    {"Py_DECREF", My_Py_DECREF, METH_O},
+    {NULL, NULL} /* Sentinel */
 };
 
 /*
  Local Variables:
- compile-command: "cd .. && python setup.py -q build -g && python setup.py -q build install --home ~"
- End:
+ compile-command: "cd .. && python setup.py -q build -g && python setup.py -q build
+ install --home ~" End:
 */

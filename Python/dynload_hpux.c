@@ -15,16 +15,15 @@
 
 const char *_PyImport_DynLoadFiletab[] = {SHLIB_EXT, ".sl", NULL};
 
-dl_funcptr _PyImport_FindSharedFuncptr(const char *prefix,
-                                       const char *shortname,
-                                       const char *pathname, FILE *fp)
-{
+dl_funcptr
+_PyImport_FindSharedFuncptr(
+    const char *prefix, const char *shortname, const char *pathname, FILE *fp
+) {
     int flags = BIND_FIRST | BIND_DEFERRED;
     int verbose = _Py_GetConfig()->verbose;
     if (verbose) {
-        flags = BIND_FIRST | BIND_IMMEDIATE |
-            BIND_NONFATAL | BIND_VERBOSE;
-        printf("shl_load %s\n",pathname);
+        flags = BIND_FIRST | BIND_IMMEDIATE | BIND_NONFATAL | BIND_VERBOSE;
+        printf("shl_load %s\n", pathname);
     }
 
     shl_t lib = shl_load(pathname, flags, 0);
@@ -34,8 +33,7 @@ dl_funcptr _PyImport_FindSharedFuncptr(const char *prefix,
             perror(pathname);
         }
         char buf[256];
-        PyOS_snprintf(buf, sizeof(buf), "Failed to load %.200s",
-                      pathname);
+        PyOS_snprintf(buf, sizeof(buf), "Failed to load %.200s", pathname);
         PyObject *buf_ob = PyUnicode_DecodeFSDefault(buf);
         if (buf_ob == NULL)
             return NULL;
@@ -58,14 +56,13 @@ dl_funcptr _PyImport_FindSharedFuncptr(const char *prefix,
     }
 
     char funcname[258];
-    PyOS_snprintf(funcname, sizeof(funcname), FUNCNAME_PATTERN,
-                  prefix, shortname);
+    PyOS_snprintf(funcname, sizeof(funcname), FUNCNAME_PATTERN, prefix, shortname);
     if (verbose) {
         printf("shl_findsym %s\n", funcname);
     }
 
     dl_funcptr p;
-    if (shl_findsym(&lib, funcname, TYPE_UNDEFINED, (void *) &p) == -1) {
+    if (shl_findsym(&lib, funcname, TYPE_UNDEFINED, (void *)&p) == -1) {
         shl_unload(lib);
         p = NULL;
     }

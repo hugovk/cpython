@@ -3,54 +3,70 @@ preserve
 [clinic start generated code]*/
 
 #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
-#  include "pycore_gc.h"          // PyGC_Head
-#  include "pycore_runtime.h"     // _Py_ID()
+#include "pycore_gc.h"       // PyGC_Head
+#include "pycore_runtime.h"  // _Py_ID()
 #endif
-#include "pycore_modsupport.h"    // _PyArg_UnpackKeywordsWithVararg()
+#include "pycore_modsupport.h"  // _PyArg_UnpackKeywordsWithVararg()
 
-PyDoc_STRVAR(typevar_new__doc__,
-"typevar(name, *constraints, bound=None, default=typing.NoDefault,\n"
-"        covariant=False, contravariant=False, infer_variance=False)\n"
-"--\n"
-"\n"
-"Create a TypeVar.");
-
-static PyObject *
-typevar_new_impl(PyTypeObject *type, PyObject *name, PyObject *constraints,
-                 PyObject *bound, PyObject *default_value, int covariant,
-                 int contravariant, int infer_variance);
+PyDoc_STRVAR(
+    typevar_new__doc__,
+    "typevar(name, *constraints, bound=None, default=typing.NoDefault,\n"
+    "        covariant=False, contravariant=False, infer_variance=False)\n"
+    "--\n"
+    "\n"
+    "Create a TypeVar."
+);
 
 static PyObject *
-typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+typevar_new_impl(
+    PyTypeObject *type,
+    PyObject *name,
+    PyObject *constraints,
+    PyObject *bound,
+    PyObject *default_value,
+    int covariant,
+    int contravariant,
+    int infer_variance
+);
+
+static PyObject *
+typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 6
+#define NUM_KEYWORDS 6
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(name), &_Py_ID(bound), &_Py_ID(default), &_Py_ID(covariant), &_Py_ID(contravariant), &_Py_ID(infer_variance), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(name),
+                &_Py_ID(bound),
+                &_Py_ID(default),
+                &_Py_ID(covariant),
+                &_Py_ID(contravariant),
+                &_Py_ID(infer_variance),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"name", "bound", "default", "covariant", "contravariant", "infer_variance", NULL};
+    static const char *const _keywords[] = {
+        "name", "bound", "default", "covariant", "contravariant", "infer_variance", NULL
+    };
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "typevar",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[7];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     Py_ssize_t noptargs = Py_MIN(nargs, 1) + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 1;
     PyObject *name;
@@ -61,7 +77,9 @@ typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     int contravariant = 0;
     int infer_variance = 0;
 
-    fastargs = _PyArg_UnpackKeywordsWithVararg(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, 1, argsbuf);
+    fastargs = _PyArg_UnpackKeywordsWithVararg(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, 1, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }
@@ -109,36 +127,55 @@ typevar_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         goto exit;
     }
 skip_optional_kwonly:
-    return_value = typevar_new_impl(type, name, constraints, bound, default_value, covariant, contravariant, infer_variance);
+    return_value = typevar_new_impl(
+        type,
+        name,
+        constraints,
+        bound,
+        default_value,
+        covariant,
+        contravariant,
+        infer_variance
+    );
 
 exit:
     Py_XDECREF(constraints);
     return return_value;
 }
 
-PyDoc_STRVAR(typevar_typing_subst__doc__,
-"__typing_subst__($self, arg, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typevar_typing_subst__doc__,
+    "__typing_subst__($self, arg, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEVAR_TYPING_SUBST_METHODDEF    \
-    {"__typing_subst__", (PyCFunction)typevar_typing_subst, METH_O, typevar_typing_subst__doc__},
+#define TYPEVAR_TYPING_SUBST_METHODDEF  \
+    {"__typing_subst__",                \
+     (PyCFunction)typevar_typing_subst, \
+     METH_O,                            \
+     typevar_typing_subst__doc__},
 
-PyDoc_STRVAR(typevar_typing_prepare_subst__doc__,
-"__typing_prepare_subst__($self, alias, args, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typevar_typing_prepare_subst__doc__,
+    "__typing_prepare_subst__($self, alias, args, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEVAR_TYPING_PREPARE_SUBST_METHODDEF    \
-    {"__typing_prepare_subst__", _PyCFunction_CAST(typevar_typing_prepare_subst), METH_FASTCALL, typevar_typing_prepare_subst__doc__},
+#define TYPEVAR_TYPING_PREPARE_SUBST_METHODDEF        \
+    {"__typing_prepare_subst__",                      \
+     _PyCFunction_CAST(typevar_typing_prepare_subst), \
+     METH_FASTCALL,                                   \
+     typevar_typing_prepare_subst__doc__},
 
 static PyObject *
-typevar_typing_prepare_subst_impl(typevarobject *self, PyObject *alias,
-                                  PyObject *args);
+typevar_typing_prepare_subst_impl(typevarobject *self, PyObject *alias, PyObject *args);
 
 static PyObject *
-typevar_typing_prepare_subst(typevarobject *self, PyObject *const *args, Py_ssize_t nargs)
-{
+typevar_typing_prepare_subst(
+    typevarobject *self, PyObject *const *args, Py_ssize_t nargs
+) {
     PyObject *return_value = NULL;
     PyObject *alias;
     PyObject *__clinic_args;
@@ -154,84 +191,93 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(typevar_reduce__doc__,
-"__reduce__($self, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typevar_reduce__doc__,
+    "__reduce__($self, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEVAR_REDUCE_METHODDEF    \
+#define TYPEVAR_REDUCE_METHODDEF \
     {"__reduce__", (PyCFunction)typevar_reduce, METH_NOARGS, typevar_reduce__doc__},
 
 static PyObject *
 typevar_reduce_impl(typevarobject *self);
 
 static PyObject *
-typevar_reduce(typevarobject *self, PyObject *Py_UNUSED(ignored))
-{
+typevar_reduce(typevarobject *self, PyObject *Py_UNUSED(ignored)) {
     return typevar_reduce_impl(self);
 }
 
-PyDoc_STRVAR(typevar_has_default__doc__,
-"has_default($self, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typevar_has_default__doc__,
+    "has_default($self, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEVAR_HAS_DEFAULT_METHODDEF    \
-    {"has_default", (PyCFunction)typevar_has_default, METH_NOARGS, typevar_has_default__doc__},
+#define TYPEVAR_HAS_DEFAULT_METHODDEF  \
+    {"has_default",                    \
+     (PyCFunction)typevar_has_default, \
+     METH_NOARGS,                      \
+     typevar_has_default__doc__},
 
 static PyObject *
 typevar_has_default_impl(typevarobject *self);
 
 static PyObject *
-typevar_has_default(typevarobject *self, PyObject *Py_UNUSED(ignored))
-{
+typevar_has_default(typevarobject *self, PyObject *Py_UNUSED(ignored)) {
     return typevar_has_default_impl(self);
 }
 
-PyDoc_STRVAR(paramspecargs_new__doc__,
-"paramspecargs(origin)\n"
-"--\n"
-"\n"
-"Create a ParamSpecArgs object.");
+PyDoc_STRVAR(
+    paramspecargs_new__doc__,
+    "paramspecargs(origin)\n"
+    "--\n"
+    "\n"
+    "Create a ParamSpecArgs object."
+);
 
 static PyObject *
 paramspecargs_new_impl(PyTypeObject *type, PyObject *origin);
 
 static PyObject *
-paramspecargs_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+paramspecargs_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 1
+#define NUM_KEYWORDS 1
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(origin), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(origin),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"origin", NULL};
+    static const char *const _keywords[] = {"origin", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "paramspecargs",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[1];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     PyObject *origin;
 
-    fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf);
+    fastargs = _PyArg_UnpackKeywords(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }
@@ -242,50 +288,54 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(paramspeckwargs_new__doc__,
-"paramspeckwargs(origin)\n"
-"--\n"
-"\n"
-"Create a ParamSpecKwargs object.");
+PyDoc_STRVAR(
+    paramspeckwargs_new__doc__,
+    "paramspeckwargs(origin)\n"
+    "--\n"
+    "\n"
+    "Create a ParamSpecKwargs object."
+);
 
 static PyObject *
 paramspeckwargs_new_impl(PyTypeObject *type, PyObject *origin);
 
 static PyObject *
-paramspeckwargs_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+paramspeckwargs_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 1
+#define NUM_KEYWORDS 1
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(origin), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(origin),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"origin", NULL};
+    static const char *const _keywords[] = {"origin", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "paramspeckwargs",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[1];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     PyObject *origin;
 
-    fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf);
+    fastargs = _PyArg_UnpackKeywords(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }
@@ -296,49 +346,64 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(paramspec_new__doc__,
-"paramspec(name, *, bound=None, default=typing.NoDefault,\n"
-"          covariant=False, contravariant=False, infer_variance=False)\n"
-"--\n"
-"\n"
-"Create a ParamSpec object.");
+PyDoc_STRVAR(
+    paramspec_new__doc__,
+    "paramspec(name, *, bound=None, default=typing.NoDefault,\n"
+    "          covariant=False, contravariant=False, infer_variance=False)\n"
+    "--\n"
+    "\n"
+    "Create a ParamSpec object."
+);
 
 static PyObject *
-paramspec_new_impl(PyTypeObject *type, PyObject *name, PyObject *bound,
-                   PyObject *default_value, int covariant, int contravariant,
-                   int infer_variance);
+paramspec_new_impl(
+    PyTypeObject *type,
+    PyObject *name,
+    PyObject *bound,
+    PyObject *default_value,
+    int covariant,
+    int contravariant,
+    int infer_variance
+);
 
 static PyObject *
-paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 6
+#define NUM_KEYWORDS 6
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(name), &_Py_ID(bound), &_Py_ID(default), &_Py_ID(covariant), &_Py_ID(contravariant), &_Py_ID(infer_variance), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(name),
+                &_Py_ID(bound),
+                &_Py_ID(default),
+                &_Py_ID(covariant),
+                &_Py_ID(contravariant),
+                &_Py_ID(infer_variance),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"name", "bound", "default", "covariant", "contravariant", "infer_variance", NULL};
+    static const char *const _keywords[] = {
+        "name", "bound", "default", "covariant", "contravariant", "infer_variance", NULL
+    };
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "paramspec",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[6];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     Py_ssize_t noptargs = nargs + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 1;
     PyObject *name;
@@ -348,7 +413,9 @@ paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     int contravariant = 0;
     int infer_variance = 0;
 
-    fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf);
+    fastargs = _PyArg_UnpackKeywords(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }
@@ -395,35 +462,49 @@ paramspec_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         goto exit;
     }
 skip_optional_kwonly:
-    return_value = paramspec_new_impl(type, name, bound, default_value, covariant, contravariant, infer_variance);
+    return_value = paramspec_new_impl(
+        type, name, bound, default_value, covariant, contravariant, infer_variance
+    );
 
 exit:
     return return_value;
 }
 
-PyDoc_STRVAR(paramspec_typing_subst__doc__,
-"__typing_subst__($self, arg, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    paramspec_typing_subst__doc__,
+    "__typing_subst__($self, arg, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define PARAMSPEC_TYPING_SUBST_METHODDEF    \
-    {"__typing_subst__", (PyCFunction)paramspec_typing_subst, METH_O, paramspec_typing_subst__doc__},
+#define PARAMSPEC_TYPING_SUBST_METHODDEF  \
+    {"__typing_subst__",                  \
+     (PyCFunction)paramspec_typing_subst, \
+     METH_O,                              \
+     paramspec_typing_subst__doc__},
 
-PyDoc_STRVAR(paramspec_typing_prepare_subst__doc__,
-"__typing_prepare_subst__($self, alias, args, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    paramspec_typing_prepare_subst__doc__,
+    "__typing_prepare_subst__($self, alias, args, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define PARAMSPEC_TYPING_PREPARE_SUBST_METHODDEF    \
-    {"__typing_prepare_subst__", _PyCFunction_CAST(paramspec_typing_prepare_subst), METH_FASTCALL, paramspec_typing_prepare_subst__doc__},
+#define PARAMSPEC_TYPING_PREPARE_SUBST_METHODDEF        \
+    {"__typing_prepare_subst__",                        \
+     _PyCFunction_CAST(paramspec_typing_prepare_subst), \
+     METH_FASTCALL,                                     \
+     paramspec_typing_prepare_subst__doc__},
 
 static PyObject *
-paramspec_typing_prepare_subst_impl(paramspecobject *self, PyObject *alias,
-                                    PyObject *args);
+paramspec_typing_prepare_subst_impl(
+    paramspecobject *self, PyObject *alias, PyObject *args
+);
 
 static PyObject *
-paramspec_typing_prepare_subst(paramspecobject *self, PyObject *const *args, Py_ssize_t nargs)
-{
+paramspec_typing_prepare_subst(
+    paramspecobject *self, PyObject *const *args, Py_ssize_t nargs
+) {
     PyObject *return_value = NULL;
     PyObject *alias;
     PyObject *__clinic_args;
@@ -439,87 +520,96 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(paramspec_reduce__doc__,
-"__reduce__($self, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    paramspec_reduce__doc__,
+    "__reduce__($self, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define PARAMSPEC_REDUCE_METHODDEF    \
+#define PARAMSPEC_REDUCE_METHODDEF \
     {"__reduce__", (PyCFunction)paramspec_reduce, METH_NOARGS, paramspec_reduce__doc__},
 
 static PyObject *
 paramspec_reduce_impl(paramspecobject *self);
 
 static PyObject *
-paramspec_reduce(paramspecobject *self, PyObject *Py_UNUSED(ignored))
-{
+paramspec_reduce(paramspecobject *self, PyObject *Py_UNUSED(ignored)) {
     return paramspec_reduce_impl(self);
 }
 
-PyDoc_STRVAR(paramspec_has_default__doc__,
-"has_default($self, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    paramspec_has_default__doc__,
+    "has_default($self, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define PARAMSPEC_HAS_DEFAULT_METHODDEF    \
-    {"has_default", (PyCFunction)paramspec_has_default, METH_NOARGS, paramspec_has_default__doc__},
+#define PARAMSPEC_HAS_DEFAULT_METHODDEF  \
+    {"has_default",                      \
+     (PyCFunction)paramspec_has_default, \
+     METH_NOARGS,                        \
+     paramspec_has_default__doc__},
 
 static PyObject *
 paramspec_has_default_impl(paramspecobject *self);
 
 static PyObject *
-paramspec_has_default(paramspecobject *self, PyObject *Py_UNUSED(ignored))
-{
+paramspec_has_default(paramspecobject *self, PyObject *Py_UNUSED(ignored)) {
     return paramspec_has_default_impl(self);
 }
 
-PyDoc_STRVAR(typevartuple__doc__,
-"typevartuple(name, *, default=typing.NoDefault)\n"
-"--\n"
-"\n"
-"Create a new TypeVarTuple with the given name.");
+PyDoc_STRVAR(
+    typevartuple__doc__,
+    "typevartuple(name, *, default=typing.NoDefault)\n"
+    "--\n"
+    "\n"
+    "Create a new TypeVarTuple with the given name."
+);
 
 static PyObject *
-typevartuple_impl(PyTypeObject *type, PyObject *name,
-                  PyObject *default_value);
+typevartuple_impl(PyTypeObject *type, PyObject *name, PyObject *default_value);
 
 static PyObject *
-typevartuple(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+typevartuple(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 2
+#define NUM_KEYWORDS 2
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(name), &_Py_ID(default), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(name),
+                &_Py_ID(default),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"name", "default", NULL};
+    static const char *const _keywords[] = {"name", "default", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "typevartuple",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[2];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     Py_ssize_t noptargs = nargs + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 1;
     PyObject *name;
     PyObject *default_value = &_Py_NoDefaultStruct;
 
-    fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf);
+    fastargs = _PyArg_UnpackKeywords(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 1, 0, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }
@@ -539,29 +629,41 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(typevartuple_typing_subst__doc__,
-"__typing_subst__($self, arg, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typevartuple_typing_subst__doc__,
+    "__typing_subst__($self, arg, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEVARTUPLE_TYPING_SUBST_METHODDEF    \
-    {"__typing_subst__", (PyCFunction)typevartuple_typing_subst, METH_O, typevartuple_typing_subst__doc__},
+#define TYPEVARTUPLE_TYPING_SUBST_METHODDEF  \
+    {"__typing_subst__",                     \
+     (PyCFunction)typevartuple_typing_subst, \
+     METH_O,                                 \
+     typevartuple_typing_subst__doc__},
 
-PyDoc_STRVAR(typevartuple_typing_prepare_subst__doc__,
-"__typing_prepare_subst__($self, alias, args, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typevartuple_typing_prepare_subst__doc__,
+    "__typing_prepare_subst__($self, alias, args, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEVARTUPLE_TYPING_PREPARE_SUBST_METHODDEF    \
-    {"__typing_prepare_subst__", _PyCFunction_CAST(typevartuple_typing_prepare_subst), METH_FASTCALL, typevartuple_typing_prepare_subst__doc__},
+#define TYPEVARTUPLE_TYPING_PREPARE_SUBST_METHODDEF        \
+    {"__typing_prepare_subst__",                           \
+     _PyCFunction_CAST(typevartuple_typing_prepare_subst), \
+     METH_FASTCALL,                                        \
+     typevartuple_typing_prepare_subst__doc__},
 
 static PyObject *
-typevartuple_typing_prepare_subst_impl(typevartupleobject *self,
-                                       PyObject *alias, PyObject *args);
+typevartuple_typing_prepare_subst_impl(
+    typevartupleobject *self, PyObject *alias, PyObject *args
+);
 
 static PyObject *
-typevartuple_typing_prepare_subst(typevartupleobject *self, PyObject *const *args, Py_ssize_t nargs)
-{
+typevartuple_typing_prepare_subst(
+    typevartupleobject *self, PyObject *const *args, Py_ssize_t nargs
+) {
     PyObject *return_value = NULL;
     PyObject *alias;
     PyObject *__clinic_args;
@@ -577,105 +679,121 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(typevartuple_reduce__doc__,
-"__reduce__($self, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typevartuple_reduce__doc__,
+    "__reduce__($self, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEVARTUPLE_REDUCE_METHODDEF    \
-    {"__reduce__", (PyCFunction)typevartuple_reduce, METH_NOARGS, typevartuple_reduce__doc__},
+#define TYPEVARTUPLE_REDUCE_METHODDEF  \
+    {"__reduce__",                     \
+     (PyCFunction)typevartuple_reduce, \
+     METH_NOARGS,                      \
+     typevartuple_reduce__doc__},
 
 static PyObject *
 typevartuple_reduce_impl(typevartupleobject *self);
 
 static PyObject *
-typevartuple_reduce(typevartupleobject *self, PyObject *Py_UNUSED(ignored))
-{
+typevartuple_reduce(typevartupleobject *self, PyObject *Py_UNUSED(ignored)) {
     return typevartuple_reduce_impl(self);
 }
 
-PyDoc_STRVAR(typevartuple_has_default__doc__,
-"has_default($self, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typevartuple_has_default__doc__,
+    "has_default($self, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEVARTUPLE_HAS_DEFAULT_METHODDEF    \
-    {"has_default", (PyCFunction)typevartuple_has_default, METH_NOARGS, typevartuple_has_default__doc__},
+#define TYPEVARTUPLE_HAS_DEFAULT_METHODDEF  \
+    {"has_default",                         \
+     (PyCFunction)typevartuple_has_default, \
+     METH_NOARGS,                           \
+     typevartuple_has_default__doc__},
 
 static PyObject *
 typevartuple_has_default_impl(typevartupleobject *self);
 
 static PyObject *
-typevartuple_has_default(typevartupleobject *self, PyObject *Py_UNUSED(ignored))
-{
+typevartuple_has_default(typevartupleobject *self, PyObject *Py_UNUSED(ignored)) {
     return typevartuple_has_default_impl(self);
 }
 
-PyDoc_STRVAR(typealias_reduce__doc__,
-"__reduce__($self, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    typealias_reduce__doc__,
+    "__reduce__($self, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define TYPEALIAS_REDUCE_METHODDEF    \
+#define TYPEALIAS_REDUCE_METHODDEF \
     {"__reduce__", (PyCFunction)typealias_reduce, METH_NOARGS, typealias_reduce__doc__},
 
 static PyObject *
 typealias_reduce_impl(typealiasobject *self);
 
 static PyObject *
-typealias_reduce(typealiasobject *self, PyObject *Py_UNUSED(ignored))
-{
+typealias_reduce(typealiasobject *self, PyObject *Py_UNUSED(ignored)) {
     return typealias_reduce_impl(self);
 }
 
-PyDoc_STRVAR(typealias_new__doc__,
-"typealias(name, value, *, type_params=<unrepresentable>)\n"
-"--\n"
-"\n"
-"Create a TypeAliasType.");
+PyDoc_STRVAR(
+    typealias_new__doc__,
+    "typealias(name, value, *, type_params=<unrepresentable>)\n"
+    "--\n"
+    "\n"
+    "Create a TypeAliasType."
+);
 
 static PyObject *
-typealias_new_impl(PyTypeObject *type, PyObject *name, PyObject *value,
-                   PyObject *type_params);
+typealias_new_impl(
+    PyTypeObject *type, PyObject *name, PyObject *value, PyObject *type_params
+);
 
 static PyObject *
-typealias_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+typealias_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 3
+#define NUM_KEYWORDS 3
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(name), &_Py_ID(value), &_Py_ID(type_params), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(name),
+                &_Py_ID(value),
+                &_Py_ID(type_params),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"name", "value", "type_params", NULL};
+    static const char *const _keywords[] = {"name", "value", "type_params", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "typealias",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[3];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     Py_ssize_t noptargs = nargs + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 2;
     PyObject *name;
     PyObject *value;
     PyObject *type_params = NULL;
 
-    fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 2, 2, 0, argsbuf);
+    fastargs = _PyArg_UnpackKeywords(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 2, 2, 0, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }

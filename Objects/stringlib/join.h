@@ -4,9 +4,7 @@
 #error join.h only compatible with byte-wise strings
 #endif
 
-Py_LOCAL_INLINE(PyObject *)
-STRINGLIB(bytes_join)(PyObject *sep, PyObject *iterable)
-{
+Py_LOCAL_INLINE(PyObject *) STRINGLIB(bytes_join)(PyObject *sep, PyObject *iterable) {
     const char *sepstr = STRINGLIB_STR(sep);
     Py_ssize_t seplen = STRINGLIB_LEN(sep);
     PyObject *res = NULL;
@@ -49,8 +47,7 @@ STRINGLIB(bytes_join)(PyObject *sep, PyObject *iterable)
             PyErr_NoMemory();
             return NULL;
         }
-    }
-    else {
+    } else {
         buffers = static_buffers;
     }
 
@@ -66,13 +63,15 @@ STRINGLIB(bytes_join)(PyObject *sep, PyObject *iterable)
             buffers[i].obj = Py_NewRef(item);
             buffers[i].buf = PyBytes_AS_STRING(item);
             buffers[i].len = PyBytes_GET_SIZE(item);
-        }
-        else {
+        } else {
             if (PyObject_GetBuffer(item, &buffers[i], PyBUF_SIMPLE) != 0) {
-                PyErr_Format(PyExc_TypeError,
-                             "sequence item %zd: expected a bytes-like object, "
-                             "%.80s found",
-                             i, Py_TYPE(item)->tp_name);
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "sequence item %zd: expected a bytes-like object, "
+                    "%.80s found",
+                    i,
+                    Py_TYPE(item)->tp_name
+                );
                 goto error;
             }
             /* If the backing objects are mutable, then dropping the GIL
@@ -83,25 +82,24 @@ STRINGLIB(bytes_join)(PyObject *sep, PyObject *iterable)
              */
             drop_gil = 0;
         }
-        nbufs = i + 1;  /* for error cleanup */
+        nbufs = i + 1; /* for error cleanup */
         itemlen = buffers[i].len;
         if (itemlen > PY_SSIZE_T_MAX - sz) {
-            PyErr_SetString(PyExc_OverflowError,
-                            "join() result is too long");
+            PyErr_SetString(PyExc_OverflowError, "join() result is too long");
             goto error;
         }
         sz += itemlen;
         if (i != 0) {
             if (seplen > PY_SSIZE_T_MAX - sz) {
-                PyErr_SetString(PyExc_OverflowError,
-                                "join() result is too long");
+                PyErr_SetString(PyExc_OverflowError, "join() result is too long");
                 goto error;
             }
             sz += seplen;
         }
         if (seqlen != PySequence_Fast_GET_SIZE(seq)) {
-            PyErr_SetString(PyExc_RuntimeError,
-                            "sequence changed size during iteration");
+            PyErr_SetString(
+                PyExc_RuntimeError, "sequence changed size during iteration"
+            );
             goto error;
         }
     }
@@ -114,7 +112,7 @@ STRINGLIB(bytes_join)(PyObject *sep, PyObject *iterable)
     /* Catenate everything. */
     p = STRINGLIB_STR(res);
     if (sz < GIL_THRESHOLD) {
-        drop_gil = 0;   /* Benefits are likely outweighed by the overheads */
+        drop_gil = 0; /* Benefits are likely outweighed by the overheads */
     }
     if (drop_gil) {
         save = PyEval_SaveThread();
@@ -127,8 +125,7 @@ STRINGLIB(bytes_join)(PyObject *sep, PyObject *iterable)
             memcpy(p, q, n);
             p += n;
         }
-    }
-    else {
+    } else {
         for (i = 0; i < nbufs; i++) {
             Py_ssize_t n;
             char *q;
@@ -151,8 +148,7 @@ error:
     res = NULL;
 done:
     Py_DECREF(seq);
-    for (i = 0; i < nbufs; i++)
-        PyBuffer_Release(&buffers[i]);
+    for (i = 0; i < nbufs; i++) PyBuffer_Release(&buffers[i]);
     if (buffers != static_buffers)
         PyMem_Free(buffers);
     return res;

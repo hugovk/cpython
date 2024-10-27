@@ -17,12 +17,9 @@ forgotten) from the programmer.
 HMODULE PyWin_DLLhModule = NULL;
 const char *PyWin_DLLVersionString = MS_DLL_ID;
 
-BOOL    WINAPI  DllMain (HANDLE hInst,
-                                                ULONG ul_reason_for_call,
-                                                LPVOID lpReserved)
-{
-    switch (ul_reason_for_call)
-    {
+BOOL WINAPI
+DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved) {
+    switch (ul_reason_for_call) {
         case DLL_PROCESS_ATTACH:
             PyWin_DLLhModule = hInst;
             break;

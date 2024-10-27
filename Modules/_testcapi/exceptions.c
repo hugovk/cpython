@@ -5,7 +5,6 @@
 #include "util.h"
 #include "clinic/exceptions.c.h"
 
-
 /*[clinic input]
 module _testcapi
 [clinic start generated code]*/
@@ -30,7 +29,7 @@ _testcapi_err_set_raised(PyObject *module, PyObject *exc)
 static PyObject *
 err_restore(PyObject *self, PyObject *args) {
     PyObject *type = NULL, *value = NULL, *traceback = NULL;
-    switch(PyTuple_Size(args)) {
+    switch (PyTuple_Size(args)) {
         case 3:
             traceback = PyTuple_GetItem(args, 2);
             Py_INCREF(traceback);
@@ -44,8 +43,7 @@ err_restore(PyObject *self, PyObject *args) {
             Py_INCREF(type);
             break;
         default:
-            PyErr_SetString(PyExc_TypeError,
-                        "wrong number of arguments");
+            PyErr_SetString(PyExc_TypeError, "wrong number of arguments");
             return NULL;
     }
     PyErr_Restore(type, value, traceback);
@@ -71,10 +69,9 @@ _testcapi_exception_print_impl(PyObject *module, PyObject *exc, int legacy)
         if (PyExceptionInstance_Check(exc)) {
             tb = PyException_GetTraceback(exc);
         }
-        PyErr_Display((PyObject *) Py_TYPE(exc), exc, tb);
+        PyErr_Display((PyObject *)Py_TYPE(exc), exc, tb);
         Py_XDECREF(tb);
-    }
-    else {
+    } else {
         PyErr_DisplayException(exc);
     }
     Py_RETURN_NONE;
@@ -87,13 +84,13 @@ _testcapi.make_exception_with_doc
     base: object = NULL
     dict: object = NULL
 
-Test PyErr_NewExceptionWithDoc (also exercise PyErr_NewException). Run via Lib/test/test_exceptions.py
-[clinic start generated code]*/
+Test PyErr_NewExceptionWithDoc (also exercise PyErr_NewException). Run via
+Lib/test/test_exceptions.py [clinic start generated code]*/
 
 static PyObject *
-_testcapi_make_exception_with_doc_impl(PyObject *module, const char *name,
-                                       const char *doc, PyObject *base,
-                                       PyObject *dict)
+_testcapi_make_exception_with_doc_impl(
+    PyObject *module, const char *name, const char *doc, PyObject *base, PyObject *dict
+)
 /*[clinic end generated code: output=439f0d963c1ce2c4 input=23a73013f8a8795a]*/
 {
     return PyErr_NewExceptionWithDoc(name, doc, base, dict);
@@ -119,8 +116,7 @@ _testcapi.exc_set_object_fetch = _testcapi.exc_set_object
 [clinic start generated code]*/
 
 static PyObject *
-_testcapi_exc_set_object_fetch_impl(PyObject *module, PyObject *exc,
-                                    PyObject *obj)
+_testcapi_exc_set_object_fetch_impl(PyObject *module, PyObject *exc, PyObject *obj)
 /*[clinic end generated code: output=7a5ff5f6d3cf687f input=77ec686f1f95fa38]*/
 {
     PyObject *type = UNINITIALIZED_PTR;
@@ -145,8 +141,9 @@ _testcapi.err_setstring
 [clinic start generated code]*/
 
 static PyObject *
-_testcapi_err_setstring_impl(PyObject *module, PyObject *exc,
-                             const char *value, Py_ssize_t value_length)
+_testcapi_err_setstring_impl(
+    PyObject *module, PyObject *exc, const char *value, Py_ssize_t value_length
+)
 /*[clinic end generated code: output=fba8705e5703dd3f input=e8a95fad66d9004b]*/
 {
     NULLABLE(exc);
@@ -163,9 +160,13 @@ _testcapi.err_setfromerrnowithfilename
 [clinic start generated code]*/
 
 static PyObject *
-_testcapi_err_setfromerrnowithfilename_impl(PyObject *module, int error,
-                                            PyObject *exc, const char *value,
-                                            Py_ssize_t value_length)
+_testcapi_err_setfromerrnowithfilename_impl(
+    PyObject *module,
+    int error,
+    PyObject *exc,
+    const char *value,
+    Py_ssize_t value_length
+)
 /*[clinic end generated code: output=d02df5749a01850e input=ff7c384234bf097f]*/
 {
     NULLABLE(exc);
@@ -221,16 +222,13 @@ _testcapi.fatal_error
 [clinic start generated code]*/
 
 static PyObject *
-_testcapi_fatal_error_impl(PyObject *module, const char *message,
-                           int release_gil)
+_testcapi_fatal_error_impl(PyObject *module, const char *message, int release_gil)
 /*[clinic end generated code: output=9c3237116e6a03e8 input=1be357a2ccb04c8c]*/
 {
     if (release_gil) {
-        Py_BEGIN_ALLOW_THREADS
-        Py_FatalError(message);
+        Py_BEGIN_ALLOW_THREADS Py_FatalError(message);
         Py_END_ALLOW_THREADS
-    }
-    else {
+    } else {
         Py_FatalError(message);
     }
     // Py_FatalError() does not return, but exits the process.
@@ -246,11 +244,13 @@ _testcapi.set_exc_info
 [clinic start generated code]*/
 
 static PyObject *
-_testcapi_set_exc_info_impl(PyObject *module, PyObject *new_type,
-                            PyObject *new_value, PyObject *new_tb)
+_testcapi_set_exc_info_impl(
+    PyObject *module, PyObject *new_type, PyObject *new_value, PyObject *new_tb
+)
 /*[clinic end generated code: output=b55fa35dec31300e input=ea9f19e0f55fe5b3]*/
 {
-    PyObject *type = UNINITIALIZED_PTR, *value = UNINITIALIZED_PTR, *tb = UNINITIALIZED_PTR;
+    PyObject *type = UNINITIALIZED_PTR, *value = UNINITIALIZED_PTR,
+             *tb = UNINITIALIZED_PTR;
     PyErr_GetExcInfo(&type, &value, &tb);
 
     Py_INCREF(new_type);
@@ -258,10 +258,9 @@ _testcapi_set_exc_info_impl(PyObject *module, PyObject *new_type,
     Py_INCREF(new_tb);
     PyErr_SetExcInfo(new_type, new_value, new_tb);
 
-    PyObject *orig_exc = PyTuple_Pack(3,
-            type  ? type  : Py_None,
-            value ? value : Py_None,
-            tb    ? tb    : Py_None);
+    PyObject *orig_exc = PyTuple_Pack(
+        3, type ? type : Py_None, value ? value : Py_None, tb ? tb : Py_None
+    );
     Py_XDECREF(type);
     Py_XDECREF(value);
     Py_XDECREF(tb);
@@ -293,8 +292,7 @@ To test the format of tracebacks as printed out.
 [clinic start generated code]*/
 
 static PyObject *
-_testcapi_traceback_print_impl(PyObject *module, PyObject *traceback,
-                               PyObject *file)
+_testcapi_traceback_print_impl(PyObject *module, PyObject *traceback, PyObject *file)
 /*[clinic end generated code: output=17074ecf9d95cf30 input=9423f2857b008ca8]*/
 {
     if (PyTraceBack_Print(traceback, file) < 0) {
@@ -304,8 +302,7 @@ _testcapi_traceback_print_impl(PyObject *module, PyObject *traceback,
 }
 
 static PyObject *
-err_writeunraisable(PyObject *Py_UNUSED(module), PyObject *args)
-{
+err_writeunraisable(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *exc, *obj;
     if (!PyArg_ParseTuple(args, "OO", &exc, &obj)) {
         return NULL;
@@ -320,26 +317,48 @@ err_writeunraisable(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-err_formatunraisable(PyObject *Py_UNUSED(module), PyObject *args)
-{
+err_formatunraisable(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *exc;
     const char *fmt;
     Py_ssize_t fmtlen;
     PyObject *objs[10] = {NULL};
 
-    if (!PyArg_ParseTuple(args, "Oz#|OOOOOOOOOO", &exc, &fmt, &fmtlen,
-            &objs[0], &objs[1], &objs[2], &objs[3], &objs[4],
-            &objs[5], &objs[6], &objs[7], &objs[8], &objs[9]))
-    {
+    if (!PyArg_ParseTuple(
+            args,
+            "Oz#|OOOOOOOOOO",
+            &exc,
+            &fmt,
+            &fmtlen,
+            &objs[0],
+            &objs[1],
+            &objs[2],
+            &objs[3],
+            &objs[4],
+            &objs[5],
+            &objs[6],
+            &objs[7],
+            &objs[8],
+            &objs[9]
+        )) {
         return NULL;
     }
     NULLABLE(exc);
     if (exc) {
         PyErr_SetRaisedException(Py_NewRef(exc));
     }
-    PyErr_FormatUnraisable(fmt,
-            objs[0], objs[1], objs[2], objs[3], objs[4],
-            objs[5], objs[6], objs[7], objs[8], objs[9]);
+    PyErr_FormatUnraisable(
+        fmt,
+        objs[0],
+        objs[1],
+        objs[2],
+        objs[3],
+        objs[4],
+        objs[5],
+        objs[6],
+        objs[7],
+        objs[8],
+        objs[9]
+    );
     Py_RETURN_NONE;
 }
 
@@ -352,13 +371,13 @@ To test PyUnstable_Exc_PrepReraiseStar.
 [clinic start generated code]*/
 
 static PyObject *
-_testcapi_unstable_exc_prep_reraise_star_impl(PyObject *module,
-                                              PyObject *orig, PyObject *excs)
+_testcapi_unstable_exc_prep_reraise_star_impl(
+    PyObject *module, PyObject *orig, PyObject *excs
+)
 /*[clinic end generated code: output=850cf008e0563c77 input=27fbcda2203eb301]*/
 {
     return PyUnstable_Exc_PrepReraiseStar(orig, excs);
 }
-
 
 /*
  * Define the PyRecurdingInfinitelyError_Type
@@ -367,8 +386,7 @@ _testcapi_unstable_exc_prep_reraise_star_impl(PyObject *module,
 static PyTypeObject PyRecursingInfinitelyError_Type;
 
 static int
-recurse_infinitely_error_init(PyObject *self, PyObject *args, PyObject *kwds)
-{
+recurse_infinitely_error_init(PyObject *self, PyObject *args, PyObject *kwds) {
     PyObject *type = (PyObject *)&PyRecursingInfinitelyError_Type;
 
     /* Instantiating this exception starts infinite recursion. */
@@ -386,36 +404,35 @@ static PyTypeObject PyRecursingInfinitelyError_Type = {
 };
 
 static PyMethodDef test_methods[] = {
-    {"err_restore",             err_restore,                     METH_VARARGS},
-    {"err_writeunraisable",     err_writeunraisable,             METH_VARARGS},
-    {"err_formatunraisable",    err_formatunraisable,            METH_VARARGS},
-    _TESTCAPI_ERR_SET_RAISED_METHODDEF
-    _TESTCAPI_EXCEPTION_PRINT_METHODDEF
-    _TESTCAPI_FATAL_ERROR_METHODDEF
-    _TESTCAPI_MAKE_EXCEPTION_WITH_DOC_METHODDEF
-    _TESTCAPI_EXC_SET_OBJECT_METHODDEF
-    _TESTCAPI_EXC_SET_OBJECT_FETCH_METHODDEF
-    _TESTCAPI_ERR_SETSTRING_METHODDEF
-    _TESTCAPI_ERR_SETFROMERRNOWITHFILENAME_METHODDEF
-    _TESTCAPI_RAISE_EXCEPTION_METHODDEF
-    _TESTCAPI_RAISE_MEMORYERROR_METHODDEF
-    _TESTCAPI_SET_EXC_INFO_METHODDEF
-    _TESTCAPI_SET_EXCEPTION_METHODDEF
-    _TESTCAPI_TRACEBACK_PRINT_METHODDEF
-    _TESTCAPI_UNSTABLE_EXC_PREP_RERAISE_STAR_METHODDEF
-    {NULL},
+    {"err_restore", err_restore, METH_VARARGS},
+    {"err_writeunraisable", err_writeunraisable, METH_VARARGS},
+    {"err_formatunraisable", err_formatunraisable, METH_VARARGS},
+    _TESTCAPI_ERR_SET_RAISED_METHODDEF _TESTCAPI_EXCEPTION_PRINT_METHODDEF
+        _TESTCAPI_FATAL_ERROR_METHODDEF _TESTCAPI_MAKE_EXCEPTION_WITH_DOC_METHODDEF
+            _TESTCAPI_EXC_SET_OBJECT_METHODDEF _TESTCAPI_EXC_SET_OBJECT_FETCH_METHODDEF
+                _TESTCAPI_ERR_SETSTRING_METHODDEF
+                    _TESTCAPI_ERR_SETFROMERRNOWITHFILENAME_METHODDEF
+                        _TESTCAPI_RAISE_EXCEPTION_METHODDEF
+                            _TESTCAPI_RAISE_MEMORYERROR_METHODDEF
+                                _TESTCAPI_SET_EXC_INFO_METHODDEF
+                                    _TESTCAPI_SET_EXCEPTION_METHODDEF
+                                        _TESTCAPI_TRACEBACK_PRINT_METHODDEF
+                                            _TESTCAPI_UNSTABLE_EXC_PREP_RERAISE_STAR_METHODDEF{
+                                                NULL
+                                            },
 };
 
 int
-_PyTestCapi_Init_Exceptions(PyObject *mod)
-{
+_PyTestCapi_Init_Exceptions(PyObject *mod) {
     PyRecursingInfinitelyError_Type.tp_base = (PyTypeObject *)PyExc_Exception;
     if (PyType_Ready(&PyRecursingInfinitelyError_Type) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(mod, "RecursingInfinitelyError",
-                              (PyObject *)&PyRecursingInfinitelyError_Type) < 0)
-    {
+    if (PyModule_AddObjectRef(
+            mod,
+            "RecursingInfinitelyError",
+            (PyObject *)&PyRecursingInfinitelyError_Type
+        ) < 0) {
         return -1;
     }
 

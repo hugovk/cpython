@@ -2,8 +2,8 @@
 /* Support for dynamic loading of extension modules */
 
 #include "Python.h"
-#include "pycore_interp.h"    // _PyInterpreterState.dlopenflags
-#include "pycore_pystate.h"   // _PyInterpreterState_GET()
+#include "pycore_interp.h"   // _PyInterpreterState.dlopenflags
+#include "pycore_pystate.h"  // _PyInterpreterState_GET()
 #include "pycore_importdl.h"
 
 #include <sys/types.h>
@@ -37,28 +37,26 @@
 const char *_PyImport_DynLoadFiletab[] = {
 #ifdef __CYGWIN__
     ".dll",
-#else  /* !__CYGWIN__ */
+#else /* !__CYGWIN__ */
     "." SOABI ".so",
 #ifdef ALT_SOABI
     "." ALT_SOABI ".so",
 #endif
     ".abi" PYTHON_ABI_STRING ".so",
     ".so",
-#endif  /* __CYGWIN__ */
+#endif /* __CYGWIN__ */
     NULL,
 };
 
-
 dl_funcptr
-_PyImport_FindSharedFuncptr(const char *prefix,
-                            const char *shortname,
-                            const char *pathname, FILE *fp)
-{
+_PyImport_FindSharedFuncptr(
+    const char *prefix, const char *shortname, const char *pathname, FILE *fp
+) {
     dl_funcptr p;
     void *handle;
     char funcname[258];
     char pathbuf[260];
-    int dlopenflags=0;
+    int dlopenflags = 0;
 
     if (strchr(pathname, '/') == NULL) {
         /* Prefix bare filename with "./" */
@@ -66,8 +64,9 @@ _PyImport_FindSharedFuncptr(const char *prefix,
         pathname = pathbuf;
     }
 
-    PyOS_snprintf(funcname, sizeof(funcname),
-                  LEAD_UNDERSCORE "%.20s_%.200s", prefix, shortname);
+    PyOS_snprintf(
+        funcname, sizeof(funcname), LEAD_UNDERSCORE "%.20s_%.200s", prefix, shortname
+    );
 
     if (fp != NULL) {
         struct _Py_stat_struct status;
@@ -106,6 +105,6 @@ _PyImport_FindSharedFuncptr(const char *prefix,
         Py_DECREF(path);
         return NULL;
     }
-    p = (dl_funcptr) dlsym(handle, funcname);
+    p = (dl_funcptr)dlsym(handle, funcname);
     return p;
 }

@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 
 #include <assert.h>
@@ -36,20 +35,21 @@
 #include "sixstep.h"
 #include "umodarith.h"
 
-
 /* Bignum: Cache efficient Matrix Fourier Transform for arrays of the
    form 3 * 2**n (See literature/matrix-transform.txt). */
 
-
 #ifndef PPRO
 static inline void
-std_size3_ntt(mpd_uint_t *x1, mpd_uint_t *x2, mpd_uint_t *x3,
-              mpd_uint_t w3table[3], mpd_uint_t umod)
-{
+std_size3_ntt(
+    mpd_uint_t *x1,
+    mpd_uint_t *x2,
+    mpd_uint_t *x3,
+    mpd_uint_t w3table[3],
+    mpd_uint_t umod
+) {
     mpd_uint_t r1, r2;
     mpd_uint_t w;
     mpd_uint_t s, tmp;
-
 
     /* k = 0 -> w = 1 */
     s = *x1;
@@ -88,13 +88,18 @@ std_size3_ntt(mpd_uint_t *x1, mpd_uint_t *x2, mpd_uint_t *x3,
 }
 #else /* PPRO */
 static inline void
-ppro_size3_ntt(mpd_uint_t *x1, mpd_uint_t *x2, mpd_uint_t *x3, mpd_uint_t w3table[3],
-               mpd_uint_t umod, double *dmod, uint32_t dinvmod[3])
-{
+ppro_size3_ntt(
+    mpd_uint_t *x1,
+    mpd_uint_t *x2,
+    mpd_uint_t *x3,
+    mpd_uint_t w3table[3],
+    mpd_uint_t umod,
+    double *dmod,
+    uint32_t dinvmod[3]
+) {
     mpd_uint_t r1, r2;
     mpd_uint_t w;
     mpd_uint_t s, tmp;
-
 
     /* k = 0 -> w = 1 */
     s = *x1;
@@ -133,12 +138,10 @@ ppro_size3_ntt(mpd_uint_t *x1, mpd_uint_t *x2, mpd_uint_t *x3, mpd_uint_t w3tabl
 }
 #endif
 
-
 /* forward transform, sign = -1; transform length = 3 * 2**n */
 int
-four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
-{
-    mpd_size_t R = 3; /* number of rows */
+four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum) {
+    mpd_size_t R = 3;     /* number of rows */
     mpd_size_t C = n / 3; /* number of columns */
     mpd_uint_t w3table[3];
     mpd_uint_t kernel, w0, w1, wstep;
@@ -150,37 +153,34 @@ four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
 #endif
     mpd_size_t i, k;
 
-
     assert(n >= 48);
-    assert(n <= 3*MPD_MAXTRANSFORM_2N);
-
+    assert(n <= 3 * MPD_MAXTRANSFORM_2N);
 
     /* Length R transform on the columns. */
     SETMODULUS(modnum);
     _mpd_init_w3table(w3table, -1, modnum);
-    for (p0=a, p1=p0+C, p2=p0+2*C; p0<a+C; p0++,p1++,p2++) {
-
+    for (p0 = a, p1 = p0 + C, p2 = p0 + 2 * C; p0 < a + C; p0++, p1++, p2++) {
         SIZE3_NTT(p0, p1, p2, w3table);
     }
 
     /* Multiply each matrix element (addressed by i*C+k) by r**(i*k). */
     kernel = _mpd_getkernel(n, -1, modnum);
     for (i = 1; i < R; i++) {
-        w0 = 1;                  /* r**(i*0): initial value for k=0 */
-        w1 = POWMOD(kernel, i);  /* r**(i*1): initial value for k=1 */
-        wstep = MULMOD(w1, w1);  /* r**(2*i) */
-        for (k = 0; k < C-1; k += 2) {
-            mpd_uint_t x0 = a[i*C+k];
-            mpd_uint_t x1 = a[i*C+k+1];
+        w0 = 1;                 /* r**(i*0): initial value for k=0 */
+        w1 = POWMOD(kernel, i); /* r**(i*1): initial value for k=1 */
+        wstep = MULMOD(w1, w1); /* r**(2*i) */
+        for (k = 0; k < C - 1; k += 2) {
+            mpd_uint_t x0 = a[i * C + k];
+            mpd_uint_t x1 = a[i * C + k + 1];
             MULMOD2(&x0, w0, &x1, w1);
-            MULMOD2C(&w0, &w1, wstep);  /* r**(i*(k+2)) = r**(i*k) * r**(2*i) */
-            a[i*C+k] = x0;
-            a[i*C+k+1] = x1;
+            MULMOD2C(&w0, &w1, wstep); /* r**(i*(k+2)) = r**(i*k) * r**(2*i) */
+            a[i * C + k] = x0;
+            a[i * C + k + 1] = x1;
         }
     }
 
     /* Length C transform on the rows. */
-    for (s = a; s < a+n; s += C) {
+    for (s = a; s < a + n; s += C) {
         if (!six_step_fnt(s, C, modnum)) {
             return 0;
         }
@@ -189,7 +189,7 @@ four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
 #if 0
     /* An unordered transform is sufficient for convolution. */
     /* Transpose the matrix. */
-    #include "transpose.h"
+#include "transpose.h"
     transpose_3xpow2(a, R, C);
 #endif
 
@@ -198,9 +198,8 @@ four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
 
 /* backward transform, sign = 1; transform length = 3 * 2**n */
 int
-inv_four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
-{
-    mpd_size_t R = 3; /* number of rows */
+inv_four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum) {
+    mpd_size_t R = 3;     /* number of rows */
     mpd_size_t C = n / 3; /* number of columns */
     mpd_uint_t w3table[3];
     mpd_uint_t kernel, w0, w1, wstep;
@@ -212,20 +211,18 @@ inv_four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
 #endif
     mpd_size_t i, k;
 
-
     assert(n >= 48);
-    assert(n <= 3*MPD_MAXTRANSFORM_2N);
-
+    assert(n <= 3 * MPD_MAXTRANSFORM_2N);
 
 #if 0
     /* An unordered transform is sufficient for convolution. */
     /* Transpose the matrix, producing an R*C matrix. */
-    #include "transpose.h"
+#include "transpose.h"
     transpose_3xpow2(a, C, R);
 #endif
 
     /* Length C transform on the rows. */
-    for (s = a; s < a+n; s += C) {
+    for (s = a; s < a + n; s += C) {
         if (!inv_six_step_fnt(s, C, modnum)) {
             return 0;
         }
@@ -239,19 +236,18 @@ inv_four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
         w1 = POWMOD(kernel, i);
         wstep = MULMOD(w1, w1);
         for (k = 0; k < C; k += 2) {
-            mpd_uint_t x0 = a[i*C+k];
-            mpd_uint_t x1 = a[i*C+k+1];
+            mpd_uint_t x0 = a[i * C + k];
+            mpd_uint_t x1 = a[i * C + k + 1];
             MULMOD2(&x0, w0, &x1, w1);
             MULMOD2C(&w0, &w1, wstep);
-            a[i*C+k] = x0;
-            a[i*C+k+1] = x1;
+            a[i * C + k] = x0;
+            a[i * C + k + 1] = x1;
         }
     }
 
     /* Length R transform on the columns. */
     _mpd_init_w3table(w3table, 1, modnum);
-    for (p0=a, p1=p0+C, p2=p0+2*C; p0<a+C; p0++,p1++,p2++) {
-
+    for (p0 = a, p1 = p0 + C, p2 = p0 + 2 * C; p0 < a + C; p0++, p1++, p2++) {
         SIZE3_NTT(p0, p1, p2, w3table);
     }
 

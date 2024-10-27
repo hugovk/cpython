@@ -2,37 +2,42 @@
 preserve
 [clinic start generated code]*/
 
-#include "pycore_modsupport.h"    // _PyArg_CheckPositional()
+#include "pycore_modsupport.h"  // _PyArg_CheckPositional()
 
-PyDoc_STRVAR(method___reduce____doc__,
-"__reduce__($self, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    method___reduce____doc__,
+    "__reduce__($self, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define METHOD___REDUCE___METHODDEF    \
-    {"__reduce__", (PyCFunction)method___reduce__, METH_NOARGS, method___reduce____doc__},
+#define METHOD___REDUCE___METHODDEF  \
+    {"__reduce__",                   \
+     (PyCFunction)method___reduce__, \
+     METH_NOARGS,                    \
+     method___reduce____doc__},
 
 static PyObject *
 method___reduce___impl(PyMethodObject *self);
 
 static PyObject *
-method___reduce__(PyMethodObject *self, PyObject *Py_UNUSED(ignored))
-{
+method___reduce__(PyMethodObject *self, PyObject *Py_UNUSED(ignored)) {
     return method___reduce___impl(self);
 }
 
-PyDoc_STRVAR(method_new__doc__,
-"method(function, instance, /)\n"
-"--\n"
-"\n"
-"Create a bound instance method object.");
+PyDoc_STRVAR(
+    method_new__doc__,
+    "method(function, instance, /)\n"
+    "--\n"
+    "\n"
+    "Create a bound instance method object."
+);
 
 static PyObject *
 method_new_impl(PyTypeObject *type, PyObject *function, PyObject *instance);
 
 static PyObject *
-method_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+method_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
     PyTypeObject *base_tp = &PyMethod_Type;
     PyObject *function;
@@ -53,18 +58,19 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(instancemethod_new__doc__,
-"instancemethod(function, /)\n"
-"--\n"
-"\n"
-"Bind a function to a class.");
+PyDoc_STRVAR(
+    instancemethod_new__doc__,
+    "instancemethod(function, /)\n"
+    "--\n"
+    "\n"
+    "Bind a function to a class."
+);
 
 static PyObject *
 instancemethod_new_impl(PyTypeObject *type, PyObject *function);
 
 static PyObject *
-instancemethod_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+instancemethod_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
     PyTypeObject *base_tp = &PyInstanceMethod_Type;
     PyObject *function;

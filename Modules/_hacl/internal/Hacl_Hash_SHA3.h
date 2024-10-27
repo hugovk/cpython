@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-
 #ifndef __internal_Hacl_Hash_SHA3_H
 #define __internal_Hacl_Hash_SHA3_H
 
@@ -45,18 +44,12 @@ extern const uint64_t Hacl_Hash_SHA3_keccak_rndc[24U];
 
 void
 Hacl_Hash_SHA3_update_multi_sha3(
-  Spec_Hash_Definitions_hash_alg a,
-  uint64_t *s,
-  uint8_t *blocks,
-  uint32_t n_blocks
+    Spec_Hash_Definitions_hash_alg a, uint64_t *s, uint8_t *blocks, uint32_t n_blocks
 );
 
 void
 Hacl_Hash_SHA3_update_last_sha3(
-  Spec_Hash_Definitions_hash_alg a,
-  uint64_t *s,
-  uint8_t *input,
-  uint32_t input_len
+    Spec_Hash_Definitions_hash_alg a, uint64_t *s, uint8_t *input, uint32_t input_len
 );
 
 #if defined(__cplusplus)

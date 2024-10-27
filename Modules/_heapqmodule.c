@@ -7,14 +7,13 @@ annotated by François Pinard, and converted to C by Raymond Hettinger.
 */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
-#include "pycore_list.h"          // _PyList_ITEMS()
+#include "pycore_list.h"  // _PyList_ITEMS()
 
 #include "clinic/_heapqmodule.c.h"
-
 
 /*[clinic input]
 module _heapq
@@ -22,8 +21,7 @@ module _heapq
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=d7cca0a2e4c0ceb3]*/
 
 static int
-siftdown(PyListObject *heap, Py_ssize_t startpos, Py_ssize_t pos)
-{
+siftdown(PyListObject *heap, Py_ssize_t startpos, Py_ssize_t pos) {
     PyObject *newitem, *parent, **arr;
     Py_ssize_t parentpos, size;
     int cmp;
@@ -50,8 +48,7 @@ siftdown(PyListObject *heap, Py_ssize_t startpos, Py_ssize_t pos)
         if (cmp < 0)
             return -1;
         if (size != PyList_GET_SIZE(heap)) {
-            PyErr_SetString(PyExc_RuntimeError,
-                            "list changed size during iteration");
+            PyErr_SetString(PyExc_RuntimeError, "list changed size during iteration");
             return -1;
         }
         if (cmp == 0)
@@ -67,8 +64,7 @@ siftdown(PyListObject *heap, Py_ssize_t startpos, Py_ssize_t pos)
 }
 
 static int
-siftup(PyListObject *heap, Py_ssize_t pos)
-{
+siftup(PyListObject *heap, Py_ssize_t pos) {
     Py_ssize_t startpos, endpos, childpos, limit;
     PyObject *tmp1, *tmp2, **arr;
     int cmp;
@@ -83,13 +79,13 @@ siftup(PyListObject *heap, Py_ssize_t pos)
 
     /* Bubble up the smaller child until hitting a leaf. */
     arr = _PyList_ITEMS(heap);
-    limit = endpos >> 1;         /* smallest pos that has no child */
+    limit = endpos >> 1; /* smallest pos that has no child */
     while (pos < limit) {
         /* Set childpos to index of smaller child.   */
-        childpos = 2*pos + 1;    /* leftmost child position  */
+        childpos = 2 * pos + 1; /* leftmost child position  */
         if (childpos + 1 < endpos) {
-            PyObject* a = arr[childpos];
-            PyObject* b = arr[childpos + 1];
+            PyObject *a = arr[childpos];
+            PyObject *b = arr[childpos + 1];
             Py_INCREF(a);
             Py_INCREF(b);
             cmp = PyObject_RichCompareBool(a, b, Py_LT);
@@ -97,11 +93,12 @@ siftup(PyListObject *heap, Py_ssize_t pos)
             Py_DECREF(b);
             if (cmp < 0)
                 return -1;
-            childpos += ((unsigned)cmp ^ 1);   /* increment when cmp==0 */
-            arr = _PyList_ITEMS(heap);         /* arr may have changed */
+            childpos += ((unsigned)cmp ^ 1); /* increment when cmp==0 */
+            arr = _PyList_ITEMS(heap);       /* arr may have changed */
             if (endpos != PyList_GET_SIZE(heap)) {
-                PyErr_SetString(PyExc_RuntimeError,
-                                "list changed size during iteration");
+                PyErr_SetString(
+                    PyExc_RuntimeError, "list changed size during iteration"
+                );
                 return -1;
             }
         }
@@ -133,14 +130,13 @@ _heapq_heappush_impl(PyObject *module, PyObject *heap, PyObject *item)
     if (PyList_Append(heap, item))
         return NULL;
 
-    if (siftdown((PyListObject *)heap, 0, PyList_GET_SIZE(heap)-1))
+    if (siftdown((PyListObject *)heap, 0, PyList_GET_SIZE(heap) - 1))
         return NULL;
     Py_RETURN_NONE;
 }
 
 static PyObject *
-heappop_internal(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_t))
-{
+heappop_internal(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_t)) {
     PyObject *lastelt, *returnitem;
     Py_ssize_t n;
 
@@ -151,9 +147,9 @@ heappop_internal(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_t))
         return NULL;
     }
 
-    lastelt = PyList_GET_ITEM(heap, n-1) ;
+    lastelt = PyList_GET_ITEM(heap, n - 1);
     Py_INCREF(lastelt);
-    if (PyList_SetSlice(heap, n-1, n, NULL)) {
+    if (PyList_SetSlice(heap, n - 1, n, NULL)) {
         Py_DECREF(lastelt);
         return NULL;
     }
@@ -187,8 +183,9 @@ _heapq_heappop_impl(PyObject *module, PyObject *heap)
 }
 
 static PyObject *
-heapreplace_internal(PyObject *heap, PyObject *item, int siftup_func(PyListObject *, Py_ssize_t))
-{
+heapreplace_internal(
+    PyObject *heap, PyObject *item, int siftup_func(PyListObject *, Py_ssize_t)
+) {
     PyObject *returnitem;
 
     if (PyList_GET_SIZE(heap) == 0) {
@@ -204,7 +201,6 @@ heapreplace_internal(PyObject *heap, PyObject *item, int siftup_func(PyListObjec
     }
     return returnitem;
 }
-
 
 /*[clinic input]
 _heapq.heapreplace
@@ -255,7 +251,7 @@ _heapq_heappushpop_impl(PyObject *module, PyObject *heap, PyObject *item)
         return Py_NewRef(item);
     }
 
-    PyObject* top = PyList_GET_ITEM(heap, 0);
+    PyObject *top = PyList_GET_ITEM(heap, 0);
     Py_INCREF(top);
     cmp = PyObject_RichCompareBool(top, item, Py_LT);
     Py_DECREF(top);
@@ -280,8 +276,7 @@ _heapq_heappushpop_impl(PyObject *module, PyObject *heap, PyObject *item)
 }
 
 static Py_ssize_t
-keep_top_bit(Py_ssize_t n)
-{
+keep_top_bit(Py_ssize_t n) {
     int i = 0;
 
     while (n > 1) {
@@ -312,15 +307,14 @@ keep_top_bit(Py_ssize_t n)
 */
 
 static PyObject *
-cache_friendly_heapify(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_t))
-{
+cache_friendly_heapify(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_t)) {
     Py_ssize_t i, j, m, mhalf, leftmost;
 
-    m = PyList_GET_SIZE(heap) >> 1;         /* index of first childless node */
-    leftmost = keep_top_bit(m + 1) - 1;     /* leftmost node in row of m */
-    mhalf = m >> 1;                         /* parent of first childless node */
+    m = PyList_GET_SIZE(heap) >> 1;     /* index of first childless node */
+    leftmost = keep_top_bit(m + 1) - 1; /* leftmost node in row of m */
+    mhalf = m >> 1;                     /* parent of first childless node */
 
-    for (i = leftmost - 1 ; i >= mhalf ; i--) {
+    for (i = leftmost - 1; i >= mhalf; i--) {
         j = i;
         while (1) {
             if (siftup_func((PyListObject *)heap, j))
@@ -331,7 +325,7 @@ cache_friendly_heapify(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_
         }
     }
 
-    for (i = m - 1 ; i >= leftmost ; i--) {
+    for (i = m - 1; i >= leftmost; i--) {
         j = i;
         while (1) {
             if (siftup_func((PyListObject *)heap, j))
@@ -345,8 +339,7 @@ cache_friendly_heapify(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_
 }
 
 static PyObject *
-heapify_internal(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_t))
-{
+heapify_internal(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_t)) {
     Py_ssize_t i, n;
 
     /* For heaps likely to be bigger than L1 cache, we use the cache
@@ -364,7 +357,7 @@ heapify_internal(PyObject *heap, int siftup_func(PyListObject *, Py_ssize_t))
        n is odd = 2*j+1, this is (2*j+1-1)/2 = j so j-1 is the largest,
        and that's again n//2-1.
     */
-    for (i = (n >> 1) - 1 ; i >= 0 ; i--)
+    for (i = (n >> 1) - 1; i >= 0; i--)
         if (siftup_func((PyListObject *)heap, i))
             return NULL;
     Py_RETURN_NONE;
@@ -387,8 +380,7 @@ _heapq_heapify_impl(PyObject *module, PyObject *heap)
 }
 
 static int
-siftdown_max(PyListObject *heap, Py_ssize_t startpos, Py_ssize_t pos)
-{
+siftdown_max(PyListObject *heap, Py_ssize_t startpos, Py_ssize_t pos) {
     PyObject *newitem, *parent, **arr;
     Py_ssize_t parentpos, size;
     int cmp;
@@ -414,8 +406,7 @@ siftdown_max(PyListObject *heap, Py_ssize_t startpos, Py_ssize_t pos)
         if (cmp < 0)
             return -1;
         if (size != PyList_GET_SIZE(heap)) {
-            PyErr_SetString(PyExc_RuntimeError,
-                            "list changed size during iteration");
+            PyErr_SetString(PyExc_RuntimeError, "list changed size during iteration");
             return -1;
         }
         if (cmp == 0)
@@ -431,8 +422,7 @@ siftdown_max(PyListObject *heap, Py_ssize_t startpos, Py_ssize_t pos)
 }
 
 static int
-siftup_max(PyListObject *heap, Py_ssize_t pos)
-{
+siftup_max(PyListObject *heap, Py_ssize_t pos) {
     Py_ssize_t startpos, endpos, childpos, limit;
     PyObject *tmp1, *tmp2, **arr;
     int cmp;
@@ -447,13 +437,13 @@ siftup_max(PyListObject *heap, Py_ssize_t pos)
 
     /* Bubble up the smaller child until hitting a leaf. */
     arr = _PyList_ITEMS(heap);
-    limit = endpos >> 1;         /* smallest pos that has no child */
+    limit = endpos >> 1; /* smallest pos that has no child */
     while (pos < limit) {
         /* Set childpos to index of smaller child.   */
-        childpos = 2*pos + 1;    /* leftmost child position  */
+        childpos = 2 * pos + 1; /* leftmost child position  */
         if (childpos + 1 < endpos) {
-            PyObject* a = arr[childpos + 1];
-            PyObject* b = arr[childpos];
+            PyObject *a = arr[childpos + 1];
+            PyObject *b = arr[childpos];
             Py_INCREF(a);
             Py_INCREF(b);
             cmp = PyObject_RichCompareBool(a, b, Py_LT);
@@ -461,11 +451,12 @@ siftup_max(PyListObject *heap, Py_ssize_t pos)
             Py_DECREF(b);
             if (cmp < 0)
                 return -1;
-            childpos += ((unsigned)cmp ^ 1);   /* increment when cmp==0 */
-            arr = _PyList_ITEMS(heap);         /* arr may have changed */
+            childpos += ((unsigned)cmp ^ 1); /* increment when cmp==0 */
+            arr = _PyList_ITEMS(heap);       /* arr may have changed */
             if (endpos != PyList_GET_SIZE(heap)) {
-                PyErr_SetString(PyExc_RuntimeError,
-                                "list changed size during iteration");
+                PyErr_SetString(
+                    PyExc_RuntimeError, "list changed size during iteration"
+                );
                 return -1;
             }
         }
@@ -479,7 +470,6 @@ siftup_max(PyListObject *heap, Py_ssize_t pos)
     /* Bubble it up to its final resting place (by sifting its parents down). */
     return siftdown_max(heap, startpos, pos);
 }
-
 
 /*[clinic input]
 _heapq._heappop_max
@@ -508,8 +498,7 @@ Maxheap variant of heapreplace.
 [clinic start generated code]*/
 
 static PyObject *
-_heapq__heapreplace_max_impl(PyObject *module, PyObject *heap,
-                             PyObject *item)
+_heapq__heapreplace_max_impl(PyObject *module, PyObject *heap, PyObject *item)
 /*[clinic end generated code: output=8ad7545e4a5e8adb input=f2dd27cbadb948d7]*/
 {
     return heapreplace_internal(heap, item, siftup_max);
@@ -532,19 +521,15 @@ _heapq__heapify_max_impl(PyObject *module, PyObject *heap)
 }
 
 static PyMethodDef heapq_methods[] = {
-    _HEAPQ_HEAPPUSH_METHODDEF
-    _HEAPQ_HEAPPUSHPOP_METHODDEF
-    _HEAPQ_HEAPPOP_METHODDEF
-    _HEAPQ_HEAPREPLACE_METHODDEF
-    _HEAPQ_HEAPIFY_METHODDEF
-    _HEAPQ__HEAPPOP_MAX_METHODDEF
-    _HEAPQ__HEAPIFY_MAX_METHODDEF
-    _HEAPQ__HEAPREPLACE_MAX_METHODDEF
-    {NULL, NULL}           /* sentinel */
+    _HEAPQ_HEAPPUSH_METHODDEF _HEAPQ_HEAPPUSHPOP_METHODDEF _HEAPQ_HEAPPOP_METHODDEF
+        _HEAPQ_HEAPREPLACE_METHODDEF _HEAPQ_HEAPIFY_METHODDEF
+            _HEAPQ__HEAPPOP_MAX_METHODDEF _HEAPQ__HEAPIFY_MAX_METHODDEF
+                _HEAPQ__HEAPREPLACE_MAX_METHODDEF{NULL, NULL} /* sentinel */
 };
 
-PyDoc_STRVAR(module_doc,
-"Heap queue algorithm (a.k.a. priority queue).\n\
+PyDoc_STRVAR(
+    module_doc,
+    "Heap queue algorithm (a.k.a. priority queue).\n\
 \n\
 Heaps are arrays for which a[k] <= a[2*k+1] and a[k] <= a[2*k+2] for\n\
 all k, counting elements from 0.  For the sake of comparison,\n\
@@ -571,11 +556,12 @@ Our API differs from textbook heap algorithms as follows:\n\
 \n\
 These two make it possible to view the heap as a regular Python list\n\
 without surprises: heap[0] is the smallest item, and heap.sort()\n\
-maintains the heap invariant!\n");
+maintains the heap invariant!\n"
+);
 
-
-PyDoc_STRVAR(__about__,
-"Heap queues\n\
+PyDoc_STRVAR(
+    __about__,
+    "Heap queues\n\
 \n\
 [explanation by Fran\xc3\xa7ois Pinard]\n\
 \n\
@@ -583,7 +569,7 @@ Heaps are arrays for which a[k] <= a[2*k+1] and a[k] <= a[2*k+2] for\n\
 all k, counting elements from 0.  For the sake of comparison,\n\
 non-existing elements are considered to be infinite.  The interesting\n\
 property of a heap is that a[0] is always its smallest element.\n"
-"\n\
+    "\n\
 The strange invariant above is meant to be an efficient memory\n\
 representation for a tournament.  The numbers below are 'k', not a[k]:\n\
 \n\
@@ -607,7 +593,7 @@ To be more memory efficient, when a winner is promoted, we try to\n\
 replace it by something else at a lower level, and the rule becomes\n\
 that a cell and the two cells it tops contain three different items,\n\
 but the top cell \"wins\" over the two topped cells.\n"
-"\n\
+    "\n\
 If this heap invariant is protected at all time, index 0 is clearly\n\
 the overall winner.  The simplest algorithmic way to remove it and\n\
 find the \"next\" winner is to move some loser (let's say cell 30 in the\n\
@@ -615,7 +601,7 @@ diagram above) into the 0 position, and then percolate this new 0 down\n\
 the tree, exchanging values, until the invariant is re-established.\n\
 This is clearly logarithmic on the total number of items in the tree.\n\
 By iterating over all items, you get an O(n ln n) sort.\n"
-"\n\
+    "\n\
 A nice feature of this sort is that you can efficiently insert new\n\
 items while the sort is going on, provided that the inserted items are\n\
 not \"better\" than the last 0'th element you extracted.  This is\n\
@@ -625,13 +611,13 @@ time.  When an event schedule other events for execution, they are\n\
 scheduled into the future, so they can easily go into the heap.  So, a\n\
 heap is a good structure for implementing schedulers (this is what I\n\
 used for my MIDI sequencer :-).\n"
-"\n\
+    "\n\
 Various structures for implementing schedulers have been extensively\n\
 studied, and heaps are good for this, as they are reasonably speedy,\n\
 the speed is almost constant, and the worst case is not much different\n\
 than the average case.  However, there are other representations which\n\
 are more efficient overall, yet the worst cases might be terrible.\n"
-"\n\
+    "\n\
 Heaps are also very useful in big disk sorts.  You most probably all\n\
 know that a big sort implies producing \"runs\" (which are pre-sorted\n\
 sequences, which size is usually related to the amount of CPU memory),\n\
@@ -642,7 +628,7 @@ to that.  If, using all the memory available to hold a tournament, you\n\
 replace and percolate items that happen to fit the current run, you'll\n\
 produce runs which are twice the size of the memory for random input,\n\
 and much better for input fuzzily ordered.\n"
-"\n\
+    "\n\
 Moreover, if you output the 0'th item on disk and get an input which\n\
 may not fit in the current tournament (because the value \"wins\" over\n\
 the last output value), it cannot fit in the heap, so the size of the\n\
@@ -655,7 +641,7 @@ effective!\n\
 In a word, heaps are useful memory structures to know.  I use them in\n\
 a few applications, and I think it is good to keep a 'heap' module\n\
 around. :-)\n"
-"\n\
+    "\n\
 --------------------\n\
 [1] The disk balancing algorithms which are current, nowadays, are\n\
 more annoying than clever, and this is a consequence of the seeking\n\
@@ -666,12 +652,11 @@ most effective possible (that is, will best participate at\n\
 \"progressing\" the merge).  Some tapes were even able to read\n\
 backwards, and this was also used to avoid the rewinding time.\n\
 Believe me, real good tape sorts were quite spectacular to watch!\n\
-From all times, sorting has always been a Great Art! :-)\n");
-
+From all times, sorting has always been a Great Art! :-)\n"
+);
 
 static int
-heapq_exec(PyObject *m)
-{
+heapq_exec(PyObject *m) {
     if (PyModule_Add(m, "__about__", PyUnicode_FromString(__about__)) < 0) {
         return -1;
     }
@@ -698,7 +683,6 @@ static struct PyModuleDef _heapqmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit__heapq(void)
-{
+PyInit__heapq(void) {
     return PyModuleDef_Init(&_heapqmodule);
 }

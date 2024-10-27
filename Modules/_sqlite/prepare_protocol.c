@@ -24,22 +24,20 @@
 #include "prepare_protocol.h"
 
 static int
-pysqlite_prepare_protocol_init(pysqlite_PrepareProtocol *self, PyObject *args,
-                               PyObject *kwargs)
-{
+pysqlite_prepare_protocol_init(
+    pysqlite_PrepareProtocol *self, PyObject *args, PyObject *kwargs
+) {
     return 0;
 }
 
 static int
-pysqlite_prepare_protocol_traverse(PyObject *self, visitproc visit, void *arg)
-{
+pysqlite_prepare_protocol_traverse(PyObject *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     return 0;
 }
 
 static void
-pysqlite_prepare_protocol_dealloc(pysqlite_PrepareProtocol *self)
-{
+pysqlite_prepare_protocol_dealloc(pysqlite_PrepareProtocol *self) {
     PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack(self);
     tp->tp_free(self);
@@ -59,14 +57,12 @@ static PyType_Slot type_slots[] = {
 static PyType_Spec type_spec = {
     .name = MODULE_NAME ".PrepareProtocol",
     .basicsize = sizeof(pysqlite_PrepareProtocol),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
-              Py_TPFLAGS_IMMUTABLETYPE),
+    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE),
     .slots = type_slots,
 };
 
 int
-pysqlite_prepare_protocol_setup_types(PyObject *module)
-{
+pysqlite_prepare_protocol_setup_types(PyObject *module) {
     PyObject *type = PyType_FromModuleAndSpec(module, &type_spec, NULL);
     if (type == NULL) {
         return -1;

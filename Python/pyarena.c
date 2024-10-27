@@ -1,5 +1,5 @@
 #include "Python.h"
-#include "pycore_pyarena.h"       // PyArena
+#include "pycore_pyarena.h"  // PyArena
 
 /* A simple arena block structure.
 
@@ -9,7 +9,7 @@
 */
 
 #define DEFAULT_BLOCK_SIZE 8192
-#define ALIGNMENT               8
+#define ALIGNMENT 8
 
 typedef struct _block {
     /* Total number of bytes owned by this block available to pass out.
@@ -71,8 +71,7 @@ struct _arena {
 };
 
 static block *
-block_new(size_t size)
-{
+block_new(size_t size) {
     /* Allocate header and block as one unit.
        ab_mem points just past header. */
     block *b = (block *)PyMem_Malloc(sizeof(block) + size);
@@ -81,8 +80,7 @@ block_new(size_t size)
     b->ab_size = size;
     b->ab_mem = (void *)(b + 1);
     b->ab_next = NULL;
-    b->ab_offset = (char *)_Py_ALIGN_UP(b->ab_mem, ALIGNMENT) -
-            (char *)(b->ab_mem);
+    b->ab_offset = (char *)_Py_ALIGN_UP(b->ab_mem, ALIGNMENT) - (char *)(b->ab_mem);
     return b;
 }
 
@@ -96,8 +94,7 @@ block_free(block *b) {
 }
 
 static void *
-block_alloc(block *b, size_t size)
-{
+block_alloc(block *b, size_t size) {
     void *p;
     assert(b);
     size = _Py_SIZE_ROUND_UP(size, ALIGNMENT);
@@ -105,9 +102,7 @@ block_alloc(block *b, size_t size)
         /* If we need to allocate more memory than will fit in
            the default block, allocate a one-off block that is
            exactly the right size. */
-        block *newbl = block_new(
-                        size < DEFAULT_BLOCK_SIZE ?
-                        DEFAULT_BLOCK_SIZE : size);
+        block *newbl = block_new(size < DEFAULT_BLOCK_SIZE ? DEFAULT_BLOCK_SIZE : size);
         if (!newbl)
             return NULL;
         assert(!b->ab_next);
@@ -122,23 +117,22 @@ block_alloc(block *b, size_t size)
 }
 
 PyArena *
-_PyArena_New(void)
-{
-    PyArena* arena = (PyArena *)PyMem_Malloc(sizeof(PyArena));
+_PyArena_New(void) {
+    PyArena *arena = (PyArena *)PyMem_Malloc(sizeof(PyArena));
     if (!arena)
-        return (PyArena*)PyErr_NoMemory();
+        return (PyArena *)PyErr_NoMemory();
 
     arena->a_head = block_new(DEFAULT_BLOCK_SIZE);
     arena->a_cur = arena->a_head;
     if (!arena->a_head) {
         PyMem_Free((void *)arena);
-        return (PyArena*)PyErr_NoMemory();
+        return (PyArena *)PyErr_NoMemory();
     }
     arena->a_objects = PyList_New(0);
     if (!arena->a_objects) {
         block_free(arena->a_head);
         PyMem_Free((void *)arena);
-        return (PyArena*)PyErr_NoMemory();
+        return (PyArena *)PyErr_NoMemory();
     }
 #if defined(Py_DEBUG)
     arena->total_allocs = 0;
@@ -151,8 +145,7 @@ _PyArena_New(void)
 }
 
 void
-_PyArena_Free(PyArena *arena)
-{
+_PyArena_Free(PyArena *arena) {
     assert(arena);
 #if defined(Py_DEBUG)
     /*
@@ -174,8 +167,7 @@ _PyArena_Free(PyArena *arena)
 }
 
 void *
-_PyArena_Malloc(PyArena *arena, size_t size)
-{
+_PyArena_Malloc(PyArena *arena, size_t size) {
     void *p = block_alloc(arena->a_cur, size);
     if (!p)
         return PyErr_NoMemory();
@@ -197,8 +189,7 @@ _PyArena_Malloc(PyArena *arena, size_t size)
 }
 
 int
-_PyArena_AddPyObject(PyArena *arena, PyObject *obj)
-{
+_PyArena_AddPyObject(PyArena *arena, PyObject *obj) {
     int r = PyList_Append(arena->a_objects, obj);
     if (r >= 0) {
         Py_DECREF(obj);

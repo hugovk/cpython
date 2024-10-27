@@ -6,8 +6,7 @@
 /* BIO_s_mem() to PyBytes
  */
 static PyObject *
-_PySSL_BytesFromBIO(_sslmodulestate *state, BIO *bio)
-{
+_PySSL_BytesFromBIO(_sslmodulestate *state, BIO *bio) {
     long size;
     char *data = NULL;
     size = BIO_get_mem_data(bio, &data);
@@ -21,8 +20,7 @@ _PySSL_BytesFromBIO(_sslmodulestate *state, BIO *bio)
 /* BIO_s_mem() to PyUnicode
  */
 static PyObject *
-_PySSL_UnicodeFromBIO(_sslmodulestate *state, BIO *bio, const char *error)
-{
+_PySSL_UnicodeFromBIO(_sslmodulestate *state, BIO *bio, const char *error) {
     long size;
     char *data = NULL;
     size = BIO_get_mem_data(bio, &data);

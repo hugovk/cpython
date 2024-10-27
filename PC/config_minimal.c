@@ -10,25 +10,39 @@
 void *PyWin_DLLhModule = NULL;
 #endif
 
-
-extern PyObject* PyInit_faulthandler(void);
-extern PyObject* PyInit__tracemalloc(void);
-extern PyObject* PyInit_gc(void);
-extern PyObject* PyInit_nt(void);
-extern PyObject* PyInit__signal(void);
-#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM) || defined(MS_WINDOWS_GAMES)
-extern PyObject* PyInit_winreg(void);
+extern PyObject *
+PyInit_faulthandler(void);
+extern PyObject *
+PyInit__tracemalloc(void);
+extern PyObject *
+PyInit_gc(void);
+extern PyObject *
+PyInit_nt(void);
+extern PyObject *
+PyInit__signal(void);
+#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM) || \
+    defined(MS_WINDOWS_GAMES)
+extern PyObject *
+PyInit_winreg(void);
 #endif
 
-extern PyObject* PyInit__ast(void);
-extern PyObject* PyInit__io(void);
-extern PyObject* PyInit_atexit(void);
-extern PyObject* _PyWarnings_Init(void);
-extern PyObject* PyInit__string(void);
-extern PyObject* PyInit__tokenize(void);
+extern PyObject *
+PyInit__ast(void);
+extern PyObject *
+PyInit__io(void);
+extern PyObject *
+PyInit_atexit(void);
+extern PyObject *
+_PyWarnings_Init(void);
+extern PyObject *
+PyInit__string(void);
+extern PyObject *
+PyInit__tokenize(void);
 
-extern PyObject* PyMarshal_Init(void);
-extern PyObject* PyInit__imp(void);
+extern PyObject *
+PyMarshal_Init(void);
+extern PyObject *
+PyInit__imp(void);
 
 struct _inittab _PyImport_Inittab[] = {
     {"_ast", PyInit__ast},
@@ -39,7 +53,8 @@ struct _inittab _PyImport_Inittab[] = {
     {"_tokenize", PyInit__tokenize},
     {"_tracemalloc", PyInit__tracemalloc},
 
-#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM) || defined(MS_WINDOWS_GAMES)
+#if defined(MS_WINDOWS_DESKTOP) || defined(MS_WINDOWS_SYSTEM) || \
+    defined(MS_WINDOWS_GAMES)
     {"winreg", PyInit_winreg},
 #endif
 

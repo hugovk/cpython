@@ -5,7 +5,7 @@
 #include "errcode.h"
 
 #ifdef HAVE_UNISTD_H
-#  include <unistd.h>             // lseek(), read()
+#include <unistd.h>  // lseek(), read()
 #endif
 
 #include "helpers.h"
@@ -27,7 +27,7 @@ tok_concatenate_interactive_new_line(struct tok_state *tok, const char *line) {
     if (last_char != '\n') {
         line_size += 1;
     }
-    char* new_str = tok->interactive_src_start;
+    char *new_str = tok->interactive_src_start;
 
     new_str = PyMem_Realloc(new_str, current_size + line_size + 1);
     if (!new_str) {
@@ -53,15 +53,16 @@ tok_concatenate_interactive_new_line(struct tok_state *tok, const char *line) {
 }
 
 static int
-tok_readline_raw(struct tok_state *tok)
-{
+tok_readline_raw(struct tok_state *tok) {
     do {
         if (!_PyLexer_tok_reserve_buf(tok, BUFSIZ)) {
             return 0;
         }
         int n_chars = (int)(tok->end - tok->inp);
         size_t line_size = 0;
-        char *line = _Py_UniversalNewlineFgetsWithSize(tok->inp, n_chars, tok->fp, NULL, &line_size);
+        char *line = _Py_UniversalNewlineFgetsWithSize(
+            tok->inp, n_chars, tok->fp, NULL, &line_size
+        );
         if (line == NULL) {
             return 1;
         }
@@ -80,7 +81,7 @@ tok_readline_raw(struct tok_state *tok)
 static int
 tok_readline_recode(struct tok_state *tok) {
     PyObject *line;
-    const  char *buf;
+    const char *buf;
     Py_ssize_t buflen;
     line = tok->decoding_buffer;
     if (line == NULL) {
@@ -89,8 +90,7 @@ tok_readline_recode(struct tok_state *tok) {
             _PyTokenizer_error_ret(tok);
             goto error;
         }
-    }
-    else {
+    } else {
         tok->decoding_buffer = NULL;
     }
     buf = PyUnicode_AsUTF8AndSize(line, &buflen);
@@ -108,8 +108,7 @@ tok_readline_recode(struct tok_state *tok) {
     memcpy(tok->inp, buf, buflen);
     tok->inp += buflen;
     *tok->inp = '\0';
-    if (tok->fp_interactive &&
-        tok_concatenate_interactive_new_line(tok, buf) == -1) {
+    if (tok->fp_interactive && tok_concatenate_interactive_new_line(tok, buf) == -1) {
         goto error;
     }
     Py_DECREF(line);
@@ -120,27 +119,29 @@ error:
 }
 
 /* Fetch the next byte from TOK. */
-static int fp_getc(struct tok_state *tok) {
+static int
+fp_getc(struct tok_state *tok) {
     return getc(tok->fp);
 }
 
 /* Unfetch the last byte back into TOK.  */
-static void fp_ungetc(int c, struct tok_state *tok) {
+static void
+fp_ungetc(int c, struct tok_state *tok) {
     ungetc(c, tok->fp);
 }
 
 /* Set the readline function for TOK to a StreamReader's
    readline function. The StreamReader is named ENC.
 
-   This function is called from _PyTokenizer_check_bom and _PyTokenizer_check_coding_spec.
+   This function is called from _PyTokenizer_check_bom and
+   _PyTokenizer_check_coding_spec.
 
    ENC is usually identical to the future value of tok->encoding,
    except for the (currently unsupported) case of UTF-16.
 
    Return 1 on success, 0 on failure. */
 static int
-fp_setreadl(struct tok_state *tok, const char* enc)
-{
+fp_setreadl(struct tok_state *tok, const char *enc) {
     PyObject *readline, *open, *stream;
     int fd;
     long pos;
@@ -162,8 +163,9 @@ fp_setreadl(struct tok_state *tok, const char* enc)
     if (open == NULL) {
         return 0;
     }
-    stream = PyObject_CallFunction(open, "isisOOO",
-                    fd, "r", -1, enc, Py_None, Py_None, Py_False);
+    stream = PyObject_CallFunction(
+        open, "isisOOO", fd, "r", -1, enc, Py_None, Py_None, Py_False
+    );
     Py_DECREF(open);
     if (stream == NULL) {
         return 0;
@@ -205,7 +207,7 @@ tok_underflow_interactive(struct tok_state *tok) {
     if (tok->encoding && newtok && *newtok) {
         /* Recode to UTF-8 */
         Py_ssize_t buflen;
-        const char* buf;
+        const char *buf;
         PyObject *u = _PyTokenizer_translate_into_utf8(newtok, tok->encoding);
         PyMem_Free(newtok);
         if (u == NULL) {
@@ -214,7 +216,7 @@ tok_underflow_interactive(struct tok_state *tok) {
         }
         buflen = PyBytes_GET_SIZE(u);
         buf = PyBytes_AS_STRING(u);
-        newtok = PyMem_Malloc(buflen+1);
+        newtok = PyMem_Malloc(buflen + 1);
         if (newtok == NULL) {
             Py_DECREF(u);
             tok->done = E_NOMEM;
@@ -233,12 +235,10 @@ tok_underflow_interactive(struct tok_state *tok) {
     }
     if (newtok == NULL) {
         tok->done = E_INTR;
-    }
-    else if (*newtok == '\0') {
+    } else if (*newtok == '\0') {
         PyMem_Free(newtok);
         tok->done = E_EOF;
-    }
-    else if (tok->start != NULL) {
+    } else if (tok->start != NULL) {
         Py_ssize_t cur_multi_line_start = tok->multi_line_start - tok->buf;
         _PyLexer_remember_fstring_buffers(tok);
         size_t size = strlen(newtok);
@@ -254,8 +254,7 @@ tok_underflow_interactive(struct tok_state *tok) {
         tok->inp += size;
         tok->multi_line_start = tok->buf + cur_multi_line_start;
         _PyLexer_restore_fstring_buffers(tok);
-    }
-    else {
+    } else {
         _PyLexer_remember_fstring_buffers(tok);
         ADVANCE_LINENO();
         PyMem_Free(tok->buf);
@@ -300,8 +299,7 @@ tok_underflow_file(struct tok_state *tok) {
         if (!tok_readline_recode(tok)) {
             return 0;
         }
-    }
-    else {
+    } else {
         /* We want a 'raw' read. */
         if (!tok_readline_raw(tok)) {
             return 0;
@@ -328,10 +326,9 @@ tok_underflow_file(struct tok_state *tok) {
     if (tok->decoding_state != STATE_NORMAL) {
         if (tok->lineno > 2) {
             tok->decoding_state = STATE_NORMAL;
-        }
-        else if (!_PyTokenizer_check_coding_spec(tok->cur, strlen(tok->cur),
-                                    tok, fp_setreadl))
-        {
+        } else if (!_PyTokenizer_check_coding_spec(
+                       tok->cur, strlen(tok->cur), tok, fp_setreadl
+                   )) {
             return 0;
         }
     }
@@ -347,9 +344,7 @@ tok_underflow_file(struct tok_state *tok) {
 
 /* Set up tokenizer for file */
 struct tok_state *
-_PyTokenizer_FromFile(FILE *fp, const char* enc,
-                      const char *ps1, const char *ps2)
-{
+_PyTokenizer_FromFile(FILE *fp, const char *enc, const char *ps1, const char *ps2) {
     struct tok_state *tok = _PyTokenizer_tok_new();
     if (tok == NULL)
         return NULL;
@@ -389,8 +384,7 @@ typedef union {
 } borrowed;
 
 static ssize_t
-borrow_read(void *cookie, char *buf, size_t size)
-{
+borrow_read(void *cookie, char *buf, size_t size) {
     borrowed b = {.cookie = cookie};
     return read(b.fd, (void *)buf, size);
 }
@@ -423,8 +417,7 @@ fdopen_borrow(int fd) {
    The char* returned is malloc'ed via PyMem_Malloc() and thus must be freed
    by the caller. */
 char *
-_PyTokenizer_FindEncodingFilename(int fd, PyObject *filename)
-{
+_PyTokenizer_FindEncodingFilename(int fd, PyObject *filename) {
     struct tok_state *tok;
     FILE *fp;
     char *encoding = NULL;
@@ -440,8 +433,7 @@ _PyTokenizer_FindEncodingFilename(int fd, PyObject *filename)
     }
     if (filename != NULL) {
         tok->filename = Py_NewRef(filename);
-    }
-    else {
+    } else {
         tok->filename = PyUnicode_FromString("<string>");
         if (tok->filename == NULL) {
             fclose(fp);

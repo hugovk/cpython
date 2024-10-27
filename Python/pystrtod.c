@@ -1,18 +1,17 @@
 /* -*- Mode: C; c-file-style: "python" -*- */
 
 #include <Python.h>
-#include "pycore_dtoa.h"          // _Py_dg_strtod()
-#include "pycore_pymath.h"        // _PY_SHORT_FLOAT_REPR
+#include "pycore_dtoa.h"    // _Py_dg_strtod()
+#include "pycore_pymath.h"  // _PY_SHORT_FLOAT_REPR
 
-#include <locale.h>               // localeconv()
+#include <locale.h>  // localeconv()
 
 /* Case-insensitive string match used for nan and inf detection; t should be
    lower-case.  Returns 1 for a successful match, 0 otherwise. */
 
 static int
-case_insensitive_match(const char *s, const char *t)
-{
-    while(*t && Py_TOLOWER(*s) == *t) {
+case_insensitive_match(const char *s, const char *t) {
+    while (*t && Py_TOLOWER(*s) == *t) {
         s++;
         t++;
     }
@@ -25,8 +24,7 @@ case_insensitive_match(const char *s, const char *t)
    the successfully parsed portion of the string.  On failure, return -1.0 and
    set *endptr to point to the start of the string. */
 double
-_Py_parse_inf_or_nan(const char *p, char **endptr)
-{
+_Py_parse_inf_or_nan(const char *p, char **endptr) {
     double retval;
     const char *s;
     int negate = 0;
@@ -35,8 +33,7 @@ _Py_parse_inf_or_nan(const char *p, char **endptr)
     if (*s == '-') {
         negate = 1;
         s++;
-    }
-    else if (*s == '+') {
+    } else if (*s == '+') {
         s++;
     }
     if (case_insensitive_match(s, "inf")) {
@@ -44,19 +41,16 @@ _Py_parse_inf_or_nan(const char *p, char **endptr)
         if (case_insensitive_match(s, "inity"))
             s += 5;
         retval = negate ? -Py_HUGE_VAL : Py_HUGE_VAL;
-    }
-    else if (case_insensitive_match(s, "nan")) {
+    } else if (case_insensitive_match(s, "nan")) {
         s += 3;
         retval = negate ? -fabs(Py_NAN) : fabs(Py_NAN);
-    }
-    else {
+    } else {
         s = p;
         retval = -1.0;
     }
     *endptr = (char *)s;
     return retval;
 }
-
 
 /**
  * _PyOS_ascii_strtod:
@@ -90,8 +84,7 @@ _Py_parse_inf_or_nan(const char *p, char **endptr)
 #if _PY_SHORT_FLOAT_REPR == 1
 
 static double
-_PyOS_ascii_strtod(const char *nptr, char **endptr)
-{
+_PyOS_ascii_strtod(const char *nptr, char **endptr) {
     double result;
     _Py_SET_53BIT_PRECISION_HEADER;
 
@@ -109,7 +102,6 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
         result = _Py_parse_inf_or_nan(nptr, endptr);
 
     return result;
-
 }
 
 #else
@@ -123,8 +115,7 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
 */
 
 static double
-_PyOS_ascii_strtod(const char *nptr, char **endptr)
-{
+_PyOS_ascii_strtod(const char *nptr, char **endptr) {
     char *fail_pos;
     double val;
     struct lconv *locale_data;
@@ -164,14 +155,13 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
     if (*p == '-') {
         negate = 1;
         p++;
-    }
-    else if (*p == '+') {
+    } else if (*p == '+') {
         p++;
     }
 
     /* Some platform strtods accept hex floats; Python shouldn't (at the
        moment), so we check explicitly for strings starting with '0x'. */
-    if (*p == '0' && (*(p+1) == 'x' || *(p+1) == 'X'))
+    if (*p == '0' && (*(p + 1) == 'x' || *(p + 1) == 'X'))
         goto invalid_string;
 
     /* Check that what's left begins with a digit or decimal point */
@@ -179,33 +169,26 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
         goto invalid_string;
 
     digits_pos = p;
-    if (decimal_point[0] != '.' ||
-        decimal_point[1] != 0)
-    {
+    if (decimal_point[0] != '.' || decimal_point[1] != 0) {
         /* Look for a '.' in the input; if present, it'll need to be
            swapped for the current locale's decimal point before we
            call strtod.  On the other hand, if we find the current
            locale's decimal point then the input is invalid. */
-        while (Py_ISDIGIT(*p))
-            p++;
+        while (Py_ISDIGIT(*p)) p++;
 
-        if (*p == '.')
-        {
+        if (*p == '.') {
             decimal_point_pos = p++;
 
             /* locate end of number */
-            while (Py_ISDIGIT(*p))
-                p++;
+            while (Py_ISDIGIT(*p)) p++;
 
             if (*p == 'e' || *p == 'E')
                 p++;
             if (*p == '+' || *p == '-')
                 p++;
-            while (Py_ISDIGIT(*p))
-                p++;
+            while (Py_ISDIGIT(*p)) p++;
             end = p;
-        }
-        else if (strncmp(p, decimal_point, decimal_point_len) == 0)
+        } else if (strncmp(p, decimal_point, decimal_point_len) == 0)
             /* Python bug #1417699 */
             goto invalid_string;
         /* For the other cases, we need not convert the decimal
@@ -216,8 +199,7 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
         char *copy, *c;
         /* Create a copy of the input, with the '.' converted to the
            locale-specific decimal point */
-        copy = (char *)PyMem_Malloc(end - digits_pos +
-                                    1 + decimal_point_len);
+        copy = (char *)PyMem_Malloc(end - digits_pos + 1 + decimal_point_len);
         if (copy == NULL) {
             *endptr = (char *)nptr;
             errno = ENOMEM;
@@ -229,28 +211,23 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
         c += decimal_point_pos - digits_pos;
         memcpy(c, decimal_point, decimal_point_len);
         c += decimal_point_len;
-        memcpy(c, decimal_point_pos + 1,
-               end - (decimal_point_pos + 1));
+        memcpy(c, decimal_point_pos + 1, end - (decimal_point_pos + 1));
         c += end - (decimal_point_pos + 1);
         *c = 0;
 
         val = strtod(copy, &fail_pos);
 
-        if (fail_pos)
-        {
+        if (fail_pos) {
             if (fail_pos > decimal_point_pos)
-                fail_pos = (char *)digits_pos +
-                    (fail_pos - copy) -
-                    (decimal_point_len - 1);
+                fail_pos =
+                    (char *)digits_pos + (fail_pos - copy) - (decimal_point_len - 1);
             else
-                fail_pos = (char *)digits_pos +
-                    (fail_pos - copy);
+                fail_pos = (char *)digits_pos + (fail_pos - copy);
         }
 
         PyMem_Free(copy);
 
-    }
-    else {
+    } else {
         val = strtod(digits_pos, &fail_pos);
     }
 
@@ -263,8 +240,8 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
 
     return val;
 
-  invalid_string:
-    *endptr = (char*)nptr;
+invalid_string:
+    *endptr = (char *)nptr;
     errno = EINVAL;
     return -1.0;
 }
@@ -296,11 +273,8 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
 */
 
 double
-PyOS_string_to_double(const char *s,
-                      char **endptr,
-                      PyObject *overflow_exception)
-{
-    double x, result=-1.0;
+PyOS_string_to_double(const char *s, char **endptr, PyObject *overflow_exception) {
+    double x, result = -1.0;
     char *fail_pos;
 
     errno = 0;
@@ -309,19 +283,27 @@ PyOS_string_to_double(const char *s,
     if (errno == ENOMEM) {
         PyErr_NoMemory();
         fail_pos = (char *)s;
-    }
-    else if (!endptr && (fail_pos == s || *fail_pos != '\0'))
-        PyErr_Format(PyExc_ValueError,
-                      "could not convert string to float: "
-                      "'%.200s'", s);
+    } else if (!endptr && (fail_pos == s || *fail_pos != '\0'))
+        PyErr_Format(
+            PyExc_ValueError,
+            "could not convert string to float: "
+            "'%.200s'",
+            s
+        );
     else if (fail_pos == s)
-        PyErr_Format(PyExc_ValueError,
-                      "could not convert string to float: "
-                      "'%.200s'", s);
+        PyErr_Format(
+            PyExc_ValueError,
+            "could not convert string to float: "
+            "'%.200s'",
+            s
+        );
     else if (errno == ERANGE && fabs(x) >= 1.0 && overflow_exception)
-        PyErr_Format(overflow_exception,
-                      "value too large to convert to float: "
-                      "'%.200s'", s);
+        PyErr_Format(
+            overflow_exception,
+            "value too large to convert to float: "
+            "'%.200s'",
+            s
+        );
     else
         result = x;
 
@@ -343,9 +325,13 @@ PyOS_string_to_double(const char *s,
 */
 PyObject *
 _Py_string_to_number_with_underscores(
-    const char *s, Py_ssize_t orig_len, const char *what, PyObject *obj, void *arg,
-    PyObject *(*innerfunc)(const char *, Py_ssize_t, void *))
-{
+    const char *s,
+    Py_ssize_t orig_len,
+    const char *what,
+    PyObject *obj,
+    void *arg,
+    PyObject *(*innerfunc)(const char *, Py_ssize_t, void *)
+) {
     char prev;
     const char *p, *last;
     char *dup, *end;
@@ -370,8 +356,7 @@ _Py_string_to_number_with_underscores(
             if (!(prev >= '0' && prev <= '9')) {
                 goto error;
             }
-        }
-        else {
+        } else {
             *end++ = *p;
             /* Underscores are only allowed before digits. */
             if (prev == '_' && !(*p >= '0' && *p <= '9')) {
@@ -393,11 +378,15 @@ _Py_string_to_number_with_underscores(
     PyMem_Free(dup);
     return result;
 
-  error:
+error:
     PyMem_Free(dup);
-    PyErr_Format(PyExc_ValueError,
-                 "could not convert string to %s: "
-                 "%R", what, obj);
+    PyErr_Format(
+        PyExc_ValueError,
+        "could not convert string to %s: "
+        "%R",
+        what,
+        obj
+    );
     return NULL;
 }
 
@@ -406,9 +395,7 @@ _Py_string_to_number_with_underscores(
 /* Given a string that may have a decimal point in the current
    locale, change it back to a dot.  Since the string cannot get
    longer, no need for a maximum buffer size parameter. */
-Py_LOCAL_INLINE(void)
-change_decimal_from_locale_to_dot(char* buffer)
-{
+Py_LOCAL_INLINE(void) change_decimal_from_locale_to_dot(char *buffer) {
     struct lconv *locale_data = localeconv();
     const char *decimal_point = locale_data->decimal_point;
 
@@ -417,24 +404,19 @@ change_decimal_from_locale_to_dot(char* buffer)
 
         if (*buffer == '+' || *buffer == '-')
             buffer++;
-        while (Py_ISDIGIT(*buffer))
-            buffer++;
+        while (Py_ISDIGIT(*buffer)) buffer++;
         if (strncmp(buffer, decimal_point, decimal_point_len) == 0) {
             *buffer = '.';
             buffer++;
             if (decimal_point_len > 1) {
                 /* buffer needs to get smaller */
-                size_t rest_len = strlen(buffer +
-                                     (decimal_point_len - 1));
-                memmove(buffer,
-                    buffer + (decimal_point_len - 1),
-                    rest_len);
+                size_t rest_len = strlen(buffer + (decimal_point_len - 1));
+                memmove(buffer, buffer + (decimal_point_len - 1), rest_len);
                 buffer[rest_len] = 0;
             }
         }
     }
 }
-
 
 /* From the C99 standard, section 7.19.6:
 The exponent always contains at least two digits, and only as many more digits
@@ -444,9 +426,7 @@ as necessary to represent the exponent.
 
 /* Ensure that any exponent, if present, is at least MIN_EXPONENT_DIGITS
    in length. */
-Py_LOCAL_INLINE(void)
-ensure_minimum_exponent_length(char* buffer, size_t buf_size)
-{
+Py_LOCAL_INLINE(void) ensure_minimum_exponent_length(char *buffer, size_t buf_size) {
     char *p = strpbrk(buffer, "eE");
     if (p && (*(p + 1) == '-' || *(p + 1) == '+')) {
         char *start = p + 2;
@@ -473,16 +453,14 @@ ensure_minimum_exponent_length(char* buffer, size_t buf_size)
         if (exponent_digit_cnt == MIN_EXPONENT_DIGITS) {
             /* If there are 2 exactly digits, we're done,
                regardless of what they contain */
-        }
-        else if (exponent_digit_cnt > MIN_EXPONENT_DIGITS) {
+        } else if (exponent_digit_cnt > MIN_EXPONENT_DIGITS) {
             int extra_zeros_cnt;
 
             /* There are more than 2 digits in the exponent.  See
                if we can delete some of the leading zeros */
             if (significant_digit_cnt < MIN_EXPONENT_DIGITS)
                 significant_digit_cnt = MIN_EXPONENT_DIGITS;
-            extra_zeros_cnt = exponent_digit_cnt -
-                significant_digit_cnt;
+            extra_zeros_cnt = exponent_digit_cnt - significant_digit_cnt;
 
             /* Delete extra_zeros_cnt worth of characters from the
                front of the exponent */
@@ -490,18 +468,13 @@ ensure_minimum_exponent_length(char* buffer, size_t buf_size)
 
             /* Add one to significant_digit_cnt to copy the
                trailing 0 byte, thus setting the length */
-            memmove(start,
-                start + extra_zeros_cnt,
-                significant_digit_cnt + 1);
-        }
-        else {
+            memmove(start, start + extra_zeros_cnt, significant_digit_cnt + 1);
+        } else {
             /* If there are fewer than 2 digits, add zeros
                until there are 2, if there's enough room */
             int zeros = MIN_EXPONENT_DIGITS - exponent_digit_cnt;
-            if (start + zeros + exponent_digit_cnt + 1
-                  < buffer + buf_size) {
-                memmove(start + zeros, start,
-                    exponent_digit_cnt + 1);
+            if (start + zeros + exponent_digit_cnt + 1 < buffer + buf_size) {
+                memmove(start + zeros, start, exponent_digit_cnt + 1);
                 memset(start, '0', zeros);
             }
         }
@@ -512,43 +485,37 @@ ensure_minimum_exponent_length(char* buffer, size_t buf_size)
    remove the decimal point if all digits following it are zero.  The numeric
    string must end in '\0', and should not have any leading or trailing
    whitespace.  Assumes that the decimal point is '.'. */
-Py_LOCAL_INLINE(void)
-remove_trailing_zeros(char *buffer)
-{
+Py_LOCAL_INLINE(void) remove_trailing_zeros(char *buffer) {
     char *old_fraction_end, *new_fraction_end, *end, *p;
 
     p = buffer;
     if (*p == '-' || *p == '+')
         /* Skip leading sign, if present */
         ++p;
-    while (Py_ISDIGIT(*p))
-        ++p;
+    while (Py_ISDIGIT(*p)) ++p;
 
     /* if there's no decimal point there's nothing to do */
     if (*p++ != '.')
         return;
 
     /* scan any digits after the point */
-    while (Py_ISDIGIT(*p))
-        ++p;
+    while (Py_ISDIGIT(*p)) ++p;
     old_fraction_end = p;
 
     /* scan up to ending '\0' */
-    while (*p != '\0')
-        p++;
+    while (*p != '\0') p++;
     /* +1 to make sure that we move the null byte as well */
-    end = p+1;
+    end = p + 1;
 
     /* scan back from fraction_end, looking for removable zeros */
     p = old_fraction_end;
-    while (*(p-1) == '0')
-        --p;
+    while (*(p - 1) == '0') --p;
     /* and remove point if we've got that far */
-    if (*(p-1) == '.')
+    if (*(p - 1) == '.')
         --p;
     new_fraction_end = p;
 
-    memmove(new_fraction_end, old_fraction_end, end-old_fraction_end);
+    memmove(new_fraction_end, old_fraction_end, end - old_fraction_end);
 }
 
 /* Ensure that buffer has a decimal point in it.  The decimal point will not
@@ -559,8 +526,7 @@ remove_trailing_zeros(char *buffer)
    Returns a pointer to the fixed buffer, or NULL on failure.
 */
 Py_LOCAL_INLINE(char *)
-ensure_decimal_point(char* buffer, size_t buf_size, int precision)
-{
+    ensure_decimal_point(char *buffer, size_t buf_size, int precision) {
     int digit_count, insert_count = 0, convert_to_exp = 0;
     const char *chars_to_insert;
     char *digits_start;
@@ -572,16 +538,14 @@ ensure_decimal_point(char* buffer, size_t buf_size, int precision)
            ever be '-', but it can't hurt to check for both. */
         ++p;
     digits_start = p;
-    while (*p && Py_ISDIGIT(*p))
-        ++p;
+    while (*p && Py_ISDIGIT(*p)) ++p;
     digit_count = Py_SAFE_DOWNCAST(p - digits_start, Py_ssize_t, int);
 
     if (*p == '.') {
-        if (Py_ISDIGIT(*(p+1))) {
+        if (Py_ISDIGIT(*(p + 1))) {
             /* Nothing to do, we already have a decimal
                point and a digit after it */
-        }
-        else {
+        } else {
             /* We have a decimal point, but no following
                digit.  Insert a zero after the decimal. */
             /* can't ever get here via PyOS_double_to_string */
@@ -590,8 +554,7 @@ ensure_decimal_point(char* buffer, size_t buf_size, int precision)
             chars_to_insert = "0";
             insert_count = 1;
         }
-    }
-    else if (!(*p == 'e' || *p == 'E')) {
+    } else if (!(*p == 'e' || *p == 'E')) {
         /* Don't add ".0" if we have an exponent. */
         if (digit_count == precision) {
             /* issue 5864: don't add a trailing .0 in the case
@@ -603,8 +566,7 @@ ensure_decimal_point(char* buffer, size_t buf_size, int precision)
                for infs and nans, so we must be at the end of the
                string. */
             assert(*p == '\0');
-        }
-        else {
+        } else {
             assert(precision == -1 || digit_count < precision);
             chars_to_insert = ".0";
             insert_count = 2;
@@ -616,10 +578,8 @@ ensure_decimal_point(char* buffer, size_t buf_size, int precision)
             /* If there is not enough room in the buffer
                for the additional text, just skip it.  It's
                not worth generating an error over. */
-        }
-        else {
-            memmove(p + insert_count, p,
-                buffer + strlen(buffer) - p + 1);
+        } else {
+            memmove(p + insert_count, p, buffer + strlen(buffer) - p + 1);
             memcpy(p, chars_to_insert, insert_count);
         }
     }
@@ -629,19 +589,18 @@ ensure_decimal_point(char* buffer, size_t buf_size, int precision)
         p = digits_start;
         /* insert decimal point */
         assert(digit_count >= 1);
-        memmove(p+2, p+1, digit_count); /* safe, but overwrites nul */
+        memmove(p + 2, p + 1, digit_count); /* safe, but overwrites nul */
         p[1] = '.';
-        p += digit_count+1;
-        assert(p <= buf_size+buffer);
-        buf_avail = buf_size+buffer-p;
+        p += digit_count + 1;
+        assert(p <= buf_size + buffer);
+        buf_avail = buf_size + buffer - p;
         if (buf_avail == 0)
             return NULL;
         /* Add exponent.  It's okay to use lower case 'e': we only
            arrive here as a result of using the empty format code or
            repr/str builtins and those never want an upper case 'E' */
-        written = PyOS_snprintf(p, buf_avail, "e%+.02d", digit_count-1);
-        if (!(0 <= written &&
-              written < Py_SAFE_DOWNCAST(buf_avail, size_t, int)))
+        written = PyOS_snprintf(p, buf_avail, "e%+.02d", digit_count - 1);
+        if (!(0 <= written && written < Py_SAFE_DOWNCAST(buf_avail, size_t, int)))
             /* output truncated, or something else bad happened */
             return NULL;
         remove_trailing_zeros(buffer);
@@ -673,12 +632,9 @@ ensure_decimal_point(char* buffer, size_t buf_size, int precision)
  * On failure returns NULL but does not set any Python exception.
  **/
 static char *
-_PyOS_ascii_formatd(char       *buffer,
-                   size_t      buf_size,
-                   const char *format,
-                   double      d,
-                   int         precision)
-{
+_PyOS_ascii_formatd(
+    char *buffer, size_t buf_size, const char *format, double d, int precision
+) {
     char format_char;
     size_t format_len = strlen(format);
 
@@ -704,9 +660,8 @@ _PyOS_ascii_formatd(char       *buffer,
        interface to this function is not very good, but changing it is
        difficult because it's a public API. */
 
-    if (!(format_char == 'e' || format_char == 'E' ||
-          format_char == 'f' || format_char == 'F' ||
-          format_char == 'g' || format_char == 'G' ||
+    if (!(format_char == 'e' || format_char == 'E' || format_char == 'f' ||
+          format_char == 'F' || format_char == 'g' || format_char == 'G' ||
           format_char == 'Z'))
         return NULL;
 
@@ -723,7 +678,6 @@ _PyOS_ascii_formatd(char       *buffer,
         tmp_format[format_len - 1] = 'g';
         format = tmp_format;
     }
-
 
     /* Have PyOS_snprintf do the hard work */
     PyOS_snprintf(buffer, buf_size, format, d);
@@ -754,12 +708,10 @@ _PyOS_ascii_formatd(char       *buffer,
 
 /* The fallback code to use if _Py_dg_dtoa is not available. */
 
-char * PyOS_double_to_string(double val,
-                                         char format_code,
-                                         int precision,
-                                         int flags,
-                                         int *type)
-{
+char *
+PyOS_double_to_string(
+    double val, char format_code, int precision, int flags, int *type
+) {
     char format[32];
     Py_ssize_t bufsize;
     char *buf;
@@ -768,40 +720,40 @@ char * PyOS_double_to_string(double val,
 
     /* Validate format_code, and map upper and lower case */
     switch (format_code) {
-    case 'e':          /* exponent */
-    case 'f':          /* fixed */
-    case 'g':          /* general */
-        break;
-    case 'E':
-        upper = 1;
-        format_code = 'e';
-        break;
-    case 'F':
-        upper = 1;
-        format_code = 'f';
-        break;
-    case 'G':
-        upper = 1;
-        format_code = 'g';
-        break;
-    case 'r':          /* repr format */
-        /* Supplied precision is unused, must be 0. */
-        if (precision != 0) {
+        case 'e': /* exponent */
+        case 'f': /* fixed */
+        case 'g': /* general */
+            break;
+        case 'E':
+            upper = 1;
+            format_code = 'e';
+            break;
+        case 'F':
+            upper = 1;
+            format_code = 'f';
+            break;
+        case 'G':
+            upper = 1;
+            format_code = 'g';
+            break;
+        case 'r': /* repr format */
+            /* Supplied precision is unused, must be 0. */
+            if (precision != 0) {
+                PyErr_BadInternalCall();
+                return NULL;
+            }
+            /* The repr() precision (17 significant decimal digits) is the
+               minimal number that is guaranteed to have enough precision
+               so that if the number is read back in the exact same binary
+               value is recreated.  This is true for IEEE floating point
+               by design, and also happens to work for all other modern
+               hardware. */
+            precision = 17;
+            format_code = 'g';
+            break;
+        default:
             PyErr_BadInternalCall();
             return NULL;
-        }
-        /* The repr() precision (17 significant decimal digits) is the
-           minimal number that is guaranteed to have enough precision
-           so that if the number is read back in the exact same binary
-           value is recreated.  This is true for IEEE floating point
-           by design, and also happens to work for all other modern
-           hardware. */
-        precision = 17;
-        format_code = 'g';
-        break;
-    default:
-        PyErr_BadInternalCall();
-        return NULL;
     }
 
     /* Here's a quick-and-dirty calculation to figure out how big a buffer
@@ -849,7 +801,7 @@ char * PyOS_double_to_string(double val,
         bufsize = 25 + precision;
         if (format_code == 'f' && fabs(val) >= 1.0) {
             frexp(val, &exp);
-            bufsize += exp/3;
+            bufsize += exp / 3;
         }
     }
 
@@ -874,9 +826,14 @@ char * PyOS_double_to_string(double val,
         if (flags & Py_DTSF_ADD_DOT_0)
             format_code = 'Z';
 
-        PyOS_snprintf(format, sizeof(format), "%%%s.%i%c",
-                      (flags & Py_DTSF_ALT ? "#" : ""), precision,
-                      format_code);
+        PyOS_snprintf(
+            format,
+            sizeof(format),
+            "%%%s.%i%c",
+            (flags & Py_DTSF_ALT ? "#" : ""),
+            precision,
+            format_code
+        );
         _PyOS_ascii_formatd(buf, bufsize, format, val, precision);
 
         if (flags & Py_DTSF_NO_NEG_0 && buf[0] == '-') {
@@ -887,7 +844,7 @@ char * PyOS_double_to_string(double val,
             if (*buf2 == 0 || *buf2 == 'e') {
                 size_t len = buf2 - buf + strlen(buf2);
                 assert(buf[len] == 0);
-                memmove(buf, buf+1, len);
+                memmove(buf, buf + 1, len);
             }
         }
     }
@@ -898,15 +855,14 @@ char * PyOS_double_to_string(double val,
         size_t len = strlen(buf);
         /* the bufsize calculations above should ensure that we've got
            space to add a sign */
-        assert((size_t)bufsize >= len+2);
-        memmove(buf+1, buf, len+1);
+        assert((size_t)bufsize >= len + 2);
+        memmove(buf + 1, buf, len + 1);
         buf[0] = '+';
     }
     if (upper) {
         /* Convert to upper case. */
         char *p1;
-        for (p1 = buf; *p1; p1++)
-            *p1 = Py_TOUPPER(*p1);
+        for (p1 = buf; *p1; p1++) *p1 = Py_TOUPPER(*p1);
     }
 
     if (type)
@@ -925,17 +881,16 @@ char * PyOS_double_to_string(double val,
 #define OFS_E 2
 
 /* The lengths of these are known to the code below, so don't change them */
-static const char * const lc_float_strings[] = {
+static const char *const lc_float_strings[] = {
     "inf",
     "nan",
     "e",
 };
-static const char * const uc_float_strings[] = {
+static const char *const uc_float_strings[] = {
     "INF",
     "NAN",
     "E",
 };
-
 
 /* Convert a double d to a string, and return a PyMem_Malloc'd block of
    memory contain the resulting string.
@@ -966,12 +921,18 @@ static const char * const uc_float_strings[] = {
  */
 
 static char *
-format_float_short(double d, char format_code,
-                   int mode, int precision,
-                   int always_add_sign, int add_dot_0_if_integer,
-                   int use_alt_formatting, int no_negative_zero,
-                   const char * const *float_strings, int *type)
-{
+format_float_short(
+    double d,
+    char format_code,
+    int mode,
+    int precision,
+    int always_add_sign,
+    int add_dot_0_if_integer,
+    int use_alt_formatting,
+    int no_negative_zero,
+    const char *const *float_strings,
+    int *type
+) {
     char *buf = NULL;
     char *p = NULL;
     Py_ssize_t bufsize = 0;
@@ -983,8 +944,7 @@ format_float_short(double d, char format_code,
     /* _Py_dg_dtoa returns a digit string (no decimal point or exponent).
        Must be matched by a call to _Py_dg_freedtoa. */
     _Py_SET_53BIT_PRECISION_START;
-    digits = _Py_dg_dtoa(d, mode, precision, &decpt_as_int, &sign,
-                         &digits_end);
+    digits = _Py_dg_dtoa(d, mode, precision, &decpt_as_int, &sign, &digits_end);
     _Py_SET_53BIT_PRECISION_END;
 
     decpt = (Py_ssize_t)decpt_as_int;
@@ -997,7 +957,7 @@ format_float_short(double d, char format_code,
     digits_len = digits_end - digits;
 
     if (no_negative_zero && sign == 1 &&
-            (digits_len == 0 || (digits_len == 1 && digits[0] == '0'))) {
+        (digits_len == 0 || (digits_len == 1 && digits[0] == '0'))) {
         sign = 0;
     }
 
@@ -1021,8 +981,7 @@ format_float_short(double d, char format_code,
 
         if (sign == 1) {
             *p++ = '-';
-        }
-        else if (always_add_sign) {
+        } else if (always_add_sign) {
             *p++ = '+';
         }
         if (digits[0] == 'i' || digits[0] == 'I') {
@@ -1031,15 +990,13 @@ format_float_short(double d, char format_code,
 
             if (type)
                 *type = Py_DTST_INFINITE;
-        }
-        else if (digits[0] == 'n' || digits[0] == 'N') {
+        } else if (digits[0] == 'n' || digits[0] == 'N') {
             strncpy(p, float_strings[OFS_NAN], 3);
             p += 3;
 
             if (type)
                 *type = Py_DTST_NAN;
-        }
-        else {
+        } else {
             /* shouldn't get here: Gay's code should always return
                something starting with a digit, an 'I',  or 'N' */
             Py_UNREACHABLE();
@@ -1050,7 +1007,6 @@ format_float_short(double d, char format_code,
     /* The result must be finite (not inf or nan). */
     if (type)
         *type = Py_DTST_FINITE;
-
 
     /* We got digits back, format them.  We may need to pad 'digits'
        either on the left or right (or both) with extra zeros, so in
@@ -1076,32 +1032,32 @@ format_float_short(double d, char format_code,
        and 'vdigits_end'. */
     vdigits_end = digits_len;
     switch (format_code) {
-    case 'e':
-        use_exp = 1;
-        vdigits_end = precision;
-        break;
-    case 'f':
-        vdigits_end = decpt + precision;
-        break;
-    case 'g':
-        if (decpt <= -4 || decpt >
-            (add_dot_0_if_integer ? precision-1 : precision))
+        case 'e':
             use_exp = 1;
-        if (use_alt_formatting)
             vdigits_end = precision;
-        break;
-    case 'r':
-        /* convert to exponential format at 1e16.  We used to convert
-           at 1e17, but that gives odd-looking results for some values
-           when a 16-digit 'shortest' repr is padded with bogus zeros.
-           For example, repr(2e16+8) would give 20000000000000010.0;
-           the true value is 20000000000000008.0. */
-        if (decpt <= -4 || decpt > 16)
-            use_exp = 1;
-        break;
-    default:
-        PyErr_BadInternalCall();
-        goto exit;
+            break;
+        case 'f':
+            vdigits_end = decpt + precision;
+            break;
+        case 'g':
+            if (decpt <= -4 ||
+                decpt > (add_dot_0_if_integer ? precision - 1 : precision))
+                use_exp = 1;
+            if (use_alt_formatting)
+                vdigits_end = precision;
+            break;
+        case 'r':
+            /* convert to exponential format at 1e16.  We used to convert
+               at 1e17, but that gives odd-looking results for some values
+               when a 16-digit 'shortest' repr is padded with bogus zeros.
+               For example, repr(2e16+8) would give 20000000000000010.0;
+               the true value is 20000000000000008.0. */
+            if (decpt <= -4 || decpt > 16)
+                use_exp = 1;
+            break;
+        default:
+            PyErr_BadInternalCall();
+            goto exit;
     }
 
     /* if using an exponent, reset decimal point position to 1 and adjust
@@ -1112,16 +1068,14 @@ format_float_short(double d, char format_code,
     }
     /* ensure vdigits_start < decpt <= vdigits_end, or vdigits_start <
        decpt < vdigits_end if add_dot_0_if_integer and no exponent */
-    vdigits_start = decpt <= 0 ? decpt-1 : 0;
+    vdigits_start = decpt <= 0 ? decpt - 1 : 0;
     if (!use_exp && add_dot_0_if_integer)
         vdigits_end = vdigits_end > decpt ? vdigits_end : decpt + 1;
     else
         vdigits_end = vdigits_end > decpt ? vdigits_end : decpt;
 
     /* double check inequalities */
-    assert(vdigits_start <= 0 &&
-           0 <= digits_len &&
-           digits_len <= vdigits_end);
+    assert(vdigits_start <= 0 && 0 <= digits_len && digits_len <= vdigits_end);
     /* decimal point should be in (vdigits_start, vdigits_end] */
     assert(vdigits_start < decpt && decpt <= vdigits_end);
 
@@ -1157,41 +1111,38 @@ format_float_short(double d, char format_code,
        so we include exactly one decimal point */
     /* Zero padding on left of digit string */
     if (decpt <= 0) {
-        memset(p, '0', decpt-vdigits_start);
+        memset(p, '0', decpt - vdigits_start);
         p += decpt - vdigits_start;
         *p++ = '.';
-        memset(p, '0', 0-decpt);
-        p += 0-decpt;
-    }
-    else {
-        memset(p, '0', 0-vdigits_start);
+        memset(p, '0', 0 - decpt);
+        p += 0 - decpt;
+    } else {
+        memset(p, '0', 0 - vdigits_start);
         p += 0 - vdigits_start;
     }
 
     /* Digits, with included decimal point */
     if (0 < decpt && decpt <= digits_len) {
-        strncpy(p, digits, decpt-0);
-        p += decpt-0;
+        strncpy(p, digits, decpt - 0);
+        p += decpt - 0;
         *p++ = '.';
-        strncpy(p, digits+decpt, digits_len-decpt);
-        p += digits_len-decpt;
-    }
-    else {
+        strncpy(p, digits + decpt, digits_len - decpt);
+        p += digits_len - decpt;
+    } else {
         strncpy(p, digits, digits_len);
         p += digits_len;
     }
 
     /* And zeros on the right */
     if (digits_len < decpt) {
-        memset(p, '0', decpt-digits_len);
-        p += decpt-digits_len;
+        memset(p, '0', decpt - digits_len);
+        p += decpt - digits_len;
         *p++ = '.';
-        memset(p, '0', vdigits_end-decpt);
-        p += vdigits_end-decpt;
-    }
-    else {
-        memset(p, '0', vdigits_end-digits_len);
-        p += vdigits_end-digits_len;
+        memset(p, '0', vdigits_end - decpt);
+        p += vdigits_end - decpt;
+    } else {
+        memset(p, '0', vdigits_end - digits_len);
+        p += vdigits_end - digits_len;
     }
 
     /* Delete a trailing decimal pt unless using alternative formatting. */
@@ -1204,12 +1155,12 @@ format_float_short(double d, char format_code,
         exp_len = sprintf(p, "%+.02d", exp);
         p += exp_len;
     }
-  exit:
+exit:
     if (buf) {
         *p = '\0';
         /* It's too late if this fails, as we've already stepped on
            memory that isn't ours. But it's an okay debugging test. */
-        assert(p-buf < bufsize);
+        assert(p - buf < bufsize);
     }
     if (digits)
         _Py_dg_freedtoa(digits);
@@ -1217,70 +1168,73 @@ format_float_short(double d, char format_code,
     return buf;
 }
 
-
-char * PyOS_double_to_string(double val,
-                                         char format_code,
-                                         int precision,
-                                         int flags,
-                                         int *type)
-{
-    const char * const *float_strings = lc_float_strings;
+char *
+PyOS_double_to_string(
+    double val, char format_code, int precision, int flags, int *type
+) {
+    const char *const *float_strings = lc_float_strings;
     int mode;
 
     /* Validate format_code, and map upper and lower case. Compute the
        mode and make any adjustments as needed. */
     switch (format_code) {
-    /* exponent */
-    case 'E':
-        float_strings = uc_float_strings;
-        format_code = 'e';
-        _Py_FALLTHROUGH;
-    case 'e':
-        mode = 2;
-        precision++;
-        break;
+        /* exponent */
+        case 'E':
+            float_strings = uc_float_strings;
+            format_code = 'e';
+            _Py_FALLTHROUGH;
+        case 'e':
+            mode = 2;
+            precision++;
+            break;
 
-    /* fixed */
-    case 'F':
-        float_strings = uc_float_strings;
-        format_code = 'f';
-        _Py_FALLTHROUGH;
-    case 'f':
-        mode = 3;
-        break;
+        /* fixed */
+        case 'F':
+            float_strings = uc_float_strings;
+            format_code = 'f';
+            _Py_FALLTHROUGH;
+        case 'f':
+            mode = 3;
+            break;
 
-    /* general */
-    case 'G':
-        float_strings = uc_float_strings;
-        format_code = 'g';
-        _Py_FALLTHROUGH;
-    case 'g':
-        mode = 2;
-        /* precision 0 makes no sense for 'g' format; interpret as 1 */
-        if (precision == 0)
-            precision = 1;
-        break;
+        /* general */
+        case 'G':
+            float_strings = uc_float_strings;
+            format_code = 'g';
+            _Py_FALLTHROUGH;
+        case 'g':
+            mode = 2;
+            /* precision 0 makes no sense for 'g' format; interpret as 1 */
+            if (precision == 0)
+                precision = 1;
+            break;
 
-    /* repr format */
-    case 'r':
-        mode = 0;
-        /* Supplied precision is unused, must be 0. */
-        if (precision != 0) {
+        /* repr format */
+        case 'r':
+            mode = 0;
+            /* Supplied precision is unused, must be 0. */
+            if (precision != 0) {
+                PyErr_BadInternalCall();
+                return NULL;
+            }
+            break;
+
+        default:
             PyErr_BadInternalCall();
             return NULL;
-        }
-        break;
-
-    default:
-        PyErr_BadInternalCall();
-        return NULL;
     }
 
-    return format_float_short(val, format_code, mode, precision,
-                              flags & Py_DTSF_SIGN,
-                              flags & Py_DTSF_ADD_DOT_0,
-                              flags & Py_DTSF_ALT,
-                              flags & Py_DTSF_NO_NEG_0,
-                              float_strings, type);
+    return format_float_short(
+        val,
+        format_code,
+        mode,
+        precision,
+        flags & Py_DTSF_SIGN,
+        flags & Py_DTSF_ADD_DOT_0,
+        flags & Py_DTSF_ALT,
+        flags & Py_DTSF_NO_NEG_0,
+        float_strings,
+        type
+    );
 }
 #endif  // _PY_SHORT_FLOAT_REPR == 1

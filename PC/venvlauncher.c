@@ -24,14 +24,14 @@
 #define MAXLEN PATHCCH_MAX_CCH
 #define MSGSIZE 1024
 
-#define RC_NO_STD_HANDLES   100
-#define RC_CREATE_PROCESS   101
-#define RC_NO_PYTHON        103
-#define RC_NO_MEMORY        104
-#define RC_NO_VENV_CFG      106
-#define RC_BAD_VENV_CFG     107
-#define RC_NO_COMMANDLINE   108
-#define RC_INTERNAL_ERROR   109
+#define RC_NO_STD_HANDLES 100
+#define RC_CREATE_PROCESS 101
+#define RC_NO_PYTHON 103
+#define RC_NO_MEMORY 104
+#define RC_NO_VENV_CFG 106
+#define RC_BAD_VENV_CFG 107
+#define RC_NO_COMMANDLINE 108
+#define RC_INTERNAL_ERROR 109
 
 // This should always be defined when we build for real,
 // but it's handy to have a definition for quick testing
@@ -43,11 +43,10 @@
 #define CFGNAME L"pyvenv.cfg"
 #endif
 
-static FILE * log_fp = NULL;
+static FILE *log_fp = NULL;
 
 void
-debug(wchar_t * format, ...)
-{
+debug(wchar_t *format, ...) {
     va_list va;
 
     if (log_fp != NULL) {
@@ -70,20 +69,21 @@ debug(wchar_t * format, ...)
     }
 }
 
-
 void
-formatWinerror(int rc, wchar_t * message, int size)
-{
+formatWinerror(int rc, wchar_t *message, int size) {
     FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, rc, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        message, size, NULL);
+        NULL,
+        rc,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        message,
+        size,
+        NULL
+    );
 }
 
-
 void
-winerror(int err, wchar_t * format, ... )
-{
+winerror(int err, wchar_t *format, ...) {
     va_list va;
     wchar_t message[MSGSIZE];
     wchar_t win_message[MSGSIZE];
@@ -99,22 +99,18 @@ winerror(int err, wchar_t * format, ... )
 
     formatWinerror(err, win_message, MSGSIZE);
     if (len >= 0) {
-        _snwprintf_s(&message[len], MSGSIZE - len, _TRUNCATE, L": %ls",
-                     win_message);
+        _snwprintf_s(&message[len], MSGSIZE - len, _TRUNCATE, L": %ls", win_message);
     }
 
 #if !defined(_WINDOWS)
     fwprintf(stderr, L"%ls\n", message);
 #else
-    MessageBoxW(NULL, message, L"Python venv launcher is sorry to say ...",
-               MB_OK);
+    MessageBoxW(NULL, message, L"Python venv launcher is sorry to say ...", MB_OK);
 #endif
 }
 
-
 void
-error(wchar_t * format, ... )
-{
+error(wchar_t *format, ...) {
     va_list va;
     wchar_t message[MSGSIZE];
 
@@ -125,45 +121,38 @@ error(wchar_t * format, ... )
 #if !defined(_WINDOWS)
     fwprintf(stderr, L"%ls\n", message);
 #else
-    MessageBoxW(NULL, message, L"Python venv launcher is sorry to say ...",
-               MB_OK);
+    MessageBoxW(NULL, message, L"Python venv launcher is sorry to say ...", MB_OK);
 #endif
 }
 
-
 bool
-isEnvVarSet(const wchar_t *name)
-{
+isEnvVarSet(const wchar_t *name) {
     /* only looking for non-empty, which means at least one character
        and the null terminator */
     return GetEnvironmentVariableW(name, NULL, 0) >= 2;
 }
 
-
 bool
-join(wchar_t *buffer, size_t bufferLength, const wchar_t *fragment)
-{
-    if (SUCCEEDED(PathCchCombineEx(buffer, bufferLength, buffer, fragment, PATHCCH_ALLOW_LONG_PATHS))) {
+join(wchar_t *buffer, size_t bufferLength, const wchar_t *fragment) {
+    if (SUCCEEDED(PathCchCombineEx(
+            buffer, bufferLength, buffer, fragment, PATHCCH_ALLOW_LONG_PATHS
+        ))) {
         return true;
     }
     return false;
 }
 
-
 bool
-split_parent(wchar_t *buffer, size_t bufferLength)
-{
+split_parent(wchar_t *buffer, size_t bufferLength) {
     return SUCCEEDED(PathCchRemoveFileSpec(buffer, bufferLength));
 }
-
 
 /*
  * Path calculation
  */
 
 int
-calculate_pyvenvcfg_path(wchar_t *pyvenvcfg_path, size_t maxlen)
-{
+calculate_pyvenvcfg_path(wchar_t *pyvenvcfg_path, size_t maxlen) {
     if (!pyvenvcfg_path) {
         error(L"invalid buffer provided");
         return RC_INTERNAL_ERROR;
@@ -210,22 +199,19 @@ calculate_pyvenvcfg_path(wchar_t *pyvenvcfg_path, size_t maxlen)
     return RC_NO_VENV_CFG;
 }
 
-
 /*
  * pyvenv.cfg parsing
  */
 
 static int
-find_home_value(const char *buffer, DWORD maxlen, const char **start, DWORD *length)
-{
+find_home_value(const char *buffer, DWORD maxlen, const char **start, DWORD *length) {
     if (!buffer || !start || !length) {
         error(L"invalid find_home_value parameters()");
         return 0;
     }
     for (const char *s = strstr(buffer, "home");
          s && ((ptrdiff_t)s - (ptrdiff_t)buffer) < maxlen;
-         s = strstr(s + 1, "\nhome")
-    ) {
+         s = strstr(s + 1, "\nhome")) {
         if (*s == '\n') {
             ++s;
         }
@@ -257,13 +243,17 @@ find_home_value(const char *buffer, DWORD maxlen, const char **start, DWORD *len
     return 0;
 }
 
-
 int
-read_home(const wchar_t *pyvenv_cfg, wchar_t *home_path, size_t maxlen)
-{
-    HANDLE hFile = CreateFileW(pyvenv_cfg, GENERIC_READ,
+read_home(const wchar_t *pyvenv_cfg, wchar_t *home_path, size_t maxlen) {
+    HANDLE hFile = CreateFileW(
+        pyvenv_cfg,
+        GENERIC_READ,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        NULL, OPEN_EXISTING, 0, NULL);
+        NULL,
+        OPEN_EXISTING,
+        0,
+        NULL
+    );
 
     if (hFile == INVALID_HANDLE_VALUE) {
         winerror(GetLastError(), L"failed to open '%ls'", pyvenv_cfg);
@@ -303,10 +293,8 @@ read_home(const wchar_t *pyvenv_cfg, wchar_t *home_path, size_t maxlen)
     return 0;
 }
 
-
 int
-locate_python(wchar_t *path, size_t maxlen)
-{
+locate_python(wchar_t *path, size_t maxlen) {
     if (!join(path, maxlen, EXENAME)) {
         error(L"failed to append %ls to '%ls'", EXENAME, path);
         return RC_NO_MEMORY;
@@ -320,10 +308,8 @@ locate_python(wchar_t *path, size_t maxlen)
     return 0;
 }
 
-
 int
-smuggle_path()
-{
+smuggle_path() {
     wchar_t buffer[MAXLEN];
     // We could use argv[0], but that may be wrong in certain rare cases (if the
     // user is doing something weird like symlinks to venv redirectors), and
@@ -350,22 +336,19 @@ smuggle_path()
  */
 
 static BOOL
-safe_duplicate_handle(HANDLE in, HANDLE * pout, const wchar_t *name)
-{
+safe_duplicate_handle(HANDLE in, HANDLE *pout, const wchar_t *name) {
     BOOL ok;
     HANDLE process = GetCurrentProcess();
     DWORD rc;
 
     *pout = NULL;
-    ok = DuplicateHandle(process, in, process, pout, 0, TRUE,
-                         DUPLICATE_SAME_ACCESS);
+    ok = DuplicateHandle(process, in, process, pout, 0, TRUE, DUPLICATE_SAME_ACCESS);
     if (!ok) {
         rc = GetLastError();
         if (rc == ERROR_INVALID_HANDLE) {
             debug(L"DuplicateHandle(%ls) returned ERROR_INVALID_HANDLE\n", name);
             ok = TRUE;
-        }
-        else {
+        } else {
             debug(L"DuplicateHandle(%ls) returned %d\n", name, rc);
         }
     }
@@ -373,14 +356,12 @@ safe_duplicate_handle(HANDLE in, HANDLE * pout, const wchar_t *name)
 }
 
 static BOOL WINAPI
-ctrl_c_handler(DWORD code)
-{
-    return TRUE;    /* We just ignore all control events. */
+ctrl_c_handler(DWORD code) {
+    return TRUE; /* We just ignore all control events. */
 }
 
 static int
-launch(const wchar_t *executable, wchar_t *cmdline)
-{
+launch(const wchar_t *executable, wchar_t *cmdline) {
     HANDLE job;
     JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
     DWORD rc;
@@ -406,16 +387,18 @@ launch(const wchar_t *executable, wchar_t *cmdline)
 
     debug(L"run_child: about to run '%ls' with '%ls'\n", executable, cmdline);
     job = CreateJobObject(NULL, NULL);
-    ok = QueryInformationJobObject(job, JobObjectExtendedLimitInformation,
-                                   &info, sizeof(info), &rc);
+    ok = QueryInformationJobObject(
+        job, JobObjectExtendedLimitInformation, &info, sizeof(info), &rc
+    );
     if (!ok || (rc != sizeof(info)) || !job) {
         winerror(GetLastError(), L"Job information querying failed");
         return RC_CREATE_PROCESS;
     }
-    info.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE |
-                                             JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
-    ok = SetInformationJobObject(job, JobObjectExtendedLimitInformation, &info,
-                                 sizeof(info));
+    info.BasicLimitInformation.LimitFlags |=
+        JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
+    ok = SetInformationJobObject(
+        job, JobObjectExtendedLimitInformation, &info, sizeof(info)
+    );
     if (!ok) {
         winerror(GetLastError(), L"Job information setting failed");
         return RC_CREATE_PROCESS;
@@ -426,11 +409,14 @@ launch(const wchar_t *executable, wchar_t *cmdline)
     if (!ok) {
         return RC_NO_STD_HANDLES;
     }
-    ok = safe_duplicate_handle(GetStdHandle(STD_OUTPUT_HANDLE), &si.hStdOutput, L"stdout");
+    ok = safe_duplicate_handle(
+        GetStdHandle(STD_OUTPUT_HANDLE), &si.hStdOutput, L"stdout"
+    );
     if (!ok) {
         return RC_NO_STD_HANDLES;
     }
-    ok = safe_duplicate_handle(GetStdHandle(STD_ERROR_HANDLE), &si.hStdError, L"stderr");
+    ok =
+        safe_duplicate_handle(GetStdHandle(STD_ERROR_HANDLE), &si.hStdError, L"stderr");
     if (!ok) {
         return RC_NO_STD_HANDLES;
     }
@@ -442,8 +428,7 @@ launch(const wchar_t *executable, wchar_t *cmdline)
     }
 
     si.dwFlags = STARTF_USESTDHANDLES;
-    ok = CreateProcessW(executable, cmdline, NULL, NULL, TRUE,
-                        0, NULL, NULL, &si, &pi);
+    ok = CreateProcessW(executable, cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
     if (!ok) {
         winerror(GetLastError(), L"Unable to create process using '%ls'", cmdline);
         return RC_CREATE_PROCESS;
@@ -460,10 +445,8 @@ launch(const wchar_t *executable, wchar_t *cmdline)
     return rc;
 }
 
-
 int
-process(int argc, wchar_t ** argv)
-{
+process(int argc, wchar_t **argv) {
     int exitCode;
     wchar_t pyvenvcfg_path[MAXLEN];
     wchar_t home_path[MAXLEN];
@@ -474,36 +457,38 @@ process(int argc, wchar_t ** argv)
     }
 
     exitCode = calculate_pyvenvcfg_path(pyvenvcfg_path, MAXLEN);
-    if (exitCode) return exitCode;
+    if (exitCode)
+        return exitCode;
 
     exitCode = read_home(pyvenvcfg_path, home_path, MAXLEN);
-    if (exitCode) return exitCode;
+    if (exitCode)
+        return exitCode;
 
     exitCode = locate_python(home_path, MAXLEN);
-    if (exitCode) return exitCode;
+    if (exitCode)
+        return exitCode;
 
     // We do not update argv[0] to point at the target runtime, and so we do not
     // pass through our original argv[0] in an environment variable.
     exitCode = smuggle_path();
-    if (exitCode) return exitCode;
+    if (exitCode)
+        return exitCode;
 
     exitCode = launch(home_path, GetCommandLineW());
     return exitCode;
 }
 
-
 #if defined(_WINDOWS)
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                   LPWSTR lpstrCmd, int nShow)
-{
+int WINAPI
+wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpstrCmd, int nShow) {
     return process(__argc, __wargv);
 }
 
 #else
 
-int cdecl wmain(int argc, wchar_t ** argv)
-{
+int cdecl
+wmain(int argc, wchar_t **argv) {
     return process(argc, argv);
 }
 

@@ -5,9 +5,8 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
-
 
 /* _Py_ADJUST_ERANGE1(x)
  * _Py_ADJUST_ERANGE2(x, y)
@@ -30,32 +29,28 @@ extern "C" {
  *        if the returned result is a NaN, or if a C89 box returns HUGE_VAL
  *        in non-overflow cases.
  */
-static inline void _Py_ADJUST_ERANGE1(double x)
-{
+static inline void
+_Py_ADJUST_ERANGE1(double x) {
     if (errno == 0) {
         if (x == Py_HUGE_VAL || x == -Py_HUGE_VAL) {
             errno = ERANGE;
         }
-    }
-    else if (errno == ERANGE && x == 0.0) {
+    } else if (errno == ERANGE && x == 0.0) {
         errno = 0;
     }
 }
 
-static inline void _Py_ADJUST_ERANGE2(double x, double y)
-{
-    if (x == Py_HUGE_VAL || x == -Py_HUGE_VAL ||
-        y == Py_HUGE_VAL || y == -Py_HUGE_VAL)
-    {
+static inline void
+_Py_ADJUST_ERANGE2(double x, double y) {
+    if (x == Py_HUGE_VAL || x == -Py_HUGE_VAL || y == Py_HUGE_VAL ||
+        y == -Py_HUGE_VAL) {
         if (errno == 0) {
             errno = ERANGE;
         }
-    }
-    else if (errno == ERANGE) {
+    } else if (errno == ERANGE) {
         errno = 0;
     }
 }
-
 
 //--- HAVE_PY_SET_53BIT_PRECISION macro ------------------------------------
 //
@@ -81,30 +76,31 @@ static inline void _Py_ADJUST_ERANGE2(double x, double y)
 // The macros are designed to be used within a single C function: see
 // Python/pystrtod.c for an example of their use.
 
-
 // Get and set x87 control word for gcc/x86
 #ifdef HAVE_GCC_ASM_FOR_X87
 #define HAVE_PY_SET_53BIT_PRECISION 1
 
 // Functions defined in Python/pymath.c
-extern unsigned short _Py_get_387controlword(void);
-extern void _Py_set_387controlword(unsigned short);
+extern unsigned short
+_Py_get_387controlword(void);
+extern void
+_Py_set_387controlword(unsigned short);
 
-#define _Py_SET_53BIT_PRECISION_HEADER                                  \
+#define _Py_SET_53BIT_PRECISION_HEADER \
     unsigned short old_387controlword, new_387controlword
-#define _Py_SET_53BIT_PRECISION_START                                   \
-    do {                                                                \
-        old_387controlword = _Py_get_387controlword();                  \
-        new_387controlword = (old_387controlword & ~0x0f00) | 0x0200;   \
-        if (new_387controlword != old_387controlword) {                 \
-            _Py_set_387controlword(new_387controlword);                 \
-        }                                                               \
+#define _Py_SET_53BIT_PRECISION_START                                 \
+    do {                                                              \
+        old_387controlword = _Py_get_387controlword();                \
+        new_387controlword = (old_387controlword & ~0x0f00) | 0x0200; \
+        if (new_387controlword != old_387controlword) {               \
+            _Py_set_387controlword(new_387controlword);               \
+        }                                                             \
     } while (0)
-#define _Py_SET_53BIT_PRECISION_END                                     \
-    do {                                                                \
-        if (new_387controlword != old_387controlword) {                 \
-            _Py_set_387controlword(old_387controlword);                 \
-        }                                                               \
+#define _Py_SET_53BIT_PRECISION_END                     \
+    do {                                                \
+        if (new_387controlword != old_387controlword) { \
+            _Py_set_387controlword(old_387controlword); \
+        }                                               \
     } while (0)
 #endif
 
@@ -113,61 +109,60 @@ extern void _Py_set_387controlword(unsigned short);
 #if defined(_MSC_VER) && !defined(_WIN64) && !defined(_M_ARM)
 #define HAVE_PY_SET_53BIT_PRECISION 1
 
-#include <float.h>                // __control87_2()
+#include <float.h>  // __control87_2()
 
 #define _Py_SET_53BIT_PRECISION_HEADER \
     unsigned int old_387controlword, new_387controlword, out_387controlword
-    // We use the __control87_2 function to set only the x87 control word.
-    // The SSE control word is unaffected.
-#define _Py_SET_53BIT_PRECISION_START                                   \
-    do {                                                                \
-        __control87_2(0, 0, &old_387controlword, NULL);                 \
-        new_387controlword =                                            \
-          (old_387controlword & ~(_MCW_PC | _MCW_RC)) | (_PC_53 | _RC_NEAR); \
-        if (new_387controlword != old_387controlword) {                 \
-            __control87_2(new_387controlword, _MCW_PC | _MCW_RC,        \
-                          &out_387controlword, NULL);                   \
-        }                                                               \
+// We use the __control87_2 function to set only the x87 control word.
+// The SSE control word is unaffected.
+#define _Py_SET_53BIT_PRECISION_START                                            \
+    do {                                                                         \
+        __control87_2(0, 0, &old_387controlword, NULL);                          \
+        new_387controlword =                                                     \
+            (old_387controlword & ~(_MCW_PC | _MCW_RC)) | (_PC_53 | _RC_NEAR);   \
+        if (new_387controlword != old_387controlword) {                          \
+            __control87_2(                                                       \
+                new_387controlword, _MCW_PC | _MCW_RC, &out_387controlword, NULL \
+            );                                                                   \
+        }                                                                        \
     } while (0)
-#define _Py_SET_53BIT_PRECISION_END                                     \
-    do {                                                                \
-        if (new_387controlword != old_387controlword) {                 \
-            __control87_2(old_387controlword, _MCW_PC | _MCW_RC,        \
-                          &out_387controlword, NULL);                   \
-        }                                                               \
+#define _Py_SET_53BIT_PRECISION_END                                              \
+    do {                                                                         \
+        if (new_387controlword != old_387controlword) {                          \
+            __control87_2(                                                       \
+                old_387controlword, _MCW_PC | _MCW_RC, &out_387controlword, NULL \
+            );                                                                   \
+        }                                                                        \
     } while (0)
 #endif
-
 
 // MC68881
 #ifdef HAVE_GCC_ASM_FOR_MC68881
 #define HAVE_PY_SET_53BIT_PRECISION 1
-#define _Py_SET_53BIT_PRECISION_HEADER \
-    unsigned int old_fpcr, new_fpcr
-#define _Py_SET_53BIT_PRECISION_START                                   \
-    do {                                                                \
-        __asm__ ("fmove.l %%fpcr,%0" : "=g" (old_fpcr));                \
-        /* Set double precision / round to nearest.  */                 \
-        new_fpcr = (old_fpcr & ~0xf0) | 0x80;                           \
-        if (new_fpcr != old_fpcr) {                                     \
-              __asm__ volatile ("fmove.l %0,%%fpcr" : : "g" (new_fpcr));\
-        }                                                               \
+#define _Py_SET_53BIT_PRECISION_HEADER unsigned int old_fpcr, new_fpcr
+#define _Py_SET_53BIT_PRECISION_START                                \
+    do {                                                             \
+        __asm__("fmove.l %%fpcr,%0" : "=g"(old_fpcr));               \
+        /* Set double precision / round to nearest.  */              \
+        new_fpcr = (old_fpcr & ~0xf0) | 0x80;                        \
+        if (new_fpcr != old_fpcr) {                                  \
+            __asm__ volatile("fmove.l %0,%%fpcr" : : "g"(new_fpcr)); \
+        }                                                            \
     } while (0)
-#define _Py_SET_53BIT_PRECISION_END                                     \
-    do {                                                                \
-        if (new_fpcr != old_fpcr) {                                     \
-            __asm__ volatile ("fmove.l %0,%%fpcr" : : "g" (old_fpcr));  \
-        }                                                               \
+#define _Py_SET_53BIT_PRECISION_END                                  \
+    do {                                                             \
+        if (new_fpcr != old_fpcr) {                                  \
+            __asm__ volatile("fmove.l %0,%%fpcr" : : "g"(old_fpcr)); \
+        }                                                            \
     } while (0)
 #endif
 
 // Default definitions are empty
 #ifndef _Py_SET_53BIT_PRECISION_HEADER
-#  define _Py_SET_53BIT_PRECISION_HEADER
-#  define _Py_SET_53BIT_PRECISION_START
-#  define _Py_SET_53BIT_PRECISION_END
+#define _Py_SET_53BIT_PRECISION_HEADER
+#define _Py_SET_53BIT_PRECISION_START
+#define _Py_SET_53BIT_PRECISION_END
 #endif
-
 
 //--- _PY_SHORT_FLOAT_REPR macro -------------------------------------------
 
@@ -182,22 +177,21 @@ extern void _Py_set_387controlword(unsigned short);
 //     (extended precision), and we don't know how to change
 //     the rounding precision.
 #if !defined(DOUBLE_IS_LITTLE_ENDIAN_IEEE754) && \
-    !defined(DOUBLE_IS_BIG_ENDIAN_IEEE754) && \
+    !defined(DOUBLE_IS_BIG_ENDIAN_IEEE754) &&    \
     !defined(DOUBLE_IS_ARM_MIXED_ENDIAN_IEEE754)
-#  define _PY_SHORT_FLOAT_REPR 0
+#define _PY_SHORT_FLOAT_REPR 0
 #endif
 
 // Double rounding is symptomatic of use of extended precision on x86.
 // If we're seeing double rounding, and we don't have any mechanism available
 // for changing the FPU rounding precision, then don't use Python/dtoa.c.
 #if defined(X87_DOUBLE_ROUNDING) && !defined(HAVE_PY_SET_53BIT_PRECISION)
-#  define _PY_SHORT_FLOAT_REPR 0
+#define _PY_SHORT_FLOAT_REPR 0
 #endif
 
 #ifndef _PY_SHORT_FLOAT_REPR
-#  define _PY_SHORT_FLOAT_REPR 1
+#define _PY_SHORT_FLOAT_REPR 1
 #endif
-
 
 #ifdef __cplusplus
 }

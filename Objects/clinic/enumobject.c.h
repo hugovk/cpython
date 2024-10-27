@@ -3,66 +3,71 @@ preserve
 [clinic start generated code]*/
 
 #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
-#  include "pycore_gc.h"          // PyGC_Head
-#  include "pycore_runtime.h"     // _Py_ID()
+#include "pycore_gc.h"       // PyGC_Head
+#include "pycore_runtime.h"  // _Py_ID()
 #endif
-#include "pycore_modsupport.h"    // _PyArg_UnpackKeywords()
+#include "pycore_modsupport.h"  // _PyArg_UnpackKeywords()
 
-PyDoc_STRVAR(enum_new__doc__,
-"enumerate(iterable, start=0)\n"
-"--\n"
-"\n"
-"Return an enumerate object.\n"
-"\n"
-"  iterable\n"
-"    an object supporting iteration\n"
-"\n"
-"The enumerate object yields pairs containing a count (from start, which\n"
-"defaults to zero) and a value yielded by the iterable argument.\n"
-"\n"
-"enumerate is useful for obtaining an indexed list:\n"
-"    (0, seq[0]), (1, seq[1]), (2, seq[2]), ...");
+PyDoc_STRVAR(
+    enum_new__doc__,
+    "enumerate(iterable, start=0)\n"
+    "--\n"
+    "\n"
+    "Return an enumerate object.\n"
+    "\n"
+    "  iterable\n"
+    "    an object supporting iteration\n"
+    "\n"
+    "The enumerate object yields pairs containing a count (from start, which\n"
+    "defaults to zero) and a value yielded by the iterable argument.\n"
+    "\n"
+    "enumerate is useful for obtaining an indexed list:\n"
+    "    (0, seq[0]), (1, seq[1]), (2, seq[2]), ..."
+);
 
 static PyObject *
 enum_new_impl(PyTypeObject *type, PyObject *iterable, PyObject *start);
 
 static PyObject *
-enum_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+enum_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 2
+#define NUM_KEYWORDS 2
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(iterable), &_Py_ID(start), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(iterable),
+                &_Py_ID(start),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"iterable", "start", NULL};
+    static const char *const _keywords[] = {"iterable", "start", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "enumerate",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[2];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     Py_ssize_t noptargs = nargs + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 1;
     PyObject *iterable;
     PyObject *start = 0;
 
-    fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 2, 0, argsbuf);
+    fastargs = _PyArg_UnpackKeywords(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 1, 2, 0, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }
@@ -78,18 +83,19 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(reversed_new__doc__,
-"reversed(sequence, /)\n"
-"--\n"
-"\n"
-"Return a reverse iterator over the values of the given sequence.");
+PyDoc_STRVAR(
+    reversed_new__doc__,
+    "reversed(sequence, /)\n"
+    "--\n"
+    "\n"
+    "Return a reverse iterator over the values of the given sequence."
+);
 
 static PyObject *
 reversed_new_impl(PyTypeObject *type, PyObject *seq);
 
 static PyObject *
-reversed_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+reversed_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
     PyTypeObject *base_tp = &PyReversed_Type;
     PyObject *seq;

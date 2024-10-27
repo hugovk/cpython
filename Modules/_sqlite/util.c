@@ -22,17 +22,16 @@
  */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "module.h"
-#include "pycore_long.h"          // _PyLong_AsByteArray()
+#include "pycore_long.h"  // _PyLong_AsByteArray()
 #include "connection.h"
 
 // Returns non-NULL if a new exception should be raised
 static PyObject *
-get_exception_class(pysqlite_state *state, int errorcode)
-{
+get_exception_class(pysqlite_state *state, int errorcode) {
     switch (errorcode) {
         case SQLITE_OK:
             PyErr_Clear();
@@ -72,10 +71,11 @@ get_exception_class(pysqlite_state *state, int errorcode)
 }
 
 static void
-raise_exception(PyObject *type, int errcode, const char *errmsg)
-{
+raise_exception(PyObject *type, int errcode, const char *errmsg) {
     PyObject *exc = NULL;
-    PyObject *args[] = { PyUnicode_FromString(errmsg), };
+    PyObject *args[] = {
+        PyUnicode_FromString(errmsg),
+    };
     if (args[0] == NULL) {
         goto exit;
     }
@@ -99,8 +99,7 @@ raise_exception(PyObject *type, int errcode, const char *errmsg)
     PyObject *name;
     if (error_name) {
         name = PyUnicode_FromString(error_name);
-    }
-    else {
+    } else {
         name = PyUnicode_InternFromString("unknown");
     }
     if (name == NULL) {
@@ -123,8 +122,7 @@ exit:
  * Returns the error code (0 means no error occurred).
  */
 int
-_pysqlite_seterror(pysqlite_state *state, sqlite3 *db)
-{
+_pysqlite_seterror(pysqlite_state *state, sqlite3 *db) {
     int errorcode = sqlite3_errcode(db);
     PyObject *exc_class = get_exception_class(state, errorcode);
     if (exc_class == NULL) {
@@ -140,33 +138,37 @@ _pysqlite_seterror(pysqlite_state *state, sqlite3 *db)
 }
 
 #ifdef WORDS_BIGENDIAN
-# define IS_LITTLE_ENDIAN 0
+#define IS_LITTLE_ENDIAN 0
 #else
-# define IS_LITTLE_ENDIAN 1
+#define IS_LITTLE_ENDIAN 1
 #endif
 
 sqlite_int64
-_pysqlite_long_as_int64(PyObject * py_val)
-{
+_pysqlite_long_as_int64(PyObject *py_val) {
     int overflow;
     long long value = PyLong_AsLongLongAndOverflow(py_val, &overflow);
     if (value == -1 && PyErr_Occurred())
         return -1;
     if (!overflow) {
-# if SIZEOF_LONG_LONG > 8
+#if SIZEOF_LONG_LONG > 8
         if (-0x8000000000000000LL <= value && value <= 0x7FFFFFFFFFFFFFFFLL)
-# endif
+#endif
             return value;
-    }
-    else if (sizeof(value) < sizeof(sqlite_int64)) {
+    } else if (sizeof(value) < sizeof(sqlite_int64)) {
         sqlite_int64 int64val;
-        if (_PyLong_AsByteArray((PyLongObject *)py_val,
-                                (unsigned char *)&int64val, sizeof(int64val),
-                                IS_LITTLE_ENDIAN, 1 /* signed */, 0) >= 0) {
+        if (_PyLong_AsByteArray(
+                (PyLongObject *)py_val,
+                (unsigned char *)&int64val,
+                sizeof(int64val),
+                IS_LITTLE_ENDIAN,
+                1 /* signed */,
+                0
+            ) >= 0) {
             return int64val;
         }
     }
-    PyErr_SetString(PyExc_OverflowError,
-                    "Python int too large to convert to SQLite INTEGER");
+    PyErr_SetString(
+        PyExc_OverflowError, "Python int too large to convert to SQLite INTEGER"
+    );
     return -1;
 }

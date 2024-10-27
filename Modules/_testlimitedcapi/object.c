@@ -1,17 +1,15 @@
 // Need limited C API version 3.13 for Py_GetConstant()
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #if !defined(Py_GIL_DISABLED) && !defined(Py_LIMITED_API)
-#  define Py_LIMITED_API 0x030d0000
+#define Py_LIMITED_API 0x030d0000
 #endif
 
 #include "parts.h"
 #include "util.h"
 
-
 /* Test Py_GetConstant() */
 static PyObject *
-get_constant(PyObject *Py_UNUSED(module), PyObject *args)
-{
+get_constant(PyObject *Py_UNUSED(module), PyObject *args) {
     int constant_id;
     if (!PyArg_ParseTuple(args, "i", &constant_id)) {
         return NULL;
@@ -25,11 +23,9 @@ get_constant(PyObject *Py_UNUSED(module), PyObject *args)
     return obj;
 }
 
-
 /* Test Py_GetConstantBorrowed() */
 static PyObject *
-get_constant_borrowed(PyObject *Py_UNUSED(module), PyObject *args)
-{
+get_constant_borrowed(PyObject *Py_UNUSED(module), PyObject *args) {
     int constant_id;
     if (!PyArg_ParseTuple(args, "i", &constant_id)) {
         return NULL;
@@ -43,11 +39,9 @@ get_constant_borrowed(PyObject *Py_UNUSED(module), PyObject *args)
     return Py_NewRef(obj);
 }
 
-
 /* Test constants */
 static PyObject *
-test_constants(PyObject *Py_UNUSED(module), PyObject *Py_UNUSED(args))
-{
+test_constants(PyObject *Py_UNUSED(module), PyObject *Py_UNUSED(args)) {
     // Test that implementation of constants in the limited C API:
     // check that the C code compiles.
     //
@@ -70,8 +64,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_Object(PyObject *m)
-{
+_PyTestLimitedCAPI_Init_Object(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

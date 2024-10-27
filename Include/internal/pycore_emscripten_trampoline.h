@@ -27,45 +27,51 @@
 
 #if defined(__EMSCRIPTEN__) && defined(PY_CALL_TRAMPOLINE)
 
-void _Py_EmscriptenTrampoline_Init(_PyRuntimeState *runtime);
+void
+_Py_EmscriptenTrampoline_Init(_PyRuntimeState *runtime);
 
-PyObject*
-_PyEM_TrampolineCall_JavaScript(PyCFunctionWithKeywords func,
-                                PyObject* self,
-                                PyObject* args,
-                                PyObject* kw);
+PyObject *
+_PyEM_TrampolineCall_JavaScript(
+    PyCFunctionWithKeywords func, PyObject *self, PyObject *args, PyObject *kw
+);
 
-PyObject*
-_PyEM_TrampolineCall_Reflection(PyCFunctionWithKeywords func,
-                                PyObject* self,
-                                PyObject* args,
-                                PyObject* kw);
+PyObject *
+_PyEM_TrampolineCall_Reflection(
+    PyCFunctionWithKeywords func, PyObject *self, PyObject *args, PyObject *kw
+);
 
-#define _PyEM_TrampolineCall(meth, self, args, kw) \
-    ((_PyRuntime.wasm_type_reflection_available) ? \
-        (_PyEM_TrampolineCall_Reflection((PyCFunctionWithKeywords)(meth), (self), (args), (kw))) : \
-        (_PyEM_TrampolineCall_JavaScript((PyCFunctionWithKeywords)(meth), (self), (args), (kw))))
+#define _PyEM_TrampolineCall(meth, self, args, kw)                   \
+    ((_PyRuntime.wasm_type_reflection_available)                     \
+         ? (_PyEM_TrampolineCall_Reflection(                         \
+               (PyCFunctionWithKeywords)(meth), (self), (args), (kw) \
+           ))                                                        \
+         : (_PyEM_TrampolineCall_JavaScript(                         \
+               (PyCFunctionWithKeywords)(meth), (self), (args), (kw) \
+           )))
 
-#define _PyCFunction_TrampolineCall(meth, self, args) \
-    _PyEM_TrampolineCall( \
-        (*(PyCFunctionWithKeywords)(void(*)(void))(meth)), (self), (args), NULL)
+#define _PyCFunction_TrampolineCall(meth, self, args)                            \
+    _PyEM_TrampolineCall(                                                        \
+        (*(PyCFunctionWithKeywords)(void (*)(void))(meth)), (self), (args), NULL \
+    )
 
 #define _PyCFunctionWithKeywords_TrampolineCall(meth, self, args, kw) \
     _PyEM_TrampolineCall((meth), (self), (args), (kw))
 
-#define descr_set_trampoline_call(set, obj, value, closure) \
-    ((int)_PyEM_TrampolineCall((PyCFunctionWithKeywords)(set), (obj), (value), (PyObject*)(closure)))
+#define descr_set_trampoline_call(set, obj, value, closure)                   \
+    ((int)_PyEM_TrampolineCall(                                               \
+        (PyCFunctionWithKeywords)(set), (obj), (value), (PyObject *)(closure) \
+    ))
 
-#define descr_get_trampoline_call(get, obj, closure) \
-    _PyEM_TrampolineCall((PyCFunctionWithKeywords)(get), (obj), (PyObject*)(closure), NULL)
+#define descr_get_trampoline_call(get, obj, closure)                       \
+    _PyEM_TrampolineCall(                                                  \
+        (PyCFunctionWithKeywords)(get), (obj), (PyObject *)(closure), NULL \
+    )
 
-
-#else // defined(__EMSCRIPTEN__) && defined(PY_CALL_TRAMPOLINE)
+#else  // defined(__EMSCRIPTEN__) && defined(PY_CALL_TRAMPOLINE)
 
 #define _Py_EmscriptenTrampoline_Init(runtime)
 
-#define _PyCFunction_TrampolineCall(meth, self, args) \
-    (meth)((self), (args))
+#define _PyCFunction_TrampolineCall(meth, self, args) (meth)((self), (args))
 
 #define _PyCFunctionWithKeywords_TrampolineCall(meth, self, args, kw) \
     (meth)((self), (args), (kw))
@@ -73,9 +79,8 @@ _PyEM_TrampolineCall_Reflection(PyCFunctionWithKeywords func,
 #define descr_set_trampoline_call(set, obj, value, closure) \
     (set)((obj), (value), (closure))
 
-#define descr_get_trampoline_call(get, obj, closure) \
-    (get)((obj), (closure))
+#define descr_get_trampoline_call(get, obj, closure) (get)((obj), (closure))
 
-#endif // defined(__EMSCRIPTEN__) && defined(PY_CALL_TRAMPOLINE)
+#endif  // defined(__EMSCRIPTEN__) && defined(PY_CALL_TRAMPOLINE)
 
-#endif // ndef Py_EMSCRIPTEN_SIGNAL_H
+#endif  // ndef Py_EMSCRIPTEN_SIGNAL_H

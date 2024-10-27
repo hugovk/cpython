@@ -7,16 +7,15 @@
 extern "C" {
 #endif
 
-
-#define _Py_COMMON_FIELDS(PREFIX) \
-    PyObject *PREFIX ## globals; \
-    PyObject *PREFIX ## builtins; \
-    PyObject *PREFIX ## name; \
-    PyObject *PREFIX ## qualname; \
-    PyObject *PREFIX ## code;        /* A code object, the __code__ attribute */ \
-    PyObject *PREFIX ## defaults;    /* NULL or a tuple */ \
-    PyObject *PREFIX ## kwdefaults;  /* NULL or a dict */ \
-    PyObject *PREFIX ## closure;     /* NULL or a tuple of cell objects */
+#define _Py_COMMON_FIELDS(PREFIX)                                             \
+    PyObject *PREFIX##globals;                                                \
+    PyObject *PREFIX##builtins;                                               \
+    PyObject *PREFIX##name;                                                   \
+    PyObject *PREFIX##qualname;                                               \
+    PyObject *PREFIX##code;       /* A code object, the __code__ attribute */ \
+    PyObject *PREFIX##defaults;   /* NULL or a tuple */                       \
+    PyObject *PREFIX##kwdefaults; /* NULL or a dict */                        \
+    PyObject *PREFIX##closure;    /* NULL or a tuple of cell objects */
 
 typedef struct {
     _Py_COMMON_FIELDS(fc_)
@@ -34,9 +33,8 @@ typedef struct {
  */
 
 typedef struct {
-    PyObject_HEAD
-    _Py_COMMON_FIELDS(func_)
-    PyObject *func_doc;         /* The __doc__ attribute, can be anything */
+    PyObject_HEAD _Py_COMMON_FIELDS(func_
+    ) PyObject *func_doc;       /* The __doc__ attribute, can be anything */
     PyObject *func_dict;        /* The __dict__ attribute, a dict or NULL */
     PyObject *func_weakreflist; /* List of weak references */
     PyObject *func_module;      /* The __module__ attribute, can be anything */
@@ -83,44 +81,53 @@ PyAPI_FUNC(PyObject *) PyFunction_GetAnnotations(PyObject *);
 PyAPI_FUNC(int) PyFunction_SetAnnotations(PyObject *, PyObject *);
 
 #define _PyFunction_CAST(func) \
-    (assert(PyFunction_Check(func)), _Py_CAST(PyFunctionObject*, func))
+    (assert(PyFunction_Check(func)), _Py_CAST(PyFunctionObject *, func))
 
 /* Static inline functions for direct access to these values.
    Type checks are *not* done, so use with care. */
-static inline PyObject* PyFunction_GET_CODE(PyObject *func) {
+static inline PyObject *
+PyFunction_GET_CODE(PyObject *func) {
     return _PyFunction_CAST(func)->func_code;
 }
 #define PyFunction_GET_CODE(func) PyFunction_GET_CODE(_PyObject_CAST(func))
 
-static inline PyObject* PyFunction_GET_GLOBALS(PyObject *func) {
+static inline PyObject *
+PyFunction_GET_GLOBALS(PyObject *func) {
     return _PyFunction_CAST(func)->func_globals;
 }
 #define PyFunction_GET_GLOBALS(func) PyFunction_GET_GLOBALS(_PyObject_CAST(func))
 
-static inline PyObject* PyFunction_GET_MODULE(PyObject *func) {
+static inline PyObject *
+PyFunction_GET_MODULE(PyObject *func) {
     return _PyFunction_CAST(func)->func_module;
 }
 #define PyFunction_GET_MODULE(func) PyFunction_GET_MODULE(_PyObject_CAST(func))
 
-static inline PyObject* PyFunction_GET_DEFAULTS(PyObject *func) {
+static inline PyObject *
+PyFunction_GET_DEFAULTS(PyObject *func) {
     return _PyFunction_CAST(func)->func_defaults;
 }
 #define PyFunction_GET_DEFAULTS(func) PyFunction_GET_DEFAULTS(_PyObject_CAST(func))
 
-static inline PyObject* PyFunction_GET_KW_DEFAULTS(PyObject *func) {
+static inline PyObject *
+PyFunction_GET_KW_DEFAULTS(PyObject *func) {
     return _PyFunction_CAST(func)->func_kwdefaults;
 }
-#define PyFunction_GET_KW_DEFAULTS(func) PyFunction_GET_KW_DEFAULTS(_PyObject_CAST(func))
+#define PyFunction_GET_KW_DEFAULTS(func) \
+    PyFunction_GET_KW_DEFAULTS(_PyObject_CAST(func))
 
-static inline PyObject* PyFunction_GET_CLOSURE(PyObject *func) {
+static inline PyObject *
+PyFunction_GET_CLOSURE(PyObject *func) {
     return _PyFunction_CAST(func)->func_closure;
 }
 #define PyFunction_GET_CLOSURE(func) PyFunction_GET_CLOSURE(_PyObject_CAST(func))
 
-static inline PyObject* PyFunction_GET_ANNOTATIONS(PyObject *func) {
+static inline PyObject *
+PyFunction_GET_ANNOTATIONS(PyObject *func) {
     return _PyFunction_CAST(func)->func_annotations;
 }
-#define PyFunction_GET_ANNOTATIONS(func) PyFunction_GET_ANNOTATIONS(_PyObject_CAST(func))
+#define PyFunction_GET_ANNOTATIONS(func) \
+    PyFunction_GET_ANNOTATIONS(_PyObject_CAST(func))
 
 /* The classmethod and staticmethod types lives here, too */
 PyAPI_DATA(PyTypeObject) PyClassMethod_Type;
@@ -137,9 +144,9 @@ PyAPI_FUNC(PyObject *) PyStaticMethod_New(PyObject *);
     V(MODIFY_KWDEFAULTS)
 
 typedef enum {
-    #define PY_DEF_EVENT(EVENT) PyFunction_EVENT_##EVENT,
+#define PY_DEF_EVENT(EVENT) PyFunction_EVENT_##EVENT,
     PY_FOREACH_FUNC_EVENT(PY_DEF_EVENT)
-    #undef PY_DEF_EVENT
+#undef PY_DEF_EVENT
 } PyFunction_WatchEvent;
 
 /*
@@ -158,9 +165,8 @@ typedef enum {
  * it should return 0.
  */
 typedef int (*PyFunction_WatchCallback)(
-  PyFunction_WatchEvent event,
-  PyFunctionObject *func,
-  PyObject *new_value);
+    PyFunction_WatchEvent event, PyFunctionObject *func, PyObject *new_value
+);
 
 /*
  * Register a per-interpreter callback that will be invoked for function lifecycle

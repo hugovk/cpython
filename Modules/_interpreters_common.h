@@ -1,40 +1,31 @@
 
-#define _RESOLVE_MODINIT_FUNC_NAME(NAME) \
-    PyInit_ ## NAME
-#define RESOLVE_MODINIT_FUNC_NAME(NAME) \
-    _RESOLVE_MODINIT_FUNC_NAME(NAME)
-
+#define _RESOLVE_MODINIT_FUNC_NAME(NAME) PyInit_##NAME
+#define RESOLVE_MODINIT_FUNC_NAME(NAME) _RESOLVE_MODINIT_FUNC_NAME(NAME)
 
 static int
-ensure_xid_class(PyTypeObject *cls, crossinterpdatafunc getdata)
-{
-    //assert(cls->tp_flags & Py_TPFLAGS_HEAPTYPE);
+ensure_xid_class(PyTypeObject *cls, crossinterpdatafunc getdata) {
+    // assert(cls->tp_flags & Py_TPFLAGS_HEAPTYPE);
     return _PyCrossInterpreterData_RegisterClass(cls, getdata);
 }
 
 #ifdef REGISTERS_HEAP_TYPES
 static int
-clear_xid_class(PyTypeObject *cls)
-{
+clear_xid_class(PyTypeObject *cls) {
     return _PyCrossInterpreterData_UnregisterClass(cls);
 }
 #endif
 
-
 static inline int64_t
-_get_interpid(_PyCrossInterpreterData *data)
-{
+_get_interpid(_PyCrossInterpreterData *data) {
     int64_t interpid;
     if (data != NULL) {
         interpid = _PyCrossInterpreterData_INTERPID(data);
         assert(!PyErr_Occurred());
-    }
-    else {
+    } else {
         interpid = PyInterpreterState_GetID(PyInterpreterState_Get());
     }
     return interpid;
 }
-
 
 /* unbound items ************************************************************/
 
@@ -51,15 +42,14 @@ _get_interpid(_PyCrossInterpreterData *data)
 // allocator) and used when the item is popped off the queue.
 
 static int
-check_unbound(int unboundop)
-{
+check_unbound(int unboundop) {
     switch (unboundop) {
-    case UNBOUND_REMOVE:
-    case UNBOUND_ERROR:
-    case UNBOUND_REPLACE:
-        return 1;
-    default:
-        return 0;
+        case UNBOUND_REMOVE:
+        case UNBOUND_ERROR:
+        case UNBOUND_REPLACE:
+            return 1;
+        default:
+            return 0;
     }
 }
 

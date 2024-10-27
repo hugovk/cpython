@@ -2,38 +2,38 @@
 #define Py_INTERNAL_MIMALLOC_H
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #if defined(MIMALLOC_H) || defined(MIMALLOC_TYPES_H)
-#  error "pycore_mimalloc.h must be included before mimalloc.h"
+#error "pycore_mimalloc.h must be included before mimalloc.h"
 #endif
 
 typedef enum {
-    _Py_MIMALLOC_HEAP_MEM = 0,      // PyMem_Malloc() and friends
-    _Py_MIMALLOC_HEAP_OBJECT = 1,   // non-GC objects
-    _Py_MIMALLOC_HEAP_GC = 2,       // GC objects without pre-header
-    _Py_MIMALLOC_HEAP_GC_PRE = 3,   // GC objects with pre-header
+    _Py_MIMALLOC_HEAP_MEM = 0,     // PyMem_Malloc() and friends
+    _Py_MIMALLOC_HEAP_OBJECT = 1,  // non-GC objects
+    _Py_MIMALLOC_HEAP_GC = 2,      // GC objects without pre-header
+    _Py_MIMALLOC_HEAP_GC_PRE = 3,  // GC objects with pre-header
     _Py_MIMALLOC_HEAP_COUNT
 } _Py_mimalloc_heap_id;
 
 #include "pycore_pymem.h"
 
 #ifdef WITH_MIMALLOC
-#  ifdef Py_GIL_DISABLED
-#    define MI_PRIM_THREAD_ID   _Py_ThreadId
-#  endif
-#  define MI_DEBUG_UNINIT     PYMEM_CLEANBYTE
-#  define MI_DEBUG_FREED      PYMEM_DEADBYTE
-#  define MI_DEBUG_PADDING    PYMEM_FORBIDDENBYTE
+#ifdef Py_GIL_DISABLED
+#define MI_PRIM_THREAD_ID _Py_ThreadId
+#endif
+#define MI_DEBUG_UNINIT PYMEM_CLEANBYTE
+#define MI_DEBUG_FREED PYMEM_DEADBYTE
+#define MI_DEBUG_PADDING PYMEM_FORBIDDENBYTE
 #ifdef Py_DEBUG
-#  define MI_DEBUG 2
+#define MI_DEBUG 2
 #else
-#  define MI_DEBUG 0
+#define MI_DEBUG 0
 #endif
 
 #ifdef _Py_THREAD_SANITIZER
-#  define MI_TSAN 1
+#define MI_TSAN 1
 #endif
 
 #ifdef __cplusplus
@@ -66,4 +66,4 @@ struct _mimalloc_thread_state {
 };
 #endif
 
-#endif // Py_INTERNAL_MIMALLOC_H
+#endif  // Py_INTERNAL_MIMALLOC_H

@@ -2,8 +2,7 @@
 #include "util.h"
 
 static PyObject *
-dict_containsstring(PyObject *self, PyObject *args)
-{
+dict_containsstring(PyObject *self, PyObject *args) {
     PyObject *obj;
     const char *key;
     Py_ssize_t size;
@@ -15,8 +14,7 @@ dict_containsstring(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_getitemref(PyObject *self, PyObject *args)
-{
+dict_getitemref(PyObject *self, PyObject *args) {
     PyObject *obj, *attr_name, *value = UNINITIALIZED_PTR;
     if (!PyArg_ParseTuple(args, "OO", &obj, &attr_name)) {
         return NULL;
@@ -40,8 +38,7 @@ dict_getitemref(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_getitemstringref(PyObject *self, PyObject *args)
-{
+dict_getitemstringref(PyObject *self, PyObject *args) {
     PyObject *obj, *value = UNINITIALIZED_PTR;
     const char *attr_name;
     Py_ssize_t size;
@@ -66,8 +63,7 @@ dict_getitemstringref(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_setdefault(PyObject *self, PyObject *args)
-{
+dict_setdefault(PyObject *self, PyObject *args) {
     PyObject *mapping, *key, *defaultobj;
     if (!PyArg_ParseTuple(args, "OOO", &mapping, &key, &defaultobj)) {
         return NULL;
@@ -79,8 +75,7 @@ dict_setdefault(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_setdefaultref(PyObject *self, PyObject *args)
-{
+dict_setdefaultref(PyObject *self, PyObject *args) {
     PyObject *obj, *key, *default_value, *result = UNINITIALIZED_PTR;
     if (!PyArg_ParseTuple(args, "OOO", &obj, &key, &default_value)) {
         return NULL;
@@ -104,8 +99,7 @@ dict_setdefaultref(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-dict_pop(PyObject *self, PyObject *args)
-{
+dict_pop(PyObject *self, PyObject *args) {
     // Test PyDict_Pop(dict, key, &value)
     PyObject *dict, *key;
     if (!PyArg_ParseTuple(args, "OO", &dict, &key)) {
@@ -114,7 +108,7 @@ dict_pop(PyObject *self, PyObject *args)
     NULLABLE(dict);
     NULLABLE(key);
     PyObject *result = UNINITIALIZED_PTR;
-    int res = PyDict_Pop(dict, key,  &result);
+    int res = PyDict_Pop(dict, key, &result);
     if (res < 0) {
         assert(result == NULL);
         return NULL;
@@ -122,16 +116,14 @@ dict_pop(PyObject *self, PyObject *args)
     if (res == 0) {
         assert(result == NULL);
         result = Py_NewRef(Py_None);
-    }
-    else {
+    } else {
         assert(result != NULL);
     }
     return Py_BuildValue("iN", res, result);
 }
 
 static PyObject *
-dict_pop_null(PyObject *self, PyObject *args)
-{
+dict_pop_null(PyObject *self, PyObject *args) {
     // Test PyDict_Pop(dict, key, NULL)
     PyObject *dict, *key;
     if (!PyArg_ParseTuple(args, "OO", &dict, &key)) {
@@ -139,12 +131,11 @@ dict_pop_null(PyObject *self, PyObject *args)
     }
     NULLABLE(dict);
     NULLABLE(key);
-    RETURN_INT(PyDict_Pop(dict, key,  NULL));
+    RETURN_INT(PyDict_Pop(dict, key, NULL));
 }
 
 static PyObject *
-dict_popstring(PyObject *self, PyObject *args)
-{
+dict_popstring(PyObject *self, PyObject *args) {
     PyObject *dict;
     const char *key;
     Py_ssize_t key_size;
@@ -153,7 +144,7 @@ dict_popstring(PyObject *self, PyObject *args)
     }
     NULLABLE(dict);
     PyObject *result = UNINITIALIZED_PTR;
-    int res = PyDict_PopString(dict, key,  &result);
+    int res = PyDict_PopString(dict, key, &result);
     if (res < 0) {
         assert(result == NULL);
         return NULL;
@@ -161,16 +152,14 @@ dict_popstring(PyObject *self, PyObject *args)
     if (res == 0) {
         assert(result == NULL);
         result = Py_NewRef(Py_None);
-    }
-    else {
+    } else {
         assert(result != NULL);
     }
     return Py_BuildValue("iN", res, result);
 }
 
 static PyObject *
-dict_popstring_null(PyObject *self, PyObject *args)
-{
+dict_popstring_null(PyObject *self, PyObject *args) {
     PyObject *dict;
     const char *key;
     Py_ssize_t key_size;
@@ -178,7 +167,7 @@ dict_popstring_null(PyObject *self, PyObject *args)
         return NULL;
     }
     NULLABLE(dict);
-    RETURN_INT(PyDict_PopString(dict, key,  NULL));
+    RETURN_INT(PyDict_PopString(dict, key, NULL));
 }
 
 static PyMethodDef test_methods[] = {
@@ -195,8 +184,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Dict(PyObject *m)
-{
+_PyTestCapi_Init_Dict(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

@@ -1,19 +1,17 @@
 #include "Python.h"
-#include "pycore_fileutils.h"     // DECODE_LOCALE_ERR
-#include "pycore_getopt.h"        // _PyOS_GetOpt()
-#include "pycore_initconfig.h"    // _PyArgv
-#include "pycore_pylifecycle.h"   // _Py_LegacyLocaleDetected()
-#include "pycore_pymem.h"         // _PyMem_GetAllocatorName()
-#include "pycore_runtime.h"       // _PyRuntime_Initialize()
+#include "pycore_fileutils.h"    // DECODE_LOCALE_ERR
+#include "pycore_getopt.h"       // _PyOS_GetOpt()
+#include "pycore_initconfig.h"   // _PyArgv
+#include "pycore_pylifecycle.h"  // _Py_LegacyLocaleDetected()
+#include "pycore_pymem.h"        // _PyMem_GetAllocatorName()
+#include "pycore_runtime.h"      // _PyRuntime_Initialize()
 
-#include <locale.h>               // setlocale()
-#include <stdlib.h>               // getenv()
-
+#include <locale.h>  // setlocale()
+#include <stdlib.h>  // getenv()
 
 /* Forward declarations */
 static void
 preconfig_copy(PyPreConfig *config, const PyPreConfig *config2);
-
 
 /* --- File system encoding/errors -------------------------------- */
 
@@ -23,21 +21,19 @@ const char *Py_FileSystemDefaultEncodeErrors = NULL;
 int _Py_HasFileSystemDefaultEncodeErrors = 0;
 
 void
-_Py_ClearFileSystemEncoding(void)
-{
-_Py_COMP_DIAG_PUSH
-_Py_COMP_DIAG_IGNORE_DEPR_DECLS
-    if (!Py_HasFileSystemDefaultEncoding && Py_FileSystemDefaultEncoding) {
-        PyMem_RawFree((char*)Py_FileSystemDefaultEncoding);
+_Py_ClearFileSystemEncoding(void) {
+    _Py_COMP_DIAG_PUSH
+        _Py_COMP_DIAG_IGNORE_DEPR_DECLS if (!Py_HasFileSystemDefaultEncoding &&
+                                            Py_FileSystemDefaultEncoding) {
+        PyMem_RawFree((char *)Py_FileSystemDefaultEncoding);
         Py_FileSystemDefaultEncoding = NULL;
     }
     if (!_Py_HasFileSystemDefaultEncodeErrors && Py_FileSystemDefaultEncodeErrors) {
-        PyMem_RawFree((char*)Py_FileSystemDefaultEncodeErrors);
+        PyMem_RawFree((char *)Py_FileSystemDefaultEncodeErrors);
         Py_FileSystemDefaultEncodeErrors = NULL;
     }
-_Py_COMP_DIAG_POP
+    _Py_COMP_DIAG_POP
 }
-
 
 /* Set Py_FileSystemDefaultEncoding and Py_FileSystemDefaultEncodeErrors
    global configuration variables to PyConfig.filesystem_encoding and
@@ -45,8 +41,7 @@ _Py_COMP_DIAG_POP
 
    Function called by _PyUnicode_InitEncodings(). */
 int
-_Py_SetFileSystemEncoding(const char *encoding, const char *errors)
-{
+_Py_SetFileSystemEncoding(const char *encoding, const char *errors) {
     char *encoding2 = _PyMem_RawStrdup(encoding);
     if (encoding2 == NULL) {
         return -1;
@@ -60,27 +55,23 @@ _Py_SetFileSystemEncoding(const char *encoding, const char *errors)
 
     _Py_ClearFileSystemEncoding();
 
-_Py_COMP_DIAG_PUSH
-_Py_COMP_DIAG_IGNORE_DEPR_DECLS
-    Py_FileSystemDefaultEncoding = encoding2;
+    _Py_COMP_DIAG_PUSH _Py_COMP_DIAG_IGNORE_DEPR_DECLS Py_FileSystemDefaultEncoding =
+        encoding2;
     Py_HasFileSystemDefaultEncoding = 0;
 
     Py_FileSystemDefaultEncodeErrors = errors2;
     _Py_HasFileSystemDefaultEncodeErrors = 0;
-_Py_COMP_DIAG_POP
-    return 0;
+    _Py_COMP_DIAG_POP return 0;
 }
-
 
 /* --- _PyArgv ---------------------------------------------------- */
 
 /* Decode bytes_argv using Py_DecodeLocale() */
 PyStatus
-_PyArgv_AsWstrList(const _PyArgv *args, PyWideStringList *list)
-{
+_PyArgv_AsWstrList(const _PyArgv *args, PyWideStringList *list) {
     PyWideStringList wargv = _PyWideStringList_INIT;
     if (args->use_bytes_argv) {
-        size_t size = sizeof(wchar_t*) * args->argc;
+        size_t size = sizeof(wchar_t *) * args->argc;
         wargv.items = (wchar_t **)PyMem_RawMalloc(size);
         if (wargv.items == NULL) {
             return _PyStatus_NO_MEMORY();
@@ -99,8 +90,7 @@ _PyArgv_AsWstrList(const _PyArgv *args, PyWideStringList *list)
 
         _PyWideStringList_Clear(list);
         *list = wargv;
-    }
-    else {
+    } else {
         wargv.length = args->argc;
         wargv.items = (wchar_t **)args->wchar_argv;
         if (_PyWideStringList_Copy(list, &wargv) < 0) {
@@ -110,29 +100,23 @@ _PyArgv_AsWstrList(const _PyArgv *args, PyWideStringList *list)
     return _PyStatus_OK();
 }
 
-
 /* --- _PyPreCmdline ------------------------------------------------- */
 
 void
-_PyPreCmdline_Clear(_PyPreCmdline *cmdline)
-{
+_PyPreCmdline_Clear(_PyPreCmdline *cmdline) {
     _PyWideStringList_Clear(&cmdline->argv);
     _PyWideStringList_Clear(&cmdline->xoptions);
 }
 
-
 PyStatus
-_PyPreCmdline_SetArgv(_PyPreCmdline *cmdline, const _PyArgv *args)
-{
+_PyPreCmdline_SetArgv(_PyPreCmdline *cmdline, const _PyArgv *args) {
     return _PyArgv_AsWstrList(args, &cmdline->argv);
 }
 
-
 static void
-precmdline_get_preconfig(_PyPreCmdline *cmdline, const PyPreConfig *config)
-{
-#define COPY_ATTR(ATTR) \
-    if (config->ATTR != -1) { \
+precmdline_get_preconfig(_PyPreCmdline *cmdline, const PyPreConfig *config) {
+#define COPY_ATTR(ATTR)               \
+    if (config->ATTR != -1) {         \
         cmdline->ATTR = config->ATTR; \
     }
 
@@ -143,12 +127,9 @@ precmdline_get_preconfig(_PyPreCmdline *cmdline, const PyPreConfig *config)
 #undef COPY_ATTR
 }
 
-
 static void
-precmdline_set_preconfig(const _PyPreCmdline *cmdline, PyPreConfig *config)
-{
-#define COPY_ATTR(ATTR) \
-    config->ATTR = cmdline->ATTR
+precmdline_set_preconfig(const _PyPreCmdline *cmdline, PyPreConfig *config) {
+#define COPY_ATTR(ATTR) config->ATTR = cmdline->ATTR
 
     COPY_ATTR(isolated);
     COPY_ATTR(use_environment);
@@ -157,12 +138,9 @@ precmdline_set_preconfig(const _PyPreCmdline *cmdline, PyPreConfig *config)
 #undef COPY_ATTR
 }
 
-
 PyStatus
-_PyPreCmdline_SetConfig(const _PyPreCmdline *cmdline, PyConfig *config)
-{
-#define COPY_ATTR(ATTR) \
-    config->ATTR = cmdline->ATTR
+_PyPreCmdline_SetConfig(const _PyPreCmdline *cmdline, PyConfig *config) {
+#define COPY_ATTR(ATTR) config->ATTR = cmdline->ATTR
 
     PyStatus status = _PyWideStringList_Extend(&config->xoptions, &cmdline->xoptions);
     if (_PyStatus_EXCEPTION(status)) {
@@ -178,11 +156,9 @@ _PyPreCmdline_SetConfig(const _PyPreCmdline *cmdline, PyConfig *config)
 #undef COPY_ATTR
 }
 
-
 /* Parse the command line arguments */
 static PyStatus
-precmdline_parse_cmdline(_PyPreCmdline *cmdline)
-{
+precmdline_parse_cmdline(_PyPreCmdline *cmdline) {
     const PyWideStringList *argv = &cmdline->argv;
 
     _PyOS_ResetGetOpt();
@@ -198,38 +174,35 @@ precmdline_parse_cmdline(_PyPreCmdline *cmdline)
         }
 
         switch (c) {
-        case 'E':
-            cmdline->use_environment = 0;
-            break;
+            case 'E':
+                cmdline->use_environment = 0;
+                break;
 
-        case 'I':
-            cmdline->isolated = 1;
-            break;
+            case 'I':
+                cmdline->isolated = 1;
+                break;
 
-        case 'X':
-        {
-            PyStatus status = PyWideStringList_Append(&cmdline->xoptions,
-                                                      _PyOS_optarg);
-            if (_PyStatus_EXCEPTION(status)) {
-                return status;
+            case 'X': {
+                PyStatus status =
+                    PyWideStringList_Append(&cmdline->xoptions, _PyOS_optarg);
+                if (_PyStatus_EXCEPTION(status)) {
+                    return status;
+                }
+                break;
             }
-            break;
-        }
 
-        default:
-            /* ignore other argument:
-               handled by PyConfig_Read() */
-            break;
+            default:
+                /* ignore other argument:
+                   handled by PyConfig_Read() */
+                break;
         }
     } while (1);
 
     return _PyStatus_OK();
 }
 
-
 PyStatus
-_PyPreCmdline_Read(_PyPreCmdline *cmdline, const PyPreConfig *preconfig)
-{
+_PyPreCmdline_Read(_PyPreCmdline *cmdline, const PyPreConfig *preconfig) {
     precmdline_get_preconfig(cmdline, preconfig);
 
     if (preconfig->parse_argv) {
@@ -251,10 +224,9 @@ _PyPreCmdline_Read(_PyPreCmdline *cmdline, const PyPreConfig *preconfig)
     }
 
     /* dev_mode */
-    if ((cmdline->dev_mode < 0)
-        && (_Py_get_xoption(&cmdline->xoptions, L"dev")
-            || _Py_GetEnv(cmdline->use_environment, "PYTHONDEVMODE")))
-    {
+    if ((cmdline->dev_mode < 0) &&
+        (_Py_get_xoption(&cmdline->xoptions, L"dev") ||
+         _Py_GetEnv(cmdline->use_environment, "PYTHONDEVMODE"))) {
         cmdline->dev_mode = 1;
     }
     if (cmdline->dev_mode < 0) {
@@ -262,9 +234,8 @@ _PyPreCmdline_Read(_PyPreCmdline *cmdline, const PyPreConfig *preconfig)
     }
 
     // warn_default_encoding
-    if (_Py_get_xoption(&cmdline->xoptions, L"warn_default_encoding")
-            || _Py_GetEnv(cmdline->use_environment, "PYTHONWARNDEFAULTENCODING"))
-    {
+    if (_Py_get_xoption(&cmdline->xoptions, L"warn_default_encoding") ||
+        _Py_GetEnv(cmdline->use_environment, "PYTHONWARNDEFAULTENCODING")) {
         cmdline->warn_default_encoding = 1;
     }
 
@@ -276,13 +247,10 @@ _PyPreCmdline_Read(_PyPreCmdline *cmdline, const PyPreConfig *preconfig)
     return _PyStatus_OK();
 }
 
-
 /* --- PyPreConfig ----------------------------------------------- */
 
-
 void
-_PyPreConfig_InitCompatConfig(PyPreConfig *config)
-{
+_PyPreConfig_InitCompatConfig(PyPreConfig *config) {
     memset(config, 0, sizeof(*config));
 
     config->_config_init = (int)_PyConfig_INIT_COMPAT;
@@ -307,10 +275,8 @@ _PyPreConfig_InitCompatConfig(PyPreConfig *config)
 #endif
 }
 
-
 void
-PyPreConfig_InitPythonConfig(PyPreConfig *config)
-{
+PyPreConfig_InitPythonConfig(PyPreConfig *config) {
     _PyPreConfig_InitCompatConfig(config);
 
     config->_config_init = (int)_PyConfig_INIT_PYTHON;
@@ -328,10 +294,8 @@ PyPreConfig_InitPythonConfig(PyPreConfig *config)
 #endif
 }
 
-
 void
-PyPreConfig_InitIsolatedConfig(PyPreConfig *config)
-{
+PyPreConfig_InitIsolatedConfig(PyPreConfig *config) {
     _PyPreConfig_InitCompatConfig(config);
 
     config->_config_init = (int)_PyConfig_INIT_ISOLATED;
@@ -345,40 +309,33 @@ PyPreConfig_InitIsolatedConfig(PyPreConfig *config)
 #endif
 }
 
-
 PyStatus
-_PyPreConfig_InitFromPreConfig(PyPreConfig *config,
-                               const PyPreConfig *config2)
-{
+_PyPreConfig_InitFromPreConfig(PyPreConfig *config, const PyPreConfig *config2) {
     PyPreConfig_InitPythonConfig(config);
     preconfig_copy(config, config2);
     return _PyStatus_OK();
 }
 
-
 void
-_PyPreConfig_InitFromConfig(PyPreConfig *preconfig, const PyConfig *config)
-{
+_PyPreConfig_InitFromConfig(PyPreConfig *preconfig, const PyConfig *config) {
     _PyConfigInitEnum config_init = (_PyConfigInitEnum)config->_config_init;
     switch (config_init) {
-    case _PyConfig_INIT_PYTHON:
-        PyPreConfig_InitPythonConfig(preconfig);
-        break;
-    case _PyConfig_INIT_ISOLATED:
-        PyPreConfig_InitIsolatedConfig(preconfig);
-        break;
-    case _PyConfig_INIT_COMPAT:
-    default:
-        _PyPreConfig_InitCompatConfig(preconfig);
+        case _PyConfig_INIT_PYTHON:
+            PyPreConfig_InitPythonConfig(preconfig);
+            break;
+        case _PyConfig_INIT_ISOLATED:
+            PyPreConfig_InitIsolatedConfig(preconfig);
+            break;
+        case _PyConfig_INIT_COMPAT:
+        default:
+            _PyPreConfig_InitCompatConfig(preconfig);
     }
 
     _PyPreConfig_GetConfig(preconfig, config);
 }
 
-
 static void
-preconfig_copy(PyPreConfig *config, const PyPreConfig *config2)
-{
+preconfig_copy(PyPreConfig *config, const PyPreConfig *config2) {
 #define COPY_ATTR(ATTR) config->ATTR = config2->ATTR
 
     COPY_ATTR(_config_init);
@@ -398,10 +355,8 @@ preconfig_copy(PyPreConfig *config, const PyPreConfig *config2)
 #undef COPY_ATTR
 }
 
-
-PyObject*
-_PyPreConfig_AsDict(const PyPreConfig *config)
-{
+PyObject *
+_PyPreConfig_AsDict(const PyPreConfig *config) {
     PyObject *dict;
 
     dict = PyDict_New();
@@ -409,18 +364,18 @@ _PyPreConfig_AsDict(const PyPreConfig *config)
         return NULL;
     }
 
-#define SET_ITEM_INT(ATTR) \
-        do { \
-            PyObject *obj = PyLong_FromLong(config->ATTR); \
-            if (obj == NULL) { \
-                goto fail; \
-            } \
-            int res = PyDict_SetItemString(dict, #ATTR, obj); \
-            Py_DECREF(obj); \
-            if (res < 0) { \
-                goto fail; \
-            } \
-        } while (0)
+#define SET_ITEM_INT(ATTR)                                \
+    do {                                                  \
+        PyObject *obj = PyLong_FromLong(config->ATTR);    \
+        if (obj == NULL) {                                \
+            goto fail;                                    \
+        }                                                 \
+        int res = PyDict_SetItemString(dict, #ATTR, obj); \
+        Py_DECREF(obj);                                   \
+        if (res < 0) {                                    \
+            goto fail;                                    \
+        }                                                 \
+    } while (0)
 
     SET_ITEM_INT(_config_init);
     SET_ITEM_INT(parse_argv);
@@ -444,12 +399,10 @@ fail:
 #undef SET_ITEM_INT
 }
 
-
 void
-_PyPreConfig_GetConfig(PyPreConfig *preconfig, const PyConfig *config)
-{
-#define COPY_ATTR(ATTR) \
-    if (config->ATTR != -1) { \
+_PyPreConfig_GetConfig(PyPreConfig *preconfig, const PyConfig *config) {
+#define COPY_ATTR(ATTR)                 \
+    if (config->ATTR != -1) {           \
         preconfig->ATTR = config->ATTR; \
     }
 
@@ -461,27 +414,25 @@ _PyPreConfig_GetConfig(PyPreConfig *preconfig, const PyConfig *config)
 #undef COPY_ATTR
 }
 
-
 static void
-preconfig_get_global_vars(PyPreConfig *config)
-{
+preconfig_get_global_vars(PyPreConfig *config) {
     if (config->_config_init != _PyConfig_INIT_COMPAT) {
         /* Python and Isolated configuration ignore global variables */
         return;
     }
 
 #define COPY_FLAG(ATTR, VALUE) \
-    if (config->ATTR < 0) { \
-        config->ATTR = VALUE; \
+    if (config->ATTR < 0) {    \
+        config->ATTR = VALUE;  \
     }
 #define COPY_NOT_FLAG(ATTR, VALUE) \
-    if (config->ATTR < 0) { \
-        config->ATTR = !(VALUE); \
+    if (config->ATTR < 0) {        \
+        config->ATTR = !(VALUE);   \
     }
 
-_Py_COMP_DIAG_PUSH
-_Py_COMP_DIAG_IGNORE_DEPR_DECLS
-    COPY_FLAG(isolated, Py_IsolatedFlag);
+    _Py_COMP_DIAG_PUSH _Py_COMP_DIAG_IGNORE_DEPR_DECLS COPY_FLAG(
+        isolated, Py_IsolatedFlag
+    );
     COPY_NOT_FLAG(use_environment, Py_IgnoreEnvironmentFlag);
     if (Py_UTF8Mode > 0) {
         config->utf8_mode = Py_UTF8Mode;
@@ -489,43 +440,39 @@ _Py_COMP_DIAG_IGNORE_DEPR_DECLS
 #ifdef MS_WINDOWS
     COPY_FLAG(legacy_windows_fs_encoding, Py_LegacyWindowsFSEncodingFlag);
 #endif
-_Py_COMP_DIAG_POP
+    _Py_COMP_DIAG_POP
 
 #undef COPY_FLAG
 #undef COPY_NOT_FLAG
 }
 
-
 static void
-preconfig_set_global_vars(const PyPreConfig *config)
-{
+preconfig_set_global_vars(const PyPreConfig *config) {
 #define COPY_FLAG(ATTR, VAR) \
     if (config->ATTR >= 0) { \
-        VAR = config->ATTR; \
+        VAR = config->ATTR;  \
     }
 #define COPY_NOT_FLAG(ATTR, VAR) \
-    if (config->ATTR >= 0) { \
-        VAR = !config->ATTR; \
+    if (config->ATTR >= 0) {     \
+        VAR = !config->ATTR;     \
     }
 
-_Py_COMP_DIAG_PUSH
-_Py_COMP_DIAG_IGNORE_DEPR_DECLS
-    COPY_FLAG(isolated, Py_IsolatedFlag);
+    _Py_COMP_DIAG_PUSH _Py_COMP_DIAG_IGNORE_DEPR_DECLS COPY_FLAG(
+        isolated, Py_IsolatedFlag
+    );
     COPY_NOT_FLAG(use_environment, Py_IgnoreEnvironmentFlag);
 #ifdef MS_WINDOWS
     COPY_FLAG(legacy_windows_fs_encoding, Py_LegacyWindowsFSEncodingFlag);
 #endif
     COPY_FLAG(utf8_mode, Py_UTF8Mode);
-_Py_COMP_DIAG_POP
+    _Py_COMP_DIAG_POP
 
 #undef COPY_FLAG
 #undef COPY_NOT_FLAG
 }
 
-
-const char*
-_Py_GetEnv(int use_environment, const char *name)
-{
+const char *
+_Py_GetEnv(int use_environment, const char *name) {
     assert(use_environment >= 0);
 
     if (!use_environment) {
@@ -535,16 +482,13 @@ _Py_GetEnv(int use_environment, const char *name)
     const char *var = getenv(name);
     if (var && var[0] != '\0') {
         return var;
-    }
-    else {
+    } else {
         return NULL;
     }
 }
 
-
 int
-_Py_str_to_int(const char *str, int *result)
-{
+_Py_str_to_int(const char *str, int *result) {
     const char *endptr = str;
     errno = 0;
     long value = strtol(str, (char **)&endptr, 10);
@@ -559,10 +503,8 @@ _Py_str_to_int(const char *str, int *result)
     return 0;
 }
 
-
 void
-_Py_get_env_flag(int use_environment, int *flag, const char *name)
-{
+_Py_get_env_flag(int use_environment, int *flag, const char *name) {
     const char *var = _Py_GetEnv(use_environment, name);
     if (!var) {
         return;
@@ -577,18 +519,15 @@ _Py_get_env_flag(int use_environment, int *flag, const char *name)
     }
 }
 
-
-const wchar_t*
-_Py_get_xoption(const PyWideStringList *xoptions, const wchar_t *name)
-{
-    for (Py_ssize_t i=0; i < xoptions->length; i++) {
+const wchar_t *
+_Py_get_xoption(const PyWideStringList *xoptions, const wchar_t *name) {
+    for (Py_ssize_t i = 0; i < xoptions->length; i++) {
         const wchar_t *option = xoptions->items[i];
         size_t len;
         wchar_t *sep = wcschr(option, L'=');
         if (sep != NULL) {
             len = (sep - option);
-        }
-        else {
+        } else {
             len = wcslen(option);
         }
         if (wcsncmp(option, name, len) == 0 && name[len] == L'\0') {
@@ -598,10 +537,8 @@ _Py_get_xoption(const PyWideStringList *xoptions, const wchar_t *name)
     return NULL;
 }
 
-
 static PyStatus
-preconfig_init_utf8_mode(PyPreConfig *config, const _PyPreCmdline *cmdline)
-{
+preconfig_init_utf8_mode(PyPreConfig *config, const _PyPreCmdline *cmdline) {
 #ifdef MS_WINDOWS
     if (config->legacy_windows_fs_encoding) {
         config->utf8_mode = 0;
@@ -620,15 +557,12 @@ preconfig_init_utf8_mode(PyPreConfig *config, const _PyPreCmdline *cmdline)
             xopt = sep + 1;
             if (wcscmp(xopt, L"1") == 0) {
                 config->utf8_mode = 1;
-            }
-            else if (wcscmp(xopt, L"0") == 0) {
+            } else if (wcscmp(xopt, L"0") == 0) {
                 config->utf8_mode = 0;
-            }
-            else {
+            } else {
                 return _PyStatus_ERR("invalid -X utf8 option value");
             }
-        }
-        else {
+        } else {
             config->utf8_mode = 1;
         }
         return _PyStatus_OK();
@@ -638,26 +572,23 @@ preconfig_init_utf8_mode(PyPreConfig *config, const _PyPreCmdline *cmdline)
     if (opt) {
         if (strcmp(opt, "1") == 0) {
             config->utf8_mode = 1;
-        }
-        else if (strcmp(opt, "0") == 0) {
+        } else if (strcmp(opt, "0") == 0) {
             config->utf8_mode = 0;
-        }
-        else {
-            return _PyStatus_ERR("invalid PYTHONUTF8 environment "
-                                "variable value");
+        } else {
+            return _PyStatus_ERR(
+                "invalid PYTHONUTF8 environment "
+                "variable value"
+            );
         }
         return _PyStatus_OK();
     }
-
 
 #ifndef MS_WINDOWS
     if (config->utf8_mode < 0) {
         /* The C locale and the POSIX locale enable the UTF-8 Mode (PEP 540) */
         const char *ctype_loc = setlocale(LC_CTYPE, NULL);
-        if (ctype_loc != NULL
-           && (strcmp(ctype_loc, "C") == 0
-               || strcmp(ctype_loc, "POSIX") == 0))
-        {
+        if (ctype_loc != NULL &&
+            (strcmp(ctype_loc, "C") == 0 || strcmp(ctype_loc, "POSIX") == 0)) {
             config->utf8_mode = 1;
         }
     }
@@ -669,10 +600,8 @@ preconfig_init_utf8_mode(PyPreConfig *config, const _PyPreCmdline *cmdline)
     return _PyStatus_OK();
 }
 
-
 static void
-preconfig_init_coerce_c_locale(PyPreConfig *config)
-{
+preconfig_init_coerce_c_locale(PyPreConfig *config) {
     if (!config->configure_locale) {
         config->coerce_c_locale = 0;
         config->coerce_c_locale_warn = 0;
@@ -685,13 +614,11 @@ preconfig_init_coerce_c_locale(PyPreConfig *config)
             if (config->coerce_c_locale < 0) {
                 config->coerce_c_locale = 0;
             }
-        }
-        else if (strcmp(env, "warn") == 0) {
+        } else if (strcmp(env, "warn") == 0) {
             if (config->coerce_c_locale_warn < 0) {
                 config->coerce_c_locale_warn = 1;
             }
-        }
-        else {
+        } else {
             if (config->coerce_c_locale < 0) {
                 config->coerce_c_locale = 1;
             }
@@ -705,8 +632,7 @@ preconfig_init_coerce_c_locale(PyPreConfig *config)
         /* The C locale enables the C locale coercion (PEP 538) */
         if (_Py_LegacyLocaleDetected(0)) {
             config->coerce_c_locale = 2;
-        }
-        else {
+        } else {
             config->coerce_c_locale = 0;
         }
     }
@@ -716,10 +642,8 @@ preconfig_init_coerce_c_locale(PyPreConfig *config)
     }
 }
 
-
 static PyStatus
-preconfig_init_allocator(PyPreConfig *config)
-{
+preconfig_init_allocator(PyPreConfig *config) {
     if (config->allocator == PYMEM_ALLOCATOR_NOT_SET) {
         /* bpo-34247. The PYTHONMALLOC environment variable has the priority
            over PYTHONDEV env var and "-X dev" command line option.
@@ -741,10 +665,8 @@ preconfig_init_allocator(PyPreConfig *config)
     return _PyStatus_OK();
 }
 
-
 static PyStatus
-preconfig_read(PyPreConfig *config, _PyPreCmdline *cmdline)
-{
+preconfig_read(PyPreConfig *config, _PyPreCmdline *cmdline) {
     PyStatus status;
 
     status = _PyPreCmdline_Read(cmdline, config);
@@ -756,9 +678,11 @@ preconfig_read(PyPreConfig *config, _PyPreCmdline *cmdline)
 
     /* legacy_windows_fs_encoding, coerce_c_locale, utf8_mode */
 #ifdef MS_WINDOWS
-    _Py_get_env_flag(config->use_environment,
-                     &config->legacy_windows_fs_encoding,
-                     "PYTHONLEGACYWINDOWSFSENCODING");
+    _Py_get_env_flag(
+        config->use_environment,
+        &config->legacy_windows_fs_encoding,
+        "PYTHONLEGACYWINDOWSFSENCODING"
+    );
 #endif
 
     preconfig_init_coerce_c_locale(config);
@@ -787,7 +711,6 @@ preconfig_read(PyPreConfig *config, _PyPreCmdline *cmdline)
     return _PyStatus_OK();
 }
 
-
 /* Read the configuration from:
 
    - command line arguments
@@ -795,8 +718,7 @@ preconfig_read(PyPreConfig *config, _PyPreCmdline *cmdline)
    - Py_xxx global configuration variables
    - the LC_CTYPE locale */
 PyStatus
-_PyPreConfig_Read(PyPreConfig *config, const _PyArgv *args)
-{
+_PyPreConfig_Read(PyPreConfig *config, const _PyArgv *args) {
     PyStatus status;
 
     status = _PyRuntime_Initialize();
@@ -842,8 +764,10 @@ _PyPreConfig_Read(PyPreConfig *config, const _PyArgv *args)
         /* Watchdog to prevent an infinite loop */
         loops++;
         if (loops == 3) {
-            status = _PyStatus_ERR("Encoding changed twice while "
-                                   "reading the configuration");
+            status = _PyStatus_ERR(
+                "Encoding changed twice while "
+                "reading the configuration"
+            );
             goto done;
         }
 
@@ -888,8 +812,7 @@ _PyPreConfig_Read(PyPreConfig *config, const _PyArgv *args)
                 /* UTF-8 Mode enabled */
                 encoding_changed = 1;
             }
-        }
-        else {
+        } else {
             if (config->utf8_mode != utf8_mode) {
                 encoding_changed = 1;
             }
@@ -921,7 +844,6 @@ done:
     return status;
 }
 
-
 /* Write the pre-configuration:
 
    - set the memory allocators
@@ -935,8 +857,7 @@ done:
    Do nothing if called after Py_Initialize(): ignore the new
    pre-configuration. */
 PyStatus
-_PyPreConfig_Write(const PyPreConfig *src_config)
-{
+_PyPreConfig_Write(const PyPreConfig *src_config) {
     PyPreConfig config;
 
     PyStatus status = _PyPreConfig_InitFromPreConfig(&config, src_config);

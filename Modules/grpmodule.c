@@ -1,7 +1,7 @@
 /* UNIX group file access module */
 
 // Need limited C API version 3.13 for PyMem_RawRealloc()
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #ifndef Py_GIL_DISABLED
 #define Py_LIMITED_API 0x030d0000
 #endif
@@ -9,10 +9,10 @@
 #include "Python.h"
 #include "posixmodule.h"
 
-#include <errno.h>                // ERANGE
-#include <grp.h>                  // getgrgid_r()
-#include <string.h>               // memcpy()
-#include <unistd.h>               // sysconf()
+#include <errno.h>   // ERANGE
+#include <grp.h>     // getgrgid_r()
+#include <string.h>  // memcpy()
+#include <unistd.h>  // sysconf()
 
 #include "clinic/grpmodule.c.h"
 /*[clinic input]
@@ -21,34 +21,34 @@ module grp
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=cade63f2ed1bd9f8]*/
 
 static PyStructSequence_Field struct_group_type_fields[] = {
-   {"gr_name", "group name"},
-   {"gr_passwd", "password"},
-   {"gr_gid", "group id"},
-   {"gr_mem", "group members"},
-   {0}
+    {"gr_name", "group name"},
+    {"gr_passwd", "password"},
+    {"gr_gid", "group id"},
+    {"gr_mem", "group members"},
+    {0}
 };
 
-PyDoc_STRVAR(struct_group__doc__,
-"grp.struct_group: Results from getgr*() routines.\n\n\
+PyDoc_STRVAR(
+    struct_group__doc__,
+    "grp.struct_group: Results from getgr*() routines.\n\n\
 This object may be accessed either as a tuple of\n\
   (gr_name,gr_passwd,gr_gid,gr_mem)\n\
-or via the object attributes as named in the above tuple.\n");
+or via the object attributes as named in the above tuple.\n"
+);
 
 static PyStructSequence_Desc struct_group_type_desc = {
-   "grp.struct_group",
-   struct_group__doc__,
-   struct_group_type_fields,
-   4,
+    "grp.struct_group",
+    struct_group__doc__,
+    struct_group_type_fields,
+    4,
 };
 
-
 typedef struct {
-  PyTypeObject *StructGrpType;
+    PyTypeObject *StructGrpType;
 } grpmodulestate;
 
-static inline grpmodulestate*
-get_grp_state(PyObject *module)
-{
+static inline grpmodulestate *
+get_grp_state(PyObject *module) {
     void *state = PyModule_GetState(module);
     assert(state != NULL);
     return (grpmodulestate *)state;
@@ -59,8 +59,7 @@ static struct PyModuleDef grpmodule;
 #define DEFAULT_BUFFER_SIZE 1024
 
 static PyObject *
-mkgrent(PyObject *module, struct group *p)
-{
+mkgrent(PyObject *module, struct group *p) {
     int setIndex = 0;
     PyObject *v, *w;
     char **member;
@@ -73,7 +72,7 @@ mkgrent(PyObject *module, struct group *p)
         Py_DECREF(v);
         return NULL;
     }
-    for (member = p->gr_mem; ; member++) {
+    for (member = p->gr_mem;; member++) {
         char *group_member;
         // member can be misaligned
         memcpy(&group_member, member, sizeof(group_member));
@@ -90,13 +89,13 @@ mkgrent(PyObject *module, struct group *p)
         Py_DECREF(x);
     }
 
-#define SET(i,val) PyStructSequence_SetItem(v, i, val)
+#define SET(i, val) PyStructSequence_SetItem(v, i, val)
     SET(setIndex++, PyUnicode_DecodeFSDefault(p->gr_name));
     if (p->gr_passwd)
-            SET(setIndex++, PyUnicode_DecodeFSDefault(p->gr_passwd));
+        SET(setIndex++, PyUnicode_DecodeFSDefault(p->gr_passwd));
     else {
-            SET(setIndex++, Py_None);
-            Py_INCREF(Py_None);
+        SET(setIndex++, Py_None);
+        Py_INCREF(Py_None);
     }
     SET(setIndex++, _PyLong_FromGid(p->gr_gid));
     SET(setIndex++, w);
@@ -139,8 +138,7 @@ grp_getgrgid_impl(PyObject *module, PyObject *id)
     /* Note: 'grp' will be used via pointer 'p' on getgrgid_r success. */
     struct group grp;
 
-    Py_BEGIN_ALLOW_THREADS
-    bufsize = sysconf(_SC_GETGR_R_SIZE_MAX);
+    Py_BEGIN_ALLOW_THREADS bufsize = sysconf(_SC_GETGR_R_SIZE_MAX);
     if (bufsize == -1) {
         bufsize = DEFAULT_BUFFER_SIZE;
     }
@@ -171,7 +169,7 @@ grp_getgrgid_impl(PyObject *module, PyObject *id)
 #else
     p = getgrgid(gid);
 #endif
-    if (p == NULL) {
+        if (p == NULL) {
         PyMem_RawFree(buf);
         if (nomem == 1) {
             return PyErr_NoMemory();
@@ -220,13 +218,12 @@ grp_getgrnam_impl(PyObject *module, PyObject *name)
     /* Note: 'grp' will be used via pointer 'p' on getgrnam_r success. */
     struct group grp;
 
-    Py_BEGIN_ALLOW_THREADS
-    bufsize = sysconf(_SC_GETGR_R_SIZE_MAX);
+    Py_BEGIN_ALLOW_THREADS bufsize = sysconf(_SC_GETGR_R_SIZE_MAX);
     if (bufsize == -1) {
         bufsize = DEFAULT_BUFFER_SIZE;
     }
 
-    while(1) {
+    while (1) {
         buf2 = PyMem_RawRealloc(buf, bufsize);
         if (buf2 == NULL) {
             p = NULL;
@@ -252,11 +249,10 @@ grp_getgrnam_impl(PyObject *module, PyObject *name)
 #else
     p = getgrnam(name_chars);
 #endif
-    if (p == NULL) {
+        if (p == NULL) {
         if (nomem == 1) {
             PyErr_NoMemory();
-        }
-        else {
+        } else {
             PyErr_Format(PyExc_KeyError, "getgrnam(): name not found: %R", name);
         }
         goto out;
@@ -302,14 +298,12 @@ grp_getgrall_impl(PyObject *module)
 }
 
 static PyMethodDef grp_methods[] = {
-    GRP_GETGRGID_METHODDEF
-    GRP_GETGRNAM_METHODDEF
-    GRP_GETGRALL_METHODDEF
-    {NULL, NULL}
+    GRP_GETGRGID_METHODDEF GRP_GETGRNAM_METHODDEF GRP_GETGRALL_METHODDEF{NULL, NULL}
 };
 
-PyDoc_STRVAR(grp__doc__,
-"Access to the Unix group database.\n\
+PyDoc_STRVAR(
+    grp__doc__,
+    "Access to the Unix group database.\n\
 \n\
 Group entries are reported as 4-tuples containing the following fields\n\
 from the group database, in order:\n\
@@ -322,11 +316,11 @@ from the group database, in order:\n\
 The gid is an integer, name and password are strings.  (Note that most\n\
 users are not explicitly listed as members of the groups they are in\n\
 according to the password database.  Check both databases to get\n\
-complete membership information.)");
+complete membership information.)"
+);
 
 static int
-grpmodule_exec(PyObject *module)
-{
+grpmodule_exec(PyObject *module) {
     grpmodulestate *state = get_grp_state(module);
 
     state->StructGrpType = PyStructSequence_NewType(&struct_group_type_desc);
@@ -346,17 +340,20 @@ static PyModuleDef_Slot grpmodule_slots[] = {
     {0, NULL}
 };
 
-static int grpmodule_traverse(PyObject *m, visitproc visit, void *arg) {
+static int
+grpmodule_traverse(PyObject *m, visitproc visit, void *arg) {
     Py_VISIT(get_grp_state(m)->StructGrpType);
     return 0;
 }
 
-static int grpmodule_clear(PyObject *m) {
+static int
+grpmodule_clear(PyObject *m) {
     Py_CLEAR(get_grp_state(m)->StructGrpType);
     return 0;
 }
 
-static void grpmodule_free(void *m) {
+static void
+grpmodule_free(void *m) {
     grpmodule_clear((PyObject *)m);
 }
 
@@ -373,7 +370,6 @@ static struct PyModuleDef grpmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_grp(void)
-{
-   return PyModuleDef_Init(&grpmodule);
+PyInit_grp(void) {
+    return PyModuleDef_Init(&grpmodule);
 }

@@ -24,27 +24,26 @@
 #define MAXLEN PATHCCH_MAX_CCH
 #define MSGSIZE 1024
 
-#define RC_NO_STD_HANDLES   100
-#define RC_CREATE_PROCESS   101
+#define RC_NO_STD_HANDLES 100
+#define RC_CREATE_PROCESS 101
 #define RC_BAD_VIRTUAL_PATH 102
-#define RC_NO_PYTHON        103
-#define RC_NO_MEMORY        104
-#define RC_NO_SCRIPT        105
-#define RC_NO_VENV_CFG      106
-#define RC_BAD_VENV_CFG     107
-#define RC_NO_COMMANDLINE   108
-#define RC_INTERNAL_ERROR   109
-#define RC_DUPLICATE_ITEM   110
-#define RC_INSTALLING       111
+#define RC_NO_PYTHON 103
+#define RC_NO_MEMORY 104
+#define RC_NO_SCRIPT 105
+#define RC_NO_VENV_CFG 106
+#define RC_BAD_VENV_CFG 107
+#define RC_NO_COMMANDLINE 108
+#define RC_INTERNAL_ERROR 109
+#define RC_DUPLICATE_ITEM 110
+#define RC_INSTALLING 111
 #define RC_NO_PYTHON_AT_ALL 112
-#define RC_NO_SHEBANG       113
+#define RC_NO_SHEBANG 113
 #define RC_RECURSIVE_SHEBANG 114
 
-static FILE * log_fp = NULL;
+static FILE *log_fp = NULL;
 
 void
-debug(wchar_t * format, ...)
-{
+debug(wchar_t *format, ...) {
     va_list va;
 
     if (log_fp != NULL) {
@@ -67,20 +66,21 @@ debug(wchar_t * format, ...)
     }
 }
 
-
 void
-formatWinerror(int rc, wchar_t * message, int size)
-{
+formatWinerror(int rc, wchar_t *message, int size) {
     FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, rc, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        message, size, NULL);
+        NULL,
+        rc,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        message,
+        size,
+        NULL
+    );
 }
 
-
 void
-winerror(int err, wchar_t * format, ... )
-{
+winerror(int err, wchar_t *format, ...) {
     va_list va;
     wchar_t message[MSGSIZE];
     wchar_t win_message[MSGSIZE];
@@ -96,22 +96,18 @@ winerror(int err, wchar_t * format, ... )
 
     formatWinerror(err, win_message, MSGSIZE);
     if (len >= 0) {
-        _snwprintf_s(&message[len], MSGSIZE - len, _TRUNCATE, L": %s",
-                     win_message);
+        _snwprintf_s(&message[len], MSGSIZE - len, _TRUNCATE, L": %s", win_message);
     }
 
 #if !defined(_WINDOWS)
     fwprintf(stderr, L"%s\n", message);
 #else
-    MessageBoxW(NULL, message, L"Python Launcher is sorry to say ...",
-               MB_OK);
+    MessageBoxW(NULL, message, L"Python Launcher is sorry to say ...", MB_OK);
 #endif
 }
 
-
 void
-error(wchar_t * format, ... )
-{
+error(wchar_t *format, ...) {
     va_list va;
     wchar_t message[MSGSIZE];
 
@@ -122,25 +118,21 @@ error(wchar_t * format, ... )
 #if !defined(_WINDOWS)
     fwprintf(stderr, L"%s\n", message);
 #else
-    MessageBoxW(NULL, message, L"Python Launcher is sorry to say ...",
-               MB_OK);
+    MessageBoxW(NULL, message, L"Python Launcher is sorry to say ...", MB_OK);
 #endif
 }
 
-
-typedef BOOL (*PIsWow64Process2)(HANDLE, USHORT*, USHORT*);
-
+typedef BOOL (*PIsWow64Process2)(HANDLE, USHORT *, USHORT *);
 
 USHORT
-_getNativeMachine(void)
-{
+_getNativeMachine(void) {
     static USHORT _nativeMachine = IMAGE_FILE_MACHINE_UNKNOWN;
     if (_nativeMachine == IMAGE_FILE_MACHINE_UNKNOWN) {
         USHORT processMachine;
         HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
-        PIsWow64Process2 IsWow64Process2 = kernel32 ?
-            (PIsWow64Process2)GetProcAddress(kernel32, "IsWow64Process2") :
-            NULL;
+        PIsWow64Process2 IsWow64Process2 =
+            kernel32 ? (PIsWow64Process2)GetProcAddress(kernel32, "IsWow64Process2")
+                     : NULL;
         if (!IsWow64Process2) {
             BOOL wow64Process;
             if (!IsWow64Process(NULL, &wow64Process)) {
@@ -161,50 +153,40 @@ _getNativeMachine(void)
     return _nativeMachine;
 }
 
-
 bool
-isAMD64Host(void)
-{
+isAMD64Host(void) {
     return _getNativeMachine() == IMAGE_FILE_MACHINE_AMD64;
 }
 
-
 bool
-isARM64Host(void)
-{
+isARM64Host(void) {
     return _getNativeMachine() == IMAGE_FILE_MACHINE_ARM64;
 }
 
-
 bool
-isEnvVarSet(const wchar_t *name)
-{
+isEnvVarSet(const wchar_t *name) {
     /* only looking for non-empty, which means at least one character
        and the null terminator */
     return GetEnvironmentVariableW(name, NULL, 0) >= 2;
 }
 
-
 bool
-join(wchar_t *buffer, size_t bufferLength, const wchar_t *fragment)
-{
-    if (SUCCEEDED(PathCchCombineEx(buffer, bufferLength, buffer, fragment, PATHCCH_ALLOW_LONG_PATHS))) {
+join(wchar_t *buffer, size_t bufferLength, const wchar_t *fragment) {
+    if (SUCCEEDED(PathCchCombineEx(
+            buffer, bufferLength, buffer, fragment, PATHCCH_ALLOW_LONG_PATHS
+        ))) {
         return true;
     }
     return false;
 }
 
-
 bool
-split_parent(wchar_t *buffer, size_t bufferLength)
-{
+split_parent(wchar_t *buffer, size_t bufferLength) {
     return SUCCEEDED(PathCchRemoveFileSpec(buffer, bufferLength));
 }
 
-
 int
-_compare(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
-{
+_compare(const wchar_t *x, int xLen, const wchar_t *y, int yLen) {
     // Empty strings sort first
     if (!x || !xLen) {
         return (!y || !yLen) ? 0 : -1;
@@ -212,52 +194,61 @@ _compare(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
         return 1;
     }
     switch (CompareStringEx(
-        LOCALE_NAME_INVARIANT, NORM_IGNORECASE | SORT_DIGITSASNUMBERS,
-        x, xLen, y, yLen,
-        NULL, NULL, 0
+        LOCALE_NAME_INVARIANT,
+        NORM_IGNORECASE | SORT_DIGITSASNUMBERS,
+        x,
+        xLen,
+        y,
+        yLen,
+        NULL,
+        NULL,
+        0
     )) {
-    case CSTR_LESS_THAN:
-        return -1;
-    case CSTR_EQUAL:
-        return 0;
-    case CSTR_GREATER_THAN:
-        return 1;
-    default:
-        winerror(0, L"Error comparing '%.*s' and '%.*s' (compare)", xLen, x, yLen, y);
-        return -1;
+        case CSTR_LESS_THAN:
+            return -1;
+        case CSTR_EQUAL:
+            return 0;
+        case CSTR_GREATER_THAN:
+            return 1;
+        default:
+            winerror(
+                0, L"Error comparing '%.*s' and '%.*s' (compare)", xLen, x, yLen, y
+            );
+            return -1;
     }
 }
 
-
 int
-_compareArgument(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
-{
+_compareArgument(const wchar_t *x, int xLen, const wchar_t *y, int yLen) {
     // Empty strings sort first
     if (!x || !xLen) {
         return (!y || !yLen) ? 0 : -1;
     } else if (!y || !yLen) {
         return 1;
     }
-    switch (CompareStringEx(
-        LOCALE_NAME_INVARIANT, 0,
-        x, xLen, y, yLen,
-        NULL, NULL, 0
-    )) {
-    case CSTR_LESS_THAN:
-        return -1;
-    case CSTR_EQUAL:
-        return 0;
-    case CSTR_GREATER_THAN:
-        return 1;
-    default:
-        winerror(0, L"Error comparing '%.*s' and '%.*s' (compareArgument)", xLen, x, yLen, y);
-        return -1;
+    switch (CompareStringEx(LOCALE_NAME_INVARIANT, 0, x, xLen, y, yLen, NULL, NULL, 0)
+    ) {
+        case CSTR_LESS_THAN:
+            return -1;
+        case CSTR_EQUAL:
+            return 0;
+        case CSTR_GREATER_THAN:
+            return 1;
+        default:
+            winerror(
+                0,
+                L"Error comparing '%.*s' and '%.*s' (compareArgument)",
+                xLen,
+                x,
+                yLen,
+                y
+            );
+            return -1;
     }
 }
 
 int
-_comparePath(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
-{
+_comparePath(const wchar_t *x, int xLen, const wchar_t *y, int yLen) {
     // Empty strings sort first
     if (!x || !xLen) {
         return !y || !yLen ? 0 : -1;
@@ -265,22 +256,22 @@ _comparePath(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
         return 1;
     }
     switch (CompareStringOrdinal(x, xLen, y, yLen, TRUE)) {
-    case CSTR_LESS_THAN:
-        return -1;
-    case CSTR_EQUAL:
-        return 0;
-    case CSTR_GREATER_THAN:
-        return 1;
-    default:
-        winerror(0, L"Error comparing '%.*s' and '%.*s' (comparePath)", xLen, x, yLen, y);
-        return -1;
+        case CSTR_LESS_THAN:
+            return -1;
+        case CSTR_EQUAL:
+            return 0;
+        case CSTR_GREATER_THAN:
+            return 1;
+        default:
+            winerror(
+                0, L"Error comparing '%.*s' and '%.*s' (comparePath)", xLen, x, yLen, y
+            );
+            return -1;
     }
 }
 
-
 bool
-_startsWith(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
-{
+_startsWith(const wchar_t *x, int xLen, const wchar_t *y, int yLen) {
     if (!x || !y) {
         return false;
     }
@@ -289,10 +280,8 @@ _startsWith(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
     return xLen >= yLen && 0 == _compare(x, yLen, y, yLen);
 }
 
-
 bool
-_startsWithArgument(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
-{
+_startsWithArgument(const wchar_t *x, int xLen, const wchar_t *y, int yLen) {
     if (!x || !y) {
         return false;
     }
@@ -301,13 +290,13 @@ _startsWithArgument(const wchar_t *x, int xLen, const wchar_t *y, int yLen)
     return xLen >= yLen && 0 == _compareArgument(x, yLen, y, yLen);
 }
 
-
 // Unlike regular startsWith, this function requires that the following
 // character is either NULL (that is, the entire string matches) or is one of
 // the characters in 'separators'.
 bool
-_startsWithSeparated(const wchar_t *x, int xLen, const wchar_t *y, int yLen, const wchar_t *separators)
-{
+_startsWithSeparated(
+    const wchar_t *x, int xLen, const wchar_t *y, int yLen, const wchar_t *separators
+) {
     if (!x || !y) {
         return false;
     }
@@ -319,30 +308,27 @@ _startsWithSeparated(const wchar_t *x, int xLen, const wchar_t *y, int yLen, con
     if (xLen == yLen) {
         return 0 == _compare(x, xLen, y, yLen);
     }
-    return separators &&
-        0 == _compare(x, yLen, y, yLen) &&
-        wcschr(separators, x[yLen]) != NULL;
+    return separators && 0 == _compare(x, yLen, y, yLen) &&
+           wcschr(separators, x[yLen]) != NULL;
 }
-
-
 
 /******************************************************************************\
  ***                               HELP TEXT                                ***
 \******************************************************************************/
 
-
 int
-showHelpText(wchar_t ** argv)
-{
+showHelpText(wchar_t **argv) {
     // The help text is stored in launcher-usage.txt, which is compiled into
     // the launcher and loaded at runtime if needed.
     //
     // The file must be UTF-8. There are two substitutions:
     //  %ls - PY_VERSION (as wchar_t*)
     //  %ls - argv[0] (as wchar_t*)
-    HRSRC res = FindResourceExW(NULL, L"USAGE", MAKEINTRESOURCE(1), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
+    HRSRC res = FindResourceExW(
+        NULL, L"USAGE", MAKEINTRESOURCE(1), MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL)
+    );
     HGLOBAL resData = res ? LoadResource(NULL, res) : NULL;
-    const char *usage = resData ? (const char*)LockResource(resData) : NULL;
+    const char *usage = resData ? (const char *)LockResource(resData) : NULL;
     if (usage == NULL) {
         winerror(0, L"Unable to load usage text");
         return RC_INTERNAL_ERROR;
@@ -356,7 +342,7 @@ showHelpText(wchar_t ** argv)
     }
 
     cchUsage += 1;
-    wchar_t *wUsage = (wchar_t*)malloc(cchUsage * sizeof(wchar_t));
+    wchar_t *wUsage = (wchar_t *)malloc(cchUsage * sizeof(wchar_t));
     cchUsage = MultiByteToWideChar(CP_UTF8, 0, usage, cbData, wUsage, cchUsage);
     if (!cchUsage) {
         winerror(0, L"Unable to preprocess usage text");
@@ -374,17 +360,14 @@ showHelpText(wchar_t ** argv)
     return 0;
 }
 
-
 /******************************************************************************\
  ***                              SEARCH INFO                               ***
 \******************************************************************************/
-
 
 struct _SearchInfoBuffer {
     struct _SearchInfoBuffer *next;
     wchar_t buffer[0];
 };
-
 
 typedef struct {
     // the original string, managed by the OS
@@ -447,13 +430,10 @@ typedef struct {
     struct _SearchInfoBuffer *_buffer;
 } SearchInfo;
 
-
 wchar_t *
-allocSearchInfoBuffer(SearchInfo *search, int wcharCount)
-{
-    struct _SearchInfoBuffer *buffer = (struct _SearchInfoBuffer*)malloc(
-        sizeof(struct _SearchInfoBuffer) +
-        wcharCount * sizeof(wchar_t)
+allocSearchInfoBuffer(SearchInfo *search, int wcharCount) {
+    struct _SearchInfoBuffer *buffer = (struct _SearchInfoBuffer *)malloc(
+        sizeof(struct _SearchInfoBuffer) + wcharCount * sizeof(wchar_t)
     );
     if (!buffer) {
         return NULL;
@@ -463,10 +443,8 @@ allocSearchInfoBuffer(SearchInfo *search, int wcharCount)
     return buffer->buffer;
 }
 
-
 void
-freeSearchInfo(SearchInfo *search)
-{
+freeSearchInfo(SearchInfo *search) {
     struct _SearchInfoBuffer *b = search->_buffer;
     search->_buffer = NULL;
     while (b) {
@@ -476,10 +454,8 @@ freeSearchInfo(SearchInfo *search)
     }
 }
 
-
 void
-_debugStringAndLength(const wchar_t *s, int len, const wchar_t *name)
-{
+_debugStringAndLength(const wchar_t *s, int len, const wchar_t *name) {
     if (!s) {
         debug(L"%s: (null)\n", name);
     } else if (len == 0) {
@@ -491,22 +467,23 @@ _debugStringAndLength(const wchar_t *s, int len, const wchar_t *name)
     }
 }
 
-
 void
-dumpSearchInfo(SearchInfo *search)
-{
+dumpSearchInfo(SearchInfo *search) {
     if (!log_fp) {
         return;
     }
 
 #ifdef __clang__
-#define DEBUGNAME(s) L # s
+#define DEBUGNAME(s) L#s
 #else
-#define DEBUGNAME(s) # s
+#define DEBUGNAME(s) #s
 #endif
-#define DEBUG(s) debug(L"SearchInfo." DEBUGNAME(s) L": %s\n", (search->s) ? (search->s) : L"(null)")
-#define DEBUG_2(s, sl) _debugStringAndLength((search->s), (search->sl), L"SearchInfo." DEBUGNAME(s))
-#define DEBUG_BOOL(s) debug(L"SearchInfo." DEBUGNAME(s) L": %s\n", (search->s) ? L"True" : L"False")
+#define DEBUG(s) \
+    debug(L"SearchInfo." DEBUGNAME(s) L": %s\n", (search->s) ? (search->s) : L"(null)")
+#define DEBUG_2(s, sl) \
+    _debugStringAndLength((search->s), (search->sl), L"SearchInfo." DEBUGNAME(s))
+#define DEBUG_BOOL(s) \
+    debug(L"SearchInfo." DEBUGNAME(s) L": %s\n", (search->s) ? L"True" : L"False")
     DEBUG(originalCmdLine);
     DEBUG(restOfCmdLine);
     DEBUG(executablePath);
@@ -530,10 +507,8 @@ dumpSearchInfo(SearchInfo *search)
 #undef DEBUGNAME
 }
 
-
 int
-findArgv0Length(const wchar_t *buffer, int bufferLength)
-{
+findArgv0Length(const wchar_t *buffer, int bufferLength) {
     // Note: this implements semantics that are only valid for argv0.
     // Specifically, there is no escaping of quotes, and quotes within
     // the argument have no effect. A quoted argv0 must start and end
@@ -542,63 +517,61 @@ findArgv0Length(const wchar_t *buffer, int bufferLength)
     int quoted = buffer[0] == L'"';
     for (int i = 1; bufferLength < 0 || i < bufferLength; ++i) {
         switch (buffer[i]) {
-        case L'\0':
-            return i;
-        case L' ':
-        case L'\t':
-            if (!quoted) {
+            case L'\0':
                 return i;
-            }
-            break;
-        case L'"':
-            if (quoted) {
-                return i + 1;
-            }
-            break;
+            case L' ':
+            case L'\t':
+                if (!quoted) {
+                    return i;
+                }
+                break;
+            case L'"':
+                if (quoted) {
+                    return i + 1;
+                }
+                break;
         }
     }
     return bufferLength;
 }
 
-
 const wchar_t *
-findArgv0End(const wchar_t *buffer, int bufferLength)
-{
+findArgv0End(const wchar_t *buffer, int bufferLength) {
     return &buffer[findArgv0Length(buffer, bufferLength)];
 }
-
 
 /******************************************************************************\
  ***                          COMMAND-LINE PARSING                          ***
 \******************************************************************************/
 
 // Adapted from https://stackoverflow.com/a/65583702
-typedef struct AppExecLinkFile { // For tag IO_REPARSE_TAG_APPEXECLINK
+typedef struct AppExecLinkFile {  // For tag IO_REPARSE_TAG_APPEXECLINK
     DWORD reparseTag;
     WORD reparseDataLength;
     WORD reserved;
     ULONG version;
-    wchar_t stringList[MAX_PATH * 4];  // Multistring (Consecutive UTF-16 strings each ending with a NUL)
+    wchar_t stringList[MAX_PATH * 4];  // Multistring (Consecutive UTF-16 strings each
+                                       // ending with a NUL)
     /* There are normally 4 strings here. Ex:
         Package ID:  L"Microsoft.DesktopAppInstaller_8wekyb3d8bbwe"
         Entry Point: L"Microsoft.DesktopAppInstaller_8wekyb3d8bbwe!PythonRedirector"
-        Executable:  L"C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_1.17.106910_x64__8wekyb3d8bbwe\AppInstallerPythonRedirector.exe"
-        Applic. Type: L"0"   // Integer as ASCII. "0" = Desktop bridge application; Else sandboxed UWP application
+        Executable:  L"C:\Program
+       Files\WindowsApps\Microsoft.DesktopAppInstaller_1.17.106910_x64__8wekyb3d8bbwe\AppInstallerPythonRedirector.exe"
+        Applic. Type: L"0"   // Integer as ASCII. "0" = Desktop bridge application; Else
+       sandboxed UWP application
     */
 } AppExecLinkFile;
 
-
 int
-parseCommandLine(SearchInfo *search)
-{
+parseCommandLine(SearchInfo *search) {
     if (!search || !search->originalCmdLine) {
         return RC_NO_COMMANDLINE;
     }
 
     const wchar_t *argv0End = findArgv0End(search->originalCmdLine, -1);
-    const wchar_t *tail = argv0End; // will be start of the executable name
-    const wchar_t *end = argv0End;  // will be end of the executable name
-    search->restOfCmdLine = argv0End;   // will be first space after argv0
+    const wchar_t *tail = argv0End;    // will be start of the executable name
+    const wchar_t *end = argv0End;     // will be end of the executable name
+    search->restOfCmdLine = argv0End;  // will be first space after argv0
     while (--tail != search->originalCmdLine) {
         if (*tail == L'"' && end == argv0End) {
             // Move the "end" up to the quote, so we also allow moving for
@@ -665,12 +638,16 @@ parseCommandLine(SearchInfo *search)
     // First argument might be one of our options. If so, consume it,
     // update flags and then set restOfCmdLine.
     const wchar_t *arg = search->restOfCmdLine;
-    while(*arg && isspace(*arg)) { ++arg; }
+    while (*arg && isspace(*arg)) {
+        ++arg;
+    }
 #define MATCHES(s) (0 == _compareArgument(arg, argLen, (s), -1))
 #define STARTSWITH(s) _startsWithArgument(arg, argLen, (s), -1)
     if (*arg && *arg == L'-' && *++arg) {
         tail = arg;
-        while (*tail && !isspace(*tail)) { ++tail; }
+        while (*tail && !isspace(*tail)) {
+            ++tail;
+        }
         int argLen = (int)(tail - arg);
         if (argLen > 0) {
             if (STARTSWITH(L"2") || STARTSWITH(L"3")) {
@@ -682,7 +659,7 @@ parseCommandLine(SearchInfo *search)
             } else if (STARTSWITH(L"V:") || STARTSWITH(L"-version:")) {
                 // Arguments starting with 'V:' specify company and/or tag
                 const wchar_t *argStart = wcschr(arg, L':') + 1;
-                const wchar_t *tagStart = wcschr(argStart, L'/') ;
+                const wchar_t *tagStart = wcschr(argStart, L'/');
                 if (tagStart) {
                     search->company = argStart;
                     search->companyLength = (int)(tagStart - argStart);
@@ -712,14 +689,19 @@ parseCommandLine(SearchInfo *search)
     // Might have a script filename. If it looks like a filename, add
     // it to the SearchInfo struct for later reference.
     arg = search->restOfCmdLine;
-    while(*arg && isspace(*arg)) { ++arg; }
+    while (*arg && isspace(*arg)) {
+        ++arg;
+    }
     if (*arg && *arg != L'-') {
         search->scriptFile = arg;
         if (*arg == L'"') {
             ++search->scriptFile;
-            while (*++arg && *arg != L'"') { }
+            while (*++arg && *arg != L'"') {
+            }
         } else {
-            while (*arg && !isspace(*arg)) { ++arg; }
+            while (*arg && !isspace(*arg)) {
+                ++arg;
+            }
         }
         search->scriptFileLength = (int)(arg - search->scriptFile);
     }
@@ -727,15 +709,23 @@ parseCommandLine(SearchInfo *search)
     return 0;
 }
 
-
 int
-_decodeShebang(SearchInfo *search, const char *buffer, int bufferLength, bool onlyUtf8, wchar_t **decoded, int *decodedLength)
-{
+_decodeShebang(
+    SearchInfo *search,
+    const char *buffer,
+    int bufferLength,
+    bool onlyUtf8,
+    wchar_t **decoded,
+    int *decodedLength
+) {
     DWORD cp = CP_UTF8;
-    int wideLen = MultiByteToWideChar(cp, MB_ERR_INVALID_CHARS, buffer, bufferLength, NULL, 0);
+    int wideLen =
+        MultiByteToWideChar(cp, MB_ERR_INVALID_CHARS, buffer, bufferLength, NULL, 0);
     if (!wideLen) {
         cp = CP_ACP;
-        wideLen = MultiByteToWideChar(cp, MB_ERR_INVALID_CHARS, buffer, bufferLength, NULL, 0);
+        wideLen = MultiByteToWideChar(
+            cp, MB_ERR_INVALID_CHARS, buffer, bufferLength, NULL, 0
+        );
         if (!wideLen) {
             debug(L"# Failed to decode shebang line (0x%08X)\n", GetLastError());
             return RC_BAD_VIRTUAL_PATH;
@@ -756,12 +746,17 @@ _decodeShebang(SearchInfo *search, const char *buffer, int bufferLength, bool on
     return 0;
 }
 
-
 bool
-_shebangStartsWith(const wchar_t *buffer, int bufferLength, const wchar_t *prefix, const wchar_t **rest, int *firstArgumentLength)
-{
+_shebangStartsWith(
+    const wchar_t *buffer,
+    int bufferLength,
+    const wchar_t *prefix,
+    const wchar_t **rest,
+    int *firstArgumentLength
+) {
     int prefixLength = (int)wcsnlen_s(prefix, MAXLEN);
-    if (bufferLength < prefixLength || !_startsWithArgument(buffer, bufferLength, prefix, prefixLength)) {
+    if (bufferLength < prefixLength ||
+        !_startsWithArgument(buffer, bufferLength, prefix, prefixLength)) {
         return false;
     }
     if (rest) {
@@ -777,10 +772,8 @@ _shebangStartsWith(const wchar_t *buffer, int bufferLength, const wchar_t *prefi
     return true;
 }
 
-
 int
-ensure_no_redirector_stub(wchar_t* filename, wchar_t* buffer)
-{
+ensure_no_redirector_stub(wchar_t *filename, wchar_t *buffer) {
     // Make sure we didn't find a reparse point that will open the Microsoft Store
     // If we did, pretend there was no shebang and let normal handling take over
     WIN32_FIND_DATAW findData;
@@ -794,11 +787,19 @@ ensure_no_redirector_stub(wchar_t* filename, wchar_t* buffer)
     FindClose(hFind);
 
     if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT &&
-        findData.dwReserved0 & IO_REPARSE_TAG_APPEXECLINK)) {
+          findData.dwReserved0 & IO_REPARSE_TAG_APPEXECLINK)) {
         return 0;
     }
 
-    HANDLE hReparsePoint = CreateFileW(buffer, 0, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT, NULL);
+    HANDLE hReparsePoint = CreateFileW(
+        buffer,
+        0,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT,
+        NULL
+    );
     if (!hReparsePoint) {
         // Let normal handling take over
         debug(L"# Did not find %s on PATH\n", filename);
@@ -807,7 +808,16 @@ ensure_no_redirector_stub(wchar_t* filename, wchar_t* buffer)
 
     AppExecLinkFile appExecLink;
 
-    if (!DeviceIoControl(hReparsePoint, FSCTL_GET_REPARSE_POINT, NULL, 0, &appExecLink, sizeof(appExecLink), NULL, NULL)) {
+    if (!DeviceIoControl(
+            hReparsePoint,
+            FSCTL_GET_REPARSE_POINT,
+            NULL,
+            0,
+            &appExecLink,
+            sizeof(appExecLink),
+            NULL,
+            NULL
+        )) {
         // Let normal handling take over
         debug(L"# Did not find %s on PATH\n", filename);
         CloseHandle(hReparsePoint);
@@ -816,7 +826,7 @@ ensure_no_redirector_stub(wchar_t* filename, wchar_t* buffer)
 
     CloseHandle(hReparsePoint);
 
-    const wchar_t* redirectorPackageId = L"Microsoft.DesktopAppInstaller_8wekyb3d8bbwe";
+    const wchar_t *redirectorPackageId = L"Microsoft.DesktopAppInstaller_8wekyb3d8bbwe";
 
     if (0 == wcscmp(appExecLink.stringList, redirectorPackageId)) {
         debug(L"# ignoring redirector that would launch store\n");
@@ -826,17 +836,17 @@ ensure_no_redirector_stub(wchar_t* filename, wchar_t* buffer)
     return 0;
 }
 
-
 int
-searchPath(SearchInfo *search, const wchar_t *shebang, int shebangLength)
-{
+searchPath(SearchInfo *search, const wchar_t *shebang, int shebangLength) {
     if (isEnvVarSet(L"PYLAUNCHER_NO_SEARCH_PATH")) {
         return RC_NO_SHEBANG;
     }
 
     wchar_t *command;
     int commandLength;
-    if (!_shebangStartsWith(shebang, shebangLength, L"/usr/bin/env ", &command, &commandLength)) {
+    if (!_shebangStartsWith(
+            shebang, shebangLength, L"/usr/bin/env ", &command, &commandLength
+        )) {
         return RC_NO_SHEBANG;
     }
 
@@ -916,16 +926,21 @@ searchPath(SearchInfo *search, const wchar_t *shebang, int shebangLength)
     return 0;
 }
 
-
 int
-_readIni(const wchar_t *section, const wchar_t *settingName, wchar_t *buffer, int bufferLength)
-{
+_readIni(
+    const wchar_t *section,
+    const wchar_t *settingName,
+    wchar_t *buffer,
+    int bufferLength
+) {
     wchar_t iniPath[MAXLEN];
     int n;
     if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, iniPath)) &&
         join(iniPath, MAXLEN, L"py.ini")) {
         debug(L"# Reading from %s for %s/%s\n", iniPath, section, settingName);
-        n = GetPrivateProfileStringW(section, settingName, NULL, buffer, bufferLength, iniPath);
+        n = GetPrivateProfileStringW(
+            section, settingName, NULL, buffer, bufferLength, iniPath
+        );
         if (n) {
             debug(L"# Found %s in %s\n", settingName, iniPath);
             return n;
@@ -939,7 +954,9 @@ _readIni(const wchar_t *section, const wchar_t *settingName, wchar_t *buffer, in
         SUCCEEDED(PathCchRemoveFileSpec(iniPath, MAXLEN)) &&
         join(iniPath, MAXLEN, L"py.ini")) {
         debug(L"# Reading from %s for %s/%s\n", iniPath, section, settingName);
-        n = GetPrivateProfileStringW(section, settingName, NULL, buffer, MAXLEN, iniPath);
+        n = GetPrivateProfileStringW(
+            section, settingName, NULL, buffer, MAXLEN, iniPath
+        );
         if (n) {
             debug(L"# Found %s in %s\n", settingName, iniPath);
             return n;
@@ -952,10 +969,8 @@ _readIni(const wchar_t *section, const wchar_t *settingName, wchar_t *buffer, in
     return 0;
 }
 
-
 bool
-_findCommand(SearchInfo *search, const wchar_t *command, int commandLength)
-{
+_findCommand(SearchInfo *search, const wchar_t *command, int commandLength) {
     wchar_t commandBuffer[MAXLEN];
     wchar_t buffer[MAXLEN];
     wcsncpy_s(commandBuffer, MAXLEN, command, commandLength);
@@ -972,10 +987,8 @@ _findCommand(SearchInfo *search, const wchar_t *command, int commandLength)
     return true;
 }
 
-
 int
-_useShebangAsExecutable(SearchInfo *search, const wchar_t *shebang, int shebangLength)
-{
+_useShebangAsExecutable(SearchInfo *search, const wchar_t *shebang, int shebangLength) {
     wchar_t buffer[MAXLEN];
     wchar_t script[MAXLEN];
     wchar_t command[MAXLEN];
@@ -1005,12 +1018,13 @@ _useShebangAsExecutable(SearchInfo *search, const wchar_t *shebang, int shebangL
 
     if (!GetCurrentDirectoryW(MAXLEN, buffer) ||
         wcsncpy_s(script, MAXLEN, search->scriptFile, search->scriptFileLength) ||
-        FAILED(PathCchCombineEx(buffer, MAXLEN, buffer, script,
-                                PATHCCH_ALLOW_LONG_PATHS)) ||
+        FAILED(
+            PathCchCombineEx(buffer, MAXLEN, buffer, script, PATHCCH_ALLOW_LONG_PATHS)
+        ) ||
         FAILED(PathCchRemoveFileSpec(buffer, MAXLEN)) ||
-        FAILED(PathCchCombineEx(buffer, MAXLEN, buffer, command,
-                                PATHCCH_ALLOW_LONG_PATHS))
-    ) {
+        FAILED(
+            PathCchCombineEx(buffer, MAXLEN, buffer, command, PATHCCH_ALLOW_LONG_PATHS)
+        )) {
         return RC_NO_MEMORY;
     }
 
@@ -1028,10 +1042,8 @@ _useShebangAsExecutable(SearchInfo *search, const wchar_t *shebang, int shebangL
     return 0;
 }
 
-
 int
-checkShebang(SearchInfo *search)
-{
+checkShebang(SearchInfo *search) {
     // Do not check shebang if a tag was provided or if no script file
     // was found on the command line.
     if (search->tag || !search->scriptFile) {
@@ -1042,21 +1054,35 @@ checkShebang(SearchInfo *search)
         search->scriptFileLength = (int)wcsnlen_s(search->scriptFile, MAXLEN);
     }
 
-    wchar_t *scriptFile = (wchar_t*)malloc(sizeof(wchar_t) * (search->scriptFileLength + 1));
+    wchar_t *scriptFile =
+        (wchar_t *)malloc(sizeof(wchar_t) * (search->scriptFileLength + 1));
     if (!scriptFile) {
         return RC_NO_MEMORY;
     }
 
-    wcsncpy_s(scriptFile, search->scriptFileLength + 1,
-              search->scriptFile, search->scriptFileLength);
+    wcsncpy_s(
+        scriptFile,
+        search->scriptFileLength + 1,
+        search->scriptFile,
+        search->scriptFileLength
+    );
 
-    HANDLE hFile = CreateFileW(scriptFile, GENERIC_READ,
+    HANDLE hFile = CreateFileW(
+        scriptFile,
+        GENERIC_READ,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        NULL, OPEN_EXISTING, 0, NULL);
+        NULL,
+        OPEN_EXISTING,
+        0,
+        NULL
+    );
 
     if (hFile == INVALID_HANDLE_VALUE) {
-        debug(L"# Failed to open %s for shebang parsing (0x%08X)\n",
-              scriptFile, GetLastError());
+        debug(
+            L"# Failed to open %s for shebang parsing (0x%08X)\n",
+            scriptFile,
+            GetLastError()
+        );
         free(scriptFile);
         return 0;
     }
@@ -1064,8 +1090,11 @@ checkShebang(SearchInfo *search)
     DWORD bytesRead = 0;
     char buffer[4096];
     if (!ReadFile(hFile, buffer, sizeof(buffer), &bytesRead, NULL)) {
-        debug(L"# Failed to read %s for shebang parsing (0x%08X)\n",
-              scriptFile, GetLastError());
+        debug(
+            L"# Failed to read %s for shebang parsing (0x%08X)\n",
+            scriptFile,
+            GetLastError()
+        );
         free(scriptFile);
         return 0;
     }
@@ -1073,7 +1102,6 @@ checkShebang(SearchInfo *search)
     CloseHandle(hFile);
     debug(L"# Read %d bytes from %s to find shebang line\n", bytesRead, scriptFile);
     free(scriptFile);
-
 
     char *b = buffer;
     bool onlyUtf8 = false;
@@ -1095,14 +1123,23 @@ checkShebang(SearchInfo *search)
     }
     ++b;
     --bytesRead;
-    while (--bytesRead > 0 && isspace(*++b)) { }
+    while (--bytesRead > 0 && isspace(*++b)) {
+    }
     char *start = b;
-    while (--bytesRead > 0 && *++b != '\r' && *b != '\n') { }
+    while (--bytesRead > 0 && *++b != '\r' && *b != '\n') {
+    }
     wchar_t *shebang;
     int shebangLength;
     // We add 1 when bytesRead==0, as in that case we hit EOF and b points
     // to the last character in the file, not the newline
-    int exitCode = _decodeShebang(search, start, (int)(b - start + (bytesRead == 0)), onlyUtf8, &shebang, &shebangLength);
+    int exitCode = _decodeShebang(
+        search,
+        start,
+        (int)(b - start + (bytesRead == 0)),
+        onlyUtf8,
+        &shebang,
+        &shebangLength
+    );
     if (exitCode) {
         return exitCode;
     }
@@ -1133,14 +1170,20 @@ checkShebang(SearchInfo *search)
         // Just to make sure we don't mess this up in the future
         assert(0 == wcscmp(L"python", (*tmpl) + wcslen(*tmpl) - 6));
 
-        if (_shebangStartsWith(shebang, shebangLength, *tmpl, &command, &commandLength)) {
+        if (_shebangStartsWith(
+                shebang, shebangLength, *tmpl, &command, &commandLength
+            )) {
             // Search for "python{command}" overrides. All templates end with
             // "python", so we prepend it by jumping back 6 characters
             if (_findCommand(search, &command[-6], commandLength + 6)) {
                 search->executableArgs = &command[commandLength];
                 search->executableArgsLength = shebangLength - commandLength;
-                debug(L"# Treating shebang command '%.*s' as %s\n",
-                    commandLength + 6, &command[-6], search->executablePath);
+                debug(
+                    L"# Treating shebang command '%.*s' as %s\n",
+                    commandLength + 6,
+                    &command[-6],
+                    search->executablePath
+                );
                 return 0;
             }
 
@@ -1167,11 +1210,19 @@ checkShebang(SearchInfo *search)
             search->executableArgs = &command[commandLength];
             search->executableArgsLength = shebangLength - commandLength;
             if (search->tag && search->tagLength) {
-                debug(L"# Treating shebang command '%.*s' as 'py -%.*s'\n",
-                    commandLength, command, search->tagLength, search->tag);
+                debug(
+                    L"# Treating shebang command '%.*s' as 'py -%.*s'\n",
+                    commandLength,
+                    command,
+                    search->tagLength,
+                    search->tag
+                );
             } else {
-                debug(L"# Treating shebang command '%.*s' as 'py'\n",
-                    commandLength, command);
+                debug(
+                    L"# Treating shebang command '%.*s' as 'py'\n",
+                    commandLength,
+                    command
+                );
             }
             return 0;
         }
@@ -1190,8 +1241,12 @@ checkShebang(SearchInfo *search)
     if (_findCommand(search, shebang, commandLength)) {
         search->executableArgs = &shebang[commandLength];
         search->executableArgsLength = shebangLength - commandLength;
-        debug(L"# Treating shebang command '%.*s' as %s\n",
-            commandLength, shebang, search->executablePath);
+        debug(
+            L"# Treating shebang command '%.*s' as %s\n",
+            commandLength,
+            shebang,
+            search->executablePath
+        );
         return 0;
     }
 
@@ -1200,10 +1255,8 @@ checkShebang(SearchInfo *search)
     return _useShebangAsExecutable(search, shebang, shebangLength);
 }
 
-
 int
-checkDefaults(SearchInfo *search)
-{
+checkDefaults(SearchInfo *search) {
     if (!search->allowDefaults) {
         return 0;
     }
@@ -1227,7 +1280,9 @@ checkDefaults(SearchInfo *search)
         iniSettingName = L"python2";
         envSettingName = L"py_python2";
     } else {
-        debug(L"# Cannot select defaults for tag '%.*s'\n", search->tagLength, search->tag);
+        debug(
+            L"# Cannot select defaults for tag '%.*s'\n", search->tagLength, search->tag
+        );
         return 0;
     }
 
@@ -1287,10 +1342,8 @@ typedef struct EnvironmentInfo {
     bool highPriority;
 } EnvironmentInfo;
 
-
 int
-copyWstr(const wchar_t **dest, const wchar_t *src)
-{
+copyWstr(const wchar_t **dest, const wchar_t *src) {
     if (!dest) {
         return RC_NO_MEMORY;
     }
@@ -1299,19 +1352,17 @@ copyWstr(const wchar_t **dest, const wchar_t *src)
         return 0;
     }
     size_t n = wcsnlen_s(src, MAXLEN - 1) + 1;
-    wchar_t *buffer = (wchar_t*)malloc(n * sizeof(wchar_t));
+    wchar_t *buffer = (wchar_t *)malloc(n * sizeof(wchar_t));
     if (!buffer) {
         return RC_NO_MEMORY;
     }
     wcsncpy_s(buffer, n, src, n - 1);
-    *dest = (const wchar_t*)buffer;
+    *dest = (const wchar_t *)buffer;
     return 0;
 }
 
-
 EnvironmentInfo *
-newEnvironmentInfo(const wchar_t *company, const wchar_t *tag)
-{
+newEnvironmentInfo(const wchar_t *company, const wchar_t *tag) {
     EnvironmentInfo *env = (EnvironmentInfo *)malloc(sizeof(EnvironmentInfo));
     if (!env) {
         return NULL;
@@ -1331,10 +1382,8 @@ newEnvironmentInfo(const wchar_t *company, const wchar_t *tag)
     return env;
 }
 
-
 void
-freeEnvironmentInfo(EnvironmentInfo *env)
-{
+freeEnvironmentInfo(EnvironmentInfo *env) {
     if (env) {
         free((void *)env->company);
         free((void *)env->tag);
@@ -1350,12 +1399,10 @@ freeEnvironmentInfo(EnvironmentInfo *env)
     }
 }
 
-
 /* Specific string comparisons for sorting the tree */
 
 int
-_compareCompany(const wchar_t *x, const wchar_t *y)
-{
+_compareCompany(const wchar_t *x, const wchar_t *y) {
     if (!x && !y) {
         return 0;
     } else if (!x) {
@@ -1374,10 +1421,8 @@ _compareCompany(const wchar_t *x, const wchar_t *y)
     return _compare(x, -1, y, -1);
 }
 
-
 int
-_compareTag(const wchar_t *x, const wchar_t *y)
-{
+_compareTag(const wchar_t *x, const wchar_t *y) {
     if (!x && !y) {
         return 0;
     } else if (!x) {
@@ -1411,10 +1456,10 @@ _compareTag(const wchar_t *x, const wchar_t *y)
     return 0;
 }
 
-
 int
-addEnvironmentInfo(EnvironmentInfo **root, EnvironmentInfo* parent, EnvironmentInfo *node)
-{
+addEnvironmentInfo(
+    EnvironmentInfo **root, EnvironmentInfo *parent, EnvironmentInfo *node
+) {
     EnvironmentInfo *r = *root;
     if (!r) {
         *root = node;
@@ -1423,21 +1468,21 @@ addEnvironmentInfo(EnvironmentInfo **root, EnvironmentInfo* parent, EnvironmentI
     }
     // Sort by company name
     switch (_compareCompany(node->company, r->company)) {
-    case -1:
-        return addEnvironmentInfo(&r->prev, r, node);
-    case 1:
-        return addEnvironmentInfo(&r->next, r, node);
-    case 0:
-        break;
+        case -1:
+            return addEnvironmentInfo(&r->prev, r, node);
+        case 1:
+            return addEnvironmentInfo(&r->next, r, node);
+        case 0:
+            break;
     }
     // Then by tag (descending)
     switch (_compareTag(node->tag, r->tag)) {
-    case -1:
-        return addEnvironmentInfo(&r->next, r, node);
-    case 1:
-        return addEnvironmentInfo(&r->prev, r, node);
-    case 0:
-        break;
+        case -1:
+            return addEnvironmentInfo(&r->next, r, node);
+        case 1:
+            return addEnvironmentInfo(&r->prev, r, node);
+        case 0:
+            break;
     }
     // Then keep the one with the lowest internal sort key
     if (node->internalSortKey < r->internalSortKey) {
@@ -1461,38 +1506,49 @@ addEnvironmentInfo(EnvironmentInfo **root, EnvironmentInfo* parent, EnvironmentI
         node->next = r->next;
         node->prev = r->prev;
 
-        debug(L"# replaced %s/%s/%i in tree\n", node->company, node->tag, node->internalSortKey);
+        debug(
+            L"# replaced %s/%s/%i in tree\n",
+            node->company,
+            node->tag,
+            node->internalSortKey
+        );
         freeEnvironmentInfo(r);
     } else {
-        debug(L"# not adding %s/%s/%i to tree\n", node->company, node->tag, node->internalSortKey);
+        debug(
+            L"# not adding %s/%s/%i to tree\n",
+            node->company,
+            node->tag,
+            node->internalSortKey
+        );
         return RC_DUPLICATE_ITEM;
     }
     return 0;
 }
 
-
 /******************************************************************************\
  ***                            REGISTRY SEARCH                             ***
 \******************************************************************************/
 
-
 int
-_registryReadString(const wchar_t **dest, HKEY root, const wchar_t *subkey, const wchar_t *value)
-{
+_registryReadString(
+    const wchar_t **dest, HKEY root, const wchar_t *subkey, const wchar_t *value
+) {
     // Note that this is bytes (hence 'cb'), not characters ('cch')
     DWORD cbData = 0;
     DWORD flags = RRF_RT_REG_SZ | RRF_RT_REG_EXPAND_SZ;
 
-    if (ERROR_SUCCESS != RegGetValueW(root, subkey, value, flags, NULL, NULL, &cbData)) {
+    if (ERROR_SUCCESS !=
+        RegGetValueW(root, subkey, value, flags, NULL, NULL, &cbData)) {
         return 0;
     }
 
-    wchar_t *buffer = (wchar_t*)malloc(cbData);
+    wchar_t *buffer = (wchar_t *)malloc(cbData);
     if (!buffer) {
         return RC_NO_MEMORY;
     }
 
-    if (ERROR_SUCCESS == RegGetValueW(root, subkey, value, flags, NULL, buffer, &cbData)) {
+    if (ERROR_SUCCESS ==
+        RegGetValueW(root, subkey, value, flags, NULL, buffer, &cbData)) {
         *dest = buffer;
     } else {
         free((void *)buffer);
@@ -1500,27 +1556,30 @@ _registryReadString(const wchar_t **dest, HKEY root, const wchar_t *subkey, cons
     return 0;
 }
 
-
 int
-_combineWithInstallDir(const wchar_t **dest, const wchar_t *installDir, const wchar_t *fragment, int fragmentLength)
-{
+_combineWithInstallDir(
+    const wchar_t **dest,
+    const wchar_t *installDir,
+    const wchar_t *fragment,
+    int fragmentLength
+) {
     wchar_t buffer[MAXLEN];
     wchar_t fragmentBuffer[MAXLEN];
     if (wcsncpy_s(fragmentBuffer, MAXLEN, fragment, fragmentLength)) {
         return RC_NO_MEMORY;
     }
 
-    if (FAILED(PathCchCombineEx(buffer, MAXLEN, installDir, fragmentBuffer, PATHCCH_ALLOW_LONG_PATHS))) {
+    if (FAILED(PathCchCombineEx(
+            buffer, MAXLEN, installDir, fragmentBuffer, PATHCCH_ALLOW_LONG_PATHS
+        ))) {
         return RC_NO_MEMORY;
     }
 
     return copyWstr(dest, buffer);
 }
 
-
 bool
-_isLegacyVersion(EnvironmentInfo *env)
-{
+_isLegacyVersion(EnvironmentInfo *env) {
     // Check if backwards-compatibility is required.
     // Specifically PythonCore versions 2.X and 3.0 - 3.5 do not implement PEP 514.
     if (0 != _compare(env->company, -1, L"PythonCore", -1)) {
@@ -1534,13 +1593,17 @@ _isLegacyVersion(EnvironmentInfo *env)
         return false;
     }
 
-    return versionMajor == 2
-        || (versionMajor == 3 && versionMinor >= 0 && versionMinor <= 5);
+    return versionMajor == 2 ||
+           (versionMajor == 3 && versionMinor >= 0 && versionMinor <= 5);
 }
 
 int
-_registryReadLegacyEnvironment(const SearchInfo *search, HKEY root, EnvironmentInfo *env, const wchar_t *fallbackArch)
-{
+_registryReadLegacyEnvironment(
+    const SearchInfo *search,
+    HKEY root,
+    EnvironmentInfo *env,
+    const wchar_t *fallbackArch
+) {
     // Backwards-compatibility for PythonCore versions which do not implement PEP 514.
     int exitCode = _combineWithInstallDir(
         &env->executablePath,
@@ -1553,10 +1616,13 @@ _registryReadLegacyEnvironment(const SearchInfo *search, HKEY root, EnvironmentI
     }
 
     if (search->windowed) {
-        exitCode = _registryReadString(&env->executableArgs, root, L"InstallPath", L"WindowedExecutableArguments");
-    }
-    else {
-        exitCode = _registryReadString(&env->executableArgs, root, L"InstallPath", L"ExecutableArguments");
+        exitCode = _registryReadString(
+            &env->executableArgs, root, L"InstallPath", L"WindowedExecutableArguments"
+        );
+    } else {
+        exitCode = _registryReadString(
+            &env->executableArgs, root, L"InstallPath", L"ExecutableArguments"
+        );
     }
     if (exitCode) {
         return exitCode;
@@ -1572,14 +1638,14 @@ _registryReadLegacyEnvironment(const SearchInfo *search, HKEY root, EnvironmentI
         }
 
         switch (binaryType) {
-        case SCS_32BIT_BINARY:
-            copyWstr(&env->architecture, L"32bit");
-            break;
-        case SCS_64BIT_BINARY:
-            copyWstr(&env->architecture, L"64bit");
-            break;
-        default:
-            return RC_NO_PYTHON;
+            case SCS_32BIT_BINARY:
+                copyWstr(&env->architecture, L"32bit");
+                break;
+            case SCS_64BIT_BINARY:
+                copyWstr(&env->architecture, L"64bit");
+                break;
+            default:
+                return RC_NO_PYTHON;
         }
     }
 
@@ -1587,7 +1653,7 @@ _registryReadLegacyEnvironment(const SearchInfo *search, HKEY root, EnvironmentI
         size_t tagLength = wcslen(env->tag);
         if (tagLength <= 3 || 0 != _compare(&env->tag[tagLength - 3], 3, L"-32", 3)) {
             const wchar_t *rawTag = env->tag;
-            wchar_t *realTag = (wchar_t*) malloc(sizeof(wchar_t) * (tagLength + 4));
+            wchar_t *realTag = (wchar_t *)malloc(sizeof(wchar_t) * (tagLength + 4));
             if (!realTag) {
                 return RC_NO_MEMORY;
             }
@@ -1600,7 +1666,7 @@ _registryReadLegacyEnvironment(const SearchInfo *search, HKEY root, EnvironmentI
             }
 
             env->tag = realTag;
-            free((void*)rawTag);
+            free((void *)rawTag);
         }
     }
 
@@ -1612,10 +1678,13 @@ _registryReadLegacyEnvironment(const SearchInfo *search, HKEY root, EnvironmentI
     return 0;
 }
 
-
 int
-_registryReadEnvironment(const SearchInfo *search, HKEY root, EnvironmentInfo *env, const wchar_t *fallbackArch)
-{
+_registryReadEnvironment(
+    const SearchInfo *search,
+    HKEY root,
+    EnvironmentInfo *env,
+    const wchar_t *fallbackArch
+) {
     int exitCode = _registryReadString(&env->installDir, root, L"InstallPath", NULL);
     if (exitCode) {
         return exitCode;
@@ -1630,9 +1699,16 @@ _registryReadEnvironment(const SearchInfo *search, HKEY root, EnvironmentInfo *e
 
     // If pythonw.exe requested, check specific value
     if (search->windowed) {
-        exitCode = _registryReadString(&env->executablePath, root, L"InstallPath", L"WindowedExecutablePath");
+        exitCode = _registryReadString(
+            &env->executablePath, root, L"InstallPath", L"WindowedExecutablePath"
+        );
         if (!exitCode && env->executablePath) {
-            exitCode = _registryReadString(&env->executableArgs, root, L"InstallPath", L"WindowedExecutableArguments");
+            exitCode = _registryReadString(
+                &env->executableArgs,
+                root,
+                L"InstallPath",
+                L"WindowedExecutableArguments"
+            );
         }
     }
     if (exitCode) {
@@ -1641,9 +1717,13 @@ _registryReadEnvironment(const SearchInfo *search, HKEY root, EnvironmentInfo *e
 
     // Missing windowed path or non-windowed request means we use ExecutablePath
     if (!env->executablePath) {
-        exitCode = _registryReadString(&env->executablePath, root, L"InstallPath", L"ExecutablePath");
+        exitCode = _registryReadString(
+            &env->executablePath, root, L"InstallPath", L"ExecutablePath"
+        );
         if (!exitCode && env->executablePath) {
-            exitCode = _registryReadString(&env->executableArgs, root, L"InstallPath", L"ExecutableArguments");
+            exitCode = _registryReadString(
+                &env->executableArgs, root, L"InstallPath", L"ExecutableArguments"
+            );
         }
     }
     if (exitCode) {
@@ -1669,8 +1749,14 @@ _registryReadEnvironment(const SearchInfo *search, HKEY root, EnvironmentInfo *e
 }
 
 int
-_registrySearchTags(const SearchInfo *search, EnvironmentInfo **result, HKEY root, int sortKey, const wchar_t *company, const wchar_t *fallbackArch)
-{
+_registrySearchTags(
+    const SearchInfo *search,
+    EnvironmentInfo **result,
+    HKEY root,
+    int sortKey,
+    const wchar_t *company,
+    const wchar_t *fallbackArch
+) {
     wchar_t buffer[256];
     int err = 0;
     int exitCode = 0;
@@ -1706,10 +1792,14 @@ _registrySearchTags(const SearchInfo *search, EnvironmentInfo **result, HKEY roo
     return exitCode;
 }
 
-
 int
-registrySearch(const SearchInfo *search, EnvironmentInfo **result, HKEY root, int sortKey, const wchar_t *fallbackArch)
-{
+registrySearch(
+    const SearchInfo *search,
+    EnvironmentInfo **result,
+    HKEY root,
+    int sortKey,
+    const wchar_t *fallbackArch
+) {
     wchar_t buffer[256];
     int err = 0;
     int exitCode = 0;
@@ -1722,27 +1812,34 @@ registrySearch(const SearchInfo *search, EnvironmentInfo **result, HKEY root, in
             }
             break;
         }
-        if (search->limitToCompany && 0 != _compare(search->limitToCompany, -1, buffer, cchBuffer)) {
+        if (search->limitToCompany &&
+            0 != _compare(search->limitToCompany, -1, buffer, cchBuffer)) {
             debug(L"# Skipping %s due to PYLAUNCHER_LIMIT_TO_COMPANY\n", buffer);
             continue;
         }
         HKEY subkey;
         if (ERROR_SUCCESS == RegOpenKeyExW(root, buffer, 0, KEY_READ, &subkey)) {
-            exitCode = _registrySearchTags(search, result, subkey, sortKey, buffer, fallbackArch);
+            exitCode = _registrySearchTags(
+                search, result, subkey, sortKey, buffer, fallbackArch
+            );
             RegCloseKey(subkey);
         }
     }
     return exitCode;
 }
 
-
 /******************************************************************************\
  ***                            APP PACKAGE SEARCH                          ***
 \******************************************************************************/
 
 int
-appxSearch(const SearchInfo *search, EnvironmentInfo **result, const wchar_t *packageFamilyName, const wchar_t *tag, int sortKey)
-{
+appxSearch(
+    const SearchInfo *search,
+    EnvironmentInfo **result,
+    const wchar_t *packageFamilyName,
+    const wchar_t *tag,
+    int sortKey
+) {
     wchar_t realTag[32];
     wchar_t buffer[MAXLEN];
     const wchar_t *exeName = search->executable;
@@ -1759,8 +1856,7 @@ appxSearch(const SearchInfo *search, EnvironmentInfo **result, const wchar_t *pa
     }
 
     if (!join(buffer, MAXLEN, L"Microsoft\\WindowsApps") ||
-        !join(buffer, MAXLEN, packageFamilyName) ||
-        !join(buffer, MAXLEN, exeName)) {
+        !join(buffer, MAXLEN, packageFamilyName) || !join(buffer, MAXLEN, exeName)) {
         debug(L"# Failed to construct App Execution Alias path\n");
         return RC_INTERNAL_ERROR;
     }
@@ -1801,19 +1897,15 @@ appxSearch(const SearchInfo *search, EnvironmentInfo **result, const wchar_t *pa
         }
     }
 
-
     return exitCode;
 }
-
 
 /******************************************************************************\
  ***                      OVERRIDDEN EXECUTABLE PATH                        ***
 \******************************************************************************/
 
-
 int
-explicitOverrideSearch(const SearchInfo *search, EnvironmentInfo **result)
-{
+explicitOverrideSearch(const SearchInfo *search, EnvironmentInfo **result) {
     if (!search->executablePath) {
         return 0;
     }
@@ -1845,19 +1937,18 @@ abort:
     return exitCode;
 }
 
-
 /******************************************************************************\
  ***                   ACTIVE VIRTUAL ENVIRONMENT SEARCH                    ***
 \******************************************************************************/
 
 int
-virtualenvSearch(const SearchInfo *search, EnvironmentInfo **result)
-{
+virtualenvSearch(const SearchInfo *search, EnvironmentInfo **result) {
     int exitCode = 0;
     EnvironmentInfo *env = NULL;
     wchar_t buffer[MAXLEN];
     int n = GetEnvironmentVariableW(L"VIRTUAL_ENV", buffer, MAXLEN);
-    if (!n || !join(buffer, MAXLEN, L"Scripts") || !join(buffer, MAXLEN, search->executable)) {
+    if (!n || !join(buffer, MAXLEN, L"Scripts") ||
+        !join(buffer, MAXLEN, search->executable)) {
         return 0;
     }
 
@@ -1906,7 +1997,6 @@ abort:
  ***                           COLLECT ENVIRONMENTS                         ***
 \******************************************************************************/
 
-
 struct RegistrySearchInfo {
     // Registry subkey to search
     const wchar_t *subkey;
@@ -1921,32 +2011,12 @@ struct RegistrySearchInfo {
     const wchar_t *fallbackArch;
 };
 
-
 struct RegistrySearchInfo REGISTRY_SEARCH[] = {
-    {
-        L"Software\\Python",
-        HKEY_CURRENT_USER,
-        KEY_READ,
-        1,
-        NULL
-    },
-    {
-        L"Software\\Python",
-        HKEY_LOCAL_MACHINE,
-        KEY_READ | KEY_WOW64_64KEY,
-        3,
-        L"64bit"
-    },
-    {
-        L"Software\\Python",
-        HKEY_LOCAL_MACHINE,
-        KEY_READ | KEY_WOW64_32KEY,
-        4,
-        L"32bit"
-    },
-    { NULL, 0, 0, 0, NULL }
+    {L"Software\\Python", HKEY_CURRENT_USER, KEY_READ, 1, NULL},
+    {L"Software\\Python", HKEY_LOCAL_MACHINE, KEY_READ | KEY_WOW64_64KEY, 3, L"64bit"},
+    {L"Software\\Python", HKEY_LOCAL_MACHINE, KEY_READ | KEY_WOW64_32KEY, 4, L"32bit"},
+    {NULL, 0, 0, 0, NULL}
 };
-
 
 struct AppxSearchInfo {
     // The package family name. Can be found for an installed package using the
@@ -1959,37 +2029,34 @@ struct AppxSearchInfo {
     int sortKey;
 };
 
-
 struct AppxSearchInfo APPX_SEARCH[] = {
     // Releases made through the Store
-    { L"PythonSoftwareFoundation.Python.3.14_qbz5n2kfra8p0", L"3.14", 10 },
-    { L"PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0", L"3.13", 10 },
-    { L"PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0", L"3.12", 10 },
-    { L"PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0", L"3.11", 10 },
-    { L"PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0", L"3.10", 10 },
-    { L"PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0", L"3.9", 10 },
-    { L"PythonSoftwareFoundation.Python.3.8_qbz5n2kfra8p0", L"3.8", 10 },
+    {L"PythonSoftwareFoundation.Python.3.14_qbz5n2kfra8p0", L"3.14", 10},
+    {L"PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0", L"3.13", 10},
+    {L"PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0", L"3.12", 10},
+    {L"PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0", L"3.11", 10},
+    {L"PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0", L"3.10", 10},
+    {L"PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0", L"3.9", 10},
+    {L"PythonSoftwareFoundation.Python.3.8_qbz5n2kfra8p0", L"3.8", 10},
 
     // Side-loadable releases. Note that the publisher ID changes whenever we
     // change our code signing certificate subject, so the newer IDs have higher
     // priorities (lower sortKey)
-    { L"PythonSoftwareFoundation.Python.3.14_3847v3x7pw1km", L"3.14", 11 },
-    { L"PythonSoftwareFoundation.Python.3.13_3847v3x7pw1km", L"3.13", 11 },
-    { L"PythonSoftwareFoundation.Python.3.12_3847v3x7pw1km", L"3.12", 11 },
-    { L"PythonSoftwareFoundation.Python.3.11_3847v3x7pw1km", L"3.11", 11 },
-    { L"PythonSoftwareFoundation.Python.3.11_hd69rhyc2wevp", L"3.11", 12 },
-    { L"PythonSoftwareFoundation.Python.3.10_3847v3x7pw1km", L"3.10", 11 },
-    { L"PythonSoftwareFoundation.Python.3.10_hd69rhyc2wevp", L"3.10", 12 },
-    { L"PythonSoftwareFoundation.Python.3.9_3847v3x7pw1km", L"3.9", 11 },
-    { L"PythonSoftwareFoundation.Python.3.9_hd69rhyc2wevp", L"3.9", 12 },
-    { L"PythonSoftwareFoundation.Python.3.8_hd69rhyc2wevp", L"3.8", 12 },
-    { NULL, NULL, 0 }
+    {L"PythonSoftwareFoundation.Python.3.14_3847v3x7pw1km", L"3.14", 11},
+    {L"PythonSoftwareFoundation.Python.3.13_3847v3x7pw1km", L"3.13", 11},
+    {L"PythonSoftwareFoundation.Python.3.12_3847v3x7pw1km", L"3.12", 11},
+    {L"PythonSoftwareFoundation.Python.3.11_3847v3x7pw1km", L"3.11", 11},
+    {L"PythonSoftwareFoundation.Python.3.11_hd69rhyc2wevp", L"3.11", 12},
+    {L"PythonSoftwareFoundation.Python.3.10_3847v3x7pw1km", L"3.10", 11},
+    {L"PythonSoftwareFoundation.Python.3.10_hd69rhyc2wevp", L"3.10", 12},
+    {L"PythonSoftwareFoundation.Python.3.9_3847v3x7pw1km", L"3.9", 11},
+    {L"PythonSoftwareFoundation.Python.3.9_hd69rhyc2wevp", L"3.9", 12},
+    {L"PythonSoftwareFoundation.Python.3.8_hd69rhyc2wevp", L"3.8", 12},
+    {NULL, NULL, 0}
 };
 
-
 int
-collectEnvironments(const SearchInfo *search, EnvironmentInfo **result)
-{
+collectEnvironments(const SearchInfo *search, EnvironmentInfo **result) {
     int exitCode = 0;
     HKEY root;
     EnvironmentInfo *env = NULL;
@@ -2016,8 +2083,10 @@ collectEnvironments(const SearchInfo *search, EnvironmentInfo **result)
     }
 
     for (struct RegistrySearchInfo *info = REGISTRY_SEARCH; info->subkey; ++info) {
-        if (ERROR_SUCCESS == RegOpenKeyExW(info->hive, info->subkey, 0, info->flags, &root)) {
-            exitCode = registrySearch(search, result, root, info->sortKey, info->fallbackArch);
+        if (ERROR_SUCCESS ==
+            RegOpenKeyExW(info->hive, info->subkey, 0, info->flags, &root)) {
+            exitCode =
+                registrySearch(search, result, root, info->sortKey, info->fallbackArch);
             RegCloseKey(root);
         }
         if (exitCode) {
@@ -2031,7 +2100,8 @@ collectEnvironments(const SearchInfo *search, EnvironmentInfo **result)
     }
 
     for (struct AppxSearchInfo *info = APPX_SEARCH; info->familyName; ++info) {
-        exitCode = appxSearch(search, result, info->familyName, info->tag, info->sortKey);
+        exitCode =
+            appxSearch(search, result, info->familyName, info->tag, info->sortKey);
         if (exitCode && exitCode != RC_NO_PYTHON) {
             return exitCode;
         }
@@ -2039,7 +2109,6 @@ collectEnvironments(const SearchInfo *search, EnvironmentInfo **result)
 
     return 0;
 }
-
 
 /******************************************************************************\
  ***                           INSTALL ON DEMAND                            ***
@@ -2054,28 +2123,28 @@ struct StoreSearchInfo {
     const wchar_t *storeId;
 };
 
-
 struct StoreSearchInfo STORE_SEARCH[] = {
-    { L"3", /* 3.13 */ L"9PNRBTZXMB4Z" },
-    { L"3.14", L"9NTRHQCBBPR8" },
-    { L"3.13", L"9PNRBTZXMB4Z" },
-    { L"3.12", L"9NCVDN91XZQP" },
-    { L"3.11", L"9NRWMJP3717K" },
-    { L"3.10", L"9PJPW5LDXLZ5" },
-    { L"3.9", L"9P7QFQMJRFP7" },
-    { L"3.8", L"9MSSZTT1N39L" },
-    { NULL, NULL }
+    {L"3", /* 3.13 */ L"9PNRBTZXMB4Z"},
+    {L"3.14", L"9NTRHQCBBPR8"},
+    {L"3.13", L"9PNRBTZXMB4Z"},
+    {L"3.12", L"9NCVDN91XZQP"},
+    {L"3.11", L"9NRWMJP3717K"},
+    {L"3.10", L"9PJPW5LDXLZ5"},
+    {L"3.9", L"9P7QFQMJRFP7"},
+    {L"3.8", L"9MSSZTT1N39L"},
+    {NULL, NULL}
 };
 
-
 int
-_installEnvironment(const wchar_t *command, const wchar_t *arguments)
-{
+_installEnvironment(const wchar_t *command, const wchar_t *arguments) {
     SHELLEXECUTEINFOW siw = {
         sizeof(SHELLEXECUTEINFOW),
         SEE_MASK_NOASYNC | SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NO_CONSOLE,
-        NULL, NULL,
-        command, arguments, NULL,
+        NULL,
+        NULL,
+        command,
+        arguments,
+        NULL,
         SW_SHOWNORMAL
     };
 
@@ -2112,15 +2181,15 @@ _installEnvironment(const wchar_t *command, const wchar_t *arguments)
     return RC_INSTALLING;
 }
 
-
-const wchar_t *WINGET_COMMAND = L"Microsoft\\WindowsApps\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\winget.exe";
-const wchar_t *WINGET_ARGUMENTS = L"install -q %s --exact --accept-package-agreements --source msstore";
+const wchar_t *WINGET_COMMAND =
+    L"Microsoft\\WindowsApps\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\winget.exe";
+const wchar_t *WINGET_ARGUMENTS =
+    L"install -q %s --exact --accept-package-agreements --source msstore";
 
 const wchar_t *MSSTORE_COMMAND = L"ms-windows-store://pdp/?productid=%s";
 
 int
-installEnvironment(const SearchInfo *search)
-{
+installEnvironment(const SearchInfo *search) {
     // No tag? No installing
     if (!search->tag || !search->tagLength) {
         debug(L"# Cannot install Python with no tag specified\n");
@@ -2128,10 +2197,13 @@ installEnvironment(const SearchInfo *search)
     }
 
     // PEP 514 tag but not PythonCore? No installing
-    if (!search->oldStyleTag &&
-        search->company && search->companyLength &&
+    if (!search->oldStyleTag && search->company && search->companyLength &&
         0 != _compare(search->company, search->companyLength, L"PythonCore", -1)) {
-        debug(L"# Cannot install for company %.*s\n", search->companyLength, search->company);
+        debug(
+            L"# Cannot install for company %.*s\n",
+            search->companyLength,
+            search->company
+        );
         return RC_NO_PYTHON;
     }
 
@@ -2157,25 +2229,37 @@ installEnvironment(const SearchInfo *search)
             formatWinerror(GetLastError(), arguments, MAXLEN);
             debug(L"# Skipping %s: %s\n", command, arguments);
         } else {
-            fputws(L"Launching winget to install Python. The following output is from the install process\n\
-***********************************************************************\n", stdout);
+            fputws(
+                L"Launching winget to install Python. The following output is from the install process\n\
+***********************************************************************\n",
+                stdout
+            );
             exitCode = _installEnvironment(command, arguments);
             if (exitCode == RC_INSTALLING) {
-                fputws(L"***********************************************************************\n\
-Please check the install status and run your command again.", stderr);
+                fputws(
+                    L"***********************************************************************\n\
+Please check the install status and run your command again.",
+                    stderr
+                );
                 return exitCode;
             } else if (exitCode) {
                 return exitCode;
             }
-            fputws(L"***********************************************************************\n\
-Install appears to have succeeded. Searching for new matching installs.\n", stdout);
+            fputws(
+                L"***********************************************************************\n\
+Install appears to have succeeded. Searching for new matching installs.\n",
+                stdout
+            );
             return 0;
         }
     }
 
     if (swprintf_s(command, MAXLEN, MSSTORE_COMMAND, storeId)) {
-        fputws(L"Opening the Microsoft Store to install Python. After installation, "
-               L"please run your command again.\n", stderr);
+        fputws(
+            L"Opening the Microsoft Store to install Python. After installation, "
+            L"please run your command again.\n",
+            stderr
+        );
         exitCode = _installEnvironment(command, NULL);
         if (exitCode) {
             return exitCode;
@@ -2191,18 +2275,15 @@ Install appears to have succeeded. Searching for new matching installs.\n", stdo
 \******************************************************************************/
 
 bool
-_companyMatches(const SearchInfo *search, const EnvironmentInfo *env)
-{
+_companyMatches(const SearchInfo *search, const EnvironmentInfo *env) {
     if (!search->company || !search->companyLength) {
         return true;
     }
     return 0 == _compare(env->company, -1, search->company, search->companyLength);
 }
 
-
 bool
-_tagMatches(const SearchInfo *search, const EnvironmentInfo *env, int searchTagLength)
-{
+_tagMatches(const SearchInfo *search, const EnvironmentInfo *env, int searchTagLength) {
     if (searchTagLength < 0) {
         searchTagLength = search->tagLength;
     }
@@ -2212,20 +2293,18 @@ _tagMatches(const SearchInfo *search, const EnvironmentInfo *env, int searchTagL
     return _startsWithSeparated(env->tag, -1, search->tag, searchTagLength, L".-");
 }
 
-
 bool
-_is32Bit(const EnvironmentInfo *env)
-{
+_is32Bit(const EnvironmentInfo *env) {
     if (env->architecture) {
         return 0 == _compare(env->architecture, -1, L"32bit", -1);
     }
     return false;
 }
 
-
 int
-_selectEnvironment(const SearchInfo *search, EnvironmentInfo *env, EnvironmentInfo **best)
-{
+_selectEnvironment(
+    const SearchInfo *search, EnvironmentInfo *env, EnvironmentInfo **best
+) {
     int exitCode = 0;
     while (env) {
         exitCode = _selectEnvironment(search, env->prev, best);
@@ -2265,7 +2344,9 @@ _selectEnvironment(const SearchInfo *search, EnvironmentInfo *env, EnvironmentIn
                 if (0 == _compareArgument(&search->tag[tagLength - 3], 3, L"-64", 3)) {
                     tagLength -= 3;
                     exclude32Bit = true;
-                } else if (0 == _compareArgument(&search->tag[tagLength - 3], 3, L"-32", 3)) {
+                } else if (0 == _compareArgument(
+                                    &search->tag[tagLength - 3], 3, L"-32", 3
+                                )) {
                     tagLength -= 3;
                     only32Bit = true;
                 }
@@ -2273,9 +2354,17 @@ _selectEnvironment(const SearchInfo *search, EnvironmentInfo *env, EnvironmentIn
 
             if (_tagMatches(search, env, tagLength)) {
                 if (exclude32Bit && _is32Bit(env)) {
-                    debug(L"# Excluding %s/%s because it looks like 32bit\n", env->company, env->tag);
+                    debug(
+                        L"# Excluding %s/%s because it looks like 32bit\n",
+                        env->company,
+                        env->tag
+                    );
                 } else if (only32Bit && !_is32Bit(env)) {
-                    debug(L"# Excluding %s/%s because it doesn't look 32bit\n", env->company, env->tag);
+                    debug(
+                        L"# Excluding %s/%s because it doesn't look 32bit\n",
+                        env->company,
+                        env->tag
+                    );
                 } else {
                     *best = env;
                     return 0;
@@ -2289,8 +2378,9 @@ _selectEnvironment(const SearchInfo *search, EnvironmentInfo *env, EnvironmentIn
 }
 
 int
-selectEnvironment(const SearchInfo *search, EnvironmentInfo *root, EnvironmentInfo **best)
-{
+selectEnvironment(
+    const SearchInfo *search, EnvironmentInfo *root, EnvironmentInfo **best
+) {
     if (!best) {
         debug(L"# selectEnvironment() was passed a NULL best\n");
         return RC_INTERNAL_ERROR;
@@ -2309,7 +2399,6 @@ selectEnvironment(const SearchInfo *search, EnvironmentInfo *root, EnvironmentIn
     return exitCode;
 }
 
-
 /******************************************************************************\
  ***                            LIST ENVIRONMENTS                           ***
 \******************************************************************************/
@@ -2317,12 +2406,20 @@ selectEnvironment(const SearchInfo *search, EnvironmentInfo *root, EnvironmentIn
 #define TAGWIDTH 16
 
 int
-_printEnvironment(const EnvironmentInfo *env, FILE *out, bool showPath, const wchar_t *argument)
-{
+_printEnvironment(
+    const EnvironmentInfo *env, FILE *out, bool showPath, const wchar_t *argument
+) {
     if (showPath) {
         if (env->executablePath && env->executablePath[0]) {
             if (env->executableArgs && env->executableArgs[0]) {
-                fwprintf(out, L" %-*s %s %s\n", TAGWIDTH, argument, env->executablePath, env->executableArgs);
+                fwprintf(
+                    out,
+                    L" %-*s %s %s\n",
+                    TAGWIDTH,
+                    argument,
+                    env->executablePath,
+                    env->executableArgs
+                );
             } else {
                 fwprintf(out, L" %-*s %s\n", TAGWIDTH, argument, env->executablePath);
             }
@@ -2339,10 +2436,10 @@ _printEnvironment(const EnvironmentInfo *env, FILE *out, bool showPath, const wc
     return 0;
 }
 
-
 int
-_listAllEnvironments(EnvironmentInfo *env, FILE * out, bool showPath, EnvironmentInfo *defaultEnv)
-{
+_listAllEnvironments(
+    EnvironmentInfo *env, FILE *out, bool showPath, EnvironmentInfo *defaultEnv
+) {
     wchar_t buffer[256];
     const int bufferSize = 256;
     while (env) {
@@ -2375,10 +2472,10 @@ _listAllEnvironments(EnvironmentInfo *env, FILE * out, bool showPath, Environmen
     return 0;
 }
 
-
 int
-listEnvironments(EnvironmentInfo *env, FILE * out, bool showPath, EnvironmentInfo *defaultEnv)
-{
+listEnvironments(
+    EnvironmentInfo *env, FILE *out, bool showPath, EnvironmentInfo *defaultEnv
+) {
     if (!env) {
         fwprintf_s(stdout, L"No installed Pythons found!\n");
         return 0;
@@ -2428,15 +2525,17 @@ listEnvironments(EnvironmentInfo *env, FILE * out, bool showPath, EnvironmentInf
     return exitCode;
 }
 
-
 /******************************************************************************\
  ***                           INTERPRETER LAUNCH                           ***
 \******************************************************************************/
 
-
 int
-calculateCommandLine(const SearchInfo *search, const EnvironmentInfo *launch, wchar_t *buffer, int bufferLength)
-{
+calculateCommandLine(
+    const SearchInfo *search,
+    const EnvironmentInfo *launch,
+    wchar_t *buffer,
+    int bufferLength
+) {
     int exitCode = 0;
     const wchar_t *executablePath = NULL;
 
@@ -2464,12 +2563,20 @@ calculateCommandLine(const SearchInfo *search, const EnvironmentInfo *launch, wc
         }
     } else if (launch) {
         if (!launch->installDir) {
-            fwprintf_s(stderr, L"Cannot launch %s %s because no install directory was specified",
-                       launch->company, launch->tag);
+            fwprintf_s(
+                stderr,
+                L"Cannot launch %s %s because no install directory was specified",
+                launch->company,
+                launch->tag
+            );
             exitCode = RC_NO_PYTHON;
         } else if (!search->executable || !search->executableLength) {
-            fwprintf_s(stderr, L"Cannot launch %s %s because no executable name is available",
-                       launch->company, launch->tag);
+            fwprintf_s(
+                stderr,
+                L"Cannot launch %s %s because no executable name is available",
+                launch->company,
+                launch->tag
+            );
             exitCode = RC_NO_PYTHON;
         } else {
             wchar_t executable[256];
@@ -2479,7 +2586,8 @@ calculateCommandLine(const SearchInfo *search, const EnvironmentInfo *launch, wc
                 buffer[0] = L'"';
                 exitCode = wcscpy_s(&buffer[1], bufferLength - 1, launch->installDir);
                 if (!exitCode) {
-                    exitCode = join(buffer, bufferLength, executable) ? 0 : RC_NO_MEMORY;
+                    exitCode =
+                        join(buffer, bufferLength, executable) ? 0 : RC_NO_MEMORY;
                 }
                 if (!exitCode) {
                     exitCode = wcscat_s(buffer, bufferLength, L"\"");
@@ -2487,7 +2595,8 @@ calculateCommandLine(const SearchInfo *search, const EnvironmentInfo *launch, wc
             } else {
                 exitCode = wcscpy_s(buffer, bufferLength, launch->installDir);
                 if (!exitCode) {
-                    exitCode = join(buffer, bufferLength, executable) ? 0 : RC_NO_MEMORY;
+                    exitCode =
+                        join(buffer, bufferLength, executable) ? 0 : RC_NO_MEMORY;
                 }
             }
         }
@@ -2508,8 +2617,12 @@ calculateCommandLine(const SearchInfo *search, const EnvironmentInfo *launch, wc
         } else if (search->executableArgsLength > 0) {
             int end = (int)wcsnlen_s(buffer, MAXLEN);
             if (end < bufferLength - (search->executableArgsLength + 1)) {
-                exitCode = wcsncpy_s(&buffer[end], bufferLength - end,
-                    search->executableArgs, search->executableArgsLength);
+                exitCode = wcsncpy_s(
+                    &buffer[end],
+                    bufferLength - end,
+                    search->executableArgs,
+                    search->executableArgsLength
+                );
             }
         }
     }
@@ -2521,25 +2634,20 @@ calculateCommandLine(const SearchInfo *search, const EnvironmentInfo *launch, wc
     return exitCode;
 }
 
-
-
 BOOL
-_safeDuplicateHandle(HANDLE in, HANDLE * pout, const wchar_t *nameForError)
-{
+_safeDuplicateHandle(HANDLE in, HANDLE *pout, const wchar_t *nameForError) {
     BOOL ok;
     HANDLE process = GetCurrentProcess();
     DWORD rc;
 
     *pout = NULL;
-    ok = DuplicateHandle(process, in, process, pout, 0, TRUE,
-                         DUPLICATE_SAME_ACCESS);
+    ok = DuplicateHandle(process, in, process, pout, 0, TRUE, DUPLICATE_SAME_ACCESS);
     if (!ok) {
         rc = GetLastError();
         if (rc == ERROR_INVALID_HANDLE) {
             debug(L"DuplicateHandle returned ERROR_INVALID_HANDLE\n");
             ok = TRUE;
-        }
-        else {
+        } else {
             winerror(0, L"Failed to duplicate %s handle", nameForError);
         }
     }
@@ -2547,15 +2655,14 @@ _safeDuplicateHandle(HANDLE in, HANDLE * pout, const wchar_t *nameForError)
 }
 
 BOOL WINAPI
-ctrl_c_handler(DWORD code)
-{
-    return TRUE;    /* We just ignore all control events. */
+ctrl_c_handler(DWORD code) {
+    return TRUE; /* We just ignore all control events. */
 }
 
-
 int
-launchEnvironment(const SearchInfo *search, const EnvironmentInfo *launch, wchar_t *launchCommand)
-{
+launchEnvironment(
+    const SearchInfo *search, const EnvironmentInfo *launch, wchar_t *launchCommand
+) {
     HANDLE job;
     JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
     DWORD rc;
@@ -2595,25 +2702,33 @@ launchEnvironment(const SearchInfo *search, const EnvironmentInfo *launch, wchar
 
     debug(L"# about to run: %s\n", launchCommand);
     job = CreateJobObject(NULL, NULL);
-    ok = QueryInformationJobObject(job, JobObjectExtendedLimitInformation,
-                                  &info, sizeof(info), &rc);
+    ok = QueryInformationJobObject(
+        job, JobObjectExtendedLimitInformation, &info, sizeof(info), &rc
+    );
     if (!ok || (rc != sizeof(info)) || !job) {
         winerror(0, L"Failed to query job information");
         return RC_CREATE_PROCESS;
     }
-    info.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE |
-                                             JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
-    ok = SetInformationJobObject(job, JobObjectExtendedLimitInformation, &info,
-                                 sizeof(info));
+    info.BasicLimitInformation.LimitFlags |=
+        JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
+    ok = SetInformationJobObject(
+        job, JobObjectExtendedLimitInformation, &info, sizeof(info)
+    );
     if (!ok) {
         winerror(0, L"Failed to update job information");
         return RC_CREATE_PROCESS;
     }
     memset(&si, 0, sizeof(si));
     GetStartupInfoW(&si);
-    if (!_safeDuplicateHandle(GetStdHandle(STD_INPUT_HANDLE), &si.hStdInput, L"stdin") ||
-        !_safeDuplicateHandle(GetStdHandle(STD_OUTPUT_HANDLE), &si.hStdOutput, L"stdout") ||
-        !_safeDuplicateHandle(GetStdHandle(STD_ERROR_HANDLE), &si.hStdError, L"stderr")) {
+    if (!_safeDuplicateHandle(
+            GetStdHandle(STD_INPUT_HANDLE), &si.hStdInput, L"stdin"
+        ) ||
+        !_safeDuplicateHandle(
+            GetStdHandle(STD_OUTPUT_HANDLE), &si.hStdOutput, L"stdout"
+        ) ||
+        !_safeDuplicateHandle(
+            GetStdHandle(STD_ERROR_HANDLE), &si.hStdError, L"stderr"
+        )) {
         return RC_NO_STD_HANDLES;
     }
 
@@ -2624,8 +2739,7 @@ launchEnvironment(const SearchInfo *search, const EnvironmentInfo *launch, wchar
     }
 
     si.dwFlags = STARTF_USESTDHANDLES;
-    ok = CreateProcessW(NULL, launchCommand, NULL, NULL, TRUE,
-                        0, NULL, NULL, &si, &pi);
+    ok = CreateProcessW(NULL, launchCommand, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
     if (!ok) {
         winerror(0, L"Unable to create process using '%s'", launchCommand);
         return RC_CREATE_PROCESS;
@@ -2642,15 +2756,12 @@ launchEnvironment(const SearchInfo *search, const EnvironmentInfo *launch, wchar
     return rc;
 }
 
-
 /******************************************************************************\
  ***                           PROCESS CONTROLLER                           ***
 \******************************************************************************/
 
-
 int
-performSearch(SearchInfo *search, EnvironmentInfo **envs)
-{
+performSearch(SearchInfo *search, EnvironmentInfo **envs) {
     // First parse the command line for options
     int exitCode = parseCommandLine(search);
     if (exitCode) {
@@ -2661,12 +2772,12 @@ performSearch(SearchInfo *search, EnvironmentInfo **envs)
     // (or return quickly if no script file was specified)
     exitCode = checkShebang(search);
     switch (exitCode) {
-    case 0:
-    case RC_NO_SHEBANG:
-    case RC_RECURSIVE_SHEBANG:
-        break;
-    default:
-        return exitCode;
+        case 0:
+        case RC_NO_SHEBANG:
+        case RC_RECURSIVE_SHEBANG:
+            break;
+        default:
+            return exitCode;
     }
 
     // Resolve old-style tags (possibly from a shebang) against py.ini entries
@@ -2688,10 +2799,8 @@ performSearch(SearchInfo *search, EnvironmentInfo **envs)
     return 0;
 }
 
-
 int
-process(int argc, wchar_t ** argv)
-{
+process(int argc, wchar_t **argv) {
     int exitCode = 0;
     int searchExitCode = 0;
     SearchInfo search = {0};
@@ -2716,7 +2825,9 @@ process(int argc, wchar_t ** argv)
             goto abort;
         }
         search.limitToCompany = limitToCompany;
-        if (0 == GetEnvironmentVariableW(L"PYLAUNCHER_LIMIT_TO_COMPANY", limitToCompany, len)) {
+        if (0 == GetEnvironmentVariableW(
+                     L"PYLAUNCHER_LIMIT_TO_COMPANY", limitToCompany, len
+                 )) {
             exitCode = RC_INTERNAL_ERROR;
             winerror(0, L"Failed to read PYLAUNCHER_LIMIT_TO_COMPANY variable");
             goto abort;
@@ -2775,10 +2886,16 @@ process(int argc, wchar_t ** argv)
     }
     if (exitCode == RC_NO_PYTHON) {
         fputws(L"No suitable Python runtime found\n", stderr);
-        fputws(L"Pass --list (-0) to see all detected environments on your machine\n", stderr);
+        fputws(
+            L"Pass --list (-0) to see all detected environments on your machine\n",
+            stderr
+        );
         if (!isEnvVarSet(L"PYLAUNCHER_ALLOW_INSTALL") && search.oldStyleTag) {
-            fputws(L"or set environment variable PYLAUNCHER_ALLOW_INSTALL to use winget\n"
-                   L"or open the Microsoft Store to the requested version.\n", stderr);
+            fputws(
+                L"or set environment variable PYLAUNCHER_ALLOW_INSTALL to use winget\n"
+                L"or open the Microsoft Store to the requested version.\n",
+                stderr
+            );
         }
         goto abort;
     }
@@ -2796,7 +2913,9 @@ process(int argc, wchar_t ** argv)
         debug(L"env.company: (null)\nenv.tag: (null)\n");
     }
 
-    exitCode = calculateCommandLine(&search, env, launchCommand, sizeof(launchCommand) / sizeof(launchCommand[0]));
+    exitCode = calculateCommandLine(
+        &search, env, launchCommand, sizeof(launchCommand) / sizeof(launchCommand[0])
+    );
     if (exitCode) {
         goto abort;
     }
@@ -2810,19 +2929,17 @@ abort:
     return exitCode;
 }
 
-
 #if defined(_WINDOWS)
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                   LPWSTR lpstrCmd, int nShow)
-{
+int WINAPI
+wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpstrCmd, int nShow) {
     return process(__argc, __wargv);
 }
 
 #else
 
-int cdecl wmain(int argc, wchar_t ** argv)
-{
+int cdecl
+wmain(int argc, wchar_t **argv) {
     return process(argc, argv);
 }
 

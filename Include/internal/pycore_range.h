@@ -5,12 +5,11 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 typedef struct {
-    PyObject_HEAD
-    long start;
+    PyObject_HEAD long start;
     long step;
     long len;
 } _PyRangeIterObject;
@@ -18,4 +17,4 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-#endif   /* !Py_INTERNAL_RANGE_H */
+#endif /* !Py_INTERNAL_RANGE_H */

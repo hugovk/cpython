@@ -4,13 +4,11 @@
 extern "C" {
 #endif
 
-
 /* Long (arbitrary precision) integer object interface */
 
 // PyLong_Type is declared by object.h
 
-#define PyLong_Check(op) \
-        PyType_FastSubclass(Py_TYPE(op), Py_TPFLAGS_LONG_SUBCLASS)
+#define PyLong_Check(op) PyType_FastSubclass(Py_TYPE(op), Py_TPFLAGS_LONG_SUBCLASS)
 #define PyLong_CheckExact(op) Py_IS_TYPE((op), &PyLong_Type)
 
 PyAPI_FUNC(PyObject *) PyLong_FromLong(long);
@@ -26,15 +24,15 @@ PyAPI_FUNC(size_t) PyLong_AsSize_t(PyObject *);
 PyAPI_FUNC(unsigned long) PyLong_AsUnsignedLong(PyObject *);
 PyAPI_FUNC(unsigned long) PyLong_AsUnsignedLongMask(PyObject *);
 
-#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030d0000
 PyAPI_FUNC(int) PyLong_AsInt(PyObject *);
 #endif
 
-#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030e0000
-PyAPI_FUNC(PyObject*) PyLong_FromInt32(int32_t value);
-PyAPI_FUNC(PyObject*) PyLong_FromUInt32(uint32_t value);
-PyAPI_FUNC(PyObject*) PyLong_FromInt64(int64_t value);
-PyAPI_FUNC(PyObject*) PyLong_FromUInt64(uint64_t value);
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030e0000
+PyAPI_FUNC(PyObject *) PyLong_FromInt32(int32_t value);
+PyAPI_FUNC(PyObject *) PyLong_FromUInt32(uint32_t value);
+PyAPI_FUNC(PyObject *) PyLong_FromInt64(int64_t value);
+PyAPI_FUNC(PyObject *) PyLong_FromUInt64(uint64_t value);
 
 PyAPI_FUNC(int) PyLong_AsInt32(PyObject *obj, int32_t *value);
 PyAPI_FUNC(int) PyLong_AsUInt32(PyObject *obj, uint32_t *value);
@@ -52,24 +50,24 @@ PyAPI_FUNC(PyObject *) PyLong_GetInfo(void);
 #if !defined(SIZEOF_PID_T) || SIZEOF_PID_T == SIZEOF_INT
 #define _Py_PARSE_PID "i"
 #define PyLong_FromPid PyLong_FromLong
-# if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000
-#   define PyLong_AsPid PyLong_AsInt
-# elif SIZEOF_INT == SIZEOF_LONG
-#   define PyLong_AsPid PyLong_AsLong
-# else
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030d0000
+#define PyLong_AsPid PyLong_AsInt
+#elif SIZEOF_INT == SIZEOF_LONG
+#define PyLong_AsPid PyLong_AsLong
+#else
 static inline int
-PyLong_AsPid(PyObject *obj)
-{
+PyLong_AsPid(PyObject *obj) {
     int overflow;
     long result = PyLong_AsLongAndOverflow(obj, &overflow);
     if (overflow || result > INT_MAX || result < INT_MIN) {
-        PyErr_SetString(PyExc_OverflowError,
-                        "Python int too large to convert to C int");
+        PyErr_SetString(
+            PyExc_OverflowError, "Python int too large to convert to C int"
+        );
         return -1;
     }
     return (int)result;
 }
-# endif
+#endif
 #elif SIZEOF_PID_T == SIZEOF_LONG
 #define _Py_PARSE_PID "l"
 #define PyLong_FromPid PyLong_FromLong
@@ -83,16 +81,16 @@ PyLong_AsPid(PyObject *obj)
 #endif /* SIZEOF_PID_T */
 
 #if SIZEOF_VOID_P == SIZEOF_INT
-#  define _Py_PARSE_INTPTR "i"
-#  define _Py_PARSE_UINTPTR "I"
+#define _Py_PARSE_INTPTR "i"
+#define _Py_PARSE_UINTPTR "I"
 #elif SIZEOF_VOID_P == SIZEOF_LONG
-#  define _Py_PARSE_INTPTR "l"
-#  define _Py_PARSE_UINTPTR "k"
+#define _Py_PARSE_INTPTR "l"
+#define _Py_PARSE_UINTPTR "k"
 #elif defined(SIZEOF_LONG_LONG) && SIZEOF_VOID_P == SIZEOF_LONG_LONG
-#  define _Py_PARSE_INTPTR "L"
-#  define _Py_PARSE_UINTPTR "K"
+#define _Py_PARSE_INTPTR "L"
+#define _Py_PARSE_UINTPTR "K"
 #else
-#  error "void* different in size from int, long and long long"
+#error "void* different in size from int, long and long long"
 #endif /* SIZEOF_VOID_P */
 
 PyAPI_FUNC(double) PyLong_AsDouble(PyObject *);
@@ -115,9 +113,9 @@ PyAPI_FUNC(unsigned long) PyOS_strtoul(const char *, char **, int);
 PyAPI_FUNC(long) PyOS_strtol(const char *, char **, int);
 
 #ifndef Py_LIMITED_API
-#  define Py_CPYTHON_LONGOBJECT_H
-#  include "cpython/longobject.h"
-#  undef Py_CPYTHON_LONGOBJECT_H
+#define Py_CPYTHON_LONGOBJECT_H
+#include "cpython/longobject.h"
+#undef Py_CPYTHON_LONGOBJECT_H
 #endif
 
 #ifdef __cplusplus

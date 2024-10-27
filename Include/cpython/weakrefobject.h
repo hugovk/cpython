@@ -1,5 +1,5 @@
 #ifndef Py_CPYTHON_WEAKREFOBJECT_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 /* PyWeakReference is the base struct for the Python ReferenceType, ProxyType,
@@ -8,11 +8,11 @@
 struct _PyWeakReference {
     PyObject_HEAD
 
-    /* The object to which this is a weak reference, or Py_None if none.
-     * Note that this is a stealth reference:  wr_object's refcount is
-     * not incremented to reflect this pointer.
-     */
-    PyObject *wr_object;
+        /* The object to which this is a weak reference, or Py_None if none.
+         * Note that this is a stealth reference:  wr_object's refcount is
+         * not incremented to reflect this pointer.
+         */
+        PyObject *wr_object;
 
     /* A callable to invoke when wr_object dies, or NULL if none. */
     PyObject *wr_callback;
@@ -43,10 +43,9 @@ struct _PyWeakReference {
 PyAPI_FUNC(void) _PyWeakref_ClearRef(PyWeakReference *self);
 
 #define _PyWeakref_CAST(op) \
-    (assert(PyWeakref_Check(op)), _Py_CAST(PyWeakReference*, (op)))
+    (assert(PyWeakref_Check(op)), _Py_CAST(PyWeakReference *, (op)))
 
-Py_DEPRECATED(3.13) static inline PyObject* PyWeakref_GET_OBJECT(PyObject *ref_obj)
-{
+Py_DEPRECATED(3.13) static inline PyObject *PyWeakref_GET_OBJECT(PyObject *ref_obj) {
     PyWeakReference *ref = _PyWeakref_CAST(ref_obj);
     PyObject *obj = ref->wr_object;
     // Explanation for the Py_REFCNT() check: when a weakref's target is part

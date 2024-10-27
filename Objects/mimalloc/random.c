@@ -6,8 +6,8 @@ terms of the MIT license. A copy of the license can be found in the file
 -----------------------------------------------------------------------------*/
 #include "mimalloc.h"
 #include "mimalloc/internal.h"
-#include "mimalloc/prim.h"    // _mi_prim_random_buf
-#include <string.h>       // memset
+#include "mimalloc/prim.h"  // _mi_prim_random_buf
+#include <string.h>         // memset
 
 /* ----------------------------------------------------------------------------
 We use our own PRNG to keep predictable performance of random number generation
@@ -17,8 +17,7 @@ performance but we do rely on the security (for secret cookies in secure mode)
 we use a cryptographically secure generator (chacha20).
 -----------------------------------------------------------------------------*/
 
-#define MI_CHACHA_ROUNDS (20)   // perhaps use 12 for better performance?
-
+#define MI_CHACHA_ROUNDS (20)  // perhaps use 12 for better performance?
 
 /* ----------------------------------------------------------------------------
 Chacha20 implementation as the original algorithm with a 64-bit nonce
@@ -33,176 +32,200 @@ The implementation uses regular C code which compiles very well on modern compil
 (gcc x64 has no register spills, and clang 6+ uses SSE instructions)
 -----------------------------------------------------------------------------*/
 
-static inline uint32_t rotl(uint32_t x, uint32_t shift) {
-  return (x << shift) | (x >> (32 - shift));
+static inline uint32_t
+rotl(uint32_t x, uint32_t shift) {
+    return (x << shift) | (x >> (32 - shift));
 }
 
-static inline void qround(uint32_t x[16], size_t a, size_t b, size_t c, size_t d) {
-  x[a] += x[b]; x[d] = rotl(x[d] ^ x[a], 16);
-  x[c] += x[d]; x[b] = rotl(x[b] ^ x[c], 12);
-  x[a] += x[b]; x[d] = rotl(x[d] ^ x[a], 8);
-  x[c] += x[d]; x[b] = rotl(x[b] ^ x[c], 7);
+static inline void
+qround(uint32_t x[16], size_t a, size_t b, size_t c, size_t d) {
+    x[a] += x[b];
+    x[d] = rotl(x[d] ^ x[a], 16);
+    x[c] += x[d];
+    x[b] = rotl(x[b] ^ x[c], 12);
+    x[a] += x[b];
+    x[d] = rotl(x[d] ^ x[a], 8);
+    x[c] += x[d];
+    x[b] = rotl(x[b] ^ x[c], 7);
 }
 
-static void chacha_block(mi_random_ctx_t* ctx)
-{
-  // scramble into `x`
-  uint32_t x[16];
-  for (size_t i = 0; i < 16; i++) {
-    x[i] = ctx->input[i];
-  }
-  for (size_t i = 0; i < MI_CHACHA_ROUNDS; i += 2) {
-    qround(x, 0, 4,  8, 12);
-    qround(x, 1, 5,  9, 13);
-    qround(x, 2, 6, 10, 14);
-    qround(x, 3, 7, 11, 15);
-    qround(x, 0, 5, 10, 15);
-    qround(x, 1, 6, 11, 12);
-    qround(x, 2, 7,  8, 13);
-    qround(x, 3, 4,  9, 14);
-  }
-
-  // add scrambled data to the initial state
-  for (size_t i = 0; i < 16; i++) {
-    ctx->output[i] = x[i] + ctx->input[i];
-  }
-  ctx->output_available = 16;
-
-  // increment the counter for the next round
-  ctx->input[12] += 1;
-  if (ctx->input[12] == 0) {
-    ctx->input[13] += 1;
-    if (ctx->input[13] == 0) {  // and keep increasing into the nonce
-      ctx->input[14] += 1;
+static void
+chacha_block(mi_random_ctx_t *ctx) {
+    // scramble into `x`
+    uint32_t x[16];
+    for (size_t i = 0; i < 16; i++) {
+        x[i] = ctx->input[i];
     }
-  }
+    for (size_t i = 0; i < MI_CHACHA_ROUNDS; i += 2) {
+        qround(x, 0, 4, 8, 12);
+        qround(x, 1, 5, 9, 13);
+        qround(x, 2, 6, 10, 14);
+        qround(x, 3, 7, 11, 15);
+        qround(x, 0, 5, 10, 15);
+        qround(x, 1, 6, 11, 12);
+        qround(x, 2, 7, 8, 13);
+        qround(x, 3, 4, 9, 14);
+    }
+
+    // add scrambled data to the initial state
+    for (size_t i = 0; i < 16; i++) {
+        ctx->output[i] = x[i] + ctx->input[i];
+    }
+    ctx->output_available = 16;
+
+    // increment the counter for the next round
+    ctx->input[12] += 1;
+    if (ctx->input[12] == 0) {
+        ctx->input[13] += 1;
+        if (ctx->input[13] == 0) {  // and keep increasing into the nonce
+            ctx->input[14] += 1;
+        }
+    }
 }
 
-static uint32_t chacha_next32(mi_random_ctx_t* ctx) {
-  if (ctx->output_available <= 0) {
-    chacha_block(ctx);
-    ctx->output_available = 16; // (assign again to suppress static analysis warning)
-  }
-  const uint32_t x = ctx->output[16 - ctx->output_available];
-  ctx->output[16 - ctx->output_available] = 0; // reset once the data is handed out
-  ctx->output_available--;
-  return x;
+static uint32_t
+chacha_next32(mi_random_ctx_t *ctx) {
+    if (ctx->output_available <= 0) {
+        chacha_block(ctx);
+        ctx->output_available =
+            16;  // (assign again to suppress static analysis warning)
+    }
+    const uint32_t x = ctx->output[16 - ctx->output_available];
+    ctx->output[16 - ctx->output_available] = 0;  // reset once the data is handed out
+    ctx->output_available--;
+    return x;
 }
 
-static inline uint32_t read32(const uint8_t* p, size_t idx32) {
-  const size_t i = 4*idx32;
-  return ((uint32_t)p[i+0] | (uint32_t)p[i+1] << 8 | (uint32_t)p[i+2] << 16 | (uint32_t)p[i+3] << 24);
+static inline uint32_t
+read32(const uint8_t *p, size_t idx32) {
+    const size_t i = 4 * idx32;
+    return (
+        (uint32_t)p[i + 0] | (uint32_t)p[i + 1] << 8 | (uint32_t)p[i + 2] << 16 |
+        (uint32_t)p[i + 3] << 24
+    );
 }
 
-static void chacha_init(mi_random_ctx_t* ctx, const uint8_t key[32], uint64_t nonce)
-{
-  // since we only use chacha for randomness (and not encryption) we
-  // do not _need_ to read 32-bit values as little endian but we do anyways
-  // just for being compatible :-)
-  memset(ctx, 0, sizeof(*ctx));
-  for (size_t i = 0; i < 4; i++) {
-    const uint8_t* sigma = (uint8_t*)"expand 32-byte k";
-    ctx->input[i] = read32(sigma,i);
-  }
-  for (size_t i = 0; i < 8; i++) {
-    ctx->input[i + 4] = read32(key,i);
-  }
-  ctx->input[12] = 0;
-  ctx->input[13] = 0;
-  ctx->input[14] = (uint32_t)nonce;
-  ctx->input[15] = (uint32_t)(nonce >> 32);
+static void
+chacha_init(mi_random_ctx_t *ctx, const uint8_t key[32], uint64_t nonce) {
+    // since we only use chacha for randomness (and not encryption) we
+    // do not _need_ to read 32-bit values as little endian but we do anyways
+    // just for being compatible :-)
+    memset(ctx, 0, sizeof(*ctx));
+    for (size_t i = 0; i < 4; i++) {
+        const uint8_t *sigma = (uint8_t *)"expand 32-byte k";
+        ctx->input[i] = read32(sigma, i);
+    }
+    for (size_t i = 0; i < 8; i++) {
+        ctx->input[i + 4] = read32(key, i);
+    }
+    ctx->input[12] = 0;
+    ctx->input[13] = 0;
+    ctx->input[14] = (uint32_t)nonce;
+    ctx->input[15] = (uint32_t)(nonce >> 32);
 }
 
-static void chacha_split(mi_random_ctx_t* ctx, uint64_t nonce, mi_random_ctx_t* ctx_new) {
-  memset(ctx_new, 0, sizeof(*ctx_new));
-  _mi_memcpy(ctx_new->input, ctx->input, sizeof(ctx_new->input));
-  ctx_new->input[12] = 0;
-  ctx_new->input[13] = 0;
-  ctx_new->input[14] = (uint32_t)nonce;
-  ctx_new->input[15] = (uint32_t)(nonce >> 32);
-  mi_assert_internal(ctx->input[14] != ctx_new->input[14] || ctx->input[15] != ctx_new->input[15]); // do not reuse nonces!
-  chacha_block(ctx_new);
+static void
+chacha_split(mi_random_ctx_t *ctx, uint64_t nonce, mi_random_ctx_t *ctx_new) {
+    memset(ctx_new, 0, sizeof(*ctx_new));
+    _mi_memcpy(ctx_new->input, ctx->input, sizeof(ctx_new->input));
+    ctx_new->input[12] = 0;
+    ctx_new->input[13] = 0;
+    ctx_new->input[14] = (uint32_t)nonce;
+    ctx_new->input[15] = (uint32_t)(nonce >> 32);
+    mi_assert_internal(
+        ctx->input[14] != ctx_new->input[14] || ctx->input[15] != ctx_new->input[15]
+    );  // do not reuse nonces!
+    chacha_block(ctx_new);
 }
-
 
 /* ----------------------------------------------------------------------------
 Random interface
 -----------------------------------------------------------------------------*/
 
-#if MI_DEBUG>1
-static bool mi_random_is_initialized(mi_random_ctx_t* ctx) {
-  return (ctx != NULL && ctx->input[0] != 0);
+#if MI_DEBUG > 1
+static bool
+mi_random_is_initialized(mi_random_ctx_t *ctx) {
+    return (ctx != NULL && ctx->input[0] != 0);
 }
 #endif
 
-void _mi_random_split(mi_random_ctx_t* ctx, mi_random_ctx_t* ctx_new) {
-  mi_assert_internal(mi_random_is_initialized(ctx));
-  mi_assert_internal(ctx != ctx_new);
-  chacha_split(ctx, (uintptr_t)ctx_new /*nonce*/, ctx_new);
+void
+_mi_random_split(mi_random_ctx_t *ctx, mi_random_ctx_t *ctx_new) {
+    mi_assert_internal(mi_random_is_initialized(ctx));
+    mi_assert_internal(ctx != ctx_new);
+    chacha_split(ctx, (uintptr_t)ctx_new /*nonce*/, ctx_new);
 }
 
-uintptr_t _mi_random_next(mi_random_ctx_t* ctx) {
-  mi_assert_internal(mi_random_is_initialized(ctx));
-  #if MI_INTPTR_SIZE <= 4
+uintptr_t
+_mi_random_next(mi_random_ctx_t *ctx) {
+    mi_assert_internal(mi_random_is_initialized(ctx));
+#if MI_INTPTR_SIZE <= 4
     return chacha_next32(ctx);
-  #elif MI_INTPTR_SIZE == 8
+#elif MI_INTPTR_SIZE == 8
     return (((uintptr_t)chacha_next32(ctx) << 32) | chacha_next32(ctx));
-  #else
-  # error "define mi_random_next for this platform"
-  #endif
+#else
+#error "define mi_random_next for this platform"
+#endif
 }
-
 
 /* ----------------------------------------------------------------------------
 To initialize a fresh random context.
-If we cannot get good randomness, we fall back to weak randomness based on a timer and ASLR.
+If we cannot get good randomness, we fall back to weak randomness based on a timer and
+ASLR.
 -----------------------------------------------------------------------------*/
 
-uintptr_t _mi_os_random_weak(uintptr_t extra_seed) {
-  uintptr_t x = (uintptr_t)&_mi_os_random_weak ^ extra_seed; // ASLR makes the address random
-  x ^= _mi_prim_clock_now();
-  // and do a few randomization steps
-  uintptr_t max = ((x ^ (x >> 17)) & 0x0F) + 1;
-  for (uintptr_t i = 0; i < max; i++) {
-    x = _mi_random_shuffle(x);
-  }
-  mi_assert_internal(x != 0);
-  return x;
-}
-
-static void mi_random_init_ex(mi_random_ctx_t* ctx, bool use_weak) {
-  uint8_t key[32] = {0};
-  if (use_weak || !_mi_prim_random_buf(key, sizeof(key))) {
-    // if we fail to get random data from the OS, we fall back to a
-    // weak random source based on the current time
-    #if !defined(__wasi__)
-    if (!use_weak) { _mi_warning_message("unable to use secure randomness\n"); }
-    #endif
-    uintptr_t x = _mi_os_random_weak(0);
-    for (size_t i = 0; i < 8; i++) {  // key is eight 32-bit words.
-      x = _mi_random_shuffle(x);
-      ((uint32_t*)key)[i] = (uint32_t)x;
+uintptr_t
+_mi_os_random_weak(uintptr_t extra_seed) {
+    uintptr_t x =
+        (uintptr_t)&_mi_os_random_weak ^ extra_seed;  // ASLR makes the address random
+    x ^= _mi_prim_clock_now();
+    // and do a few randomization steps
+    uintptr_t max = ((x ^ (x >> 17)) & 0x0F) + 1;
+    for (uintptr_t i = 0; i < max; i++) {
+        x = _mi_random_shuffle(x);
     }
-    ctx->weak = true;
-  }
-  else {
-    ctx->weak = false;
-  }
-  chacha_init(ctx, key, (uintptr_t)ctx /*nonce*/ );
+    mi_assert_internal(x != 0);
+    return x;
 }
 
-void _mi_random_init(mi_random_ctx_t* ctx) {
-  mi_random_init_ex(ctx, false);
+static void
+mi_random_init_ex(mi_random_ctx_t *ctx, bool use_weak) {
+    uint8_t key[32] = {0};
+    if (use_weak || !_mi_prim_random_buf(key, sizeof(key))) {
+// if we fail to get random data from the OS, we fall back to a
+// weak random source based on the current time
+#if !defined(__wasi__)
+        if (!use_weak) {
+            _mi_warning_message("unable to use secure randomness\n");
+        }
+#endif
+        uintptr_t x = _mi_os_random_weak(0);
+        for (size_t i = 0; i < 8; i++) {  // key is eight 32-bit words.
+            x = _mi_random_shuffle(x);
+            ((uint32_t *)key)[i] = (uint32_t)x;
+        }
+        ctx->weak = true;
+    } else {
+        ctx->weak = false;
+    }
+    chacha_init(ctx, key, (uintptr_t)ctx /*nonce*/);
 }
 
-void _mi_random_init_weak(mi_random_ctx_t * ctx) {
-  mi_random_init_ex(ctx, true);
+void
+_mi_random_init(mi_random_ctx_t *ctx) {
+    mi_random_init_ex(ctx, false);
 }
 
-void _mi_random_reinit_if_weak(mi_random_ctx_t * ctx) {
-  if (ctx->weak) {
-    _mi_random_init(ctx);
-  }
+void
+_mi_random_init_weak(mi_random_ctx_t *ctx) {
+    mi_random_init_ex(ctx, true);
+}
+
+void
+_mi_random_reinit_if_weak(mi_random_ctx_t *ctx) {
+    if (ctx->weak) {
+        _mi_random_init(ctx);
+    }
 }
 
 /* --------------------------------------------------------

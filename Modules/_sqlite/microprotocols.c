@@ -29,12 +29,10 @@
 #include "microprotocols.h"
 #include "prepare_protocol.h"
 
-
 /* pysqlite_microprotocols_init - initialize the adapters dictionary */
 
 int
-pysqlite_microprotocols_init(PyObject *module)
-{
+pysqlite_microprotocols_init(PyObject *module) {
     /* create adapters dictionary and put it in module namespace */
     pysqlite_state *state = pysqlite_get_state(module);
     state->psyco_adapters = PyDict_New();
@@ -45,14 +43,13 @@ pysqlite_microprotocols_init(PyObject *module)
     return PyModule_AddObjectRef(module, "adapters", state->psyco_adapters);
 }
 
-
 /* pysqlite_microprotocols_add - add a reverse type-caster to the dictionary */
 
 int
-pysqlite_microprotocols_add(pysqlite_state *state, PyTypeObject *type,
-                            PyObject *proto, PyObject *cast)
-{
-    PyObject* key;
+pysqlite_microprotocols_add(
+    pysqlite_state *state, PyTypeObject *type, PyObject *proto, PyObject *cast
+) {
+    PyObject *key;
     int rc;
 
     assert(type != NULL);
@@ -71,9 +68,9 @@ pysqlite_microprotocols_add(pysqlite_state *state, PyTypeObject *type,
 /* pysqlite_microprotocols_adapt - adapt an object to the built-in protocol */
 
 PyObject *
-pysqlite_microprotocols_adapt(pysqlite_state *state, PyObject *obj,
-                              PyObject *proto, PyObject *alt)
-{
+pysqlite_microprotocols_adapt(
+    pysqlite_state *state, PyObject *obj, PyObject *proto, PyObject *alt
+) {
     PyObject *adapter, *key, *adapted;
 
     /* we don't check for exact type conformance as specified in PEP 246
@@ -106,11 +103,9 @@ pysqlite_microprotocols_adapt(pysqlite_state *state, PyObject *obj,
 
         if (adapted == Py_None) {
             Py_DECREF(adapted);
-        }
-        else if (adapted || !PyErr_ExceptionMatches(PyExc_TypeError)) {
+        } else if (adapted || !PyErr_ExceptionMatches(PyExc_TypeError)) {
             return adapted;
-        }
-        else {
+        } else {
             PyErr_Clear();
         }
     }
@@ -125,11 +120,9 @@ pysqlite_microprotocols_adapt(pysqlite_state *state, PyObject *obj,
 
         if (adapted == Py_None) {
             Py_DECREF(adapted);
-        }
-        else if (adapted || !PyErr_ExceptionMatches(PyExc_TypeError)) {
+        } else if (adapted || !PyErr_ExceptionMatches(PyExc_TypeError)) {
             return adapted;
-        }
-        else {
+        } else {
             PyErr_Clear();
         }
     }

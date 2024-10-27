@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #ifdef MS_WINDOWS
@@ -38,14 +38,15 @@ typedef enum _FILE_INFO_BY_NAME_CLASS {
 } FILE_INFO_BY_NAME_CLASS;
 #endif
 
-typedef BOOL (WINAPI *PGetFileInformationByName)(
+typedef BOOL(WINAPI *PGetFileInformationByName)(
     PCWSTR FileName,
     FILE_INFO_BY_NAME_CLASS FileInformationClass,
     PVOID FileInfoBuffer,
     ULONG FileInfoBufferSize
 );
 
-static inline BOOL _Py_GetFileInformationByName(
+static inline BOOL
+_Py_GetFileInformationByName(
     PCWSTR FileName,
     FILE_INFO_BY_NAME_CLASS FileInformationClass,
     PVOID FileInfoBuffer,
@@ -58,8 +59,8 @@ static inline BOOL _Py_GetFileInformationByName(
         HMODULE hMod = LoadLibraryW(L"api-ms-win-core-file-l2-1-4");
         GetFileInformationByName_init = 0;
         if (hMod) {
-            GetFileInformationByName = (PGetFileInformationByName)GetProcAddress(
-                hMod, "GetFileInformationByName");
+            GetFileInformationByName = (PGetFileInformationByName
+            )GetProcAddress(hMod, "GetFileInformationByName");
             if (GetFileInformationByName) {
                 GetFileInformationByName_init = 1;
             } else {
@@ -72,12 +73,14 @@ static inline BOOL _Py_GetFileInformationByName(
         SetLastError(ERROR_NOT_SUPPORTED);
         return FALSE;
     }
-    return GetFileInformationByName(FileName, FileInformationClass, FileInfoBuffer, FileInfoBufferSize);
+    return GetFileInformationByName(
+        FileName, FileInformationClass, FileInfoBuffer, FileInfoBufferSize
+    );
 }
 
-static inline BOOL _Py_GetFileInformationByName_ErrorIsTrustworthy(int error)
-{
-    switch(error) {
+static inline BOOL
+_Py_GetFileInformationByName_ErrorIsTrustworthy(int error) {
+    switch (error) {
         case ERROR_FILE_NOT_FOUND:
         case ERROR_PATH_NOT_FOUND:
         case ERROR_NOT_READY:

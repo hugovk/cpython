@@ -17,7 +17,7 @@
 
 /* SHA objects */
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
@@ -35,13 +35,12 @@ class SHA512Type "SHA512object *" "&PyType_Type"
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=b5315a7b611c9afc]*/
 
-
 /* The SHA block sizes and maximum message digest sizes, in bytes */
 
-#define SHA256_BLOCKSIZE   64
-#define SHA256_DIGESTSIZE  32
-#define SHA512_BLOCKSIZE   128
-#define SHA512_DIGESTSIZE  64
+#define SHA256_BLOCKSIZE 64
+#define SHA256_DIGESTSIZE 32
+#define SHA512_BLOCKSIZE 128
+#define SHA512_DIGESTSIZE 64
 
 /* Our SHA2 implementations defer to the HACL* verified library. */
 
@@ -50,8 +49,7 @@ class SHA512Type "SHA512object *" "&PyType_Type"
 // TODO: Get rid of int digestsize in favor of Hacl state info?
 
 typedef struct {
-    PyObject_HEAD
-    int digestsize;
+    PyObject_HEAD int digestsize;
     // Prevents undefined behavior via multiple threads entering the C API.
     bool use_mutex;
     PyMutex mutex;
@@ -59,8 +57,7 @@ typedef struct {
 } SHA256object;
 
 typedef struct {
-    PyObject_HEAD
-    int digestsize;
+    PyObject_HEAD int digestsize;
     // Prevents undefined behavior via multiple threads entering the C API.
     bool use_mutex;
     PyMutex mutex;
@@ -72,37 +69,35 @@ typedef struct {
 /* We shall use run-time type information in the remainder of this module to
  * tell apart SHA2-224 and SHA2-256 */
 typedef struct {
-    PyTypeObject* sha224_type;
-    PyTypeObject* sha256_type;
-    PyTypeObject* sha384_type;
-    PyTypeObject* sha512_type;
+    PyTypeObject *sha224_type;
+    PyTypeObject *sha256_type;
+    PyTypeObject *sha384_type;
+    PyTypeObject *sha512_type;
 } sha2_state;
 
-static inline sha2_state*
-sha2_get_state(PyObject *module)
-{
+static inline sha2_state *
+sha2_get_state(PyObject *module) {
     void *state = _PyModule_GetState(module);
     assert(state != NULL);
     return (sha2_state *)state;
 }
 
-static void SHA256copy(SHA256object *src, SHA256object *dest)
-{
+static void
+SHA256copy(SHA256object *src, SHA256object *dest) {
     dest->digestsize = src->digestsize;
     dest->state = Hacl_Hash_SHA2_copy_256(src->state);
 }
 
-static void SHA512copy(SHA512object *src, SHA512object *dest)
-{
+static void
+SHA512copy(SHA512object *src, SHA512object *dest) {
     dest->digestsize = src->digestsize;
     dest->state = Hacl_Hash_SHA2_copy_512(src->state);
 }
 
 static SHA256object *
-newSHA224object(sha2_state *state)
-{
-    SHA256object *sha = (SHA256object *)PyObject_GC_New(
-        SHA256object, state->sha224_type);
+newSHA224object(sha2_state *state) {
+    SHA256object *sha =
+        (SHA256object *)PyObject_GC_New(SHA256object, state->sha224_type);
     if (!sha) {
         return NULL;
     }
@@ -113,10 +108,9 @@ newSHA224object(sha2_state *state)
 }
 
 static SHA256object *
-newSHA256object(sha2_state *state)
-{
-    SHA256object *sha = (SHA256object *)PyObject_GC_New(
-        SHA256object, state->sha256_type);
+newSHA256object(sha2_state *state) {
+    SHA256object *sha =
+        (SHA256object *)PyObject_GC_New(SHA256object, state->sha256_type);
     if (!sha) {
         return NULL;
     }
@@ -127,10 +121,9 @@ newSHA256object(sha2_state *state)
 }
 
 static SHA512object *
-newSHA384object(sha2_state *state)
-{
-    SHA512object *sha = (SHA512object *)PyObject_GC_New(
-        SHA512object, state->sha384_type);
+newSHA384object(sha2_state *state) {
+    SHA512object *sha =
+        (SHA512object *)PyObject_GC_New(SHA512object, state->sha384_type);
     if (!sha) {
         return NULL;
     }
@@ -141,10 +134,9 @@ newSHA384object(sha2_state *state)
 }
 
 static SHA512object *
-newSHA512object(sha2_state *state)
-{
-    SHA512object *sha = (SHA512object *)PyObject_GC_New(
-        SHA512object, state->sha512_type);
+newSHA512object(sha2_state *state) {
+    SHA512object *sha =
+        (SHA512object *)PyObject_GC_New(SHA512object, state->sha512_type);
     if (!sha) {
         return NULL;
     }
@@ -157,15 +149,13 @@ newSHA512object(sha2_state *state)
 /* Internal methods for our hash objects. */
 
 static int
-SHA2_traverse(PyObject *ptr, visitproc visit, void *arg)
-{
+SHA2_traverse(PyObject *ptr, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(ptr));
     return 0;
 }
 
 static void
-SHA256_dealloc(SHA256object *ptr)
-{
+SHA256_dealloc(SHA256object *ptr) {
     Hacl_Hash_SHA2_free_256(ptr->state);
     PyTypeObject *tp = Py_TYPE(ptr);
     PyObject_GC_UnTrack(ptr);
@@ -174,8 +164,7 @@ SHA256_dealloc(SHA256object *ptr)
 }
 
 static void
-SHA512_dealloc(SHA512object *ptr)
-{
+SHA512_dealloc(SHA512object *ptr) {
     Hacl_Hash_SHA2_free_512(ptr->state);
     PyTypeObject *tp = Py_TYPE(ptr);
     PyObject_GC_UnTrack(ptr);
@@ -186,36 +175,37 @@ SHA512_dealloc(SHA512object *ptr)
 /* HACL* takes a uint32_t for the length of its parameter, but Py_ssize_t can be
  * 64 bits so we loop in <4gig chunks when needed. */
 
-static void update_256(Hacl_Hash_SHA2_state_t_256 *state, uint8_t *buf, Py_ssize_t len) {
-  /* Note: we explicitly ignore the error code on the basis that it would take >
-   * 1 billion years to overflow the maximum admissible length for SHA2-256
-   * (namely, 2^61-1 bytes). */
+static void
+update_256(Hacl_Hash_SHA2_state_t_256 *state, uint8_t *buf, Py_ssize_t len) {
+    /* Note: we explicitly ignore the error code on the basis that it would take >
+     * 1 billion years to overflow the maximum admissible length for SHA2-256
+     * (namely, 2^61-1 bytes). */
 #if PY_SSIZE_T_MAX > UINT32_MAX
-  while (len > UINT32_MAX) {
-    Hacl_Hash_SHA2_update_256(state, buf, UINT32_MAX);
-    len -= UINT32_MAX;
-    buf += UINT32_MAX;
-  }
+    while (len > UINT32_MAX) {
+        Hacl_Hash_SHA2_update_256(state, buf, UINT32_MAX);
+        len -= UINT32_MAX;
+        buf += UINT32_MAX;
+    }
 #endif
-  /* Cast to uint32_t is safe: len <= UINT32_MAX at this point. */
-  Hacl_Hash_SHA2_update_256(state, buf, (uint32_t) len);
+    /* Cast to uint32_t is safe: len <= UINT32_MAX at this point. */
+    Hacl_Hash_SHA2_update_256(state, buf, (uint32_t)len);
 }
 
-static void update_512(Hacl_Hash_SHA2_state_t_512 *state, uint8_t *buf, Py_ssize_t len) {
-  /* Note: we explicitly ignore the error code on the basis that it would take >
-   * 1 billion years to overflow the maximum admissible length for this API
-   * (namely, 2^64-1 bytes). */
+static void
+update_512(Hacl_Hash_SHA2_state_t_512 *state, uint8_t *buf, Py_ssize_t len) {
+    /* Note: we explicitly ignore the error code on the basis that it would take >
+     * 1 billion years to overflow the maximum admissible length for this API
+     * (namely, 2^64-1 bytes). */
 #if PY_SSIZE_T_MAX > UINT32_MAX
-  while (len > UINT32_MAX) {
-    Hacl_Hash_SHA2_update_512(state, buf, UINT32_MAX);
-    len -= UINT32_MAX;
-    buf += UINT32_MAX;
-  }
+    while (len > UINT32_MAX) {
+        Hacl_Hash_SHA2_update_512(state, buf, UINT32_MAX);
+        len -= UINT32_MAX;
+        buf += UINT32_MAX;
+    }
 #endif
-  /* Cast to uint32_t is safe: len <= UINT32_MAX at this point. */
-  Hacl_Hash_SHA2_update_512(state, buf, (uint32_t) len);
+    /* Cast to uint32_t is safe: len <= UINT32_MAX at this point. */
+    Hacl_Hash_SHA2_update_512(state, buf, (uint32_t)len);
 }
-
 
 /* External methods for our hash objects */
 
@@ -264,12 +254,11 @@ SHA512Type_copy_impl(SHA512object *self, PyTypeObject *cls)
     SHA512object *newobj;
     sha2_state *state = _PyType_GetModuleState(cls);
 
-    if (Py_IS_TYPE((PyObject*)self, state->sha512_type)) {
+    if (Py_IS_TYPE((PyObject *)self, state->sha512_type)) {
         if ((newobj = newSHA512object(state)) == NULL) {
             return NULL;
         }
-    }
-    else {
+    } else {
         if ((newobj = newSHA384object(state)) == NULL) {
             return NULL;
         }
@@ -378,8 +367,7 @@ SHA256Type_update(SHA256object *self, PyObject *obj)
         self->use_mutex = true;
     }
     if (self->use_mutex) {
-        Py_BEGIN_ALLOW_THREADS
-        PyMutex_Lock(&self->mutex);
+        Py_BEGIN_ALLOW_THREADS PyMutex_Lock(&self->mutex);
         update_256(self->state, buf.buf, buf.len);
         PyMutex_Unlock(&self->mutex);
         Py_END_ALLOW_THREADS
@@ -412,8 +400,7 @@ SHA512Type_update(SHA512object *self, PyObject *obj)
         self->use_mutex = true;
     }
     if (self->use_mutex) {
-        Py_BEGIN_ALLOW_THREADS
-        PyMutex_Lock(&self->mutex);
+        Py_BEGIN_ALLOW_THREADS PyMutex_Lock(&self->mutex);
         update_512(self->state, buf.buf, buf.len);
         PyMutex_Unlock(&self->mutex);
         Py_END_ALLOW_THREADS
@@ -426,48 +413,37 @@ SHA512Type_update(SHA512object *self, PyObject *obj)
 }
 
 static PyMethodDef SHA256_methods[] = {
-    SHA256TYPE_COPY_METHODDEF
-    SHA256TYPE_DIGEST_METHODDEF
-    SHA256TYPE_HEXDIGEST_METHODDEF
-    SHA256TYPE_UPDATE_METHODDEF
-    {NULL,        NULL}         /* sentinel */
+    SHA256TYPE_COPY_METHODDEF SHA256TYPE_DIGEST_METHODDEF SHA256TYPE_HEXDIGEST_METHODDEF
+        SHA256TYPE_UPDATE_METHODDEF{NULL, NULL} /* sentinel */
 };
 
 static PyMethodDef SHA512_methods[] = {
-    SHA512TYPE_COPY_METHODDEF
-    SHA512TYPE_DIGEST_METHODDEF
-    SHA512TYPE_HEXDIGEST_METHODDEF
-    SHA512TYPE_UPDATE_METHODDEF
-    {NULL,        NULL}         /* sentinel */
+    SHA512TYPE_COPY_METHODDEF SHA512TYPE_DIGEST_METHODDEF SHA512TYPE_HEXDIGEST_METHODDEF
+        SHA512TYPE_UPDATE_METHODDEF{NULL, NULL} /* sentinel */
 };
 
 static PyObject *
-SHA256_get_block_size(PyObject *self, void *closure)
-{
+SHA256_get_block_size(PyObject *self, void *closure) {
     return PyLong_FromLong(SHA256_BLOCKSIZE);
 }
 
 static PyObject *
-SHA512_get_block_size(PyObject *self, void *closure)
-{
+SHA512_get_block_size(PyObject *self, void *closure) {
     return PyLong_FromLong(SHA512_BLOCKSIZE);
 }
 
 static PyObject *
-SHA256_get_digest_size(SHA256object *self, void *closure)
-{
+SHA256_get_digest_size(SHA256object *self, void *closure) {
     return PyLong_FromLong(self->digestsize);
 }
 
 static PyObject *
-SHA512_get_digest_size(SHA512object *self, void *closure)
-{
+SHA512_get_digest_size(SHA512object *self, void *closure) {
     return PyLong_FromLong(self->digestsize);
 }
 
 static PyObject *
-SHA256_get_name(SHA256object *self, void *closure)
-{
+SHA256_get_name(SHA256object *self, void *closure) {
     if (self->digestsize == 28) {
         return PyUnicode_FromStringAndSize("sha224", 6);
     }
@@ -475,8 +451,7 @@ SHA256_get_name(SHA256object *self, void *closure)
 }
 
 static PyObject *
-SHA512_get_name(SHA512object *self, void *closure)
-{
+SHA512_get_name(SHA512object *self, void *closure) {
     if (self->digestsize == 64) {
         return PyUnicode_FromStringAndSize("sha512", 6);
     }
@@ -484,35 +459,17 @@ SHA512_get_name(SHA512object *self, void *closure)
 }
 
 static PyGetSetDef SHA256_getseters[] = {
-    {"block_size",
-     (getter)SHA256_get_block_size, NULL,
-     NULL,
-     NULL},
-    {"name",
-     (getter)SHA256_get_name, NULL,
-     NULL,
-     NULL},
-    {"digest_size",
-     (getter)SHA256_get_digest_size, NULL,
-     NULL,
-     NULL},
-    {NULL}  /* Sentinel */
+    {"block_size", (getter)SHA256_get_block_size, NULL, NULL, NULL},
+    {"name", (getter)SHA256_get_name, NULL, NULL, NULL},
+    {"digest_size", (getter)SHA256_get_digest_size, NULL, NULL, NULL},
+    {NULL} /* Sentinel */
 };
 
 static PyGetSetDef SHA512_getseters[] = {
-    {"block_size",
-     (getter)SHA512_get_block_size, NULL,
-     NULL,
-     NULL},
-    {"name",
-     (getter)SHA512_get_name, NULL,
-     NULL,
-     NULL},
-    {"digest_size",
-     (getter)SHA512_get_digest_size, NULL,
-     NULL,
-     NULL},
-    {NULL}  /* Sentinel */
+    {"block_size", (getter)SHA512_get_block_size, NULL, NULL, NULL},
+    {"name", (getter)SHA512_get_name, NULL, NULL, NULL},
+    {"digest_size", (getter)SHA512_get_digest_size, NULL, NULL, NULL},
+    {NULL} /* Sentinel */
 };
 
 static PyType_Slot sha256_types_slots[] = {
@@ -520,7 +477,7 @@ static PyType_Slot sha256_types_slots[] = {
     {Py_tp_methods, SHA256_methods},
     {Py_tp_getset, SHA256_getseters},
     {Py_tp_traverse, SHA2_traverse},
-    {0,0}
+    {0, 0}
 };
 
 static PyType_Slot sha512_type_slots[] = {
@@ -528,7 +485,7 @@ static PyType_Slot sha512_type_slots[] = {
     {Py_tp_methods, SHA512_methods},
     {Py_tp_getset, SHA512_getseters},
     {Py_tp_traverse, SHA2_traverse},
-    {0,0}
+    {0, 0}
 };
 
 // Using _PyType_GetModuleState() on these types is safe since they
@@ -536,32 +493,36 @@ static PyType_Slot sha512_type_slots[] = {
 static PyType_Spec sha224_type_spec = {
     .name = "_sha2.SHA224Type",
     .basicsize = sizeof(SHA256object),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION |
-              Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION |
+         Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC),
     .slots = sha256_types_slots
 };
 
 static PyType_Spec sha256_type_spec = {
     .name = "_sha2.SHA256Type",
     .basicsize = sizeof(SHA256object),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION |
-              Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION |
+         Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC),
     .slots = sha256_types_slots
 };
 
 static PyType_Spec sha384_type_spec = {
     .name = "_sha2.SHA384Type",
-    .basicsize =  sizeof(SHA512object),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION |
-              Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC),
+    .basicsize = sizeof(SHA512object),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION |
+         Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC),
     .slots = sha512_type_slots
 };
 
 static PyType_Spec sha512_type_spec = {
     .name = "_sha2.SHA512Type",
-    .basicsize =  sizeof(SHA512object),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION |
-              Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC),
+    .basicsize = sizeof(SHA512object),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION |
+         Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC),
     .slots = sha512_type_slots
 };
 
@@ -611,8 +572,7 @@ _sha2_sha256_impl(PyObject *module, PyObject *string, int usedforsecurity)
         if (buf.len >= HASHLIB_GIL_MINSIZE) {
             /* We do not initialize self->lock here as this is the constructor
              * where it is not yet possible to have concurrent access. */
-            Py_BEGIN_ALLOW_THREADS
-            update_256(new->state, buf.buf, buf.len);
+            Py_BEGIN_ALLOW_THREADS update_256(new->state, buf.buf, buf.len);
             Py_END_ALLOW_THREADS
         } else {
             update_256(new->state, buf.buf, buf.len);
@@ -665,8 +625,7 @@ _sha2_sha224_impl(PyObject *module, PyObject *string, int usedforsecurity)
         if (buf.len >= HASHLIB_GIL_MINSIZE) {
             /* We do not initialize self->lock here as this is the constructor
              * where it is not yet possible to have concurrent access. */
-            Py_BEGIN_ALLOW_THREADS
-            update_256(new->state, buf.buf, buf.len);
+            Py_BEGIN_ALLOW_THREADS update_256(new->state, buf.buf, buf.len);
             Py_END_ALLOW_THREADS
         } else {
             update_256(new->state, buf.buf, buf.len);
@@ -718,8 +677,7 @@ _sha2_sha512_impl(PyObject *module, PyObject *string, int usedforsecurity)
         if (buf.len >= HASHLIB_GIL_MINSIZE) {
             /* We do not initialize self->lock here as this is the constructor
              * where it is not yet possible to have concurrent access. */
-            Py_BEGIN_ALLOW_THREADS
-            update_512(new->state, buf.buf, buf.len);
+            Py_BEGIN_ALLOW_THREADS update_512(new->state, buf.buf, buf.len);
             Py_END_ALLOW_THREADS
         } else {
             update_512(new->state, buf.buf, buf.len);
@@ -771,8 +729,7 @@ _sha2_sha384_impl(PyObject *module, PyObject *string, int usedforsecurity)
         if (buf.len >= HASHLIB_GIL_MINSIZE) {
             /* We do not initialize self->lock here as this is the constructor
              * where it is not yet possible to have concurrent access. */
-            Py_BEGIN_ALLOW_THREADS
-            update_512(new->state, buf.buf, buf.len);
+            Py_BEGIN_ALLOW_THREADS update_512(new->state, buf.buf, buf.len);
             Py_END_ALLOW_THREADS
         } else {
             update_512(new->state, buf.buf, buf.len);
@@ -786,16 +743,12 @@ _sha2_sha384_impl(PyObject *module, PyObject *string, int usedforsecurity)
 /* List of functions exported by this module */
 
 static struct PyMethodDef SHA2_functions[] = {
-    _SHA2_SHA256_METHODDEF
-    _SHA2_SHA224_METHODDEF
-    _SHA2_SHA512_METHODDEF
-    _SHA2_SHA384_METHODDEF
-    {NULL,      NULL}            /* Sentinel */
+    _SHA2_SHA256_METHODDEF _SHA2_SHA224_METHODDEF _SHA2_SHA512_METHODDEF
+        _SHA2_SHA384_METHODDEF{NULL, NULL} /* Sentinel */
 };
 
 static int
-_sha2_traverse(PyObject *module, visitproc visit, void *arg)
-{
+_sha2_traverse(PyObject *module, visitproc visit, void *arg) {
     sha2_state *state = sha2_get_state(module);
     Py_VISIT(state->sha224_type);
     Py_VISIT(state->sha256_type);
@@ -805,8 +758,7 @@ _sha2_traverse(PyObject *module, visitproc visit, void *arg)
 }
 
 static int
-_sha2_clear(PyObject *module)
-{
+_sha2_clear(PyObject *module) {
     sha2_state *state = sha2_get_state(module);
     Py_CLEAR(state->sha224_type);
     Py_CLEAR(state->sha256_type);
@@ -816,33 +768,32 @@ _sha2_clear(PyObject *module)
 }
 
 static void
-_sha2_free(void *module)
-{
+_sha2_free(void *module) {
     _sha2_clear((PyObject *)module);
 }
 
 /* Initialize this module. */
-static int sha2_exec(PyObject *module)
-{
+static int
+sha2_exec(PyObject *module) {
     sha2_state *state = sha2_get_state(module);
 
-    state->sha224_type = (PyTypeObject *)PyType_FromModuleAndSpec(
-        module, &sha224_type_spec, NULL);
+    state->sha224_type =
+        (PyTypeObject *)PyType_FromModuleAndSpec(module, &sha224_type_spec, NULL);
     if (state->sha224_type == NULL) {
         return -1;
     }
-    state->sha256_type = (PyTypeObject *)PyType_FromModuleAndSpec(
-        module, &sha256_type_spec, NULL);
+    state->sha256_type =
+        (PyTypeObject *)PyType_FromModuleAndSpec(module, &sha256_type_spec, NULL);
     if (state->sha256_type == NULL) {
         return -1;
     }
-    state->sha384_type = (PyTypeObject *)PyType_FromModuleAndSpec(
-        module, &sha384_type_spec, NULL);
+    state->sha384_type =
+        (PyTypeObject *)PyType_FromModuleAndSpec(module, &sha384_type_spec, NULL);
     if (state->sha384_type == NULL) {
         return -1;
     }
-    state->sha512_type = (PyTypeObject *)PyType_FromModuleAndSpec(
-        module, &sha512_type_spec, NULL);
+    state->sha512_type =
+        (PyTypeObject *)PyType_FromModuleAndSpec(module, &sha512_type_spec, NULL);
     if (state->sha512_type == NULL) {
         return -1;
     }
@@ -882,7 +833,6 @@ static struct PyModuleDef _sha2module = {
 };
 
 PyMODINIT_FUNC
-PyInit__sha2(void)
-{
+PyInit__sha2(void) {
     return PyModuleDef_Init(&_sha2module);
 }

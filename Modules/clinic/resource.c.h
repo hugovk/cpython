@@ -4,20 +4,21 @@ preserve
 
 #if defined(HAVE_GETRUSAGE)
 
-PyDoc_STRVAR(resource_getrusage__doc__,
-"getrusage($module, who, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    resource_getrusage__doc__,
+    "getrusage($module, who, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define RESOURCE_GETRUSAGE_METHODDEF    \
+#define RESOURCE_GETRUSAGE_METHODDEF \
     {"getrusage", (PyCFunction)resource_getrusage, METH_O, resource_getrusage__doc__},
 
 static PyObject *
 resource_getrusage_impl(PyObject *module, int who);
 
 static PyObject *
-resource_getrusage(PyObject *module, PyObject *arg)
-{
+resource_getrusage(PyObject *module, PyObject *arg) {
     PyObject *return_value = NULL;
     int who;
 
@@ -33,20 +34,21 @@ exit:
 
 #endif /* defined(HAVE_GETRUSAGE) */
 
-PyDoc_STRVAR(resource_getrlimit__doc__,
-"getrlimit($module, resource, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    resource_getrlimit__doc__,
+    "getrlimit($module, resource, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define RESOURCE_GETRLIMIT_METHODDEF    \
+#define RESOURCE_GETRLIMIT_METHODDEF \
     {"getrlimit", (PyCFunction)resource_getrlimit, METH_O, resource_getrlimit__doc__},
 
 static PyObject *
 resource_getrlimit_impl(PyObject *module, int resource);
 
 static PyObject *
-resource_getrlimit(PyObject *module, PyObject *arg)
-{
+resource_getrlimit(PyObject *module, PyObject *arg) {
     PyObject *return_value = NULL;
     int resource;
 
@@ -60,20 +62,24 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(resource_setrlimit__doc__,
-"setrlimit($module, resource, limits, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    resource_setrlimit__doc__,
+    "setrlimit($module, resource, limits, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define RESOURCE_SETRLIMIT_METHODDEF    \
-    {"setrlimit", (PyCFunction)(void(*)(void))resource_setrlimit, METH_FASTCALL, resource_setrlimit__doc__},
+#define RESOURCE_SETRLIMIT_METHODDEF                  \
+    {"setrlimit",                                     \
+     (PyCFunction)(void (*)(void))resource_setrlimit, \
+     METH_FASTCALL,                                   \
+     resource_setrlimit__doc__},
 
 static PyObject *
 resource_setrlimit_impl(PyObject *module, int resource, PyObject *limits);
 
 static PyObject *
-resource_setrlimit(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
-{
+resource_setrlimit(PyObject *module, PyObject *const *args, Py_ssize_t nargs) {
     PyObject *return_value = NULL;
     int resource;
     PyObject *limits;
@@ -95,32 +101,39 @@ exit:
 
 #if defined(HAVE_PRLIMIT)
 
-PyDoc_STRVAR(resource_prlimit__doc__,
-"prlimit($module, pid, resource, limits=None, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    resource_prlimit__doc__,
+    "prlimit($module, pid, resource, limits=None, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define RESOURCE_PRLIMIT_METHODDEF    \
-    {"prlimit", (PyCFunction)(void(*)(void))resource_prlimit, METH_FASTCALL, resource_prlimit__doc__},
+#define RESOURCE_PRLIMIT_METHODDEF                  \
+    {"prlimit",                                     \
+     (PyCFunction)(void (*)(void))resource_prlimit, \
+     METH_FASTCALL,                                 \
+     resource_prlimit__doc__},
 
 static PyObject *
-resource_prlimit_impl(PyObject *module, pid_t pid, int resource,
-                      PyObject *limits);
+resource_prlimit_impl(PyObject *module, pid_t pid, int resource, PyObject *limits);
 
 static PyObject *
-resource_prlimit(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
-{
+resource_prlimit(PyObject *module, PyObject *const *args, Py_ssize_t nargs) {
     PyObject *return_value = NULL;
     pid_t pid;
     int resource;
     PyObject *limits = Py_None;
 
     if (nargs < 2) {
-        PyErr_Format(PyExc_TypeError, "prlimit expected at least 2 arguments, got %zd", nargs);
+        PyErr_Format(
+            PyExc_TypeError, "prlimit expected at least 2 arguments, got %zd", nargs
+        );
         goto exit;
     }
     if (nargs > 3) {
-        PyErr_Format(PyExc_TypeError, "prlimit expected at most 3 arguments, got %zd", nargs);
+        PyErr_Format(
+            PyExc_TypeError, "prlimit expected at most 3 arguments, got %zd", nargs
+        );
         goto exit;
     }
     pid = PyLong_AsPid(args[0]);
@@ -144,20 +157,24 @@ exit:
 
 #endif /* defined(HAVE_PRLIMIT) */
 
-PyDoc_STRVAR(resource_getpagesize__doc__,
-"getpagesize($module, /)\n"
-"--\n"
-"\n");
+PyDoc_STRVAR(
+    resource_getpagesize__doc__,
+    "getpagesize($module, /)\n"
+    "--\n"
+    "\n"
+);
 
-#define RESOURCE_GETPAGESIZE_METHODDEF    \
-    {"getpagesize", (PyCFunction)resource_getpagesize, METH_NOARGS, resource_getpagesize__doc__},
+#define RESOURCE_GETPAGESIZE_METHODDEF  \
+    {"getpagesize",                     \
+     (PyCFunction)resource_getpagesize, \
+     METH_NOARGS,                       \
+     resource_getpagesize__doc__},
 
 static int
 resource_getpagesize_impl(PyObject *module);
 
 static PyObject *
-resource_getpagesize(PyObject *module, PyObject *Py_UNUSED(ignored))
-{
+resource_getpagesize(PyObject *module, PyObject *Py_UNUSED(ignored)) {
     PyObject *return_value = NULL;
     int _return_value;
 
@@ -172,10 +189,10 @@ exit:
 }
 
 #ifndef RESOURCE_GETRUSAGE_METHODDEF
-    #define RESOURCE_GETRUSAGE_METHODDEF
+#define RESOURCE_GETRUSAGE_METHODDEF
 #endif /* !defined(RESOURCE_GETRUSAGE_METHODDEF) */
 
 #ifndef RESOURCE_PRLIMIT_METHODDEF
-    #define RESOURCE_PRLIMIT_METHODDEF
+#define RESOURCE_PRLIMIT_METHODDEF
 #endif /* !defined(RESOURCE_PRLIMIT_METHODDEF) */
 /*[clinic end generated code: output=e45883ace510414a input=a9049054013a1b77]*/

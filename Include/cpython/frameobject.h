@@ -1,13 +1,13 @@
 /* Frame object interface */
 
 #ifndef Py_CPYTHON_FRAMEOBJECT_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 /* Standard object interface */
 
-PyAPI_FUNC(PyFrameObject *) PyFrame_New(PyThreadState *, PyCodeObject *,
-                                        PyObject *, PyObject *);
+PyAPI_FUNC(PyFrameObject *)
+    PyFrame_New(PyThreadState *, PyCodeObject *, PyObject *, PyObject *);
 
 /* The rest of the interface is specific for frame objects */
 
@@ -28,8 +28,6 @@ PyAPI_FUNC(int) _PyFrame_IsEntryFrame(PyFrameObject *frame);
 PyAPI_FUNC(int) PyFrame_FastToLocalsWithError(PyFrameObject *f);
 PyAPI_FUNC(void) PyFrame_FastToLocals(PyFrameObject *);
 
-
 typedef struct {
-    PyObject_HEAD
-    PyFrameObject* frame;
+    PyObject_HEAD PyFrameObject *frame;
 } PyFrameLocalsProxyObject;

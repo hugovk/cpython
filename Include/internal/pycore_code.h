@@ -5,13 +5,12 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_stackref.h"    // _PyStackRef
-#include "pycore_lock.h"        // PyMutex
-#include "pycore_backoff.h"     // _Py_BackoffCounter
-
+#include "pycore_stackref.h"  // _PyStackRef
+#include "pycore_lock.h"      // PyMutex
+#include "pycore_backoff.h"   // _Py_BackoffCounter
 
 /* Each instruction in a code object is a fixed-width value,
  * currently 2 bytes: 1-byte opcode + 1-byte oparg.  The EXTENDED_ARG
@@ -34,14 +33,12 @@ typedef union {
 #define _PyCode_CODE(CO) _Py_RVALUE((_Py_CODEUNIT *)(CO)->co_code_adaptive)
 #define _PyCode_NBYTES(CO) (Py_SIZE(CO) * (Py_ssize_t)sizeof(_Py_CODEUNIT))
 
-
 /* These macros only remain defined for compatibility. */
 #define _Py_OPCODE(word) ((word).op.code)
 #define _Py_OPARG(word) ((word).op.arg)
 
 static inline _Py_CODEUNIT
-_py_make_codeunit(uint8_t opcode, uint8_t oparg)
-{
+_py_make_codeunit(uint8_t opcode, uint8_t oparg) {
     // No designated initialisers because of C++ compat
     _Py_CODEUNIT word;
     word.op.code = opcode;
@@ -50,21 +47,17 @@ _py_make_codeunit(uint8_t opcode, uint8_t oparg)
 }
 
 static inline void
-_py_set_opcode(_Py_CODEUNIT *word, uint8_t opcode)
-{
+_py_set_opcode(_Py_CODEUNIT *word, uint8_t opcode) {
     word->op.code = opcode;
 }
 
 #define _Py_MAKE_CODEUNIT(opcode, oparg) _py_make_codeunit((opcode), (oparg))
 #define _Py_SET_OPCODE(word, opcode) _py_set_opcode(&(word), (opcode))
 
-
 // We hide some of the newer PyCodeObject fields behind macros.
 // This helps with backporting certain changes to 3.12.
-#define _PyCode_HAS_EXECUTORS(CODE) \
-    (CODE->co_executors != NULL)
-#define _PyCode_HAS_INSTRUMENTATION(CODE) \
-    (CODE->_co_instrumentation_version > 0)
+#define _PyCode_HAS_EXECUTORS(CODE) (CODE->co_executors != NULL)
+#define _PyCode_HAS_INSTRUMENTATION(CODE) (CODE->_co_instrumentation_version > 0)
 
 struct _py_code_state {
     PyMutex mutex;
@@ -72,8 +65,10 @@ struct _py_code_state {
     struct _Py_hashtable_t *constants;
 };
 
-extern PyStatus _PyCode_Init(PyInterpreterState *interp);
-extern void _PyCode_Fini(PyInterpreterState *interp);
+extern PyStatus
+_PyCode_Init(PyInterpreterState *interp);
+extern void
+_PyCode_Fini(PyInterpreterState *interp);
 
 #define CODE_MAX_WATCHERS 8
 
@@ -81,12 +76,11 @@ extern void _PyCode_Fini(PyInterpreterState *interp);
  * Specialization and quickening structs and helper functions
  */
 
-
 // Inline caches. If you change the number of cache entries for an instruction,
 // you must *also* update the number of cache entries in Lib/opcode.py and bump
 // the magic number in Lib/importlib/_bootstrap_external.py!
 
-#define CACHE_ENTRIES(cache) (sizeof(cache)/sizeof(_Py_CODEUNIT))
+#define CACHE_ENTRIES(cache) (sizeof(cache) / sizeof(_Py_CODEUNIT))
 
 typedef struct {
     _Py_BackoffCounter counter;
@@ -107,8 +101,7 @@ typedef struct {
     _Py_BackoffCounter counter;
 } _PyUnpackSequenceCache;
 
-#define INLINE_CACHE_ENTRIES_UNPACK_SEQUENCE \
-    CACHE_ENTRIES(_PyUnpackSequenceCache)
+#define INLINE_CACHE_ENTRIES_UNPACK_SEQUENCE CACHE_ENTRIES(_PyUnpackSequenceCache)
 
 typedef struct {
     _Py_BackoffCounter counter;
@@ -143,7 +136,6 @@ typedef struct {
     };
     uint16_t descr[4];
 } _PyLoadMethodCache;
-
 
 // MUST be the max(_PyAttrCache, _PyLoadMethodCache)
 #define INLINE_CACHE_ENTRIES_LOAD_ATTR CACHE_ENTRIES(_PyLoadMethodCache)
@@ -216,16 +208,15 @@ struct callable_cache {
 // Note that these all fit within a byte, as do combinations.
 // Later, we will use the smaller numbers to differentiate the different
 // kinds of locals (e.g. pos-only arg, varkwargs, local-only).
-#define CO_FAST_HIDDEN  0x10
-#define CO_FAST_LOCAL   0x20
-#define CO_FAST_CELL    0x40
-#define CO_FAST_FREE    0x80
+#define CO_FAST_HIDDEN 0x10
+#define CO_FAST_LOCAL 0x20
+#define CO_FAST_CELL 0x40
+#define CO_FAST_FREE 0x80
 
 typedef unsigned char _PyLocals_Kind;
 
 static inline _PyLocals_Kind
-_PyLocals_GetKind(PyObject *kinds, int i)
-{
+_PyLocals_GetKind(PyObject *kinds, int i) {
     assert(PyBytes_Check(kinds));
     assert(0 <= i && i < PyBytes_GET_SIZE(kinds));
     char *ptr = PyBytes_AS_STRING(kinds);
@@ -233,14 +224,12 @@ _PyLocals_GetKind(PyObject *kinds, int i)
 }
 
 static inline void
-_PyLocals_SetKind(PyObject *kinds, int i, _PyLocals_Kind kind)
-{
+_PyLocals_SetKind(PyObject *kinds, int i, _PyLocals_Kind kind) {
     assert(PyBytes_Check(kinds));
     assert(0 <= i && i < PyBytes_GET_SIZE(kinds));
     char *ptr = PyBytes_AS_STRING(kinds);
-    ptr[i] = (char) kind;
+    ptr[i] = (char)kind;
 }
-
 
 struct _PyCodeConstructor {
     /* metadata */
@@ -284,34 +273,42 @@ struct _PyCodeConstructor {
 // back to a regular function signature.  Regardless, this approach
 // wouldn't be appropriate if this weren't a strictly internal API.
 // (See the comments in https://github.com/python/cpython/pull/26258.)
-extern int _PyCode_Validate(struct _PyCodeConstructor *);
-extern PyCodeObject* _PyCode_New(struct _PyCodeConstructor *);
-
+extern int
+_PyCode_Validate(struct _PyCodeConstructor *);
+extern PyCodeObject *
+_PyCode_New(struct _PyCodeConstructor *);
 
 /* Private API */
 
 /* Getters for internal PyCodeObject data. */
-extern PyObject* _PyCode_GetVarnames(PyCodeObject *);
-extern PyObject* _PyCode_GetCellvars(PyCodeObject *);
-extern PyObject* _PyCode_GetFreevars(PyCodeObject *);
-extern PyObject* _PyCode_GetCode(PyCodeObject *);
+extern PyObject *
+_PyCode_GetVarnames(PyCodeObject *);
+extern PyObject *
+_PyCode_GetCellvars(PyCodeObject *);
+extern PyObject *
+_PyCode_GetFreevars(PyCodeObject *);
+extern PyObject *
+_PyCode_GetCode(PyCodeObject *);
 
 /** API for initializing the line number tables. */
-extern int _PyCode_InitAddressRange(PyCodeObject* co, PyCodeAddressRange *bounds);
+extern int
+_PyCode_InitAddressRange(PyCodeObject *co, PyCodeAddressRange *bounds);
 
 /** Out of process API for initializing the location table. */
-extern void _PyLineTable_InitAddressRange(
-    const char *linetable,
-    Py_ssize_t length,
-    int firstlineno,
-    PyCodeAddressRange *range);
+extern void
+_PyLineTable_InitAddressRange(
+    const char *linetable, Py_ssize_t length, int firstlineno, PyCodeAddressRange *range
+);
 
 /** API for traversing the line number table. */
-extern int _PyLineTable_NextAddressRange(PyCodeAddressRange *range);
-extern int _PyLineTable_PreviousAddressRange(PyCodeAddressRange *range);
+extern int
+_PyLineTable_NextAddressRange(PyCodeAddressRange *range);
+extern int
+_PyLineTable_PreviousAddressRange(PyCodeAddressRange *range);
 
 /** API for executors */
-extern void _PyCode_Clear_Executors(PyCodeObject *code);
+extern void
+_PyCode_Clear_Executors(PyCodeObject *code);
 
 #ifdef Py_GIL_DISABLED
 // gh-115999 tracks progress on addressing this.
@@ -322,72 +319,150 @@ extern void _PyCode_Clear_Executors(PyCodeObject *code);
 
 /* Specialization functions */
 
-extern void _Py_Specialize_LoadSuperAttr(_PyStackRef global_super, _PyStackRef cls,
-                                         _Py_CODEUNIT *instr, int load_method);
-extern void _Py_Specialize_LoadAttr(_PyStackRef owner, _Py_CODEUNIT *instr,
-                                    PyObject *name);
-extern void _Py_Specialize_StoreAttr(_PyStackRef owner, _Py_CODEUNIT *instr,
-                                     PyObject *name);
-extern void _Py_Specialize_LoadGlobal(PyObject *globals, PyObject *builtins,
-                                      _Py_CODEUNIT *instr, PyObject *name);
-extern void _Py_Specialize_BinarySubscr(_PyStackRef sub, _PyStackRef container,
-                                        _Py_CODEUNIT *instr);
-extern void _Py_Specialize_StoreSubscr(_PyStackRef container, _PyStackRef sub,
-                                       _Py_CODEUNIT *instr);
-extern void _Py_Specialize_Call(_PyStackRef callable, _Py_CODEUNIT *instr,
-                                int nargs);
-extern void _Py_Specialize_CallKw(_PyStackRef callable, _Py_CODEUNIT *instr,
-                                  int nargs);
-extern void _Py_Specialize_BinaryOp(_PyStackRef lhs, _PyStackRef rhs, _Py_CODEUNIT *instr,
-                                    int oparg, _PyStackRef *locals);
-extern void _Py_Specialize_CompareOp(_PyStackRef lhs, _PyStackRef rhs,
-                                     _Py_CODEUNIT *instr, int oparg);
-extern void _Py_Specialize_UnpackSequence(_PyStackRef seq, _Py_CODEUNIT *instr,
-                                          int oparg);
-extern void _Py_Specialize_ForIter(_PyStackRef iter, _Py_CODEUNIT *instr, int oparg);
-extern void _Py_Specialize_Send(_PyStackRef receiver, _Py_CODEUNIT *instr);
-extern void _Py_Specialize_ToBool(_PyStackRef value, _Py_CODEUNIT *instr);
-extern void _Py_Specialize_ContainsOp(_PyStackRef value, _Py_CODEUNIT *instr);
+extern void
+_Py_Specialize_LoadSuperAttr(
+    _PyStackRef global_super, _PyStackRef cls, _Py_CODEUNIT *instr, int load_method
+);
+extern void
+_Py_Specialize_LoadAttr(_PyStackRef owner, _Py_CODEUNIT *instr, PyObject *name);
+extern void
+_Py_Specialize_StoreAttr(_PyStackRef owner, _Py_CODEUNIT *instr, PyObject *name);
+extern void
+_Py_Specialize_LoadGlobal(
+    PyObject *globals, PyObject *builtins, _Py_CODEUNIT *instr, PyObject *name
+);
+extern void
+_Py_Specialize_BinarySubscr(
+    _PyStackRef sub, _PyStackRef container, _Py_CODEUNIT *instr
+);
+extern void
+_Py_Specialize_StoreSubscr(_PyStackRef container, _PyStackRef sub, _Py_CODEUNIT *instr);
+extern void
+_Py_Specialize_Call(_PyStackRef callable, _Py_CODEUNIT *instr, int nargs);
+extern void
+_Py_Specialize_CallKw(_PyStackRef callable, _Py_CODEUNIT *instr, int nargs);
+extern void
+_Py_Specialize_BinaryOp(
+    _PyStackRef lhs,
+    _PyStackRef rhs,
+    _Py_CODEUNIT *instr,
+    int oparg,
+    _PyStackRef *locals
+);
+extern void
+_Py_Specialize_CompareOp(
+    _PyStackRef lhs, _PyStackRef rhs, _Py_CODEUNIT *instr, int oparg
+);
+extern void
+_Py_Specialize_UnpackSequence(_PyStackRef seq, _Py_CODEUNIT *instr, int oparg);
+extern void
+_Py_Specialize_ForIter(_PyStackRef iter, _Py_CODEUNIT *instr, int oparg);
+extern void
+_Py_Specialize_Send(_PyStackRef receiver, _Py_CODEUNIT *instr);
+extern void
+_Py_Specialize_ToBool(_PyStackRef value, _Py_CODEUNIT *instr);
+extern void
+_Py_Specialize_ContainsOp(_PyStackRef value, _Py_CODEUNIT *instr);
 
 #ifdef Py_STATS
 
 #include "pycore_bitutils.h"  // _Py_bit_length
 
-#define STAT_INC(opname, name) do { if (_Py_stats) _Py_stats->opcode_stats[opname].specialization.name++; } while (0)
-#define STAT_DEC(opname, name) do { if (_Py_stats) _Py_stats->opcode_stats[opname].specialization.name--; } while (0)
-#define OPCODE_EXE_INC(opname) do { if (_Py_stats) _Py_stats->opcode_stats[opname].execution_count++; } while (0)
-#define CALL_STAT_INC(name) do { if (_Py_stats) _Py_stats->call_stats.name++; } while (0)
-#define OBJECT_STAT_INC(name) do { if (_Py_stats) _Py_stats->object_stats.name++; } while (0)
-#define OBJECT_STAT_INC_COND(name, cond) \
-    do { if (_Py_stats && cond) _Py_stats->object_stats.name++; } while (0)
-#define EVAL_CALL_STAT_INC(name) do { if (_Py_stats) _Py_stats->call_stats.eval_calls[name]++; } while (0)
+#define STAT_INC(opname, name)                                     \
+    do {                                                           \
+        if (_Py_stats)                                             \
+            _Py_stats->opcode_stats[opname].specialization.name++; \
+    } while (0)
+#define STAT_DEC(opname, name)                                     \
+    do {                                                           \
+        if (_Py_stats)                                             \
+            _Py_stats->opcode_stats[opname].specialization.name--; \
+    } while (0)
+#define OPCODE_EXE_INC(opname)                                 \
+    do {                                                       \
+        if (_Py_stats)                                         \
+            _Py_stats->opcode_stats[opname].execution_count++; \
+    } while (0)
+#define CALL_STAT_INC(name)               \
+    do {                                  \
+        if (_Py_stats)                    \
+            _Py_stats->call_stats.name++; \
+    } while (0)
+#define OBJECT_STAT_INC(name)               \
+    do {                                    \
+        if (_Py_stats)                      \
+            _Py_stats->object_stats.name++; \
+    } while (0)
+#define OBJECT_STAT_INC_COND(name, cond)    \
+    do {                                    \
+        if (_Py_stats && cond)              \
+            _Py_stats->object_stats.name++; \
+    } while (0)
+#define EVAL_CALL_STAT_INC(name)                      \
+    do {                                              \
+        if (_Py_stats)                                \
+            _Py_stats->call_stats.eval_calls[name]++; \
+    } while (0)
 #define EVAL_CALL_STAT_INC_IF_FUNCTION(name, callable) \
-    do { if (_Py_stats && PyFunction_Check(callable)) _Py_stats->call_stats.eval_calls[name]++; } while (0)
-#define GC_STAT_ADD(gen, name, n) do { if (_Py_stats) _Py_stats->gc_stats[(gen)].name += (n); } while (0)
-#define OPT_STAT_INC(name) do { if (_Py_stats) _Py_stats->optimization_stats.name++; } while (0)
-#define UOP_STAT_INC(opname, name) do { if (_Py_stats) { assert(opname < 512); _Py_stats->optimization_stats.opcode[opname].name++; } } while (0)
-#define UOP_PAIR_INC(uopcode, lastuop)                                              \
-    do {                                                                            \
-        if (lastuop && _Py_stats) {                                                 \
-            _Py_stats->optimization_stats.opcode[lastuop].pair_count[uopcode]++;    \
-        }                                                                           \
-        lastuop = uopcode;                                                          \
+    do {                                               \
+        if (_Py_stats && PyFunction_Check(callable))   \
+            _Py_stats->call_stats.eval_calls[name]++;  \
     } while (0)
-#define OPT_UNSUPPORTED_OPCODE(opname) do { if (_Py_stats) _Py_stats->optimization_stats.unsupported_opcode[opname]++; } while (0)
-#define OPT_ERROR_IN_OPCODE(opname) do { if (_Py_stats) _Py_stats->optimization_stats.error_in_opcode[opname]++; } while (0)
-#define OPT_HIST(length, name) \
-    do { \
-        if (_Py_stats) { \
-            int bucket = _Py_bit_length(length >= 1 ? length - 1 : 0); \
+#define GC_STAT_ADD(gen, name, n)                   \
+    do {                                            \
+        if (_Py_stats)                              \
+            _Py_stats->gc_stats[(gen)].name += (n); \
+    } while (0)
+#define OPT_STAT_INC(name)                        \
+    do {                                          \
+        if (_Py_stats)                            \
+            _Py_stats->optimization_stats.name++; \
+    } while (0)
+#define UOP_STAT_INC(opname, name)                               \
+    do {                                                         \
+        if (_Py_stats) {                                         \
+            assert(opname < 512);                                \
+            _Py_stats->optimization_stats.opcode[opname].name++; \
+        }                                                        \
+    } while (0)
+#define UOP_PAIR_INC(uopcode, lastuop)                                           \
+    do {                                                                         \
+        if (lastuop && _Py_stats) {                                              \
+            _Py_stats->optimization_stats.opcode[lastuop].pair_count[uopcode]++; \
+        }                                                                        \
+        lastuop = uopcode;                                                       \
+    } while (0)
+#define OPT_UNSUPPORTED_OPCODE(opname)                                  \
+    do {                                                                \
+        if (_Py_stats)                                                  \
+            _Py_stats->optimization_stats.unsupported_opcode[opname]++; \
+    } while (0)
+#define OPT_ERROR_IN_OPCODE(opname)                                  \
+    do {                                                             \
+        if (_Py_stats)                                               \
+            _Py_stats->optimization_stats.error_in_opcode[opname]++; \
+    } while (0)
+#define OPT_HIST(length, name)                                                       \
+    do {                                                                             \
+        if (_Py_stats) {                                                             \
+            int bucket = _Py_bit_length(length >= 1 ? length - 1 : 0);               \
             bucket = (bucket >= _Py_UOP_HIST_SIZE) ? _Py_UOP_HIST_SIZE - 1 : bucket; \
-            _Py_stats->optimization_stats.name[bucket]++; \
-        } \
+            _Py_stats->optimization_stats.name[bucket]++;                            \
+        }                                                                            \
     } while (0)
-#define RARE_EVENT_STAT_INC(name) do { if (_Py_stats) _Py_stats->rare_event_stats.name++; } while (0)
-#define OPCODE_DEFERRED_INC(opname) do { if (_Py_stats && opcode == opname) _Py_stats->opcode_stats[opname].specialization.deferred++; } while (0)
+#define RARE_EVENT_STAT_INC(name)               \
+    do {                                        \
+        if (_Py_stats)                          \
+            _Py_stats->rare_event_stats.name++; \
+    } while (0)
+#define OPCODE_DEFERRED_INC(opname)                                    \
+    do {                                                               \
+        if (_Py_stats && opcode == opname)                             \
+            _Py_stats->opcode_stats[opname].specialization.deferred++; \
+    } while (0)
 
 // Export for '_opcode' shared extension
-PyAPI_FUNC(PyObject*) _Py_GetSpecializationStats(void);
+PyAPI_FUNC(PyObject *) _Py_GetSpecializationStats(void);
 
 #else
 #define STAT_INC(opname, name) ((void)0)
@@ -419,48 +494,41 @@ PyAPI_FUNC(PyObject*) _Py_GetSpecializationStats(void);
 // most compilers (see https://blog.regehr.org/archives/959 for more info).
 
 static inline void
-write_u32(uint16_t *p, uint32_t val)
-{
+write_u32(uint16_t *p, uint32_t val) {
     memcpy(p, &val, sizeof(val));
 }
 
 static inline void
-write_u64(uint16_t *p, uint64_t val)
-{
+write_u64(uint16_t *p, uint64_t val) {
     memcpy(p, &val, sizeof(val));
 }
 
 static inline void
-write_obj(uint16_t *p, PyObject *val)
-{
+write_obj(uint16_t *p, PyObject *val) {
     memcpy(p, &val, sizeof(val));
 }
 
 static inline uint16_t
-read_u16(uint16_t *p)
-{
+read_u16(uint16_t *p) {
     return *p;
 }
 
 static inline uint32_t
-read_u32(uint16_t *p)
-{
+read_u32(uint16_t *p) {
     uint32_t val;
     memcpy(&val, p, sizeof(val));
     return val;
 }
 
 static inline uint64_t
-read_u64(uint16_t *p)
-{
+read_u64(uint16_t *p) {
     uint64_t val;
     memcpy(&val, p, sizeof(val));
     return val;
 }
 
 static inline PyObject *
-read_obj(uint16_t *p)
-{
+read_obj(uint16_t *p) {
     PyObject *val;
     memcpy(&val, p, sizeof(val));
     return val;
@@ -476,12 +544,11 @@ parse_varint(unsigned char *p, int *result) {
         val = (val << 6) | (p[0] & 63);
     }
     *result = val;
-    return p+1;
+    return p + 1;
 }
 
 static inline int
-write_varint(uint8_t *ptr, unsigned int val)
-{
+write_varint(uint8_t *ptr, unsigned int val) {
     int written = 1;
     while (val >= 64) {
         *ptr++ = 64 | (val & 63);
@@ -493,27 +560,23 @@ write_varint(uint8_t *ptr, unsigned int val)
 }
 
 static inline int
-write_signed_varint(uint8_t *ptr, int val)
-{
+write_signed_varint(uint8_t *ptr, int val) {
     unsigned int uval;
     if (val < 0) {
         // (unsigned int)(-val) has an undefined behavior for INT_MIN
         uval = ((0 - (unsigned int)val) << 1) | 1;
-    }
-    else {
+    } else {
         uval = (unsigned int)val << 1;
     }
     return write_varint(ptr, uval);
 }
 
 static inline int
-write_location_entry_start(uint8_t *ptr, int code, int length)
-{
+write_location_entry_start(uint8_t *ptr, int code, int length) {
     assert((code & 15) == code);
     *ptr = 128 | (uint8_t)(code << 3) | (uint8_t)(length - 1);
     return 1;
 }
-
 
 /** Counters
  * The first 16-bit value in each inline cache is a counter.
@@ -544,7 +607,7 @@ write_location_entry_start(uint8_t *ptr, int code, int length)
 
 // Can't assert this in pycore_backoff.h because of header order dependencies
 #if SIDE_EXIT_INITIAL_VALUE <= ADAPTIVE_COOLDOWN_VALUE
-#  error  "Cold exit value should be larger than adaptive cooldown value"
+#error "Cold exit value should be larger than adaptive cooldown value"
 #endif
 
 static inline _Py_BackoffCounter
@@ -554,21 +617,18 @@ adaptive_counter_bits(uint16_t value, uint16_t backoff) {
 
 static inline _Py_BackoffCounter
 adaptive_counter_warmup(void) {
-    return adaptive_counter_bits(ADAPTIVE_WARMUP_VALUE,
-                                 ADAPTIVE_WARMUP_BACKOFF);
+    return adaptive_counter_bits(ADAPTIVE_WARMUP_VALUE, ADAPTIVE_WARMUP_BACKOFF);
 }
 
 static inline _Py_BackoffCounter
 adaptive_counter_cooldown(void) {
-    return adaptive_counter_bits(ADAPTIVE_COOLDOWN_VALUE,
-                                 ADAPTIVE_COOLDOWN_BACKOFF);
+    return adaptive_counter_bits(ADAPTIVE_COOLDOWN_VALUE, ADAPTIVE_COOLDOWN_BACKOFF);
 }
 
 static inline _Py_BackoffCounter
 adaptive_counter_backoff(_Py_BackoffCounter counter) {
     return restart_backoff_counter(counter);
 }
-
 
 /* Comparison bit masks. */
 
@@ -581,20 +641,25 @@ adaptive_counter_backoff(_Py_BackoffCounter counter) {
  * masked by the values below will be non-zero if the
  * comparison is true, and zero if it is false */
 
-/* This is for values that are unordered, ie. NaN, not types that are unordered, e.g. sets */
+/* This is for values that are unordered, ie. NaN, not types that are unordered, e.g.
+ * sets */
 #define COMPARISON_UNORDERED 1
 
 #define COMPARISON_LESS_THAN 2
 #define COMPARISON_GREATER_THAN 4
 #define COMPARISON_EQUALS 8
 
-#define COMPARISON_NOT_EQUALS (COMPARISON_UNORDERED | COMPARISON_LESS_THAN | COMPARISON_GREATER_THAN)
+#define COMPARISON_NOT_EQUALS \
+    (COMPARISON_UNORDERED | COMPARISON_LESS_THAN | COMPARISON_GREATER_THAN)
 
-extern int _Py_Instrument(PyCodeObject *co, PyInterpreterState *interp);
+extern int
+_Py_Instrument(PyCodeObject *co, PyInterpreterState *interp);
 
-extern _Py_CODEUNIT _Py_GetBaseCodeUnit(PyCodeObject *code, int offset);
+extern _Py_CODEUNIT
+_Py_GetBaseCodeUnit(PyCodeObject *code, int offset);
 
-extern int _PyInstruction_GetLength(PyCodeObject *code, int offset);
+extern int
+_PyInstruction_GetLength(PyCodeObject *code, int offset);
 
 struct _PyCode8 _PyCode_DEF(8);
 

@@ -11,9 +11,8 @@
  *  TCL_BETA_RELEASE    1
  *  TCL_FINAL_RELEASE   2
  */
-#define TK_HEX_VERSION ((TK_MAJOR_VERSION << 24) | \
-                        (TK_MINOR_VERSION << 16) | \
-                        (TK_RELEASE_LEVEL << 8) | \
-                        (TK_RELEASE_SERIAL << 0))
+#define TK_HEX_VERSION                                                               \
+    ((TK_MAJOR_VERSION << 24) | (TK_MINOR_VERSION << 16) | (TK_RELEASE_LEVEL << 8) | \
+     (TK_RELEASE_SERIAL << 0))
 
 #endif /* !TKINTER_H */

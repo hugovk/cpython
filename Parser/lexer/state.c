@@ -10,11 +10,9 @@
 
 /* Create and initialize a new tok_state structure */
 struct tok_state *
-_PyTokenizer_tok_new(void)
-{
-    struct tok_state *tok = (struct tok_state *)PyMem_Calloc(
-                                            1,
-                                            sizeof(struct tok_state));
+_PyTokenizer_tok_new(void) {
+    struct tok_state *tok =
+        (struct tok_state *)PyMem_Calloc(1, sizeof(struct tok_state));
     if (tok == NULL)
         return NULL;
     tok->buf = tok->cur = tok->inp = NULL;
@@ -54,7 +52,10 @@ _PyTokenizer_tok_new(void)
     tok->tok_extra_tokens = 0;
     tok->comment_newline = 0;
     tok->implicit_newline = 0;
-    tok->tok_mode_stack[0] = (tokenizer_mode){.kind =TOK_REGULAR_MODE, .f_string_quote='\0', .f_string_quote_size = 0, .f_string_debug=0};
+    tok->tok_mode_stack[0] = (tokenizer_mode){.kind = TOK_REGULAR_MODE,
+                                              .f_string_quote = '\0',
+                                              .f_string_quote_size = 0,
+                                              .f_string_debug = 0};
     tok->tok_mode_stack_index = 0;
 #ifdef Py_DEBUG
     tok->debug = _Py_GetConfig()->parser_debug;
@@ -63,8 +64,7 @@ _PyTokenizer_tok_new(void)
 }
 
 static void
-free_fstring_expressions(struct tok_state *tok)
-{
+free_fstring_expressions(struct tok_state *tok) {
     int index;
     tokenizer_mode *mode;
 
@@ -82,8 +82,7 @@ free_fstring_expressions(struct tok_state *tok)
 
 /* Free a tok_state structure */
 void
-_PyTokenizer_Free(struct tok_state *tok)
-{
+_PyTokenizer_Free(struct tok_state *tok) {
     if (tok->encoding != NULL) {
         PyMem_Free(tok->encoding);
     }
@@ -91,7 +90,7 @@ _PyTokenizer_Free(struct tok_state *tok)
     Py_XDECREF(tok->decoding_buffer);
     Py_XDECREF(tok->readline);
     Py_XDECREF(tok->filename);
-    if ((tok->readline != NULL || tok->fp != NULL ) && tok->buf != NULL) {
+    if ((tok->readline != NULL || tok->fp != NULL) && tok->buf != NULL) {
         PyMem_Free(tok->buf);
     }
     if (tok->input) {
@@ -115,9 +114,15 @@ _PyToken_Init(struct token *token) {
 }
 
 int
-_PyLexer_type_comment_token_setup(struct tok_state *tok, struct token *token, int type, int col_offset,
-                         int end_col_offset, const char *start, const char *end)
-{
+_PyLexer_type_comment_token_setup(
+    struct tok_state *tok,
+    struct token *token,
+    int type,
+    int col_offset,
+    int end_col_offset,
+    const char *start,
+    const char *end
+) {
     token->level = tok->level;
     token->lineno = token->end_lineno = tok->lineno;
     token->col_offset = col_offset;
@@ -128,14 +133,18 @@ _PyLexer_type_comment_token_setup(struct tok_state *tok, struct token *token, in
 }
 
 int
-_PyLexer_token_setup(struct tok_state *tok, struct token *token, int type, const char *start, const char *end)
-{
+_PyLexer_token_setup(
+    struct tok_state *tok,
+    struct token *token,
+    int type,
+    const char *start,
+    const char *end
+) {
     assert((start == NULL && end == NULL) || (start != NULL && end != NULL));
     token->level = tok->level;
     if (ISSTRINGLIT(type)) {
         token->lineno = tok->first_lineno;
-    }
-    else {
+    } else {
         token->lineno = tok->lineno;
     }
     token->end_lineno = tok->lineno;

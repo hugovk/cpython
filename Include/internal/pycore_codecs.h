@@ -5,21 +5,24 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_lock.h"          // PyMutex
+#include "pycore_lock.h"  // PyMutex
 
 /* Initialize codecs-related state for the given interpreter, including
    registering the first codec search function. Must be called before any other
    PyCodec-related functions, and while only one thread is active. */
-extern PyStatus _PyCodec_InitRegistry(PyInterpreterState *interp);
+extern PyStatus
+_PyCodec_InitRegistry(PyInterpreterState *interp);
 
 /* Finalize codecs-related state for the given interpreter. No PyCodec-related
    functions other than PyCodec_Unregister() may be called after this. */
-extern void _PyCodec_Fini(PyInterpreterState *interp);
+extern void
+_PyCodec_Fini(PyInterpreterState *interp);
 
-extern PyObject* _PyCodec_Lookup(const char *encoding);
+extern PyObject *
+_PyCodec_Lookup(const char *encoding);
 
 /*
  * Un-register the error handling callback function registered under
@@ -30,7 +33,8 @@ extern PyObject* _PyCodec_Lookup(const char *encoding);
  * - Return 0 if no custom error handler can be found for 'name'.
  * - Return 1 if the custom error handler was successfully removed.
  */
-extern int _PyCodec_UnregisterError(const char *name);
+extern int
+_PyCodec_UnregisterError(const char *name);
 
 /* Text codec specific encoding and decoding API.
 
@@ -45,30 +49,23 @@ extern int _PyCodec_UnregisterError(const char *name);
    in Python 3.5+?
 
  */
-extern PyObject* _PyCodec_LookupTextEncoding(
-   const char *encoding,
-   const char *alternate_command);
+extern PyObject *
+_PyCodec_LookupTextEncoding(const char *encoding, const char *alternate_command);
 
-extern PyObject* _PyCodec_EncodeText(
-   PyObject *object,
-   const char *encoding,
-   const char *errors);
+extern PyObject *
+_PyCodec_EncodeText(PyObject *object, const char *encoding, const char *errors);
 
-extern PyObject* _PyCodec_DecodeText(
-   PyObject *object,
-   const char *encoding,
-   const char *errors);
+extern PyObject *
+_PyCodec_DecodeText(PyObject *object, const char *encoding, const char *errors);
 
 /* These two aren't actually text encoding specific, but _io.TextIOWrapper
  * is the only current API consumer.
  */
-extern PyObject* _PyCodecInfo_GetIncrementalDecoder(
-   PyObject *codec_info,
-   const char *errors);
+extern PyObject *
+_PyCodecInfo_GetIncrementalDecoder(PyObject *codec_info, const char *errors);
 
-extern PyObject* _PyCodecInfo_GetIncrementalEncoder(
-   PyObject *codec_info,
-   const char *errors);
+extern PyObject *
+_PyCodecInfo_GetIncrementalEncoder(PyObject *codec_info, const char *errors);
 
 // Per-interpreter state used by codecs.c.
 struct codecs_state {

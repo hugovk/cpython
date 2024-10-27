@@ -1,11 +1,9 @@
 #include "parts.h"
 #include "util.h"
 
-
 /* Test _PyBytes_Resize() */
 static PyObject *
-bytes_resize(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_resize(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t newsize;
     int new;
@@ -23,24 +21,20 @@ bytes_resize(PyObject *Py_UNUSED(module), PyObject *args)
         }
         memcpy(PyBytes_AsString(newobj), PyBytes_AsString(obj), PyBytes_Size(obj));
         obj = newobj;
-    }
-    else {
+    } else {
         Py_XINCREF(obj);
     }
     if (_PyBytes_Resize(&obj, newsize) < 0) {
         assert(obj == NULL);
-    }
-    else {
+    } else {
         assert(obj != NULL);
     }
     return obj;
 }
 
-
 /* Test PyBytes_Join() */
 static PyObject *
-bytes_join(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_join(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *sep, *iterable;
     if (!PyArg_ParseTuple(args, "OO", &sep, &iterable)) {
         return NULL;
@@ -50,7 +44,6 @@ bytes_join(PyObject *Py_UNUSED(module), PyObject *args)
     return PyBytes_Join(sep, iterable);
 }
 
-
 static PyMethodDef test_methods[] = {
     {"bytes_resize", bytes_resize, METH_VARARGS},
     {"bytes_join", bytes_join, METH_VARARGS},
@@ -58,8 +51,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Bytes(PyObject *m)
-{
+_PyTestCapi_Init_Bytes(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

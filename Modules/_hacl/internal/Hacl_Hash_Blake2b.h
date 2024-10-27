@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-
 #ifndef __internal_Hacl_Hash_Blake2b_H
 #define __internal_Hacl_Hash_Blake2b_H
 
@@ -38,37 +37,37 @@ extern "C" {
 #include "internal/Hacl_Impl_Blake2_Constants.h"
 #include "../Hacl_Hash_Blake2b.h"
 
-typedef struct Hacl_Hash_Blake2b_params_and_key_s
-{
-  Hacl_Hash_Blake2b_blake2_params *fst;
-  uint8_t *snd;
-}
-Hacl_Hash_Blake2b_params_and_key;
+typedef struct Hacl_Hash_Blake2b_params_and_key_s {
+    Hacl_Hash_Blake2b_blake2_params *fst;
+    uint8_t *snd;
+} Hacl_Hash_Blake2b_params_and_key;
 
-void Hacl_Hash_Blake2b_init(uint64_t *hash, uint32_t kk, uint32_t nn);
+void
+Hacl_Hash_Blake2b_init(uint64_t *hash, uint32_t kk, uint32_t nn);
 
 void
 Hacl_Hash_Blake2b_update_multi(
-  uint32_t len,
-  uint64_t *wv,
-  uint64_t *hash,
-  FStar_UInt128_uint128 prev,
-  uint8_t *blocks,
-  uint32_t nb
+    uint32_t len,
+    uint64_t *wv,
+    uint64_t *hash,
+    FStar_UInt128_uint128 prev,
+    uint8_t *blocks,
+    uint32_t nb
 );
 
 void
 Hacl_Hash_Blake2b_update_last(
-  uint32_t len,
-  uint64_t *wv,
-  uint64_t *hash,
-  bool last_node,
-  FStar_UInt128_uint128 prev,
-  uint32_t rem,
-  uint8_t *d
+    uint32_t len,
+    uint64_t *wv,
+    uint64_t *hash,
+    bool last_node,
+    FStar_UInt128_uint128 prev,
+    uint32_t rem,
+    uint8_t *d
 );
 
-void Hacl_Hash_Blake2b_finish(uint32_t nn, uint8_t *output, uint64_t *hash);
+void
+Hacl_Hash_Blake2b_finish(uint32_t nn, uint8_t *output, uint64_t *hash);
 
 #if defined(__cplusplus)
 }

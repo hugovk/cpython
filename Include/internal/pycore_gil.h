@@ -5,13 +5,13 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_condvar.h"       // PyCOND_T
+#include "pycore_condvar.h"  // PyCOND_T
 
 #ifndef Py_HAVE_CONDVAR
-#  error You need either a POSIX-compatible or a Windows system!
+#error You need either a POSIX-compatible or a Windows system!
 #endif
 
 /* Enable if you want to force the switching of threads at least
@@ -41,7 +41,7 @@ struct _gil_runtime_state {
     unsigned long interval;
     /* Last PyThreadState holding / having held the GIL. This helps us
        know whether anyone else was scheduled after we dropped the GIL. */
-    PyThreadState* last_holder;
+    PyThreadState *last_holder;
     /* Whether the GIL is already taken (-1 if uninitialized). This is
        atomic because it can be read without any lock taken in ceval.c. */
     int locked;

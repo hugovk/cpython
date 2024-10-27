@@ -1,11 +1,11 @@
 #include "Python.h"
-#include "pycore_bitutils.h"      // _Py_popcount32()
+#include "pycore_bitutils.h"  // _Py_popcount32()
 #include "pycore_hamt.h"
-#include "pycore_initconfig.h"    // _PyStatus_OK()
-#include "pycore_long.h"          // _PyLong_Format()
-#include "pycore_object.h"        // _PyObject_GC_TRACK()
+#include "pycore_initconfig.h"  // _PyStatus_OK()
+#include "pycore_long.h"        // _PyLong_Format()
+#include "pycore_object.h"      // _PyObject_GC_TRACK()
 
-#include <stddef.h>               // offsetof()
+#include <stddef.h>  // offsetof()
 
 /*
 This file provides an implementation of an immutable mapping using the
@@ -244,9 +244,11 @@ There are three fundamental operations on an immutable dictionary:
 Further Reading
 ===============
 
-1. http://blog.higher-order.net/2009/09/08/understanding-clojures-persistenthashmap-deftwice.html
+1.
+http://blog.higher-order.net/2009/09/08/understanding-clojures-persistenthashmap-deftwice.html
 
-2. http://blog.higher-order.net/2010/08/16/assoc-and-clojures-persistenthashmap-part-ii.html
+2.
+http://blog.higher-order.net/2010/08/16/assoc-and-clojures-persistenthashmap-part-ii.html
 
 3. Clojure's PersistentHashMap implementation:
    https://github.com/clojure/clojure/blob/master/src/jvm/clojure/lang/PersistentHashMap.java
@@ -275,11 +277,9 @@ to introspect the tree:
             'b': 3
 */
 
-
-#define IS_ARRAY_NODE(node)     Py_IS_TYPE(node, &_PyHamt_ArrayNode_Type)
-#define IS_BITMAP_NODE(node)    Py_IS_TYPE(node, &_PyHamt_BitmapNode_Type)
+#define IS_ARRAY_NODE(node) Py_IS_TYPE(node, &_PyHamt_ArrayNode_Type)
+#define IS_BITMAP_NODE(node) Py_IS_TYPE(node, &_PyHamt_BitmapNode_Type)
 #define IS_COLLISION_NODE(node) Py_IS_TYPE(node, &_PyHamt_CollisionNode_Type)
-
 
 /* Return type for 'find' (lookup a key) functions.
 
@@ -287,8 +287,7 @@ to introspect the tree:
    * F_NOT_FOUND - the key was not found;
    * F_FOUND - the key was found.
 */
-typedef enum {F_ERROR, F_NOT_FOUND, F_FOUND} hamt_find_t;
-
+typedef enum { F_ERROR, F_NOT_FOUND, F_FOUND } hamt_find_t;
 
 /* Return type for 'without' (delete a key) functions.
 
@@ -299,61 +298,56 @@ typedef enum {F_ERROR, F_NOT_FOUND, F_FOUND} hamt_find_t;
    * W_NEWNODE - the key was found: a new node/tree is returned
      without that key.
 */
-typedef enum {W_ERROR, W_NOT_FOUND, W_EMPTY, W_NEWNODE} hamt_without_t;
-
+typedef enum { W_ERROR, W_NOT_FOUND, W_EMPTY, W_NEWNODE } hamt_without_t;
 
 /* Low-level iterator protocol type.
 
    * I_ITEM - a new item has been yielded;
    * I_END - the whole tree was visited (similar to StopIteration).
 */
-typedef enum {I_ITEM, I_END} hamt_iter_t;
-
+typedef enum { I_ITEM, I_END } hamt_iter_t;
 
 #define HAMT_ARRAY_NODE_SIZE 32
 
-
 typedef struct {
-    PyObject_HEAD
-    PyHamtNode *a_array[HAMT_ARRAY_NODE_SIZE];
+    PyObject_HEAD PyHamtNode *a_array[HAMT_ARRAY_NODE_SIZE];
     Py_ssize_t a_count;
 } PyHamtNode_Array;
 
-
 typedef struct {
-    PyObject_VAR_HEAD
-    int32_t c_hash;
+    PyObject_VAR_HEAD int32_t c_hash;
     PyObject *c_array[1];
 } PyHamtNode_Collision;
-
 
 static PyHamtObject *
 hamt_alloc(void);
 
 static PyHamtNode *
-hamt_node_assoc(PyHamtNode *node,
-                uint32_t shift, int32_t hash,
-                PyObject *key, PyObject *val, int* added_leaf);
+hamt_node_assoc(
+    PyHamtNode *node,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyObject *val,
+    int *added_leaf
+);
 
 static hamt_without_t
-hamt_node_without(PyHamtNode *node,
-                  uint32_t shift, int32_t hash,
-                  PyObject *key,
-                  PyHamtNode **new_node);
+hamt_node_without(
+    PyHamtNode *node, uint32_t shift, int32_t hash, PyObject *key, PyHamtNode **new_node
+);
 
 static hamt_find_t
-hamt_node_find(PyHamtNode *node,
-               uint32_t shift, int32_t hash,
-               PyObject *key, PyObject **val);
+hamt_node_find(
+    PyHamtNode *node, uint32_t shift, int32_t hash, PyObject *key, PyObject **val
+);
 
 #ifdef Py_DEBUG
 static int
-hamt_node_dump(PyHamtNode *node,
-               PyUnicodeWriter *writer, int level);
+hamt_node_dump(PyHamtNode *node, PyUnicodeWriter *writer, int level);
 #endif
 
-static PyHamtNode *
-hamt_node_array_new(Py_ssize_t);
+static PyHamtNode *hamt_node_array_new(Py_ssize_t);
 
 static PyHamtNode *
 hamt_node_collision_new(int32_t hash, Py_ssize_t size);
@@ -361,14 +355,12 @@ hamt_node_collision_new(int32_t hash, Py_ssize_t size);
 static inline Py_ssize_t
 hamt_node_collision_count(PyHamtNode_Collision *node);
 
-
 #ifdef Py_DEBUG
 static void
-_hamt_node_array_validate(void *obj_raw)
-{
+_hamt_node_array_validate(void *obj_raw) {
     PyObject *obj = _PyObject_CAST(obj_raw);
     assert(IS_ARRAY_NODE(obj));
-    PyHamtNode_Array *node = (PyHamtNode_Array*)obj;
+    PyHamtNode_Array *node = (PyHamtNode_Array *)obj;
     Py_ssize_t i = 0, count = 0;
     for (; i < HAMT_ARRAY_NODE_SIZE; i++) {
         if (node->a_array[i] != NULL) {
@@ -378,17 +370,17 @@ _hamt_node_array_validate(void *obj_raw)
     assert(count == node->a_count);
 }
 
-#define VALIDATE_ARRAY_NODE(NODE) \
-    do { _hamt_node_array_validate(NODE); } while (0);
+#define VALIDATE_ARRAY_NODE(NODE)        \
+    do {                                 \
+        _hamt_node_array_validate(NODE); \
+    } while (0);
 #else
 #define VALIDATE_ARRAY_NODE(NODE)
 #endif
 
-
 /* Returns -1 on error */
 static inline int32_t
-hamt_hash(PyObject *o)
-{
+hamt_hash(PyObject *o) {
     Py_hash_t hash = PyObject_Hash(o);
 
 #if SIZEOF_PY_HASH_T <= 4
@@ -422,30 +414,25 @@ hamt_hash(PyObject *o)
 }
 
 static inline uint32_t
-hamt_mask(int32_t hash, uint32_t shift)
-{
+hamt_mask(int32_t hash, uint32_t shift) {
     return (((uint32_t)hash >> shift) & 0x01f);
 }
 
 static inline uint32_t
-hamt_bitpos(int32_t hash, uint32_t shift)
-{
+hamt_bitpos(int32_t hash, uint32_t shift) {
     return (uint32_t)1 << hamt_mask(hash, shift);
 }
 
 static inline uint32_t
-hamt_bitindex(uint32_t bitmap, uint32_t bit)
-{
+hamt_bitindex(uint32_t bitmap, uint32_t bit) {
     return (uint32_t)_Py_popcount32(bitmap & (bit - 1));
 }
-
 
 /////////////////////////////////// Dump Helpers
 #ifdef Py_DEBUG
 
 static int
-_hamt_dump_ident(PyUnicodeWriter *writer, int level)
-{
+_hamt_dump_ident(PyUnicodeWriter *writer, int level) {
     /* Write `'    ' * level` to the `writer` */
     PyObject *str = NULL;
     PyObject *num = NULL;
@@ -476,13 +463,11 @@ error:
     return ret;
 }
 
-#endif  /* Py_DEBUG */
+#endif /* Py_DEBUG */
 /////////////////////////////////// Bitmap Node
 
-
 static PyHamtNode *
-hamt_node_bitmap_new(Py_ssize_t size)
-{
+hamt_node_bitmap_new(Py_ssize_t size) {
     /* Create a new bitmap node of size 'size' */
 
     PyHamtNode_Bitmap *node;
@@ -499,8 +484,7 @@ hamt_node_bitmap_new(Py_ssize_t size)
     assert(size % 2 == 0);
 
     /* No freelist; allocate a new bitmap node */
-    node = PyObject_GC_NewVar(
-        PyHamtNode_Bitmap, &_PyHamt_BitmapNode_Type, size);
+    node = PyObject_GC_NewVar(PyHamtNode_Bitmap, &_PyHamt_BitmapNode_Type, size);
     if (node == NULL) {
         return NULL;
     }
@@ -519,14 +503,12 @@ hamt_node_bitmap_new(Py_ssize_t size)
 }
 
 static inline Py_ssize_t
-hamt_node_bitmap_count(PyHamtNode_Bitmap *node)
-{
+hamt_node_bitmap_count(PyHamtNode_Bitmap *node) {
     return Py_SIZE(node) / 2;
 }
 
 static PyHamtNode_Bitmap *
-hamt_node_bitmap_clone(PyHamtNode_Bitmap *node)
-{
+hamt_node_bitmap_clone(PyHamtNode_Bitmap *node) {
     /* Clone a bitmap node; return a new one with the same child notes. */
 
     PyHamtNode_Bitmap *clone;
@@ -546,13 +528,11 @@ hamt_node_bitmap_clone(PyHamtNode_Bitmap *node)
 }
 
 static PyHamtNode_Bitmap *
-hamt_node_bitmap_clone_without(PyHamtNode_Bitmap *o, uint32_t bit)
-{
+hamt_node_bitmap_clone_without(PyHamtNode_Bitmap *o, uint32_t bit) {
     assert(bit & o->b_bitmap);
     assert(hamt_node_bitmap_count(o) > 1);
 
-    PyHamtNode_Bitmap *new = (PyHamtNode_Bitmap *)hamt_node_bitmap_new(
-        Py_SIZE(o) - 2);
+    PyHamtNode_Bitmap *new = (PyHamtNode_Bitmap *)hamt_node_bitmap_new(Py_SIZE(o) - 2);
     if (new == NULL) {
         return NULL;
     }
@@ -576,11 +556,14 @@ hamt_node_bitmap_clone_without(PyHamtNode_Bitmap *o, uint32_t bit)
 }
 
 static PyHamtNode *
-hamt_node_new_bitmap_or_collision(uint32_t shift,
-                                  PyObject *key1, PyObject *val1,
-                                  int32_t key2_hash,
-                                  PyObject *key2, PyObject *val2)
-{
+hamt_node_new_bitmap_or_collision(
+    uint32_t shift,
+    PyObject *key1,
+    PyObject *val1,
+    int32_t key2_hash,
+    PyObject *key2,
+    PyObject *val2
+) {
     /* Helper method.  Creates a new node for key1/val and key2/val2
        pairs.
 
@@ -608,16 +591,14 @@ hamt_node_new_bitmap_or_collision(uint32_t shift,
         n->c_array[3] = Py_NewRef(val2);
 
         return (PyHamtNode *)n;
-    }
-    else {
+    } else {
         int added_leaf = 0;
         PyHamtNode *n = hamt_node_bitmap_new(0);
         if (n == NULL) {
             return NULL;
         }
 
-        PyHamtNode *n2 = hamt_node_assoc(
-            n, shift, key1_hash, key1, val1, &added_leaf);
+        PyHamtNode *n2 = hamt_node_assoc(n, shift, key1_hash, key1, val1, &added_leaf);
         Py_DECREF(n);
         if (n2 == NULL) {
             return NULL;
@@ -634,10 +615,14 @@ hamt_node_new_bitmap_or_collision(uint32_t shift,
 }
 
 static PyHamtNode *
-hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
-                       uint32_t shift, int32_t hash,
-                       PyObject *key, PyObject *val, int* added_leaf)
-{
+hamt_node_bitmap_assoc(
+    PyHamtNode_Bitmap *self,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyObject *val,
+    int *added_leaf
+) {
     /* assoc operation for bitmap nodes.
 
        Return: a new node, or self if key/val already is in the
@@ -682,8 +667,8 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
             assert(val_or_node != NULL);
 
             PyHamtNode *sub_node = hamt_node_assoc(
-                (PyHamtNode *)val_or_node,
-                shift + 5, hash, key, val, added_leaf);
+                (PyHamtNode *)val_or_node, shift + 5, hash, key, val, added_leaf
+            );
             if (sub_node == NULL) {
                 return NULL;
             }
@@ -697,7 +682,7 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
             if (ret == NULL) {
                 return NULL;
             }
-            Py_SETREF(ret->b_array[val_idx], (PyObject*)sub_node);
+            Py_SETREF(ret->b_array[val_idx], (PyObject *)sub_node);
             return (PyHamtNode *)ret;
         }
 
@@ -706,10 +691,10 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
            key in this collection that matches our hash for this shift. */
 
         int comp_err = PyObject_RichCompareBool(key, key_or_null, Py_EQ);
-        if (comp_err < 0) {  /* exception in __eq__ */
+        if (comp_err < 0) { /* exception in __eq__ */
             return NULL;
         }
-        if (comp_err == 1) {  /* key == key_or_null */
+        if (comp_err == 1) { /* key == key_or_null */
             if (val == val_or_node) {
                 /* we already have the same key/val pair; return self. */
                 return (PyHamtNode *)Py_NewRef(self);
@@ -735,9 +720,11 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
         */
         PyHamtNode *sub_node = hamt_node_new_bitmap_or_collision(
             shift + 5,
-            key_or_null, val_or_node,  /* existing key/val */
+            key_or_null,
+            val_or_node, /* existing key/val */
             hash,
-            key, val  /* new key/val */
+            key,
+            val /* new key/val */
         );
         if (sub_node == NULL) {
             return NULL;
@@ -753,8 +740,7 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
 
         *added_leaf = 1;
         return (PyHamtNode *)ret;
-    }
-    else {
+    } else {
         /* There was no key before with the same (shift,hash). */
 
         uint32_t n = (uint32_t)_Py_popcount32(self->b_bitmap);
@@ -798,8 +784,8 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
 
             /* Make a new bitmap node for the key/val we're adding.
                Set that bitmap node to new-array-node[jdx]. */
-            new_node->a_array[jdx] = hamt_node_assoc(
-                empty, shift + 5, hash, key, val, added_leaf);
+            new_node->a_array[jdx] =
+                hamt_node_assoc(empty, shift + 5, hash, key, val, added_leaf);
             if (new_node->a_array[jdx] == NULL) {
                 goto fin;
             }
@@ -817,19 +803,20 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
                     if (self->b_array[j] == NULL) {
                         new_node->a_array[i] =
                             (PyHamtNode *)Py_NewRef(self->b_array[j + 1]);
-                    }
-                    else {
+                    } else {
                         int32_t rehash = hamt_hash(self->b_array[j]);
                         if (rehash == -1) {
                             goto fin;
                         }
 
                         new_node->a_array[i] = hamt_node_assoc(
-                            empty, shift + 5,
+                            empty,
+                            shift + 5,
                             rehash,
                             self->b_array[j],
                             self->b_array[j + 1],
-                            added_leaf);
+                            added_leaf
+                        );
 
                         if (new_node->a_array[i] == NULL) {
                             goto fin;
@@ -844,14 +831,13 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
             /* That's it! */
             res = (PyHamtNode *)new_node;
 
-        fin:
+fin:
             Py_XDECREF(empty);
             if (res == NULL) {
                 Py_XDECREF(new_node);
             }
             return res;
-        }
-        else {
+        } else {
             /* We have less than 16 keys at this level; let's just
                create a new bitmap node out of this node with the
                new key/val pair added. */
@@ -894,11 +880,13 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
 }
 
 static hamt_without_t
-hamt_node_bitmap_without(PyHamtNode_Bitmap *self,
-                         uint32_t shift, int32_t hash,
-                         PyObject *key,
-                         PyHamtNode **new_node)
-{
+hamt_node_bitmap_without(
+    PyHamtNode_Bitmap *self,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyHamtNode **new_node
+) {
     uint32_t bit = hamt_bitpos(hash, shift);
     if ((self->b_bitmap & bit) == 0) {
         return W_NOT_FOUND;
@@ -918,8 +906,8 @@ hamt_node_bitmap_without(PyHamtNode_Bitmap *self,
         PyHamtNode *sub_node = NULL;
 
         hamt_without_t res = hamt_node_without(
-            (PyHamtNode *)val_or_node,
-            shift + 5, hash, key, &sub_node);
+            (PyHamtNode *)val_or_node, shift + 5, hash, key, &sub_node
+        );
 
         switch (res) {
             case W_EMPTY:
@@ -945,8 +933,7 @@ hamt_node_bitmap_without(PyHamtNode_Bitmap *self,
                 if (IS_BITMAP_NODE(sub_node)) {
                     PyHamtNode_Bitmap *sub_tree = (PyHamtNode_Bitmap *)sub_node;
                     if (hamt_node_bitmap_count(sub_tree) == 1 &&
-                            sub_tree->b_array[0] != NULL)
-                    {
+                        sub_tree->b_array[0] != NULL) {
                         /* A bitmap node with one key/value pair.  Just
                            merge it into this node.
 
@@ -980,8 +967,9 @@ hamt_node_bitmap_without(PyHamtNode_Bitmap *self,
                    converts to Bitmap nodes itself.
                 */
                 if (IS_COLLISION_NODE(sub_node)) {
-                    assert(hamt_node_collision_count(
-                            (PyHamtNode_Collision*)sub_node) > 1);
+                    assert(
+                        hamt_node_collision_count((PyHamtNode_Collision *)sub_node) > 1
+                    );
                 }
 #endif
 
@@ -990,8 +978,7 @@ hamt_node_bitmap_without(PyHamtNode_Bitmap *self,
                     return W_ERROR;
                 }
 
-                Py_SETREF(clone->b_array[val_idx],
-                          (PyObject *)sub_node);  /* borrow */
+                Py_SETREF(clone->b_array[val_idx], (PyObject *)sub_node); /* borrow */
 
                 *new_node = (PyHamtNode *)clone;
                 return W_NEWNODE;
@@ -1005,8 +992,7 @@ hamt_node_bitmap_without(PyHamtNode_Bitmap *self,
             default:
                 Py_UNREACHABLE();
         }
-    }
-    else {
+    } else {
         /* We have a regular key/value pair */
 
         int cmp = PyObject_RichCompareBool(key_or_null, key, Py_EQ);
@@ -1021,8 +1007,7 @@ hamt_node_bitmap_without(PyHamtNode_Bitmap *self,
             return W_EMPTY;
         }
 
-        *new_node = (PyHamtNode *)
-            hamt_node_bitmap_clone_without(self, bit);
+        *new_node = (PyHamtNode *)hamt_node_bitmap_clone_without(self, bit);
         if (*new_node == NULL) {
             return W_ERROR;
         }
@@ -1032,10 +1017,9 @@ hamt_node_bitmap_without(PyHamtNode_Bitmap *self,
 }
 
 static hamt_find_t
-hamt_node_bitmap_find(PyHamtNode_Bitmap *self,
-                      uint32_t shift, int32_t hash,
-                      PyObject *key, PyObject **val)
-{
+hamt_node_bitmap_find(
+    PyHamtNode_Bitmap *self, uint32_t shift, int32_t hash, PyObject *key, PyObject **val
+) {
     /* Lookup a key in a Bitmap node. */
 
     uint32_t bit = hamt_bitpos(hash, shift);
@@ -1063,18 +1047,17 @@ hamt_node_bitmap_find(PyHamtNode_Bitmap *self,
         /* There are a few keys that have the same hash at the current shift
            that match our key.  Dispatch the lookup further down the tree. */
         assert(val_or_node != NULL);
-        return hamt_node_find((PyHamtNode *)val_or_node,
-                              shift + 5, hash, key, val);
+        return hamt_node_find((PyHamtNode *)val_or_node, shift + 5, hash, key, val);
     }
 
     /* We have only one key -- a potential match.  Let's compare if the
        key we are looking at is equal to the key we are looking for. */
     assert(key != NULL);
     comp_err = PyObject_RichCompareBool(key, key_or_null, Py_EQ);
-    if (comp_err < 0) {  /* exception in __eq__ */
+    if (comp_err < 0) { /* exception in __eq__ */
         return F_ERROR;
     }
-    if (comp_err == 1) {  /* key == key_or_null */
+    if (comp_err == 1) { /* key == key_or_null */
         *val = val_or_node;
         return F_FOUND;
     }
@@ -1083,13 +1066,12 @@ hamt_node_bitmap_find(PyHamtNode_Bitmap *self,
 }
 
 static int
-hamt_node_bitmap_traverse(PyHamtNode_Bitmap *self, visitproc visit, void *arg)
-{
+hamt_node_bitmap_traverse(PyHamtNode_Bitmap *self, visitproc visit, void *arg) {
     /* Bitmap's tp_traverse */
 
     Py_ssize_t i;
 
-    for (i = Py_SIZE(self); --i >= 0; ) {
+    for (i = Py_SIZE(self); --i >= 0;) {
         Py_VISIT(self->b_array[i]);
     }
 
@@ -1097,8 +1079,7 @@ hamt_node_bitmap_traverse(PyHamtNode_Bitmap *self, visitproc visit, void *arg)
 }
 
 static void
-hamt_node_bitmap_dealloc(PyHamtNode_Bitmap *self)
-{
+hamt_node_bitmap_dealloc(PyHamtNode_Bitmap *self) {
     /* Bitmap's tp_dealloc */
 
     Py_ssize_t len = Py_SIZE(self);
@@ -1117,7 +1098,7 @@ hamt_node_bitmap_dealloc(PyHamtNode_Bitmap *self)
     PyObject_GC_UnTrack(self);
     Py_TRASHCAN_BEGIN(self, hamt_node_bitmap_dealloc)
 
-    if (len > 0) {
+        if (len > 0) {
         i = len;
         while (--i >= 0) {
             Py_XDECREF(self->b_array[i]);
@@ -1130,9 +1111,7 @@ hamt_node_bitmap_dealloc(PyHamtNode_Bitmap *self)
 
 #ifdef Py_DEBUG
 static int
-hamt_node_bitmap_dump(PyHamtNode_Bitmap *node,
-                      PyUnicodeWriter *writer, int level)
-{
+hamt_node_bitmap_dump(PyHamtNode_Bitmap *node, PyUnicodeWriter *writer, int level) {
     /* Debug build: __dump__() method implementation for Bitmap nodes. */
 
     Py_ssize_t i;
@@ -1143,9 +1122,9 @@ hamt_node_bitmap_dump(PyHamtNode_Bitmap *node,
         goto error;
     }
 
-    if (PyUnicodeWriter_Format(writer, "BitmapNode(size=%zd count=%zd ",
-                               Py_SIZE(node), Py_SIZE(node) / 2) < 0)
-    {
+    if (PyUnicodeWriter_Format(
+            writer, "BitmapNode(size=%zd count=%zd ", Py_SIZE(node), Py_SIZE(node) / 2
+        ) < 0) {
         goto error;
     }
 
@@ -1158,9 +1137,7 @@ hamt_node_bitmap_dump(PyHamtNode_Bitmap *node,
     if (tmp2 == NULL) {
         goto error;
     }
-    if (PyUnicodeWriter_Format(writer, "bitmap=%S id=%p):\n",
-                               tmp2, node) < 0)
-    {
+    if (PyUnicodeWriter_Format(writer, "bitmap=%S id=%p):\n", tmp2, node) < 0) {
         Py_DECREF(tmp2);
         goto error;
     }
@@ -1179,16 +1156,12 @@ hamt_node_bitmap_dump(PyHamtNode_Bitmap *node,
                 goto error;
             }
 
-            if (hamt_node_dump((PyHamtNode *)val_or_node,
-                               writer, level + 2))
-            {
+            if (hamt_node_dump((PyHamtNode *)val_or_node, writer, level + 2)) {
                 goto error;
             }
-        }
-        else {
-            if (PyUnicodeWriter_Format(writer, "%R: %R",
-                                       key_or_null, val_or_node) < 0)
-            {
+        } else {
+            if (PyUnicodeWriter_Format(writer, "%R: %R", key_or_null, val_or_node) <
+                0) {
                 goto error;
             }
         }
@@ -1202,15 +1175,12 @@ hamt_node_bitmap_dump(PyHamtNode_Bitmap *node,
 error:
     return -1;
 }
-#endif  /* Py_DEBUG */
-
+#endif /* Py_DEBUG */
 
 /////////////////////////////////// Collision Node
 
-
 static PyHamtNode *
-hamt_node_collision_new(int32_t hash, Py_ssize_t size)
-{
+hamt_node_collision_new(int32_t hash, Py_ssize_t size) {
     /* Create a new Collision node. */
 
     PyHamtNode_Collision *node;
@@ -1219,8 +1189,7 @@ hamt_node_collision_new(int32_t hash, Py_ssize_t size)
     assert(size >= 4);
     assert(size % 2 == 0);
 
-    node = PyObject_GC_NewVar(
-        PyHamtNode_Collision, &_PyHamt_CollisionNode_Type, size);
+    node = PyObject_GC_NewVar(PyHamtNode_Collision, &_PyHamt_CollisionNode_Type, size);
     if (node == NULL) {
         return NULL;
     }
@@ -1238,9 +1207,9 @@ hamt_node_collision_new(int32_t hash, Py_ssize_t size)
 }
 
 static hamt_find_t
-hamt_node_collision_find_index(PyHamtNode_Collision *self, PyObject *key,
-                               Py_ssize_t *idx)
-{
+hamt_node_collision_find_index(
+    PyHamtNode_Collision *self, PyObject *key, Py_ssize_t *idx
+) {
     /* Lookup `key` in the Collision node `self`.  Set the index of the
        found key to 'idx'. */
 
@@ -1265,10 +1234,14 @@ hamt_node_collision_find_index(PyHamtNode_Collision *self, PyObject *key,
 }
 
 static PyHamtNode *
-hamt_node_collision_assoc(PyHamtNode_Collision *self,
-                          uint32_t shift, int32_t hash,
-                          PyObject *key, PyObject *val, int* added_leaf)
-{
+hamt_node_collision_assoc(
+    PyHamtNode_Collision *self,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyObject *val,
+    int *added_leaf
+) {
     /* Set a new key to this level (currently a Collision node)
        of the tree. */
 
@@ -1293,7 +1266,8 @@ hamt_node_collision_assoc(PyHamtNode_Collision *self,
                    add a new key/value to the cloned node. */
 
                 new_node = (PyHamtNode_Collision *)hamt_node_collision_new(
-                    self->c_hash, Py_SIZE(self) + 2);
+                    self->c_hash, Py_SIZE(self) + 2
+                );
                 if (new_node == NULL) {
                     return NULL;
                 }
@@ -1323,7 +1297,8 @@ hamt_node_collision_assoc(PyHamtNode_Collision *self,
                 /* We need to replace old value for the key
                    with a new value.  Create a new Collision node.*/
                 new_node = (PyHamtNode_Collision *)hamt_node_collision_new(
-                    self->c_hash, Py_SIZE(self));
+                    self->c_hash, Py_SIZE(self)
+                );
                 if (new_node == NULL) {
                     return NULL;
                 }
@@ -1341,8 +1316,7 @@ hamt_node_collision_assoc(PyHamtNode_Collision *self,
             default:
                 Py_UNREACHABLE();
         }
-    }
-    else {
+    } else {
         /* The hash of the new key is different from the hash that
            all keys of this Collision node have.
 
@@ -1361,25 +1335,25 @@ hamt_node_collision_assoc(PyHamtNode_Collision *self,
         new_node->b_bitmap = hamt_bitpos(self->c_hash, shift);
         new_node->b_array[1] = Py_NewRef(self);
 
-        assoc_res = hamt_node_bitmap_assoc(
-            new_node, shift, hash, key, val, added_leaf);
+        assoc_res = hamt_node_bitmap_assoc(new_node, shift, hash, key, val, added_leaf);
         Py_DECREF(new_node);
         return assoc_res;
     }
 }
 
 static inline Py_ssize_t
-hamt_node_collision_count(PyHamtNode_Collision *node)
-{
+hamt_node_collision_count(PyHamtNode_Collision *node) {
     return Py_SIZE(node) / 2;
 }
 
 static hamt_without_t
-hamt_node_collision_without(PyHamtNode_Collision *self,
-                            uint32_t shift, int32_t hash,
-                            PyObject *key,
-                            PyHamtNode **new_node)
-{
+hamt_node_collision_without(
+    PyHamtNode_Collision *self,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyHamtNode **new_node
+) {
     if (hash != self->c_hash) {
         return W_NOT_FOUND;
     }
@@ -1414,8 +1388,7 @@ hamt_node_collision_without(PyHamtNode_Collision *self,
                    with one key shouldn't exist, so convert it to a
                    Bitmap node.
                 */
-                PyHamtNode_Bitmap *node = (PyHamtNode_Bitmap *)
-                    hamt_node_bitmap_new(2);
+                PyHamtNode_Bitmap *node = (PyHamtNode_Bitmap *)hamt_node_bitmap_new(2);
                 if (node == NULL) {
                     return W_ERROR;
                 }
@@ -1423,8 +1396,7 @@ hamt_node_collision_without(PyHamtNode_Collision *self,
                 if (key_idx == 0) {
                     node->b_array[0] = Py_NewRef(self->c_array[2]);
                     node->b_array[1] = Py_NewRef(self->c_array[3]);
-                }
-                else {
+                } else {
                     assert(key_idx == 2);
                     node->b_array[0] = Py_NewRef(self->c_array[0]);
                     node->b_array[1] = Py_NewRef(self->c_array[1]);
@@ -1438,9 +1410,9 @@ hamt_node_collision_without(PyHamtNode_Collision *self,
 
             /* Allocate a new Collision node with capacity for one
                less key/value pair */
-            PyHamtNode_Collision *new = (PyHamtNode_Collision *)
-                hamt_node_collision_new(
-                    self->c_hash, Py_SIZE(self) - 2);
+            PyHamtNode_Collision *new = (PyHamtNode_Collision *)hamt_node_collision_new(
+                self->c_hash, Py_SIZE(self) - 2
+            );
             if (new == NULL) {
                 return W_ERROR;
             }
@@ -1454,7 +1426,7 @@ hamt_node_collision_without(PyHamtNode_Collision *self,
                 new->c_array[i - 2] = Py_NewRef(self->c_array[i]);
             }
 
-            *new_node = (PyHamtNode*)new;
+            *new_node = (PyHamtNode *)new;
             return W_NEWNODE;
 
         default:
@@ -1463,10 +1435,13 @@ hamt_node_collision_without(PyHamtNode_Collision *self,
 }
 
 static hamt_find_t
-hamt_node_collision_find(PyHamtNode_Collision *self,
-                         uint32_t shift, int32_t hash,
-                         PyObject *key, PyObject **val)
-{
+hamt_node_collision_find(
+    PyHamtNode_Collision *self,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyObject **val
+) {
     /* Lookup `key` in the Collision node `self`.  Set the value
        for the found key to 'val'. */
 
@@ -1487,16 +1462,13 @@ hamt_node_collision_find(PyHamtNode_Collision *self,
     return F_FOUND;
 }
 
-
 static int
-hamt_node_collision_traverse(PyHamtNode_Collision *self,
-                             visitproc visit, void *arg)
-{
+hamt_node_collision_traverse(PyHamtNode_Collision *self, visitproc visit, void *arg) {
     /* Collision's tp_traverse */
 
     Py_ssize_t i;
 
-    for (i = Py_SIZE(self); --i >= 0; ) {
+    for (i = Py_SIZE(self); --i >= 0;) {
         Py_VISIT(self->c_array[i]);
     }
 
@@ -1504,8 +1476,7 @@ hamt_node_collision_traverse(PyHamtNode_Collision *self,
 }
 
 static void
-hamt_node_collision_dealloc(PyHamtNode_Collision *self)
-{
+hamt_node_collision_dealloc(PyHamtNode_Collision *self) {
     /* Collision's tp_dealloc */
 
     Py_ssize_t len = Py_SIZE(self);
@@ -1513,8 +1484,7 @@ hamt_node_collision_dealloc(PyHamtNode_Collision *self)
     PyObject_GC_UnTrack(self);
     Py_TRASHCAN_BEGIN(self, hamt_node_collision_dealloc)
 
-    if (len > 0) {
-
+        if (len > 0) {
         while (--len >= 0) {
             Py_XDECREF(self->c_array[len]);
         }
@@ -1526,9 +1496,9 @@ hamt_node_collision_dealloc(PyHamtNode_Collision *self)
 
 #ifdef Py_DEBUG
 static int
-hamt_node_collision_dump(PyHamtNode_Collision *node,
-                         PyUnicodeWriter *writer, int level)
-{
+hamt_node_collision_dump(
+    PyHamtNode_Collision *node, PyUnicodeWriter *writer, int level
+) {
     /* Debug build: __dump__() method implementation for Collision nodes. */
 
     Py_ssize_t i;
@@ -1537,9 +1507,9 @@ hamt_node_collision_dump(PyHamtNode_Collision *node,
         goto error;
     }
 
-    if (PyUnicodeWriter_Format(writer, "CollisionNode(size=%zd id=%p):\n",
-                          	   Py_SIZE(node), node) < 0)
-    {
+    if (PyUnicodeWriter_Format(
+            writer, "CollisionNode(size=%zd id=%p):\n", Py_SIZE(node), node
+        ) < 0) {
         goto error;
     }
 
@@ -1560,19 +1530,15 @@ hamt_node_collision_dump(PyHamtNode_Collision *node,
 error:
     return -1;
 }
-#endif  /* Py_DEBUG */
-
+#endif /* Py_DEBUG */
 
 /////////////////////////////////// Array Node
 
-
 static PyHamtNode *
-hamt_node_array_new(Py_ssize_t count)
-{
+hamt_node_array_new(Py_ssize_t count) {
     Py_ssize_t i;
 
-    PyHamtNode_Array *node = PyObject_GC_New(
-        PyHamtNode_Array, &_PyHamt_ArrayNode_Type);
+    PyHamtNode_Array *node = PyObject_GC_New(PyHamtNode_Array, &_PyHamt_ArrayNode_Type);
     if (node == NULL) {
         return NULL;
     }
@@ -1588,8 +1554,7 @@ hamt_node_array_new(Py_ssize_t count)
 }
 
 static PyHamtNode_Array *
-hamt_node_array_clone(PyHamtNode_Array *node)
-{
+hamt_node_array_clone(PyHamtNode_Array *node) {
     PyHamtNode_Array *clone;
     Py_ssize_t i;
 
@@ -1603,7 +1568,7 @@ hamt_node_array_clone(PyHamtNode_Array *node)
 
     /* Copy all elements from the current Array node to the new one. */
     for (i = 0; i < HAMT_ARRAY_NODE_SIZE; i++) {
-        clone->a_array[i] = (PyHamtNode*)Py_XNewRef(node->a_array[i]);
+        clone->a_array[i] = (PyHamtNode *)Py_XNewRef(node->a_array[i]);
     }
 
     VALIDATE_ARRAY_NODE(clone)
@@ -1611,10 +1576,14 @@ hamt_node_array_clone(PyHamtNode_Array *node)
 }
 
 static PyHamtNode *
-hamt_node_array_assoc(PyHamtNode_Array *self,
-                      uint32_t shift, int32_t hash,
-                      PyObject *key, PyObject *val, int* added_leaf)
-{
+hamt_node_array_assoc(
+    PyHamtNode_Array *self,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyObject *val,
+    int *added_leaf
+) {
     /* Set a new key to this level (currently a Collision node)
        of the tree.
 
@@ -1642,9 +1611,8 @@ hamt_node_array_assoc(PyHamtNode_Array *self,
 
         /* Set key/val to the newly created empty Bitmap, thus
            creating a new Bitmap node with our key/value pair. */
-        child_node = hamt_node_bitmap_assoc(
-            empty,
-            shift + 5, hash, key, val, added_leaf);
+        child_node =
+            hamt_node_bitmap_assoc(empty, shift + 5, hash, key, val, added_leaf);
         Py_DECREF(empty);
         if (child_node == NULL) {
             return NULL;
@@ -1660,22 +1628,19 @@ hamt_node_array_assoc(PyHamtNode_Array *self,
         /* Copy all elements from the current Array node to the
            new one. */
         for (i = 0; i < HAMT_ARRAY_NODE_SIZE; i++) {
-            new_node->a_array[i] = (PyHamtNode*)Py_XNewRef(self->a_array[i]);
+            new_node->a_array[i] = (PyHamtNode *)Py_XNewRef(self->a_array[i]);
         }
 
         assert(new_node->a_array[idx] == NULL);
-        new_node->a_array[idx] = child_node;  /* borrow */
+        new_node->a_array[idx] = child_node; /* borrow */
         VALIDATE_ARRAY_NODE(new_node)
-    }
-    else {
+    } else {
         /* There's a child node for the given hash.
            Set the key to it./ */
-        child_node = hamt_node_assoc(
-            node, shift + 5, hash, key, val, added_leaf);
+        child_node = hamt_node_assoc(node, shift + 5, hash, key, val, added_leaf);
         if (child_node == NULL) {
             return NULL;
-        }
-        else if (child_node == (PyHamtNode *)self) {
+        } else if (child_node == (PyHamtNode *)self) {
             Py_DECREF(child_node);
             return (PyHamtNode *)self;
         }
@@ -1686,7 +1651,7 @@ hamt_node_array_assoc(PyHamtNode_Array *self,
             return NULL;
         }
 
-        Py_SETREF(new_node->a_array[idx], child_node);  /* borrow */
+        Py_SETREF(new_node->a_array[idx], child_node); /* borrow */
         VALIDATE_ARRAY_NODE(new_node)
     }
 
@@ -1694,11 +1659,13 @@ hamt_node_array_assoc(PyHamtNode_Array *self,
 }
 
 static hamt_without_t
-hamt_node_array_without(PyHamtNode_Array *self,
-                        uint32_t shift, int32_t hash,
-                        PyObject *key,
-                        PyHamtNode **new_node)
-{
+hamt_node_array_without(
+    PyHamtNode_Array *self,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyHamtNode **new_node
+) {
     uint32_t idx = hamt_mask(hash, shift);
     PyHamtNode *node = self->a_array[idx];
 
@@ -1707,9 +1674,8 @@ hamt_node_array_without(PyHamtNode_Array *self,
     }
 
     PyHamtNode *sub_node = NULL;
-    hamt_without_t res = hamt_node_without(
-        (PyHamtNode *)node,
-        shift + 5, hash, key, &sub_node);
+    hamt_without_t res =
+        hamt_node_without((PyHamtNode *)node, shift + 5, hash, key, &sub_node);
 
     switch (res) {
         case W_NOT_FOUND:
@@ -1729,8 +1695,8 @@ hamt_node_array_without(PyHamtNode_Array *self,
                 return W_ERROR;
             }
 
-            Py_SETREF(clone->a_array[idx], sub_node);  /* borrow */
-            *new_node = (PyHamtNode*)clone;  /* borrow */
+            Py_SETREF(clone->a_array[idx], sub_node); /* borrow */
+            *new_node = (PyHamtNode *)clone;          /* borrow */
             return W_NEWNODE;
         }
 
@@ -1760,7 +1726,7 @@ hamt_node_array_without(PyHamtNode_Array *self,
                 new->a_count = new_count;
                 Py_CLEAR(new->a_array[idx]);
 
-                *new_node = (PyHamtNode*)new;  /* borrow */
+                *new_node = (PyHamtNode *)new; /* borrow */
                 return W_NEWNODE;
             }
 
@@ -1770,8 +1736,8 @@ hamt_node_array_without(PyHamtNode_Array *self,
             Py_ssize_t bitmap_size = new_count * 2;
             uint32_t bitmap = 0;
 
-            PyHamtNode_Bitmap *new = (PyHamtNode_Bitmap *)
-                hamt_node_bitmap_new(bitmap_size);
+            PyHamtNode_Bitmap *new =
+                (PyHamtNode_Bitmap *)hamt_node_bitmap_new(bitmap_size);
             if (new == NULL) {
                 return W_ERROR;
             }
@@ -1795,8 +1761,7 @@ hamt_node_array_without(PyHamtNode_Array *self,
                     PyHamtNode_Bitmap *child = (PyHamtNode_Bitmap *)node;
 
                     if (hamt_node_bitmap_count(child) == 1 &&
-                            child->b_array[0] != NULL)
-                    {
+                        child->b_array[0] != NULL) {
                         /* node is a Bitmap with one key/value pair, just
                            merge it into the new Bitmap node we're building.
 
@@ -1810,22 +1775,18 @@ hamt_node_array_without(PyHamtNode_Array *self,
 
                         new->b_array[new_i] = Py_NewRef(key);
                         new->b_array[new_i + 1] = Py_NewRef(val);
-                    }
-                    else {
+                    } else {
                         new->b_array[new_i] = NULL;
                         new->b_array[new_i + 1] = Py_NewRef(node);
                     }
-                }
-                else {
-
+                } else {
 #ifdef Py_DEBUG
                     if (IS_COLLISION_NODE(node)) {
-                        Py_ssize_t child_count = hamt_node_collision_count(
-                            (PyHamtNode_Collision*)node);
+                        Py_ssize_t child_count =
+                            hamt_node_collision_count((PyHamtNode_Collision *)node);
                         assert(child_count > 1);
-                    }
-                    else if (IS_ARRAY_NODE(node)) {
-                        assert(((PyHamtNode_Array*)node)->a_count >= 16);
+                    } else if (IS_ARRAY_NODE(node)) {
+                        assert(((PyHamtNode_Array *)node)->a_count >= 16);
                     }
 #endif
 
@@ -1838,7 +1799,7 @@ hamt_node_array_without(PyHamtNode_Array *self,
             }
 
             new->b_bitmap = bitmap;
-            *new_node = (PyHamtNode*)new;  /* borrow */
+            *new_node = (PyHamtNode *)new; /* borrow */
             return W_NEWNODE;
         }
 
@@ -1848,10 +1809,9 @@ hamt_node_array_without(PyHamtNode_Array *self,
 }
 
 static hamt_find_t
-hamt_node_array_find(PyHamtNode_Array *self,
-                     uint32_t shift, int32_t hash,
-                     PyObject *key, PyObject **val)
-{
+hamt_node_array_find(
+    PyHamtNode_Array *self, uint32_t shift, int32_t hash, PyObject *key, PyObject **val
+) {
     /* Lookup `key` in the Array node `self`.  Set the value
        for the found key to 'val'. */
 
@@ -1868,9 +1828,7 @@ hamt_node_array_find(PyHamtNode_Array *self,
 }
 
 static int
-hamt_node_array_traverse(PyHamtNode_Array *self,
-                         visitproc visit, void *arg)
-{
+hamt_node_array_traverse(PyHamtNode_Array *self, visitproc visit, void *arg) {
     /* Array's tp_traverse */
 
     Py_ssize_t i;
@@ -1883,8 +1841,7 @@ hamt_node_array_traverse(PyHamtNode_Array *self,
 }
 
 static void
-hamt_node_array_dealloc(PyHamtNode_Array *self)
-{
+hamt_node_array_dealloc(PyHamtNode_Array *self) {
     /* Array's tp_dealloc */
 
     Py_ssize_t i;
@@ -1892,7 +1849,7 @@ hamt_node_array_dealloc(PyHamtNode_Array *self)
     PyObject_GC_UnTrack(self);
     Py_TRASHCAN_BEGIN(self, hamt_node_array_dealloc)
 
-    for (i = 0; i < HAMT_ARRAY_NODE_SIZE; i++) {
+        for (i = 0; i < HAMT_ARRAY_NODE_SIZE; i++) {
         Py_XDECREF(self->a_array[i]);
     }
 
@@ -1902,9 +1859,7 @@ hamt_node_array_dealloc(PyHamtNode_Array *self)
 
 #ifdef Py_DEBUG
 static int
-hamt_node_array_dump(PyHamtNode_Array *node,
-                     PyUnicodeWriter *writer, int level)
-{
+hamt_node_array_dump(PyHamtNode_Array *node, PyUnicodeWriter *writer, int level) {
     /* Debug build: __dump__() method implementation for Array nodes. */
 
     Py_ssize_t i;
@@ -1943,17 +1898,19 @@ hamt_node_array_dump(PyHamtNode_Array *node,
 error:
     return -1;
 }
-#endif  /* Py_DEBUG */
-
+#endif /* Py_DEBUG */
 
 /////////////////////////////////// Node Dispatch
 
-
 static PyHamtNode *
-hamt_node_assoc(PyHamtNode *node,
-                uint32_t shift, int32_t hash,
-                PyObject *key, PyObject *val, int* added_leaf)
-{
+hamt_node_assoc(
+    PyHamtNode *node,
+    uint32_t shift,
+    int32_t hash,
+    PyObject *key,
+    PyObject *val,
+    int *added_leaf
+) {
     /* Set key/value to the 'node' starting with the given shift/hash.
        Return a new node, or the same node if key/value already
        set.
@@ -1967,54 +1924,44 @@ hamt_node_assoc(PyHamtNode *node,
 
     if (IS_BITMAP_NODE(node)) {
         return hamt_node_bitmap_assoc(
-            (PyHamtNode_Bitmap *)node,
-            shift, hash, key, val, added_leaf);
-    }
-    else if (IS_ARRAY_NODE(node)) {
+            (PyHamtNode_Bitmap *)node, shift, hash, key, val, added_leaf
+        );
+    } else if (IS_ARRAY_NODE(node)) {
         return hamt_node_array_assoc(
-            (PyHamtNode_Array *)node,
-            shift, hash, key, val, added_leaf);
-    }
-    else {
+            (PyHamtNode_Array *)node, shift, hash, key, val, added_leaf
+        );
+    } else {
         assert(IS_COLLISION_NODE(node));
         return hamt_node_collision_assoc(
-            (PyHamtNode_Collision *)node,
-            shift, hash, key, val, added_leaf);
+            (PyHamtNode_Collision *)node, shift, hash, key, val, added_leaf
+        );
     }
 }
 
 static hamt_without_t
-hamt_node_without(PyHamtNode *node,
-                  uint32_t shift, int32_t hash,
-                  PyObject *key,
-                  PyHamtNode **new_node)
-{
+hamt_node_without(
+    PyHamtNode *node, uint32_t shift, int32_t hash, PyObject *key, PyHamtNode **new_node
+) {
     if (IS_BITMAP_NODE(node)) {
         return hamt_node_bitmap_without(
-            (PyHamtNode_Bitmap *)node,
-            shift, hash, key,
-            new_node);
-    }
-    else if (IS_ARRAY_NODE(node)) {
+            (PyHamtNode_Bitmap *)node, shift, hash, key, new_node
+        );
+    } else if (IS_ARRAY_NODE(node)) {
         return hamt_node_array_without(
-            (PyHamtNode_Array *)node,
-            shift, hash, key,
-            new_node);
-    }
-    else {
+            (PyHamtNode_Array *)node, shift, hash, key, new_node
+        );
+    } else {
         assert(IS_COLLISION_NODE(node));
         return hamt_node_collision_without(
-            (PyHamtNode_Collision *)node,
-            shift, hash, key,
-            new_node);
+            (PyHamtNode_Collision *)node, shift, hash, key, new_node
+        );
     }
 }
 
 static hamt_find_t
-hamt_node_find(PyHamtNode *node,
-               uint32_t shift, int32_t hash,
-               PyObject *key, PyObject **val)
-{
+hamt_node_find(
+    PyHamtNode *node, uint32_t shift, int32_t hash, PyObject *key, PyObject **val
+) {
     /* Find the key in the node starting with the given shift/hash.
 
        If a value is found, the result will be set to F_FOUND, and
@@ -2029,29 +1976,21 @@ hamt_node_find(PyHamtNode *node,
     */
 
     if (IS_BITMAP_NODE(node)) {
-        return hamt_node_bitmap_find(
-            (PyHamtNode_Bitmap *)node,
-            shift, hash, key, val);
+        return hamt_node_bitmap_find((PyHamtNode_Bitmap *)node, shift, hash, key, val);
 
-    }
-    else if (IS_ARRAY_NODE(node)) {
-        return hamt_node_array_find(
-            (PyHamtNode_Array *)node,
-            shift, hash, key, val);
-    }
-    else {
+    } else if (IS_ARRAY_NODE(node)) {
+        return hamt_node_array_find((PyHamtNode_Array *)node, shift, hash, key, val);
+    } else {
         assert(IS_COLLISION_NODE(node));
         return hamt_node_collision_find(
-            (PyHamtNode_Collision *)node,
-            shift, hash, key, val);
+            (PyHamtNode_Collision *)node, shift, hash, key, val
+        );
     }
 }
 
 #ifdef Py_DEBUG
 static int
-hamt_node_dump(PyHamtNode *node,
-               PyUnicodeWriter *writer, int level)
-{
+hamt_node_dump(PyHamtNode *node, PyUnicodeWriter *writer, int level) {
     /* Debug build: __dump__() method implementation for a node.
 
        This method automatically dispatches to the suitable
@@ -2059,32 +1998,23 @@ hamt_node_dump(PyHamtNode *node,
     */
 
     if (IS_BITMAP_NODE(node)) {
-        return hamt_node_bitmap_dump(
-            (PyHamtNode_Bitmap *)node, writer, level);
-    }
-    else if (IS_ARRAY_NODE(node)) {
-        return hamt_node_array_dump(
-            (PyHamtNode_Array *)node, writer, level);
-    }
-    else {
+        return hamt_node_bitmap_dump((PyHamtNode_Bitmap *)node, writer, level);
+    } else if (IS_ARRAY_NODE(node)) {
+        return hamt_node_array_dump((PyHamtNode_Array *)node, writer, level);
+    } else {
         assert(IS_COLLISION_NODE(node));
-        return hamt_node_collision_dump(
-            (PyHamtNode_Collision *)node, writer, level);
+        return hamt_node_collision_dump((PyHamtNode_Collision *)node, writer, level);
     }
 }
-#endif  /* Py_DEBUG */
-
+#endif /* Py_DEBUG */
 
 /////////////////////////////////// Iterators: Machinery
-
 
 static hamt_iter_t
 hamt_iterator_next(PyHamtIteratorState *iter, PyObject **key, PyObject **val);
 
-
 static void
-hamt_iterator_init(PyHamtIteratorState *iter, PyHamtNode *root)
-{
+hamt_iterator_init(PyHamtIteratorState *iter, PyHamtNode *root) {
     for (uint32_t i = 0; i < _Py_HAMT_MAX_TREE_DEPTH; i++) {
         iter->i_nodes[i] = NULL;
         iter->i_pos[i] = 0;
@@ -2097,9 +2027,7 @@ hamt_iterator_init(PyHamtIteratorState *iter, PyHamtNode *root)
 }
 
 static hamt_iter_t
-hamt_iterator_bitmap_next(PyHamtIteratorState *iter,
-                          PyObject **key, PyObject **val)
-{
+hamt_iterator_bitmap_next(PyHamtIteratorState *iter, PyObject **key, PyObject **val) {
     int8_t level = iter->i_level;
 
     PyHamtNode_Bitmap *node = (PyHamtNode_Bitmap *)(iter->i_nodes[level]);
@@ -2121,8 +2049,7 @@ hamt_iterator_bitmap_next(PyHamtIteratorState *iter,
         assert(next_level < _Py_HAMT_MAX_TREE_DEPTH);
         iter->i_level = next_level;
         iter->i_pos[next_level] = 0;
-        iter->i_nodes[next_level] = (PyHamtNode *)
-            node->b_array[pos + 1];
+        iter->i_nodes[next_level] = (PyHamtNode *)node->b_array[pos + 1];
 
         return hamt_iterator_next(iter, key, val);
     }
@@ -2134,9 +2061,9 @@ hamt_iterator_bitmap_next(PyHamtIteratorState *iter,
 }
 
 static hamt_iter_t
-hamt_iterator_collision_next(PyHamtIteratorState *iter,
-                             PyObject **key, PyObject **val)
-{
+hamt_iterator_collision_next(
+    PyHamtIteratorState *iter, PyObject **key, PyObject **val
+) {
     int8_t level = iter->i_level;
 
     PyHamtNode_Collision *node = (PyHamtNode_Collision *)(iter->i_nodes[level]);
@@ -2158,9 +2085,7 @@ hamt_iterator_collision_next(PyHamtIteratorState *iter,
 }
 
 static hamt_iter_t
-hamt_iterator_array_next(PyHamtIteratorState *iter,
-                         PyObject **key, PyObject **val)
-{
+hamt_iterator_array_next(PyHamtIteratorState *iter, PyObject **key, PyObject **val) {
     int8_t level = iter->i_level;
 
     PyHamtNode_Array *node = (PyHamtNode_Array *)(iter->i_nodes[level]);
@@ -2190,8 +2115,8 @@ hamt_iterator_array_next(PyHamtIteratorState *iter,
     }
 
 #ifdef Py_DEBUG
-        assert(iter->i_level >= 0);
-        iter->i_nodes[iter->i_level] = NULL;
+    assert(iter->i_level >= 0);
+    iter->i_nodes[iter->i_level] = NULL;
 #endif
 
     iter->i_level--;
@@ -2199,8 +2124,7 @@ hamt_iterator_array_next(PyHamtIteratorState *iter,
 }
 
 static hamt_iter_t
-hamt_iterator_next(PyHamtIteratorState *iter, PyObject **key, PyObject **val)
-{
+hamt_iterator_next(PyHamtIteratorState *iter, PyObject **key, PyObject **val) {
     if (iter->i_level < 0) {
         return I_END;
     }
@@ -2211,23 +2135,18 @@ hamt_iterator_next(PyHamtIteratorState *iter, PyObject **key, PyObject **val)
 
     if (IS_BITMAP_NODE(current)) {
         return hamt_iterator_bitmap_next(iter, key, val);
-    }
-    else if (IS_ARRAY_NODE(current)) {
+    } else if (IS_ARRAY_NODE(current)) {
         return hamt_iterator_array_next(iter, key, val);
-    }
-    else {
+    } else {
         assert(IS_COLLISION_NODE(current));
         return hamt_iterator_collision_next(iter, key, val);
     }
 }
 
-
 /////////////////////////////////// HAMT high-level functions
 
-
 PyHamtObject *
-_PyHamt_Assoc(PyHamtObject *o, PyObject *key, PyObject *val)
-{
+_PyHamt_Assoc(PyHamtObject *o, PyObject *key, PyObject *val) {
     int32_t key_hash;
     int added_leaf = 0;
     PyHamtNode *new_root;
@@ -2238,16 +2157,15 @@ _PyHamt_Assoc(PyHamtObject *o, PyObject *key, PyObject *val)
         return NULL;
     }
 
-    new_root = hamt_node_assoc(
-        (PyHamtNode *)(o->h_root),
-        0, key_hash, key, val, &added_leaf);
+    new_root =
+        hamt_node_assoc((PyHamtNode *)(o->h_root), 0, key_hash, key, val, &added_leaf);
     if (new_root == NULL) {
         return NULL;
     }
 
     if (new_root == o->h_root) {
         Py_DECREF(new_root);
-        return (PyHamtObject*)Py_NewRef(o);
+        return (PyHamtObject *)Py_NewRef(o);
     }
 
     new_o = hamt_alloc();
@@ -2256,15 +2174,14 @@ _PyHamt_Assoc(PyHamtObject *o, PyObject *key, PyObject *val)
         return NULL;
     }
 
-    new_o->h_root = new_root;  /* borrow */
+    new_o->h_root = new_root; /* borrow */
     new_o->h_count = added_leaf ? o->h_count + 1 : o->h_count;
 
     return new_o;
 }
 
 PyHamtObject *
-_PyHamt_Without(PyHamtObject *o, PyObject *key)
-{
+_PyHamt_Without(PyHamtObject *o, PyObject *key) {
     int32_t key_hash = hamt_hash(key);
     if (key_hash == -1) {
         return NULL;
@@ -2272,10 +2189,8 @@ _PyHamt_Without(PyHamtObject *o, PyObject *key)
 
     PyHamtNode *new_root = NULL;
 
-    hamt_without_t res = hamt_node_without(
-        (PyHamtNode *)(o->h_root),
-        0, key_hash, key,
-        &new_root);
+    hamt_without_t res =
+        hamt_node_without((PyHamtNode *)(o->h_root), 0, key_hash, key, &new_root);
 
     switch (res) {
         case W_ERROR:
@@ -2283,7 +2198,7 @@ _PyHamt_Without(PyHamtObject *o, PyObject *key)
         case W_EMPTY:
             return _PyHamt_New();
         case W_NOT_FOUND:
-            return (PyHamtObject*)Py_NewRef(o);
+            return (PyHamtObject *)Py_NewRef(o);
         case W_NEWNODE: {
             assert(new_root != NULL);
 
@@ -2293,7 +2208,7 @@ _PyHamt_Without(PyHamtObject *o, PyObject *key)
                 return NULL;
             }
 
-            new_o->h_root = new_root;  /* borrow */
+            new_o->h_root = new_root; /* borrow */
             new_o->h_count = o->h_count - 1;
             assert(new_o->h_count >= 0);
             return new_o;
@@ -2304,8 +2219,7 @@ _PyHamt_Without(PyHamtObject *o, PyObject *key)
 }
 
 static hamt_find_t
-hamt_find(PyHamtObject *o, PyObject *key, PyObject **val)
-{
+hamt_find(PyHamtObject *o, PyObject *key, PyObject **val) {
     if (o->h_count == 0) {
         return F_NOT_FOUND;
     }
@@ -2318,10 +2232,8 @@ hamt_find(PyHamtObject *o, PyObject *key, PyObject **val)
     return hamt_node_find(o->h_root, 0, key_hash, key, val);
 }
 
-
 int
-_PyHamt_Find(PyHamtObject *o, PyObject *key, PyObject **val)
-{
+_PyHamt_Find(PyHamtObject *o, PyObject *key, PyObject **val) {
     hamt_find_t res = hamt_find(o, key, val);
     switch (res) {
         case F_ERROR:
@@ -2335,10 +2247,8 @@ _PyHamt_Find(PyHamtObject *o, PyObject *key, PyObject **val)
     }
 }
 
-
 int
-_PyHamt_Eq(PyHamtObject *v, PyHamtObject *w)
-{
+_PyHamt_Eq(PyHamtObject *v, PyHamtObject *w) {
     if (v == w) {
         return 1;
     }
@@ -2384,14 +2294,12 @@ _PyHamt_Eq(PyHamtObject *v, PyHamtObject *w)
 }
 
 Py_ssize_t
-_PyHamt_Len(PyHamtObject *o)
-{
+_PyHamt_Len(PyHamtObject *o) {
     return o->h_count;
 }
 
 static PyHamtObject *
-hamt_alloc(void)
-{
+hamt_alloc(void) {
     PyHamtObject *o;
     o = PyObject_GC_New(PyHamtObject, &_PyHamt_Type);
     if (o == NULL) {
@@ -2404,28 +2312,24 @@ hamt_alloc(void)
     return o;
 }
 
-#define _empty_hamt \
-    (&_Py_INTERP_SINGLETON(_PyInterpreterState_GET(), hamt_empty))
+#define _empty_hamt (&_Py_INTERP_SINGLETON(_PyInterpreterState_GET(), hamt_empty))
 
 PyHamtObject *
-_PyHamt_New(void)
-{
+_PyHamt_New(void) {
     /* HAMT is an immutable object so we can easily cache an
        empty instance. */
-    return (PyHamtObject*)Py_NewRef(_empty_hamt);
+    return (PyHamtObject *)Py_NewRef(_empty_hamt);
 }
 
 #ifdef Py_DEBUG
 static PyObject *
-hamt_dump(PyHamtObject *self)
-{
+hamt_dump(PyHamtObject *self) {
     PyUnicodeWriter *writer = PyUnicodeWriter_Create(0);
     if (writer == NULL) {
         return NULL;
     }
 
-    if (PyUnicodeWriter_Format(writer, "HAMT(len=%zd):\n",
-                               self->h_count) < 0) {
+    if (PyUnicodeWriter_Format(writer, "HAMT(len=%zd):\n", self->h_count) < 0) {
         goto error;
     }
 
@@ -2439,37 +2343,31 @@ error:
     PyUnicodeWriter_Discard(writer);
     return NULL;
 }
-#endif  /* Py_DEBUG */
-
+#endif /* Py_DEBUG */
 
 /////////////////////////////////// Iterators: Shared Iterator Implementation
 
-
 static int
-hamt_baseiter_tp_clear(PyHamtIterator *it)
-{
+hamt_baseiter_tp_clear(PyHamtIterator *it) {
     Py_CLEAR(it->hi_obj);
     return 0;
 }
 
 static void
-hamt_baseiter_tp_dealloc(PyHamtIterator *it)
-{
+hamt_baseiter_tp_dealloc(PyHamtIterator *it) {
     PyObject_GC_UnTrack(it);
     (void)hamt_baseiter_tp_clear(it);
     PyObject_GC_Del(it);
 }
 
 static int
-hamt_baseiter_tp_traverse(PyHamtIterator *it, visitproc visit, void *arg)
-{
+hamt_baseiter_tp_traverse(PyHamtIterator *it, visitproc visit, void *arg) {
     Py_VISIT(it->hi_obj);
     return 0;
 }
 
 static PyObject *
-hamt_baseiter_tp_iternext(PyHamtIterator *it)
-{
+hamt_baseiter_tp_iternext(PyHamtIterator *it) {
     PyObject *key;
     PyObject *val;
     hamt_iter_t res = hamt_iterator_next(&it->hi_iter, &key, &val);
@@ -2490,8 +2388,7 @@ hamt_baseiter_tp_iternext(PyHamtIterator *it)
 }
 
 static Py_ssize_t
-hamt_baseiter_tp_len(PyHamtIterator *it)
-{
+hamt_baseiter_tp_len(PyHamtIterator *it) {
     return it->hi_obj->h_count;
 }
 
@@ -2500,136 +2397,104 @@ static PyMappingMethods PyHamtIterator_as_mapping = {
 };
 
 static PyObject *
-hamt_baseiter_new(PyTypeObject *type, binaryfunc yield, PyHamtObject *o)
-{
+hamt_baseiter_new(PyTypeObject *type, binaryfunc yield, PyHamtObject *o) {
     PyHamtIterator *it = PyObject_GC_New(PyHamtIterator, type);
     if (it == NULL) {
         return NULL;
     }
 
-    it->hi_obj = (PyHamtObject*)Py_NewRef(o);
+    it->hi_obj = (PyHamtObject *)Py_NewRef(o);
     it->hi_yield = yield;
 
     hamt_iterator_init(&it->hi_iter, o->h_root);
 
-    return (PyObject*)it;
+    return (PyObject *)it;
 }
 
-#define ITERATOR_TYPE_SHARED_SLOTS                              \
-    .tp_basicsize = sizeof(PyHamtIterator),                     \
-    .tp_itemsize = 0,                                           \
-    .tp_as_mapping = &PyHamtIterator_as_mapping,                \
-    .tp_dealloc = (destructor)hamt_baseiter_tp_dealloc,         \
-    .tp_getattro = PyObject_GenericGetAttr,                     \
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,        \
-    .tp_traverse = (traverseproc)hamt_baseiter_tp_traverse,     \
-    .tp_clear = (inquiry)hamt_baseiter_tp_clear,                \
-    .tp_iter = PyObject_SelfIter,                               \
+#define ITERATOR_TYPE_SHARED_SLOTS                                             \
+    .tp_basicsize = sizeof(PyHamtIterator), .tp_itemsize = 0,                  \
+    .tp_as_mapping = &PyHamtIterator_as_mapping,                               \
+    .tp_dealloc = (destructor)hamt_baseiter_tp_dealloc,                        \
+    .tp_getattro = PyObject_GenericGetAttr,                                    \
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,                       \
+    .tp_traverse = (traverseproc)hamt_baseiter_tp_traverse,                    \
+    .tp_clear = (inquiry)hamt_baseiter_tp_clear, .tp_iter = PyObject_SelfIter, \
     .tp_iternext = (iternextfunc)hamt_baseiter_tp_iternext,
-
 
 /////////////////////////////////// _PyHamtItems_Type
 
-
 PyTypeObject _PyHamtItems_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "items",
-    ITERATOR_TYPE_SHARED_SLOTS
+    PyVarObject_HEAD_INIT(NULL, 0) "items", ITERATOR_TYPE_SHARED_SLOTS
 };
 
 static PyObject *
-hamt_iter_yield_items(PyObject *key, PyObject *val)
-{
+hamt_iter_yield_items(PyObject *key, PyObject *val) {
     return PyTuple_Pack(2, key, val);
 }
 
 PyObject *
-_PyHamt_NewIterItems(PyHamtObject *o)
-{
-    return hamt_baseiter_new(
-        &_PyHamtItems_Type, hamt_iter_yield_items, o);
+_PyHamt_NewIterItems(PyHamtObject *o) {
+    return hamt_baseiter_new(&_PyHamtItems_Type, hamt_iter_yield_items, o);
 }
-
 
 /////////////////////////////////// _PyHamtKeys_Type
 
-
 PyTypeObject _PyHamtKeys_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "keys",
-    ITERATOR_TYPE_SHARED_SLOTS
+    PyVarObject_HEAD_INIT(NULL, 0) "keys", ITERATOR_TYPE_SHARED_SLOTS
 };
 
 static PyObject *
-hamt_iter_yield_keys(PyObject *key, PyObject *val)
-{
+hamt_iter_yield_keys(PyObject *key, PyObject *val) {
     return Py_NewRef(key);
 }
 
 PyObject *
-_PyHamt_NewIterKeys(PyHamtObject *o)
-{
-    return hamt_baseiter_new(
-        &_PyHamtKeys_Type, hamt_iter_yield_keys, o);
+_PyHamt_NewIterKeys(PyHamtObject *o) {
+    return hamt_baseiter_new(&_PyHamtKeys_Type, hamt_iter_yield_keys, o);
 }
-
 
 /////////////////////////////////// _PyHamtValues_Type
 
-
 PyTypeObject _PyHamtValues_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "values",
-    ITERATOR_TYPE_SHARED_SLOTS
+    PyVarObject_HEAD_INIT(NULL, 0) "values", ITERATOR_TYPE_SHARED_SLOTS
 };
 
 static PyObject *
-hamt_iter_yield_values(PyObject *key, PyObject *val)
-{
+hamt_iter_yield_values(PyObject *key, PyObject *val) {
     return Py_NewRef(val);
 }
 
 PyObject *
-_PyHamt_NewIterValues(PyHamtObject *o)
-{
-    return hamt_baseiter_new(
-        &_PyHamtValues_Type, hamt_iter_yield_values, o);
+_PyHamt_NewIterValues(PyHamtObject *o) {
+    return hamt_baseiter_new(&_PyHamtValues_Type, hamt_iter_yield_values, o);
 }
 
-
 /////////////////////////////////// _PyHamt_Type
-
 
 #ifdef Py_DEBUG
 static PyObject *
 hamt_dump(PyHamtObject *self);
 #endif
 
-
 static PyObject *
-hamt_tp_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    return (PyObject*)_PyHamt_New();
+hamt_tp_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
+    return (PyObject *)_PyHamt_New();
 }
 
 static int
-hamt_tp_clear(PyHamtObject *self)
-{
+hamt_tp_clear(PyHamtObject *self) {
     Py_CLEAR(self->h_root);
     return 0;
 }
 
-
 static int
-hamt_tp_traverse(PyHamtObject *self, visitproc visit, void *arg)
-{
+hamt_tp_traverse(PyHamtObject *self, visitproc visit, void *arg) {
     Py_VISIT(self->h_root);
     return 0;
 }
 
 static void
-hamt_tp_dealloc(PyHamtObject *self)
-{
+hamt_tp_dealloc(PyHamtObject *self) {
     if (self == _empty_hamt) {
         /* The empty one is statically allocated. */
 #ifdef Py_DEBUG
@@ -2641,16 +2506,14 @@ hamt_tp_dealloc(PyHamtObject *self)
 
     PyObject_GC_UnTrack(self);
     if (self->h_weakreflist != NULL) {
-        PyObject_ClearWeakRefs((PyObject*)self);
+        PyObject_ClearWeakRefs((PyObject *)self);
     }
     (void)hamt_tp_clear(self);
     Py_TYPE(self)->tp_free(self);
 }
 
-
 static PyObject *
-hamt_tp_richcompare(PyObject *v, PyObject *w, int op)
-{
+hamt_tp_richcompare(PyObject *v, PyObject *w, int op) {
     if (!PyHamt_Check(v) || !PyHamt_Check(w) || (op != Py_EQ && op != Py_NE)) {
         Py_RETURN_NOTIMPLEMENTED;
     }
@@ -2666,22 +2529,19 @@ hamt_tp_richcompare(PyObject *v, PyObject *w, int op)
 
     if (res) {
         Py_RETURN_TRUE;
-    }
-    else {
+    } else {
         Py_RETURN_FALSE;
     }
 }
 
 static int
-hamt_tp_contains(PyHamtObject *self, PyObject *key)
-{
+hamt_tp_contains(PyHamtObject *self, PyObject *key) {
     PyObject *val;
     return _PyHamt_Find(self, key, &val);
 }
 
 static PyObject *
-hamt_tp_subscript(PyHamtObject *self, PyObject *key)
-{
+hamt_tp_subscript(PyHamtObject *self, PyObject *key) {
     PyObject *val;
     hamt_find_t res = hamt_find(self, key, &val);
     switch (res) {
@@ -2698,20 +2558,17 @@ hamt_tp_subscript(PyHamtObject *self, PyObject *key)
 }
 
 static Py_ssize_t
-hamt_tp_len(PyHamtObject *self)
-{
+hamt_tp_len(PyHamtObject *self) {
     return _PyHamt_Len(self);
 }
 
 static PyObject *
-hamt_tp_iter(PyHamtObject *self)
-{
+hamt_tp_iter(PyHamtObject *self) {
     return _PyHamt_NewIterKeys(self);
 }
 
 static PyObject *
-hamt_py_set(PyHamtObject *self, PyObject *args)
-{
+hamt_py_set(PyHamtObject *self, PyObject *args) {
     PyObject *key;
     PyObject *val;
 
@@ -2723,8 +2580,7 @@ hamt_py_set(PyHamtObject *self, PyObject *args)
 }
 
 static PyObject *
-hamt_py_get(PyHamtObject *self, PyObject *args)
-{
+hamt_py_get(PyHamtObject *self, PyObject *args) {
     PyObject *key;
     PyObject *def = NULL;
 
@@ -2750,37 +2606,31 @@ hamt_py_get(PyHamtObject *self, PyObject *args)
 }
 
 static PyObject *
-hamt_py_delete(PyHamtObject *self, PyObject *key)
-{
+hamt_py_delete(PyHamtObject *self, PyObject *key) {
     return (PyObject *)_PyHamt_Without(self, key);
 }
 
 static PyObject *
-hamt_py_items(PyHamtObject *self, PyObject *args)
-{
+hamt_py_items(PyHamtObject *self, PyObject *args) {
     return _PyHamt_NewIterItems(self);
 }
 
 static PyObject *
-hamt_py_values(PyHamtObject *self, PyObject *args)
-{
+hamt_py_values(PyHamtObject *self, PyObject *args) {
     return _PyHamt_NewIterValues(self);
 }
 
 static PyObject *
-hamt_py_keys(PyHamtObject *self, PyObject *Py_UNUSED(args))
-{
+hamt_py_keys(PyHamtObject *self, PyObject *Py_UNUSED(args)) {
     return _PyHamt_NewIterKeys(self);
 }
 
 #ifdef Py_DEBUG
 static PyObject *
-hamt_py_dump(PyHamtObject *self, PyObject *Py_UNUSED(args))
-{
+hamt_py_dump(PyHamtObject *self, PyObject *Py_UNUSED(args)) {
     return hamt_dump(self);
 }
 #endif
-
 
 static PyMethodDef PyHamt_methods[] = {
     {"set", _PyCFunction_CAST(hamt_py_set), METH_VARARGS, NULL},
@@ -2796,26 +2646,25 @@ static PyMethodDef PyHamt_methods[] = {
 };
 
 static PySequenceMethods PyHamt_as_sequence = {
-    0,                                /* sq_length */
-    0,                                /* sq_concat */
-    0,                                /* sq_repeat */
-    0,                                /* sq_item */
-    0,                                /* sq_slice */
-    0,                                /* sq_ass_item */
-    0,                                /* sq_ass_slice */
-    (objobjproc)hamt_tp_contains,     /* sq_contains */
-    0,                                /* sq_inplace_concat */
-    0,                                /* sq_inplace_repeat */
+    0,                            /* sq_length */
+    0,                            /* sq_concat */
+    0,                            /* sq_repeat */
+    0,                            /* sq_item */
+    0,                            /* sq_slice */
+    0,                            /* sq_ass_item */
+    0,                            /* sq_ass_slice */
+    (objobjproc)hamt_tp_contains, /* sq_contains */
+    0,                            /* sq_inplace_concat */
+    0,                            /* sq_inplace_repeat */
 };
 
 static PyMappingMethods PyHamt_as_mapping = {
-    (lenfunc)hamt_tp_len,             /* mp_length */
-    (binaryfunc)hamt_tp_subscript,    /* mp_subscript */
+    (lenfunc)hamt_tp_len,          /* mp_length */
+    (binaryfunc)hamt_tp_subscript, /* mp_subscript */
 };
 
 PyTypeObject _PyHamt_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "hamt",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0) "hamt",
     sizeof(PyHamtObject),
     .tp_methods = PyHamt_methods,
     .tp_as_mapping = &PyHamt_as_mapping,
@@ -2832,13 +2681,10 @@ PyTypeObject _PyHamt_Type = {
     .tp_hash = PyObject_HashNotImplemented,
 };
 
-
 /////////////////////////////////// Tree Node Types
 
-
 PyTypeObject _PyHamt_ArrayNode_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "hamt_array_node",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0) "hamt_array_node",
     sizeof(PyHamtNode_Array),
     0,
     .tp_dealloc = (destructor)hamt_node_array_dealloc,
@@ -2850,8 +2696,7 @@ PyTypeObject _PyHamt_ArrayNode_Type = {
 };
 
 PyTypeObject _PyHamt_BitmapNode_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "hamt_bitmap_node",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0) "hamt_bitmap_node",
     sizeof(PyHamtNode_Bitmap) - sizeof(PyObject *),
     sizeof(PyObject *),
     .tp_dealloc = (destructor)hamt_node_bitmap_dealloc,
@@ -2863,8 +2708,7 @@ PyTypeObject _PyHamt_BitmapNode_Type = {
 };
 
 PyTypeObject _PyHamt_CollisionNode_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "hamt_collision_node",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0) "hamt_collision_node",
     sizeof(PyHamtNode_Collision) - sizeof(PyObject *),
     sizeof(PyObject *),
     .tp_dealloc = (destructor)hamt_node_collision_dealloc,

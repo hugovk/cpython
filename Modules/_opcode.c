@@ -1,5 +1,5 @@
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
@@ -9,8 +9,8 @@
 #include "pycore_code.h"
 #include "pycore_compile.h"
 #include "pycore_intrinsics.h"
-#include "pycore_optimizer.h"     // _Py_GetExecutor()
-#include "pycore_opcode_metadata.h" // IS_VALID_OPCODE, OPCODE_HAS_*, etc
+#include "pycore_optimizer.h"        // _Py_GetExecutor()
+#include "pycore_opcode_metadata.h"  // IS_VALID_OPCODE, OPCODE_HAS_*, etc
 #include "pycore_opcode_utils.h"
 
 /*[clinic input]
@@ -34,8 +34,7 @@ Compute the stack effect of the opcode.
 [clinic start generated code]*/
 
 static int
-_opcode_stack_effect_impl(PyObject *module, int opcode, PyObject *oparg,
-                          PyObject *jump)
+_opcode_stack_effect_impl(PyObject *module, int opcode, PyObject *oparg, PyObject *jump)
 /*[clinic end generated code: output=64a18f2ead954dbb input=461c9d4a44851898]*/
 {
     int oparg_int = 0;
@@ -50,16 +49,14 @@ _opcode_stack_effect_impl(PyObject *module, int opcode, PyObject *oparg,
 
     if (jump == Py_None) {
         jump_int = -1;
-    }
-    else if (jump == Py_True) {
+    } else if (jump == Py_True) {
         jump_int = 1;
-    }
-    else if (jump == Py_False) {
+    } else if (jump == Py_False) {
         jump_int = 0;
-    }
-    else {
-        PyErr_SetString(PyExc_ValueError,
-                "stack_effect: jump must be False, True or None");
+    } else {
+        PyErr_SetString(
+            PyExc_ValueError, "stack_effect: jump must be False, True or None"
+        );
         return -1;
     }
     int effect = PyCompile_OpcodeStackEffectWithJump(opcode, oparg_int, jump_int);
@@ -238,15 +235,15 @@ _opcode_get_nb_ops_impl(PyObject *module)
     if (list == NULL) {
         return NULL;
     }
-#define ADD_NB_OP(NUM, STR) \
-    do { \
+#define ADD_NB_OP(NUM, STR)                              \
+    do {                                                 \
         PyObject *pair = Py_BuildValue("ss", #NUM, STR); \
-        if (pair == NULL) { \
-            Py_DECREF(list); \
-            return NULL; \
-        } \
-        PyList_SET_ITEM(list, (NUM), pair); \
-    } while(0);
+        if (pair == NULL) {                              \
+            Py_DECREF(list);                             \
+            return NULL;                                 \
+        }                                                \
+        PyList_SET_ITEM(list, (NUM), pair);              \
+    } while (0);
 
     ADD_NB_OP(NB_ADD, "+");
     ADD_NB_OP(NB_AND, "&");
@@ -277,12 +274,10 @@ _opcode_get_nb_ops_impl(PyObject *module)
 
 #undef ADD_NB_OP
 
-    for(int i = 0; i <= NB_OPARG_LAST; i++) {
+    for (int i = 0; i <= NB_OPARG_LAST; i++) {
         if (PyList_GET_ITEM(list, i) == NULL) {
             Py_DECREF(list);
-            PyErr_Format(PyExc_ValueError,
-                         "Missing initialization for NB_OP %d",
-                         i);
+            PyErr_Format(PyExc_ValueError, "Missing initialization for NB_OP %d", i);
             return NULL;
         }
     }
@@ -304,7 +299,7 @@ _opcode_get_intrinsic1_descs_impl(PyObject *module)
     if (list == NULL) {
         return NULL;
     }
-    for (int i=0; i <= MAX_INTRINSIC_1; i++) {
+    for (int i = 0; i <= MAX_INTRINSIC_1; i++) {
         PyObject *name = _PyCompile_GetUnaryIntrinsicName(i);
         if (name == NULL) {
             Py_DECREF(list);
@@ -314,7 +309,6 @@ _opcode_get_intrinsic1_descs_impl(PyObject *module)
     }
     return list;
 }
-
 
 /*[clinic input]
 
@@ -331,7 +325,7 @@ _opcode_get_intrinsic2_descs_impl(PyObject *module)
     if (list == NULL) {
         return NULL;
     }
-    for (int i=0; i <= MAX_INTRINSIC_2; i++) {
+    for (int i = 0; i <= MAX_INTRINSIC_2; i++) {
         PyObject *name = _PyCompile_GetBinaryIntrinsicName(i);
         if (name == NULL) {
             Py_DECREF(list);
@@ -357,7 +351,7 @@ _opcode_get_special_method_names_impl(PyObject *module)
     if (list == NULL) {
         return NULL;
     }
-    for (int i=0; i <= SPECIAL_MAX; i++) {
+    for (int i = 0; i <= SPECIAL_MAX; i++) {
         PyObject *name = _Py_SpecialMethods[i].name;
         if (name == NULL) {
             Py_DECREF(list);
@@ -383,38 +377,34 @@ _opcode_get_executor_impl(PyObject *module, PyObject *code, int offset)
 /*[clinic end generated code: output=c035c7a47b16648f input=85eff93ea7aac282]*/
 {
     if (!PyCode_Check(code)) {
-        PyErr_Format(PyExc_TypeError,
-                     "expected a code object, not '%.100s'",
-                     Py_TYPE(code)->tp_name);
+        PyErr_Format(
+            PyExc_TypeError,
+            "expected a code object, not '%.100s'",
+            Py_TYPE(code)->tp_name
+        );
         return NULL;
     }
 #ifdef _Py_TIER2
     return (PyObject *)_Py_GetExecutor((PyCodeObject *)code, offset);
 #else
-    PyErr_Format(PyExc_RuntimeError,
-                 "Executors are not available in this build");
+    PyErr_Format(PyExc_RuntimeError, "Executors are not available in this build");
     return NULL;
 #endif
 }
 
-static PyMethodDef
-opcode_functions[] =  {
-    _OPCODE_STACK_EFFECT_METHODDEF
-    _OPCODE_IS_VALID_METHODDEF
-    _OPCODE_HAS_ARG_METHODDEF
-    _OPCODE_HAS_CONST_METHODDEF
-    _OPCODE_HAS_NAME_METHODDEF
-    _OPCODE_HAS_JUMP_METHODDEF
-    _OPCODE_HAS_FREE_METHODDEF
-    _OPCODE_HAS_LOCAL_METHODDEF
-    _OPCODE_HAS_EXC_METHODDEF
-    _OPCODE_GET_SPECIALIZATION_STATS_METHODDEF
-    _OPCODE_GET_NB_OPS_METHODDEF
-    _OPCODE_GET_INTRINSIC1_DESCS_METHODDEF
-    _OPCODE_GET_INTRINSIC2_DESCS_METHODDEF
-    _OPCODE_GET_EXECUTOR_METHODDEF
-    _OPCODE_GET_SPECIAL_METHOD_NAMES_METHODDEF
-    {NULL, NULL, 0, NULL}
+static PyMethodDef opcode_functions[] = {
+    _OPCODE_STACK_EFFECT_METHODDEF _OPCODE_IS_VALID_METHODDEF _OPCODE_HAS_ARG_METHODDEF
+        _OPCODE_HAS_CONST_METHODDEF _OPCODE_HAS_NAME_METHODDEF
+            _OPCODE_HAS_JUMP_METHODDEF _OPCODE_HAS_FREE_METHODDEF
+                _OPCODE_HAS_LOCAL_METHODDEF _OPCODE_HAS_EXC_METHODDEF
+                    _OPCODE_GET_SPECIALIZATION_STATS_METHODDEF
+                        _OPCODE_GET_NB_OPS_METHODDEF
+                            _OPCODE_GET_INTRINSIC1_DESCS_METHODDEF
+                                _OPCODE_GET_INTRINSIC2_DESCS_METHODDEF
+                                    _OPCODE_GET_EXECUTOR_METHODDEF
+                                        _OPCODE_GET_SPECIAL_METHOD_NAMES_METHODDEF{
+                                            NULL, NULL, 0, NULL
+                                        }
 };
 
 static int
@@ -442,7 +432,6 @@ static struct PyModuleDef opcodemodule = {
 };
 
 PyMODINIT_FUNC
-PyInit__opcode(void)
-{
+PyInit__opcode(void) {
     return PyModuleDef_Init(&opcodemodule);
 }

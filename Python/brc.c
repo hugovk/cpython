@@ -17,30 +17,27 @@
 // thread that it has objects to merge. Additionally, all queued objects are
 // merged during GC.
 #include "Python.h"
-#include "pycore_object.h"      // _Py_ExplicitMergeRefcount
-#include "pycore_brc.h"         // struct _brc_thread_state
-#include "pycore_ceval.h"       // _Py_set_eval_breaker_bit
-#include "pycore_llist.h"       // struct llist_node
-#include "pycore_pystate.h"     // _PyThreadStateImpl
+#include "pycore_object.h"   // _Py_ExplicitMergeRefcount
+#include "pycore_brc.h"      // struct _brc_thread_state
+#include "pycore_ceval.h"    // _Py_set_eval_breaker_bit
+#include "pycore_llist.h"    // struct llist_node
+#include "pycore_pystate.h"  // _PyThreadStateImpl
 
 #ifdef Py_GIL_DISABLED
 
 // Get the hashtable bucket for a given thread id.
 static struct _brc_bucket *
-get_bucket(PyInterpreterState *interp, uintptr_t tid)
-{
+get_bucket(PyInterpreterState *interp, uintptr_t tid) {
     return &interp->brc.table[tid % _Py_BRC_NUM_BUCKETS];
 }
 
 // Find the thread state in a hash table bucket by thread id.
 static _PyThreadStateImpl *
-find_thread_state(struct _brc_bucket *bucket, uintptr_t thread_id)
-{
+find_thread_state(struct _brc_bucket *bucket, uintptr_t thread_id) {
     struct llist_node *node;
     llist_for_each(node, &bucket->root) {
         // Get the containing _PyThreadStateImpl from the linked-list node.
-        _PyThreadStateImpl *ts = llist_data(node, _PyThreadStateImpl,
-                                            brc.bucket_node);
+        _PyThreadStateImpl *ts = llist_data(node, _PyThreadStateImpl, brc.bucket_node);
         if (ts->brc.tid == thread_id) {
             return ts;
         }
@@ -51,8 +48,7 @@ find_thread_state(struct _brc_bucket *bucket, uintptr_t thread_id)
 // Enqueue an object to be merged by the owning thread. This steals a
 // reference to the object.
 void
-_Py_brc_queue_object(PyObject *ob)
-{
+_Py_brc_queue_object(PyObject *ob) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
 
     uintptr_t ob_tid = _Py_atomic_load_uintptr(&ob->ob_tid);
@@ -100,8 +96,7 @@ _Py_brc_queue_object(PyObject *ob)
 }
 
 static void
-merge_queued_objects(_PyObjectStack *to_merge)
-{
+merge_queued_objects(_PyObjectStack *to_merge) {
     PyObject *ob;
     while ((ob = _PyObjectStack_Pop(to_merge)) != NULL) {
         // Subtract one when merging because the queue had a reference.
@@ -114,8 +109,7 @@ merge_queued_objects(_PyObjectStack *to_merge)
 
 // Process this thread's queue of objects to merge.
 void
-_Py_brc_merge_refcounts(PyThreadState *tstate)
-{
+_Py_brc_merge_refcounts(PyThreadState *tstate) {
     struct _brc_thread_state *brc = &((_PyThreadStateImpl *)tstate)->brc;
     struct _brc_bucket *bucket = get_bucket(tstate->interp, brc->tid);
 
@@ -132,8 +126,7 @@ _Py_brc_merge_refcounts(PyThreadState *tstate)
 }
 
 void
-_Py_brc_init_state(PyInterpreterState *interp)
-{
+_Py_brc_init_state(PyInterpreterState *interp) {
     struct _brc_state *brc = &interp->brc;
     for (Py_ssize_t i = 0; i < _Py_BRC_NUM_BUCKETS; i++) {
         llist_init(&brc->table[i].root);
@@ -141,8 +134,7 @@ _Py_brc_init_state(PyInterpreterState *interp)
 }
 
 void
-_Py_brc_init_thread(PyThreadState *tstate)
-{
+_Py_brc_init_thread(PyThreadState *tstate) {
     struct _brc_thread_state *brc = &((_PyThreadStateImpl *)tstate)->brc;
     uintptr_t tid = _Py_ThreadId();
 
@@ -155,8 +147,7 @@ _Py_brc_init_thread(PyThreadState *tstate)
 }
 
 void
-_Py_brc_remove_thread(PyThreadState *tstate)
-{
+_Py_brc_remove_thread(PyThreadState *tstate) {
     struct _brc_thread_state *brc = &((_PyThreadStateImpl *)tstate)->brc;
     if (brc->tid == 0) {
         // The thread state may have been created, but never bound to a native
@@ -180,10 +171,8 @@ _Py_brc_remove_thread(PyThreadState *tstate)
         empty = (brc->objects_to_merge.head == NULL);
         if (empty) {
             llist_remove(&brc->bucket_node);
-        }
-        else {
-            _PyObjectStack_Merge(&brc->local_objects_to_merge,
-                                 &brc->objects_to_merge);
+        } else {
+            _PyObjectStack_Merge(&brc->local_objects_to_merge, &brc->objects_to_merge);
         }
         PyMutex_Unlock(&bucket->mutex);
     }
@@ -193,8 +182,7 @@ _Py_brc_remove_thread(PyThreadState *tstate)
 }
 
 void
-_Py_brc_after_fork(PyInterpreterState *interp)
-{
+_Py_brc_after_fork(PyInterpreterState *interp) {
     // Unlock all bucket mutexes. Some of the buckets may be locked because
     // locks can be handed off to a parked thread (see lock.c). We don't have
     // to worry about consistency here, because no thread can be actively
@@ -205,4 +193,4 @@ _Py_brc_after_fork(PyInterpreterState *interp)
     }
 }
 
-#endif  /* Py_GIL_DISABLED */
+#endif /* Py_GIL_DISABLED */

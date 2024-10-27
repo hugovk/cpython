@@ -3,19 +3,18 @@ posixshmem - A Python extension that provides shm_open() and shm_unlink()
 */
 
 // Need limited C API version 3.13 for Py_mod_gil
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #ifndef Py_GIL_DISABLED
-#  define Py_LIMITED_API 0x030d0000
+#define Py_LIMITED_API 0x030d0000
 #endif
 
 #include <Python.h>
 
-#include <string.h>               // strlen()
-#include <errno.h>                // EINTR
+#include <string.h>  // strlen()
+#include <errno.h>   // EINTR
 #ifdef HAVE_SYS_MMAN_H
-#  include <sys/mman.h>           // shm_open(), shm_unlink()
+#include <sys/mman.h>  // shm_open(), shm_unlink()
 #endif
-
 
 /*[clinic input]
 module _posixshmem
@@ -42,8 +41,7 @@ Open a shared memory object.  Returns a file descriptor (integer).
 [clinic start generated code]*/
 
 static int
-_posixshmem_shm_open_impl(PyObject *module, PyObject *path, int flags,
-                          int mode)
+_posixshmem_shm_open_impl(PyObject *module, PyObject *path, int flags, int mode)
 /*[clinic end generated code: output=8d110171a4fa20df input=e83b58fa802fac25]*/
 {
     int fd;
@@ -58,8 +56,7 @@ _posixshmem_shm_open_impl(PyObject *module, PyObject *path, int flags,
         return -1;
     }
     do {
-        Py_BEGIN_ALLOW_THREADS
-        fd = shm_open(name, flags, mode);
+        Py_BEGIN_ALLOW_THREADS fd = shm_open(name, flags, mode);
         Py_END_ALLOW_THREADS
     } while (fd < 0 && errno == EINTR && !(async_err = PyErr_CheckSignals()));
 
@@ -103,8 +100,7 @@ _posixshmem_shm_unlink_impl(PyObject *module, PyObject *path)
         return NULL;
     }
     do {
-        Py_BEGIN_ALLOW_THREADS
-        rv = shm_unlink(name);
+        Py_BEGIN_ALLOW_THREADS rv = shm_unlink(name);
         Py_END_ALLOW_THREADS
     } while (rv < 0 && errno == EINTR && !(async_err = PyErr_CheckSignals()));
 
@@ -120,19 +116,15 @@ _posixshmem_shm_unlink_impl(PyObject *module, PyObject *path)
 
 #include "clinic/posixshmem.c.h"
 
-static PyMethodDef module_methods[ ] = {
-    _POSIXSHMEM_SHM_OPEN_METHODDEF
-    _POSIXSHMEM_SHM_UNLINK_METHODDEF
-    {NULL} /* Sentinel */
+static PyMethodDef module_methods[] = {
+    _POSIXSHMEM_SHM_OPEN_METHODDEF _POSIXSHMEM_SHM_UNLINK_METHODDEF{NULL} /* Sentinel */
 };
-
 
 static PyModuleDef_Slot module_slots[] = {
     {Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
     {Py_mod_gil, Py_MOD_GIL_NOT_USED},
     {0, NULL}
 };
-
 
 static struct PyModuleDef _posixshmemmodule = {
     PyModuleDef_HEAD_INIT,
@@ -145,7 +137,6 @@ static struct PyModuleDef _posixshmemmodule = {
 
 /* Module init function */
 PyMODINIT_FUNC
-PyInit__posixshmem(void)
-{
+PyInit__posixshmem(void) {
     return PyModuleDef_Init(&_posixshmemmodule);
 }

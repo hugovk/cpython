@@ -47,14 +47,14 @@
 #include "balinfo.h"
 #include "balcondition.h"
 
-HRESULT CreateBootstrapperApplication(
+HRESULT
+CreateBootstrapperApplication(
     __in HMODULE hModule,
     __in BOOL fPrereq,
     __in HRESULT hrHostInitialization,
-    __in IBootstrapperEngine* pEngine,
-    __in const BOOTSTRAPPER_COMMAND* pCommand,
-    __out IBootstrapperApplication** ppApplication
+    __in IBootstrapperEngine *pEngine,
+    __in const BOOTSTRAPPER_COMMAND *pCommand,
+    __out IBootstrapperApplication **ppApplication
 );
 
 #include "IBootstrapperBAFunction.h"
-

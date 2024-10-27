@@ -1,37 +1,37 @@
 /* AST Optimizer */
 #include "Python.h"
-#include "pycore_ast.h"           // _PyAST_GetDocString()
-#include "pycore_format.h"        // F_LJUST
-#include "pycore_long.h"          // _PyLong
-#include "pycore_pystate.h"       // _PyThreadState_GET()
-#include "pycore_setobject.h"     // _PySet_NextEntry()
-
+#include "pycore_ast.h"        // _PyAST_GetDocString()
+#include "pycore_format.h"     // F_LJUST
+#include "pycore_long.h"       // _PyLong
+#include "pycore_pystate.h"    // _PyThreadState_GET()
+#include "pycore_setobject.h"  // _PySet_NextEntry()
 
 typedef struct {
     int optimize;
     int ff_features;
 
-    int recursion_depth;            /* current recursion depth */
-    int recursion_limit;            /* recursion limit */
+    int recursion_depth; /* current recursion depth */
+    int recursion_limit; /* recursion limit */
 } _PyASTOptimizeState;
 
-#define ENTER_RECURSIVE(ST) \
-    do { \
-        if (++(ST)->recursion_depth > (ST)->recursion_limit) { \
-            PyErr_SetString(PyExc_RecursionError, \
-                "maximum recursion depth exceeded during compilation"); \
-            return 0; \
-        } \
-    } while(0)
+#define ENTER_RECURSIVE(ST)                                           \
+    do {                                                              \
+        if (++(ST)->recursion_depth > (ST)->recursion_limit) {        \
+            PyErr_SetString(                                          \
+                PyExc_RecursionError,                                 \
+                "maximum recursion depth exceeded during compilation" \
+            );                                                        \
+            return 0;                                                 \
+        }                                                             \
+    } while (0)
 
-#define LEAVE_RECURSIVE(ST) \
-    do { \
+#define LEAVE_RECURSIVE(ST)      \
+    do {                         \
         --(ST)->recursion_depth; \
-    } while(0)
+    } while (0)
 
 static int
-make_const(expr_ty node, PyObject *val, PyArena *arena)
-{
+make_const(expr_ty node, PyObject *val, PyArena *arena) {
     // Even if no new value was calculated, make_const may still
     // need to clear an error (e.g. for division by zero)
     if (val == NULL) {
@@ -54,8 +54,7 @@ make_const(expr_ty node, PyObject *val, PyArena *arena)
 #define COPY_NODE(TO, FROM) (memcpy((TO), (FROM), sizeof(struct _expr)))
 
 static int
-has_starred(asdl_expr_seq *elts)
-{
+has_starred(asdl_expr_seq *elts) {
     Py_ssize_t n = asdl_seq_LEN(elts);
     for (Py_ssize_t i = 0; i < n; i++) {
         expr_ty e = (expr_ty)asdl_seq_GET(elts, i);
@@ -66,10 +65,8 @@ has_starred(asdl_expr_seq *elts)
     return 0;
 }
 
-
-static PyObject*
-unary_not(PyObject *v)
-{
+static PyObject *
+unary_not(PyObject *v) {
     int r = PyObject_IsTrue(v);
     if (r < 0)
         return NULL;
@@ -77,14 +74,13 @@ unary_not(PyObject *v)
 }
 
 static int
-fold_unaryop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
-{
+fold_unaryop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state) {
     expr_ty arg = node->v.UnaryOp.operand;
 
     if (arg->kind != Constant_kind) {
         /* Fold not into comparison */
         if (node->v.UnaryOp.op == Not && arg->kind == Compare_kind &&
-                asdl_seq_LEN(arg->v.Compare.ops) == 1) {
+            asdl_seq_LEN(arg->v.Compare.ops) == 1) {
             /* Eq and NotEq are often implemented in terms of one another, so
                folding not (self == other) into self != other breaks implementation
                of !=. Detecting such cases doesn't seem worthwhile.
@@ -92,29 +88,29 @@ fold_unaryop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
                They don't satisfy not folding laws. */
             cmpop_ty op = asdl_seq_GET(arg->v.Compare.ops, 0);
             switch (op) {
-            case Is:
-                op = IsNot;
-                break;
-            case IsNot:
-                op = Is;
-                break;
-            case In:
-                op = NotIn;
-                break;
-            case NotIn:
-                op = In;
-                break;
-            // The remaining comparison operators can't be safely inverted
-            case Eq:
-            case NotEq:
-            case Lt:
-            case LtE:
-            case Gt:
-            case GtE:
-                op = 0; // The AST enums leave "0" free as an "unused" marker
-                break;
-            // No default case, so the compiler will emit a warning if new
-            // comparison operators are added without being handled here
+                case Is:
+                    op = IsNot;
+                    break;
+                case IsNot:
+                    op = Is;
+                    break;
+                case In:
+                    op = NotIn;
+                    break;
+                case NotIn:
+                    op = In;
+                    break;
+                // The remaining comparison operators can't be safely inverted
+                case Eq:
+                case NotEq:
+                case Lt:
+                case LtE:
+                case Gt:
+                case GtE:
+                    op = 0;  // The AST enums leave "0" free as an "unused" marker
+                    break;
+                    // No default case, so the compiler will emit a warning if new
+                    // comparison operators are added without being handled here
             }
             if (op) {
                 asdl_seq_SET(arg->v.Compare.ops, 0, op);
@@ -125,7 +121,7 @@ fold_unaryop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
         return 1;
     }
 
-    typedef PyObject *(*unary_op)(PyObject*);
+    typedef PyObject *(*unary_op)(PyObject *);
     static const unary_op ops[] = {
         [Invert] = PyNumber_Invert,
         [Not] = unary_not,
@@ -145,8 +141,7 @@ fold_unaryop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
 */
 
 static Py_ssize_t
-check_complexity(PyObject *obj, Py_ssize_t limit)
-{
+check_complexity(PyObject *obj, Py_ssize_t limit) {
     if (PyTuple_Check(obj)) {
         Py_ssize_t i;
         limit -= PyTuple_GET_SIZE(obj);
@@ -158,17 +153,15 @@ check_complexity(PyObject *obj, Py_ssize_t limit)
     return limit;
 }
 
-#define MAX_INT_SIZE           128  /* bits */
-#define MAX_COLLECTION_SIZE    256  /* items */
-#define MAX_STR_SIZE          4096  /* characters */
-#define MAX_TOTAL_ITEMS       1024  /* including nested collections */
+#define MAX_INT_SIZE 128        /* bits */
+#define MAX_COLLECTION_SIZE 256 /* items */
+#define MAX_STR_SIZE 4096       /* characters */
+#define MAX_TOTAL_ITEMS 1024    /* including nested collections */
 
 static PyObject *
-safe_multiply(PyObject *v, PyObject *w)
-{
-    if (PyLong_Check(v) && PyLong_Check(w) &&
-        !_PyLong_IsZero((PyLongObject *)v) && !_PyLong_IsZero((PyLongObject *)w)
-    ) {
+safe_multiply(PyObject *v, PyObject *w) {
+    if (PyLong_Check(v) && PyLong_Check(w) && !_PyLong_IsZero((PyLongObject *)v) &&
+        !_PyLong_IsZero((PyLongObject *)w)) {
         int64_t vbits = _PyLong_NumBits(v);
         int64_t wbits = _PyLong_NumBits(w);
         assert(vbits >= 0);
@@ -176,8 +169,7 @@ safe_multiply(PyObject *v, PyObject *w)
         if (vbits + wbits > MAX_INT_SIZE) {
             return NULL;
         }
-    }
-    else if (PyLong_Check(v) && PyTuple_Check(w)) {
+    } else if (PyLong_Check(v) && PyTuple_Check(w)) {
         Py_ssize_t size = PyTuple_GET_SIZE(w);
         if (size) {
             long n = PyLong_AsLong(v);
@@ -188,20 +180,17 @@ safe_multiply(PyObject *v, PyObject *w)
                 return NULL;
             }
         }
-    }
-    else if (PyLong_Check(v) && (PyUnicode_Check(w) || PyBytes_Check(w))) {
-        Py_ssize_t size = PyUnicode_Check(w) ? PyUnicode_GET_LENGTH(w) :
-                                               PyBytes_GET_SIZE(w);
+    } else if (PyLong_Check(v) && (PyUnicode_Check(w) || PyBytes_Check(w))) {
+        Py_ssize_t size =
+            PyUnicode_Check(w) ? PyUnicode_GET_LENGTH(w) : PyBytes_GET_SIZE(w);
         if (size) {
             long n = PyLong_AsLong(v);
             if (n < 0 || n > MAX_STR_SIZE / size) {
                 return NULL;
             }
         }
-    }
-    else if (PyLong_Check(w) &&
-             (PyTuple_Check(v) || PyUnicode_Check(v) || PyBytes_Check(v)))
-    {
+    } else if (PyLong_Check(w) &&
+               (PyTuple_Check(v) || PyUnicode_Check(v) || PyBytes_Check(v))) {
         return safe_multiply(w, v);
     }
 
@@ -209,11 +198,9 @@ safe_multiply(PyObject *v, PyObject *w)
 }
 
 static PyObject *
-safe_power(PyObject *v, PyObject *w)
-{
-    if (PyLong_Check(v) && PyLong_Check(w) &&
-        !_PyLong_IsZero((PyLongObject *)v) && _PyLong_IsPositive((PyLongObject *)w)
-    ) {
+safe_power(PyObject *v, PyObject *w) {
+    if (PyLong_Check(v) && PyLong_Check(w) && !_PyLong_IsZero((PyLongObject *)v) &&
+        _PyLong_IsPositive((PyLongObject *)w)) {
         int64_t vbits = _PyLong_NumBits(v);
         size_t wbits = PyLong_AsSize_t(w);
         assert(vbits >= 0);
@@ -229,11 +216,9 @@ safe_power(PyObject *v, PyObject *w)
 }
 
 static PyObject *
-safe_lshift(PyObject *v, PyObject *w)
-{
-    if (PyLong_Check(v) && PyLong_Check(w) &&
-        !_PyLong_IsZero((PyLongObject *)v) && !_PyLong_IsZero((PyLongObject *)w)
-    ) {
+safe_lshift(PyObject *v, PyObject *w) {
+    if (PyLong_Check(v) && PyLong_Check(w) && !_PyLong_IsZero((PyLongObject *)v) &&
+        !_PyLong_IsZero((PyLongObject *)w)) {
         int64_t vbits = _PyLong_NumBits(v);
         size_t wbits = PyLong_AsSize_t(w);
         assert(vbits >= 0);
@@ -249,8 +234,7 @@ safe_lshift(PyObject *v, PyObject *w)
 }
 
 static PyObject *
-safe_mod(PyObject *v, PyObject *w)
-{
+safe_mod(PyObject *v, PyObject *w) {
     if (PyUnicode_Check(v) || PyBytes_Check(v)) {
         return NULL;
     }
@@ -258,10 +242,8 @@ safe_mod(PyObject *v, PyObject *w)
     return PyNumber_Remainder(v, w);
 }
 
-
 static expr_ty
-parse_literal(PyObject *fmt, Py_ssize_t *ppos, PyArena *arena)
-{
+parse_literal(PyObject *fmt, Py_ssize_t *ppos, PyArena *arena) {
     const void *data = PyUnicode_DATA(fmt);
     int kind = PyUnicode_KIND(fmt);
     Py_ssize_t size = PyUnicode_GET_LENGTH(fmt);
@@ -271,12 +253,10 @@ parse_literal(PyObject *fmt, Py_ssize_t *ppos, PyArena *arena)
     while (pos < size) {
         if (PyUnicode_READ(kind, data, pos) != '%') {
             pos++;
-        }
-        else if (pos+1 < size && PyUnicode_READ(kind, data, pos+1) == '%') {
+        } else if (pos + 1 < size && PyUnicode_READ(kind, data, pos + 1) == '%') {
             has_percents = 1;
             pos += 2;
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -288,8 +268,9 @@ parse_literal(PyObject *fmt, Py_ssize_t *ppos, PyArena *arena)
     /* str = str.replace('%%', '%') */
     if (str && has_percents) {
         _Py_DECLARE_STR(dbl_percent, "%%");
-        Py_SETREF(str, PyUnicode_Replace(str, &_Py_STR(dbl_percent),
-                                         _Py_LATIN1_CHR('%'), -1));
+        Py_SETREF(
+            str, PyUnicode_Replace(str, &_Py_STR(dbl_percent), _Py_LATIN1_CHR('%'), -1)
+        );
     }
     if (!str) {
         return NULL;
@@ -305,29 +286,40 @@ parse_literal(PyObject *fmt, Py_ssize_t *ppos, PyArena *arena)
 #define MAXDIGITS 3
 
 static int
-simple_format_arg_parse(PyObject *fmt, Py_ssize_t *ppos,
-                        int *spec, int *flags, int *width, int *prec)
-{
+simple_format_arg_parse(
+    PyObject *fmt, Py_ssize_t *ppos, int *spec, int *flags, int *width, int *prec
+) {
     Py_ssize_t pos = *ppos, len = PyUnicode_GET_LENGTH(fmt);
     Py_UCS4 ch;
 
-#define NEXTC do {                      \
-    if (pos >= len) {                   \
-        return 0;                       \
-    }                                   \
-    ch = PyUnicode_READ_CHAR(fmt, pos); \
-    pos++;                              \
-} while (0)
+#define NEXTC                               \
+    do {                                    \
+        if (pos >= len) {                   \
+            return 0;                       \
+        }                                   \
+        ch = PyUnicode_READ_CHAR(fmt, pos); \
+        pos++;                              \
+    } while (0)
 
     *flags = 0;
     while (1) {
         NEXTC;
         switch (ch) {
-            case '-': *flags |= F_LJUST; continue;
-            case '+': *flags |= F_SIGN; continue;
-            case ' ': *flags |= F_BLANK; continue;
-            case '#': *flags |= F_ALT; continue;
-            case '0': *flags |= F_ZERO; continue;
+            case '-':
+                *flags |= F_LJUST;
+                continue;
+            case '+':
+                *flags |= F_SIGN;
+                continue;
+            case ' ':
+                *flags |= F_BLANK;
+                continue;
+            case '#':
+                *flags |= F_ALT;
+                continue;
+            case '0':
+                *flags |= F_ZERO;
+                continue;
         }
         break;
     }
@@ -365,8 +357,7 @@ simple_format_arg_parse(PyObject *fmt, Py_ssize_t *ppos,
 }
 
 static expr_ty
-parse_format(PyObject *fmt, Py_ssize_t *ppos, expr_ty arg, PyArena *arena)
-{
+parse_format(PyObject *fmt, Py_ssize_t *ppos, expr_ty arg, PyArena *arena) {
     int spec, flags, width = -1, prec = -1;
     if (!simple_format_arg_parse(fmt, ppos, &spec, &flags, &width, &prec)) {
         // Unsupported format.
@@ -398,18 +389,23 @@ parse_format(PyObject *fmt, Py_ssize_t *ppos, expr_ty arg, PyArena *arena)
                 return NULL;
             }
         }
-        return _PyAST_FormattedValue(arg, spec, format_spec,
-                                     arg->lineno, arg->col_offset,
-                                     arg->end_lineno, arg->end_col_offset,
-                                     arena);
+        return _PyAST_FormattedValue(
+            arg,
+            spec,
+            format_spec,
+            arg->lineno,
+            arg->col_offset,
+            arg->end_lineno,
+            arg->end_col_offset,
+            arena
+        );
     }
     // Unsupported format.
     return NULL;
 }
 
 static int
-optimize_format(expr_ty node, PyObject *fmt, asdl_expr_seq *elts, PyArena *arena)
-{
+optimize_format(expr_ty node, PyObject *fmt, asdl_expr_seq *elts, PyArena *arena) {
     Py_ssize_t pos = 0;
     Py_ssize_t cnt = 0;
     asdl_expr_seq *seq = _Py_asdl_expr_seq_new(asdl_seq_LEN(elts) * 2 + 1, arena);
@@ -422,8 +418,7 @@ optimize_format(expr_ty node, PyObject *fmt, asdl_expr_seq *elts, PyArena *arena
         expr_ty lit = parse_literal(fmt, &pos, arena);
         if (lit) {
             asdl_seq_SET(seq, seq->size++, lit);
-        }
-        else if (PyErr_Occurred()) {
+        } else if (PyErr_Occurred()) {
             return 0;
         }
 
@@ -447,21 +442,24 @@ optimize_format(expr_ty node, PyObject *fmt, asdl_expr_seq *elts, PyArena *arena
         // More items than format units.
         return 1;
     }
-    expr_ty res = _PyAST_JoinedStr(seq,
-                                   node->lineno, node->col_offset,
-                                   node->end_lineno, node->end_col_offset,
-                                   arena);
+    expr_ty res = _PyAST_JoinedStr(
+        seq,
+        node->lineno,
+        node->col_offset,
+        node->end_lineno,
+        node->end_col_offset,
+        arena
+    );
     if (!res) {
         return 0;
     }
     COPY_NODE(node, res);
-//     PySys_FormatStderr("format = %R\n", fmt);
+    //     PySys_FormatStderr("format = %R\n", fmt);
     return 1;
 }
 
 static int
-fold_binop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
-{
+fold_binop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state) {
     expr_ty lhs, rhs;
     lhs = node->v.BinOp.left;
     rhs = node->v.BinOp.right;
@@ -470,11 +468,8 @@ fold_binop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
     }
     PyObject *lv = lhs->v.Constant.value;
 
-    if (node->v.BinOp.op == Mod &&
-        rhs->kind == Tuple_kind &&
-        PyUnicode_Check(lv) &&
-        !has_starred(rhs->v.Tuple.elts))
-    {
+    if (node->v.BinOp.op == Mod && rhs->kind == Tuple_kind && PyUnicode_Check(lv) &&
+        !has_starred(rhs->v.Tuple.elts)) {
         return optimize_format(node, lv, rhs->v.Tuple.elts, arena);
     }
 
@@ -486,55 +481,54 @@ fold_binop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
     PyObject *newval = NULL;
 
     switch (node->v.BinOp.op) {
-    case Add:
-        newval = PyNumber_Add(lv, rv);
-        break;
-    case Sub:
-        newval = PyNumber_Subtract(lv, rv);
-        break;
-    case Mult:
-        newval = safe_multiply(lv, rv);
-        break;
-    case Div:
-        newval = PyNumber_TrueDivide(lv, rv);
-        break;
-    case FloorDiv:
-        newval = PyNumber_FloorDivide(lv, rv);
-        break;
-    case Mod:
-        newval = safe_mod(lv, rv);
-        break;
-    case Pow:
-        newval = safe_power(lv, rv);
-        break;
-    case LShift:
-        newval = safe_lshift(lv, rv);
-        break;
-    case RShift:
-        newval = PyNumber_Rshift(lv, rv);
-        break;
-    case BitOr:
-        newval = PyNumber_Or(lv, rv);
-        break;
-    case BitXor:
-        newval = PyNumber_Xor(lv, rv);
-        break;
-    case BitAnd:
-        newval = PyNumber_And(lv, rv);
-        break;
-    // No builtin constants implement the following operators
-    case MatMult:
-        return 1;
-    // No default case, so the compiler will emit a warning if new binary
-    // operators are added without being handled here
+        case Add:
+            newval = PyNumber_Add(lv, rv);
+            break;
+        case Sub:
+            newval = PyNumber_Subtract(lv, rv);
+            break;
+        case Mult:
+            newval = safe_multiply(lv, rv);
+            break;
+        case Div:
+            newval = PyNumber_TrueDivide(lv, rv);
+            break;
+        case FloorDiv:
+            newval = PyNumber_FloorDivide(lv, rv);
+            break;
+        case Mod:
+            newval = safe_mod(lv, rv);
+            break;
+        case Pow:
+            newval = safe_power(lv, rv);
+            break;
+        case LShift:
+            newval = safe_lshift(lv, rv);
+            break;
+        case RShift:
+            newval = PyNumber_Rshift(lv, rv);
+            break;
+        case BitOr:
+            newval = PyNumber_Or(lv, rv);
+            break;
+        case BitXor:
+            newval = PyNumber_Xor(lv, rv);
+            break;
+        case BitAnd:
+            newval = PyNumber_And(lv, rv);
+            break;
+        // No builtin constants implement the following operators
+        case MatMult:
+            return 1;
+            // No default case, so the compiler will emit a warning if new binary
+            // operators are added without being handled here
     }
 
     return make_const(node, newval, arena);
 }
 
-static PyObject*
-make_const_tuple(asdl_expr_seq *elts)
-{
+static PyObject *
+make_const_tuple(asdl_expr_seq *elts) {
     for (Py_ssize_t i = 0; i < asdl_seq_LEN(elts); i++) {
         expr_ty e = (expr_ty)asdl_seq_GET(elts, i);
         if (e->kind != Constant_kind) {
@@ -556,8 +550,7 @@ make_const_tuple(asdl_expr_seq *elts)
 }
 
 static int
-fold_tuple(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
-{
+fold_tuple(expr_ty node, PyArena *arena, _PyASTOptimizeState *state) {
     PyObject *newval;
 
     if (node->v.Tuple.ctx != Load)
@@ -568,17 +561,14 @@ fold_tuple(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
 }
 
 static int
-fold_subscr(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
-{
+fold_subscr(expr_ty node, PyArena *arena, _PyASTOptimizeState *state) {
     PyObject *newval;
     expr_ty arg, idx;
 
     arg = node->v.Subscript.value;
     idx = node->v.Subscript.slice;
-    if (node->v.Subscript.ctx != Load ||
-            arg->kind != Constant_kind ||
-            idx->kind != Constant_kind)
-    {
+    if (node->v.Subscript.ctx != Load || arg->kind != Constant_kind ||
+        idx->kind != Constant_kind) {
         return 1;
     }
 
@@ -593,8 +583,7 @@ fold_subscr(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
    in "for" loop and comprehensions.
 */
 static int
-fold_iter(expr_ty arg, PyArena *arena, _PyASTOptimizeState *state)
-{
+fold_iter(expr_ty arg, PyArena *arena, _PyASTOptimizeState *state) {
     PyObject *newval;
     if (arg->kind == List_kind) {
         /* First change a list into tuple. */
@@ -608,22 +597,19 @@ fold_iter(expr_ty arg, PyArena *arena, _PyASTOptimizeState *state)
         arg->v.Tuple.ctx = ctx;
         /* Try to create a constant tuple. */
         newval = make_const_tuple(elts);
-    }
-    else if (arg->kind == Set_kind) {
+    } else if (arg->kind == Set_kind) {
         newval = make_const_tuple(arg->v.Set.elts);
         if (newval) {
             Py_SETREF(newval, PyFrozenSet_New(newval));
         }
-    }
-    else {
+    } else {
         return 1;
     }
     return make_const(arg, newval, arena);
 }
 
 static int
-fold_compare(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
-{
+fold_compare(expr_ty node, PyArena *arena, _PyASTOptimizeState *state) {
     asdl_int_seq *ops;
     asdl_expr_seq *args;
     Py_ssize_t i;
@@ -642,46 +628,61 @@ fold_compare(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
     return 1;
 }
 
-static int astfold_mod(mod_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_stmt(stmt_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_expr(expr_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_arguments(arguments_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_comprehension(comprehension_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_keyword(keyword_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_arg(arg_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_withitem(withitem_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_excepthandler(excepthandler_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_match_case(match_case_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_pattern(pattern_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
-static int astfold_type_param(type_param_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_mod(mod_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_stmt(stmt_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_expr(expr_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_arguments(arguments_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_comprehension(
+    comprehension_ty node_, PyArena *ctx_, _PyASTOptimizeState *state
+);
+static int
+astfold_keyword(keyword_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_arg(arg_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_withitem(withitem_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_excepthandler(
+    excepthandler_ty node_, PyArena *ctx_, _PyASTOptimizeState *state
+);
+static int
+astfold_match_case(match_case_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_pattern(pattern_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
+static int
+astfold_type_param(type_param_ty node_, PyArena *ctx_, _PyASTOptimizeState *state);
 
-#define CALL(FUNC, TYPE, ARG) \
+#define CALL(FUNC, TYPE, ARG)      \
     if (!FUNC((ARG), ctx_, state)) \
         return 0;
 
-#define CALL_OPT(FUNC, TYPE, ARG) \
+#define CALL_OPT(FUNC, TYPE, ARG)                   \
     if ((ARG) != NULL && !FUNC((ARG), ctx_, state)) \
         return 0;
 
-#define CALL_SEQ(FUNC, TYPE, ARG) { \
-    Py_ssize_t i; \
-    asdl_ ## TYPE ## _seq *seq = (ARG); /* avoid variable capture */ \
-    for (i = 0; i < asdl_seq_LEN(seq); i++) { \
-        TYPE ## _ty elt = (TYPE ## _ty)asdl_seq_GET(seq, i); \
-        if (elt != NULL && !FUNC(elt, ctx_, state)) \
-            return 0; \
-    } \
-}
-
+#define CALL_SEQ(FUNC, TYPE, ARG)                                    \
+    {                                                                \
+        Py_ssize_t i;                                                \
+        asdl_##TYPE##_seq *seq = (ARG); /* avoid variable capture */ \
+        for (i = 0; i < asdl_seq_LEN(seq); i++) {                    \
+            TYPE##_ty elt = (TYPE##_ty)asdl_seq_GET(seq, i);         \
+            if (elt != NULL && !FUNC(elt, ctx_, state))              \
+                return 0;                                            \
+        }                                                            \
+    }
 
 static int
-stmt_seq_remove_item(asdl_stmt_seq *stmts, Py_ssize_t idx)
-{
+stmt_seq_remove_item(asdl_stmt_seq *stmts, Py_ssize_t idx) {
     if (idx >= asdl_seq_LEN(stmts)) {
         return 0;
     }
     for (Py_ssize_t i = idx; i < asdl_seq_LEN(stmts) - 1; i++) {
-        stmt_ty st = (stmt_ty)asdl_seq_GET(stmts, i+1);
+        stmt_ty st = (stmt_ty)asdl_seq_GET(stmts, i + 1);
         asdl_seq_SET(stmts, i, st);
     }
     stmts->size--;
@@ -689,8 +690,7 @@ stmt_seq_remove_item(asdl_stmt_seq *stmts, Py_ssize_t idx)
 }
 
 static int
-astfold_body(asdl_stmt_seq *stmts, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_body(asdl_stmt_seq *stmts, PyArena *ctx_, _PyASTOptimizeState *state) {
     int docstring = _PyAST_GetDocString(stmts) != NULL;
     if (docstring && (state->optimize >= 2)) {
         /* remove the docstring */
@@ -707,9 +707,9 @@ astfold_body(asdl_stmt_seq *stmts, PyArena *ctx_, _PyASTOptimizeState *state)
             return 0;
         }
         asdl_seq_SET(values, 0, st->v.Expr.value);
-        expr_ty expr = _PyAST_JoinedStr(values, st->lineno, st->col_offset,
-                                        st->end_lineno, st->end_col_offset,
-                                        ctx_);
+        expr_ty expr = _PyAST_JoinedStr(
+            values, st->lineno, st->col_offset, st->end_lineno, st->end_col_offset, ctx_
+        );
         if (!expr) {
             return 0;
         }
@@ -719,156 +719,161 @@ astfold_body(asdl_stmt_seq *stmts, PyArena *ctx_, _PyASTOptimizeState *state)
 }
 
 static int
-astfold_mod(mod_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_mod(mod_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     switch (node_->kind) {
-    case Module_kind:
-        CALL(astfold_body, asdl_seq, node_->v.Module.body);
-        break;
-    case Interactive_kind:
-        CALL_SEQ(astfold_stmt, stmt, node_->v.Interactive.body);
-        break;
-    case Expression_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Expression.body);
-        break;
-    // The following top level nodes don't participate in constant folding
-    case FunctionType_kind:
-        break;
-    // No default case, so the compiler will emit a warning if new top level
-    // compilation nodes are added without being handled here
+        case Module_kind:
+            CALL(astfold_body, asdl_seq, node_->v.Module.body);
+            break;
+        case Interactive_kind:
+            CALL_SEQ(astfold_stmt, stmt, node_->v.Interactive.body);
+            break;
+        case Expression_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Expression.body);
+            break;
+        // The following top level nodes don't participate in constant folding
+        case FunctionType_kind:
+            break;
+            // No default case, so the compiler will emit a warning if new top level
+            // compilation nodes are added without being handled here
     }
     return 1;
 }
 
 static int
-astfold_expr(expr_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_expr(expr_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     ENTER_RECURSIVE(state);
     switch (node_->kind) {
-    case BoolOp_kind:
-        CALL_SEQ(astfold_expr, expr, node_->v.BoolOp.values);
-        break;
-    case BinOp_kind:
-        CALL(astfold_expr, expr_ty, node_->v.BinOp.left);
-        CALL(astfold_expr, expr_ty, node_->v.BinOp.right);
-        CALL(fold_binop, expr_ty, node_);
-        break;
-    case UnaryOp_kind:
-        CALL(astfold_expr, expr_ty, node_->v.UnaryOp.operand);
-        CALL(fold_unaryop, expr_ty, node_);
-        break;
-    case Lambda_kind:
-        CALL(astfold_arguments, arguments_ty, node_->v.Lambda.args);
-        CALL(astfold_expr, expr_ty, node_->v.Lambda.body);
-        break;
-    case IfExp_kind:
-        CALL(astfold_expr, expr_ty, node_->v.IfExp.test);
-        CALL(astfold_expr, expr_ty, node_->v.IfExp.body);
-        CALL(astfold_expr, expr_ty, node_->v.IfExp.orelse);
-        break;
-    case Dict_kind:
-        CALL_SEQ(astfold_expr, expr, node_->v.Dict.keys);
-        CALL_SEQ(astfold_expr, expr, node_->v.Dict.values);
-        break;
-    case Set_kind:
-        CALL_SEQ(astfold_expr, expr, node_->v.Set.elts);
-        break;
-    case ListComp_kind:
-        CALL(astfold_expr, expr_ty, node_->v.ListComp.elt);
-        CALL_SEQ(astfold_comprehension, comprehension, node_->v.ListComp.generators);
-        break;
-    case SetComp_kind:
-        CALL(astfold_expr, expr_ty, node_->v.SetComp.elt);
-        CALL_SEQ(astfold_comprehension, comprehension, node_->v.SetComp.generators);
-        break;
-    case DictComp_kind:
-        CALL(astfold_expr, expr_ty, node_->v.DictComp.key);
-        CALL(astfold_expr, expr_ty, node_->v.DictComp.value);
-        CALL_SEQ(astfold_comprehension, comprehension, node_->v.DictComp.generators);
-        break;
-    case GeneratorExp_kind:
-        CALL(astfold_expr, expr_ty, node_->v.GeneratorExp.elt);
-        CALL_SEQ(astfold_comprehension, comprehension, node_->v.GeneratorExp.generators);
-        break;
-    case Await_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Await.value);
-        break;
-    case Yield_kind:
-        CALL_OPT(astfold_expr, expr_ty, node_->v.Yield.value);
-        break;
-    case YieldFrom_kind:
-        CALL(astfold_expr, expr_ty, node_->v.YieldFrom.value);
-        break;
-    case Compare_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Compare.left);
-        CALL_SEQ(astfold_expr, expr, node_->v.Compare.comparators);
-        CALL(fold_compare, expr_ty, node_);
-        break;
-    case Call_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Call.func);
-        CALL_SEQ(astfold_expr, expr, node_->v.Call.args);
-        CALL_SEQ(astfold_keyword, keyword, node_->v.Call.keywords);
-        break;
-    case FormattedValue_kind:
-        CALL(astfold_expr, expr_ty, node_->v.FormattedValue.value);
-        CALL_OPT(astfold_expr, expr_ty, node_->v.FormattedValue.format_spec);
-        break;
-    case JoinedStr_kind:
-        CALL_SEQ(astfold_expr, expr, node_->v.JoinedStr.values);
-        break;
-    case Attribute_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Attribute.value);
-        break;
-    case Subscript_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Subscript.value);
-        CALL(astfold_expr, expr_ty, node_->v.Subscript.slice);
-        CALL(fold_subscr, expr_ty, node_);
-        break;
-    case Starred_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Starred.value);
-        break;
-    case Slice_kind:
-        CALL_OPT(astfold_expr, expr_ty, node_->v.Slice.lower);
-        CALL_OPT(astfold_expr, expr_ty, node_->v.Slice.upper);
-        CALL_OPT(astfold_expr, expr_ty, node_->v.Slice.step);
-        break;
-    case List_kind:
-        CALL_SEQ(astfold_expr, expr, node_->v.List.elts);
-        break;
-    case Tuple_kind:
-        CALL_SEQ(astfold_expr, expr, node_->v.Tuple.elts);
-        CALL(fold_tuple, expr_ty, node_);
-        break;
-    case Name_kind:
-        if (node_->v.Name.ctx == Load &&
+        case BoolOp_kind:
+            CALL_SEQ(astfold_expr, expr, node_->v.BoolOp.values);
+            break;
+        case BinOp_kind:
+            CALL(astfold_expr, expr_ty, node_->v.BinOp.left);
+            CALL(astfold_expr, expr_ty, node_->v.BinOp.right);
+            CALL(fold_binop, expr_ty, node_);
+            break;
+        case UnaryOp_kind:
+            CALL(astfold_expr, expr_ty, node_->v.UnaryOp.operand);
+            CALL(fold_unaryop, expr_ty, node_);
+            break;
+        case Lambda_kind:
+            CALL(astfold_arguments, arguments_ty, node_->v.Lambda.args);
+            CALL(astfold_expr, expr_ty, node_->v.Lambda.body);
+            break;
+        case IfExp_kind:
+            CALL(astfold_expr, expr_ty, node_->v.IfExp.test);
+            CALL(astfold_expr, expr_ty, node_->v.IfExp.body);
+            CALL(astfold_expr, expr_ty, node_->v.IfExp.orelse);
+            break;
+        case Dict_kind:
+            CALL_SEQ(astfold_expr, expr, node_->v.Dict.keys);
+            CALL_SEQ(astfold_expr, expr, node_->v.Dict.values);
+            break;
+        case Set_kind:
+            CALL_SEQ(astfold_expr, expr, node_->v.Set.elts);
+            break;
+        case ListComp_kind:
+            CALL(astfold_expr, expr_ty, node_->v.ListComp.elt);
+            CALL_SEQ(
+                astfold_comprehension, comprehension, node_->v.ListComp.generators
+            );
+            break;
+        case SetComp_kind:
+            CALL(astfold_expr, expr_ty, node_->v.SetComp.elt);
+            CALL_SEQ(astfold_comprehension, comprehension, node_->v.SetComp.generators);
+            break;
+        case DictComp_kind:
+            CALL(astfold_expr, expr_ty, node_->v.DictComp.key);
+            CALL(astfold_expr, expr_ty, node_->v.DictComp.value);
+            CALL_SEQ(
+                astfold_comprehension, comprehension, node_->v.DictComp.generators
+            );
+            break;
+        case GeneratorExp_kind:
+            CALL(astfold_expr, expr_ty, node_->v.GeneratorExp.elt);
+            CALL_SEQ(
+                astfold_comprehension, comprehension, node_->v.GeneratorExp.generators
+            );
+            break;
+        case Await_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Await.value);
+            break;
+        case Yield_kind:
+            CALL_OPT(astfold_expr, expr_ty, node_->v.Yield.value);
+            break;
+        case YieldFrom_kind:
+            CALL(astfold_expr, expr_ty, node_->v.YieldFrom.value);
+            break;
+        case Compare_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Compare.left);
+            CALL_SEQ(astfold_expr, expr, node_->v.Compare.comparators);
+            CALL(fold_compare, expr_ty, node_);
+            break;
+        case Call_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Call.func);
+            CALL_SEQ(astfold_expr, expr, node_->v.Call.args);
+            CALL_SEQ(astfold_keyword, keyword, node_->v.Call.keywords);
+            break;
+        case FormattedValue_kind:
+            CALL(astfold_expr, expr_ty, node_->v.FormattedValue.value);
+            CALL_OPT(astfold_expr, expr_ty, node_->v.FormattedValue.format_spec);
+            break;
+        case JoinedStr_kind:
+            CALL_SEQ(astfold_expr, expr, node_->v.JoinedStr.values);
+            break;
+        case Attribute_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Attribute.value);
+            break;
+        case Subscript_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Subscript.value);
+            CALL(astfold_expr, expr_ty, node_->v.Subscript.slice);
+            CALL(fold_subscr, expr_ty, node_);
+            break;
+        case Starred_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Starred.value);
+            break;
+        case Slice_kind:
+            CALL_OPT(astfold_expr, expr_ty, node_->v.Slice.lower);
+            CALL_OPT(astfold_expr, expr_ty, node_->v.Slice.upper);
+            CALL_OPT(astfold_expr, expr_ty, node_->v.Slice.step);
+            break;
+        case List_kind:
+            CALL_SEQ(astfold_expr, expr, node_->v.List.elts);
+            break;
+        case Tuple_kind:
+            CALL_SEQ(astfold_expr, expr, node_->v.Tuple.elts);
+            CALL(fold_tuple, expr_ty, node_);
+            break;
+        case Name_kind:
+            if (node_->v.Name.ctx == Load &&
                 _PyUnicode_EqualToASCIIString(node_->v.Name.id, "__debug__")) {
-            LEAVE_RECURSIVE(state);
-            return make_const(node_, PyBool_FromLong(!state->optimize), ctx_);
-        }
-        break;
-    case NamedExpr_kind:
-        CALL(astfold_expr, expr_ty, node_->v.NamedExpr.value);
-        break;
-    case Constant_kind:
-        // Already a constant, nothing further to do
-        break;
-    // No default case, so the compiler will emit a warning if new expression
-    // kinds are added without being handled here
+                LEAVE_RECURSIVE(state);
+                return make_const(node_, PyBool_FromLong(!state->optimize), ctx_);
+            }
+            break;
+        case NamedExpr_kind:
+            CALL(astfold_expr, expr_ty, node_->v.NamedExpr.value);
+            break;
+        case Constant_kind:
+            // Already a constant, nothing further to do
+            break;
+            // No default case, so the compiler will emit a warning if new expression
+            // kinds are added without being handled here
     }
-    LEAVE_RECURSIVE(state);;
+    LEAVE_RECURSIVE(state);
+    ;
     return 1;
 }
 
 static int
-astfold_keyword(keyword_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_keyword(keyword_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     CALL(astfold_expr, expr_ty, node_->value);
     return 1;
 }
 
 static int
-astfold_comprehension(comprehension_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_comprehension(
+    comprehension_ty node_, PyArena *ctx_, _PyASTOptimizeState *state
+) {
     CALL(astfold_expr, expr_ty, node_->target);
     CALL(astfold_expr, expr_ty, node_->iter);
     CALL_SEQ(astfold_expr, expr, node_->ifs);
@@ -878,8 +883,7 @@ astfold_comprehension(comprehension_ty node_, PyArena *ctx_, _PyASTOptimizeState
 }
 
 static int
-astfold_arguments(arguments_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_arguments(arguments_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     CALL_SEQ(astfold_arg, arg, node_->posonlyargs);
     CALL_SEQ(astfold_arg, arg, node_->args);
     CALL_OPT(astfold_arg, arg_ty, node_->vararg);
@@ -891,8 +895,7 @@ astfold_arguments(arguments_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
 }
 
 static int
-astfold_arg(arg_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_arg(arg_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     if (!(state->ff_features & CO_FUTURE_ANNOTATIONS)) {
         CALL_OPT(astfold_expr, expr_ty, node_->annotation);
     }
@@ -900,161 +903,161 @@ astfold_arg(arg_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
 }
 
 static int
-astfold_stmt(stmt_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_stmt(stmt_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     ENTER_RECURSIVE(state);
     switch (node_->kind) {
-    case FunctionDef_kind:
-        CALL_SEQ(astfold_type_param, type_param, node_->v.FunctionDef.type_params);
-        CALL(astfold_arguments, arguments_ty, node_->v.FunctionDef.args);
-        CALL(astfold_body, asdl_seq, node_->v.FunctionDef.body);
-        CALL_SEQ(astfold_expr, expr, node_->v.FunctionDef.decorator_list);
-        if (!(state->ff_features & CO_FUTURE_ANNOTATIONS)) {
-            CALL_OPT(astfold_expr, expr_ty, node_->v.FunctionDef.returns);
-        }
-        break;
-    case AsyncFunctionDef_kind:
-        CALL_SEQ(astfold_type_param, type_param, node_->v.AsyncFunctionDef.type_params);
-        CALL(astfold_arguments, arguments_ty, node_->v.AsyncFunctionDef.args);
-        CALL(astfold_body, asdl_seq, node_->v.AsyncFunctionDef.body);
-        CALL_SEQ(astfold_expr, expr, node_->v.AsyncFunctionDef.decorator_list);
-        if (!(state->ff_features & CO_FUTURE_ANNOTATIONS)) {
-            CALL_OPT(astfold_expr, expr_ty, node_->v.AsyncFunctionDef.returns);
-        }
-        break;
-    case ClassDef_kind:
-        CALL_SEQ(astfold_type_param, type_param, node_->v.ClassDef.type_params);
-        CALL_SEQ(astfold_expr, expr, node_->v.ClassDef.bases);
-        CALL_SEQ(astfold_keyword, keyword, node_->v.ClassDef.keywords);
-        CALL(astfold_body, asdl_seq, node_->v.ClassDef.body);
-        CALL_SEQ(astfold_expr, expr, node_->v.ClassDef.decorator_list);
-        break;
-    case Return_kind:
-        CALL_OPT(astfold_expr, expr_ty, node_->v.Return.value);
-        break;
-    case Delete_kind:
-        CALL_SEQ(astfold_expr, expr, node_->v.Delete.targets);
-        break;
-    case Assign_kind:
-        CALL_SEQ(astfold_expr, expr, node_->v.Assign.targets);
-        CALL(astfold_expr, expr_ty, node_->v.Assign.value);
-        break;
-    case AugAssign_kind:
-        CALL(astfold_expr, expr_ty, node_->v.AugAssign.target);
-        CALL(astfold_expr, expr_ty, node_->v.AugAssign.value);
-        break;
-    case AnnAssign_kind:
-        CALL(astfold_expr, expr_ty, node_->v.AnnAssign.target);
-        if (!(state->ff_features & CO_FUTURE_ANNOTATIONS)) {
-            CALL(astfold_expr, expr_ty, node_->v.AnnAssign.annotation);
-        }
-        CALL_OPT(astfold_expr, expr_ty, node_->v.AnnAssign.value);
-        break;
-    case TypeAlias_kind:
-        CALL(astfold_expr, expr_ty, node_->v.TypeAlias.name);
-        CALL_SEQ(astfold_type_param, type_param, node_->v.TypeAlias.type_params);
-        CALL(astfold_expr, expr_ty, node_->v.TypeAlias.value);
-        break;
-    case For_kind:
-        CALL(astfold_expr, expr_ty, node_->v.For.target);
-        CALL(astfold_expr, expr_ty, node_->v.For.iter);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.For.body);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.For.orelse);
+        case FunctionDef_kind:
+            CALL_SEQ(astfold_type_param, type_param, node_->v.FunctionDef.type_params);
+            CALL(astfold_arguments, arguments_ty, node_->v.FunctionDef.args);
+            CALL(astfold_body, asdl_seq, node_->v.FunctionDef.body);
+            CALL_SEQ(astfold_expr, expr, node_->v.FunctionDef.decorator_list);
+            if (!(state->ff_features & CO_FUTURE_ANNOTATIONS)) {
+                CALL_OPT(astfold_expr, expr_ty, node_->v.FunctionDef.returns);
+            }
+            break;
+        case AsyncFunctionDef_kind:
+            CALL_SEQ(
+                astfold_type_param, type_param, node_->v.AsyncFunctionDef.type_params
+            );
+            CALL(astfold_arguments, arguments_ty, node_->v.AsyncFunctionDef.args);
+            CALL(astfold_body, asdl_seq, node_->v.AsyncFunctionDef.body);
+            CALL_SEQ(astfold_expr, expr, node_->v.AsyncFunctionDef.decorator_list);
+            if (!(state->ff_features & CO_FUTURE_ANNOTATIONS)) {
+                CALL_OPT(astfold_expr, expr_ty, node_->v.AsyncFunctionDef.returns);
+            }
+            break;
+        case ClassDef_kind:
+            CALL_SEQ(astfold_type_param, type_param, node_->v.ClassDef.type_params);
+            CALL_SEQ(astfold_expr, expr, node_->v.ClassDef.bases);
+            CALL_SEQ(astfold_keyword, keyword, node_->v.ClassDef.keywords);
+            CALL(astfold_body, asdl_seq, node_->v.ClassDef.body);
+            CALL_SEQ(astfold_expr, expr, node_->v.ClassDef.decorator_list);
+            break;
+        case Return_kind:
+            CALL_OPT(astfold_expr, expr_ty, node_->v.Return.value);
+            break;
+        case Delete_kind:
+            CALL_SEQ(astfold_expr, expr, node_->v.Delete.targets);
+            break;
+        case Assign_kind:
+            CALL_SEQ(astfold_expr, expr, node_->v.Assign.targets);
+            CALL(astfold_expr, expr_ty, node_->v.Assign.value);
+            break;
+        case AugAssign_kind:
+            CALL(astfold_expr, expr_ty, node_->v.AugAssign.target);
+            CALL(astfold_expr, expr_ty, node_->v.AugAssign.value);
+            break;
+        case AnnAssign_kind:
+            CALL(astfold_expr, expr_ty, node_->v.AnnAssign.target);
+            if (!(state->ff_features & CO_FUTURE_ANNOTATIONS)) {
+                CALL(astfold_expr, expr_ty, node_->v.AnnAssign.annotation);
+            }
+            CALL_OPT(astfold_expr, expr_ty, node_->v.AnnAssign.value);
+            break;
+        case TypeAlias_kind:
+            CALL(astfold_expr, expr_ty, node_->v.TypeAlias.name);
+            CALL_SEQ(astfold_type_param, type_param, node_->v.TypeAlias.type_params);
+            CALL(astfold_expr, expr_ty, node_->v.TypeAlias.value);
+            break;
+        case For_kind:
+            CALL(astfold_expr, expr_ty, node_->v.For.target);
+            CALL(astfold_expr, expr_ty, node_->v.For.iter);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.For.body);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.For.orelse);
 
-        CALL(fold_iter, expr_ty, node_->v.For.iter);
-        break;
-    case AsyncFor_kind:
-        CALL(astfold_expr, expr_ty, node_->v.AsyncFor.target);
-        CALL(astfold_expr, expr_ty, node_->v.AsyncFor.iter);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.AsyncFor.body);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.AsyncFor.orelse);
-        break;
-    case While_kind:
-        CALL(astfold_expr, expr_ty, node_->v.While.test);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.While.body);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.While.orelse);
-        break;
-    case If_kind:
-        CALL(astfold_expr, expr_ty, node_->v.If.test);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.If.body);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.If.orelse);
-        break;
-    case With_kind:
-        CALL_SEQ(astfold_withitem, withitem, node_->v.With.items);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.With.body);
-        break;
-    case AsyncWith_kind:
-        CALL_SEQ(astfold_withitem, withitem, node_->v.AsyncWith.items);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.AsyncWith.body);
-        break;
-    case Raise_kind:
-        CALL_OPT(astfold_expr, expr_ty, node_->v.Raise.exc);
-        CALL_OPT(astfold_expr, expr_ty, node_->v.Raise.cause);
-        break;
-    case Try_kind:
-        CALL_SEQ(astfold_stmt, stmt, node_->v.Try.body);
-        CALL_SEQ(astfold_excepthandler, excepthandler, node_->v.Try.handlers);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.Try.orelse);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.Try.finalbody);
-        break;
-    case TryStar_kind:
-        CALL_SEQ(astfold_stmt, stmt, node_->v.TryStar.body);
-        CALL_SEQ(astfold_excepthandler, excepthandler, node_->v.TryStar.handlers);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.TryStar.orelse);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.TryStar.finalbody);
-        break;
-    case Assert_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Assert.test);
-        CALL_OPT(astfold_expr, expr_ty, node_->v.Assert.msg);
-        break;
-    case Expr_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Expr.value);
-        break;
-    case Match_kind:
-        CALL(astfold_expr, expr_ty, node_->v.Match.subject);
-        CALL_SEQ(astfold_match_case, match_case, node_->v.Match.cases);
-        break;
-    // The following statements don't contain any subexpressions to be folded
-    case Import_kind:
-    case ImportFrom_kind:
-    case Global_kind:
-    case Nonlocal_kind:
-    case Pass_kind:
-    case Break_kind:
-    case Continue_kind:
-        break;
-    // No default case, so the compiler will emit a warning if new statement
-    // kinds are added without being handled here
+            CALL(fold_iter, expr_ty, node_->v.For.iter);
+            break;
+        case AsyncFor_kind:
+            CALL(astfold_expr, expr_ty, node_->v.AsyncFor.target);
+            CALL(astfold_expr, expr_ty, node_->v.AsyncFor.iter);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.AsyncFor.body);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.AsyncFor.orelse);
+            break;
+        case While_kind:
+            CALL(astfold_expr, expr_ty, node_->v.While.test);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.While.body);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.While.orelse);
+            break;
+        case If_kind:
+            CALL(astfold_expr, expr_ty, node_->v.If.test);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.If.body);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.If.orelse);
+            break;
+        case With_kind:
+            CALL_SEQ(astfold_withitem, withitem, node_->v.With.items);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.With.body);
+            break;
+        case AsyncWith_kind:
+            CALL_SEQ(astfold_withitem, withitem, node_->v.AsyncWith.items);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.AsyncWith.body);
+            break;
+        case Raise_kind:
+            CALL_OPT(astfold_expr, expr_ty, node_->v.Raise.exc);
+            CALL_OPT(astfold_expr, expr_ty, node_->v.Raise.cause);
+            break;
+        case Try_kind:
+            CALL_SEQ(astfold_stmt, stmt, node_->v.Try.body);
+            CALL_SEQ(astfold_excepthandler, excepthandler, node_->v.Try.handlers);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.Try.orelse);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.Try.finalbody);
+            break;
+        case TryStar_kind:
+            CALL_SEQ(astfold_stmt, stmt, node_->v.TryStar.body);
+            CALL_SEQ(astfold_excepthandler, excepthandler, node_->v.TryStar.handlers);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.TryStar.orelse);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.TryStar.finalbody);
+            break;
+        case Assert_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Assert.test);
+            CALL_OPT(astfold_expr, expr_ty, node_->v.Assert.msg);
+            break;
+        case Expr_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Expr.value);
+            break;
+        case Match_kind:
+            CALL(astfold_expr, expr_ty, node_->v.Match.subject);
+            CALL_SEQ(astfold_match_case, match_case, node_->v.Match.cases);
+            break;
+        // The following statements don't contain any subexpressions to be folded
+        case Import_kind:
+        case ImportFrom_kind:
+        case Global_kind:
+        case Nonlocal_kind:
+        case Pass_kind:
+        case Break_kind:
+        case Continue_kind:
+            break;
+            // No default case, so the compiler will emit a warning if new statement
+            // kinds are added without being handled here
     }
     LEAVE_RECURSIVE(state);
     return 1;
 }
 
 static int
-astfold_excepthandler(excepthandler_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_excepthandler(
+    excepthandler_ty node_, PyArena *ctx_, _PyASTOptimizeState *state
+) {
     switch (node_->kind) {
-    case ExceptHandler_kind:
-        CALL_OPT(astfold_expr, expr_ty, node_->v.ExceptHandler.type);
-        CALL_SEQ(astfold_stmt, stmt, node_->v.ExceptHandler.body);
-        break;
-    // No default case, so the compiler will emit a warning if new handler
-    // kinds are added without being handled here
+        case ExceptHandler_kind:
+            CALL_OPT(astfold_expr, expr_ty, node_->v.ExceptHandler.type);
+            CALL_SEQ(astfold_stmt, stmt, node_->v.ExceptHandler.body);
+            break;
+            // No default case, so the compiler will emit a warning if new handler
+            // kinds are added without being handled here
     }
     return 1;
 }
 
 static int
-astfold_withitem(withitem_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_withitem(withitem_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     CALL(astfold_expr, expr_ty, node_->context_expr);
     CALL_OPT(astfold_expr, expr_ty, node_->optional_vars);
     return 1;
 }
 
 static int
-astfold_pattern(pattern_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_pattern(pattern_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     // Currently, this is really only used to form complex/negative numeric
     // constants in MatchValue and MatchMapping nodes
     // We still recurse into all subexpressions and subpatterns anyway
@@ -1087,16 +1090,15 @@ astfold_pattern(pattern_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
         case MatchOr_kind:
             CALL_SEQ(astfold_pattern, pattern, node_->v.MatchOr.patterns);
             break;
-    // No default case, so the compiler will emit a warning if new pattern
-    // kinds are added without being handled here
+            // No default case, so the compiler will emit a warning if new pattern
+            // kinds are added without being handled here
     }
     LEAVE_RECURSIVE(state);
     return 1;
 }
 
 static int
-astfold_match_case(match_case_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_match_case(match_case_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     CALL(astfold_pattern, expr_ty, node_->pattern);
     CALL_OPT(astfold_expr, expr_ty, node_->guard);
     CALL_SEQ(astfold_stmt, stmt, node_->body);
@@ -1104,8 +1106,7 @@ astfold_match_case(match_case_ty node_, PyArena *ctx_, _PyASTOptimizeState *stat
 }
 
 static int
-astfold_type_param(type_param_ty node_, PyArena *ctx_, _PyASTOptimizeState *state)
-{
+astfold_type_param(type_param_ty node_, PyArena *ctx_, _PyASTOptimizeState *state) {
     switch (node_->kind) {
         case TypeVar_kind:
             CALL_OPT(astfold_expr, expr_ty, node_->v.TypeVar.bound);
@@ -1126,8 +1127,7 @@ astfold_type_param(type_param_ty node_, PyArena *ctx_, _PyASTOptimizeState *stat
 #undef CALL_SEQ
 
 int
-_PyAST_Optimize(mod_ty mod, PyArena *arena, int optimize, int ff_features)
-{
+_PyAST_Optimize(mod_ty mod, PyArena *arena, int optimize, int ff_features) {
     PyThreadState *tstate;
     int starting_recursion_depth;
 
@@ -1151,9 +1151,12 @@ _PyAST_Optimize(mod_ty mod, PyArena *arena, int optimize, int ff_features)
 
     /* Check that the recursion depth counting balanced correctly */
     if (ret && state.recursion_depth != starting_recursion_depth) {
-        PyErr_Format(PyExc_SystemError,
+        PyErr_Format(
+            PyExc_SystemError,
             "AST optimizer recursion depth mismatch (before=%d, after=%d)",
-            starting_recursion_depth, state.recursion_depth);
+            starting_recursion_depth,
+            state.recursion_depth
+        );
         return 0;
     }
 

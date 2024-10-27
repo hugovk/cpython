@@ -5,14 +5,13 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 extern PyTypeObject _PyManagedBuffer_Type;
 
 PyObject *
-_PyMemoryView_FromBufferProc(PyObject *v, int flags,
-                             getbufferproc bufferproc);
+_PyMemoryView_FromBufferProc(PyObject *v, int flags, getbufferproc bufferproc);
 
 #ifdef __cplusplus
 }

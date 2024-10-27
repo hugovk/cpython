@@ -2,7 +2,6 @@
 
 #include <stddef.h>
 
-
 typedef struct {
     PyMemAllocatorEx alloc;
 
@@ -16,8 +15,7 @@ typedef struct {
 } alloc_hook_t;
 
 static void *
-hook_malloc(void *ctx, size_t size)
-{
+hook_malloc(void *ctx, size_t size) {
     alloc_hook_t *hook = (alloc_hook_t *)ctx;
     hook->ctx = ctx;
     hook->malloc_size = size;
@@ -25,8 +23,7 @@ hook_malloc(void *ctx, size_t size)
 }
 
 static void *
-hook_calloc(void *ctx, size_t nelem, size_t elsize)
-{
+hook_calloc(void *ctx, size_t nelem, size_t elsize) {
     alloc_hook_t *hook = (alloc_hook_t *)ctx;
     hook->ctx = ctx;
     hook->calloc_nelem = nelem;
@@ -35,8 +32,7 @@ hook_calloc(void *ctx, size_t nelem, size_t elsize)
 }
 
 static void *
-hook_realloc(void *ctx, void *ptr, size_t new_size)
-{
+hook_realloc(void *ctx, void *ptr, size_t new_size) {
     alloc_hook_t *hook = (alloc_hook_t *)ctx;
     hook->ctx = ctx;
     hook->realloc_ptr = ptr;
@@ -45,8 +41,7 @@ hook_realloc(void *ctx, void *ptr, size_t new_size)
 }
 
 static void
-hook_free(void *ctx, void *ptr)
-{
+hook_free(void *ctx, void *ptr) {
     alloc_hook_t *hook = (alloc_hook_t *)ctx;
     hook->ctx = ctx;
     hook->free_ptr = ptr;
@@ -69,20 +64,17 @@ static struct {
 } FmData;
 
 static int
-fm_nomemory(void)
-{
+fm_nomemory(void) {
     FmData.count++;
     if (FmData.count > FmData.start &&
-        (FmData.stop <= 0 || FmData.count <= FmData.stop))
-    {
+        (FmData.stop <= 0 || FmData.count <= FmData.stop)) {
         return 1;
     }
     return 0;
 }
 
 static void *
-hook_fmalloc(void *ctx, size_t size)
-{
+hook_fmalloc(void *ctx, size_t size) {
     PyMemAllocatorEx *alloc = (PyMemAllocatorEx *)ctx;
     if (fm_nomemory()) {
         return NULL;
@@ -91,8 +83,7 @@ hook_fmalloc(void *ctx, size_t size)
 }
 
 static void *
-hook_fcalloc(void *ctx, size_t nelem, size_t elsize)
-{
+hook_fcalloc(void *ctx, size_t nelem, size_t elsize) {
     PyMemAllocatorEx *alloc = (PyMemAllocatorEx *)ctx;
     if (fm_nomemory()) {
         return NULL;
@@ -101,8 +92,7 @@ hook_fcalloc(void *ctx, size_t nelem, size_t elsize)
 }
 
 static void *
-hook_frealloc(void *ctx, void *ptr, size_t new_size)
-{
+hook_frealloc(void *ctx, void *ptr, size_t new_size) {
     PyMemAllocatorEx *alloc = (PyMemAllocatorEx *)ctx;
     if (fm_nomemory()) {
         return NULL;
@@ -111,15 +101,13 @@ hook_frealloc(void *ctx, void *ptr, size_t new_size)
 }
 
 static void
-hook_ffree(void *ctx, void *ptr)
-{
+hook_ffree(void *ctx, void *ptr) {
     PyMemAllocatorEx *alloc = (PyMemAllocatorEx *)ctx;
     alloc->free(alloc->ctx, ptr);
 }
 
 static void
-fm_setup_hooks(void)
-{
+fm_setup_hooks(void) {
     if (FmHook.installed) {
         return;
     }
@@ -145,8 +133,7 @@ fm_setup_hooks(void)
 }
 
 static void
-fm_remove_hooks(void)
-{
+fm_remove_hooks(void) {
     if (FmHook.installed) {
         FmHook.installed = 0;
         PyMem_SetAllocator(PYMEM_DOMAIN_RAW, &FmHook.raw);
@@ -156,8 +143,7 @@ fm_remove_hooks(void)
 }
 
 static PyObject *
-set_nomemory(PyObject *self, PyObject *args)
-{
+set_nomemory(PyObject *self, PyObject *args) {
     /* Memory allocation fails after 'start' allocation requests, and until
      * 'stop' allocation requests except when 'stop' is negative or equal
      * to 0 (default) in which case allocation failures never stop. */
@@ -171,15 +157,13 @@ set_nomemory(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-remove_mem_hooks(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+remove_mem_hooks(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     fm_remove_hooks();
     Py_RETURN_NONE;
 }
 
 static PyObject *
-test_setallocators(PyMemAllocatorDomain domain)
-{
+test_setallocators(PyMemAllocatorDomain domain) {
     PyObject *res = NULL;
     const char *error_msg;
     alloc_hook_t hook;
@@ -199,7 +183,7 @@ test_setallocators(PyMemAllocatorDomain domain)
     size_t size = 42;
     hook.ctx = NULL;
     void *ptr;
-    switch(domain) {
+    switch (domain) {
         case PYMEM_DOMAIN_RAW:
             ptr = PyMem_RawMalloc(size);
             break;
@@ -214,12 +198,12 @@ test_setallocators(PyMemAllocatorDomain domain)
             break;
     }
 
-#define CHECK_CTX(FUNC)                     \
-    if (hook.ctx != &hook) {                \
-        error_msg = FUNC " wrong context";  \
-        goto fail;                          \
-    }                                       \
-    hook.ctx = NULL;  /* reset for next check */
+#define CHECK_CTX(FUNC)                    \
+    if (hook.ctx != &hook) {               \
+        error_msg = FUNC " wrong context"; \
+        goto fail;                         \
+    }                                      \
+    hook.ctx = NULL; /* reset for next check */
 
     if (ptr == NULL) {
         error_msg = "malloc failed";
@@ -233,7 +217,7 @@ test_setallocators(PyMemAllocatorDomain domain)
 
     size_t size2 = 200;
     void *ptr2;
-    switch(domain) {
+    switch (domain) {
         case PYMEM_DOMAIN_RAW:
             ptr2 = PyMem_RawRealloc(ptr, size2);
             break;
@@ -258,7 +242,7 @@ test_setallocators(PyMemAllocatorDomain domain)
         goto fail;
     }
 
-    switch(domain) {
+    switch (domain) {
         case PYMEM_DOMAIN_RAW:
             PyMem_RawFree(ptr2);
             break;
@@ -279,7 +263,7 @@ test_setallocators(PyMemAllocatorDomain domain)
     /* calloc, free */
     size_t nelem = 2;
     size_t elsize = 5;
-    switch(domain) {
+    switch (domain) {
         case PYMEM_DOMAIN_RAW:
             ptr = PyMem_RawCalloc(nelem, elsize);
             break;
@@ -305,7 +289,7 @@ test_setallocators(PyMemAllocatorDomain domain)
     }
 
     hook.free_ptr = NULL;
-    switch(domain) {
+    switch (domain) {
         case PYMEM_DOMAIN_RAW:
             PyMem_RawFree(ptr);
             break;
@@ -337,14 +321,12 @@ finally:
 }
 
 static PyObject *
-test_pyobject_setallocators(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+test_pyobject_setallocators(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     return test_setallocators(PYMEM_DOMAIN_OBJ);
 }
 
 static PyObject *
-test_pyobject_new(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+test_pyobject_new(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     PyObject *obj;
     PyTypeObject *type = &PyBaseObject_Type;
     PyTypeObject *var_type = &PyBytes_Type;
@@ -385,54 +367,47 @@ alloc_failed:
 }
 
 static PyObject *
-test_pymem_alloc0(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+test_pymem_alloc0(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     void *ptr;
 
     ptr = PyMem_RawMalloc(0);
     if (ptr == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "PyMem_RawMalloc(0) returns NULL");
+        PyErr_SetString(PyExc_RuntimeError, "PyMem_RawMalloc(0) returns NULL");
         return NULL;
     }
     PyMem_RawFree(ptr);
 
     ptr = PyMem_RawCalloc(0, 0);
     if (ptr == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "PyMem_RawCalloc(0, 0) returns NULL");
+        PyErr_SetString(PyExc_RuntimeError, "PyMem_RawCalloc(0, 0) returns NULL");
         return NULL;
     }
     PyMem_RawFree(ptr);
 
     ptr = PyMem_Malloc(0);
     if (ptr == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "PyMem_Malloc(0) returns NULL");
+        PyErr_SetString(PyExc_RuntimeError, "PyMem_Malloc(0) returns NULL");
         return NULL;
     }
     PyMem_Free(ptr);
 
     ptr = PyMem_Calloc(0, 0);
     if (ptr == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "PyMem_Calloc(0, 0) returns NULL");
+        PyErr_SetString(PyExc_RuntimeError, "PyMem_Calloc(0, 0) returns NULL");
         return NULL;
     }
     PyMem_Free(ptr);
 
     ptr = PyObject_Malloc(0);
     if (ptr == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "PyObject_Malloc(0) returns NULL");
+        PyErr_SetString(PyExc_RuntimeError, "PyObject_Malloc(0) returns NULL");
         return NULL;
     }
     PyObject_Free(ptr);
 
     ptr = PyObject_Calloc(0, 0);
     if (ptr == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "PyObject_Calloc(0, 0) returns NULL");
+        PyErr_SetString(PyExc_RuntimeError, "PyObject_Calloc(0, 0) returns NULL");
         return NULL;
     }
     PyObject_Free(ptr);
@@ -441,36 +416,31 @@ test_pymem_alloc0(PyObject *self, PyObject *Py_UNUSED(ignored))
 }
 
 static PyObject *
-test_pymem_setrawallocators(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+test_pymem_setrawallocators(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     return test_setallocators(PYMEM_DOMAIN_RAW);
 }
 
 static PyObject *
-test_pymem_setallocators(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+test_pymem_setallocators(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     return test_setallocators(PYMEM_DOMAIN_MEM);
 }
 
 static PyObject *
-pyobject_malloc_without_gil(PyObject *self, PyObject *args)
-{
+pyobject_malloc_without_gil(PyObject *self, PyObject *args) {
     char *buffer;
 
     /* Deliberate bug to test debug hooks on Python memory allocators:
        call PyObject_Malloc() without holding the GIL */
-    Py_BEGIN_ALLOW_THREADS
-    buffer = PyObject_Malloc(10);
+    Py_BEGIN_ALLOW_THREADS buffer = PyObject_Malloc(10);
     Py_END_ALLOW_THREADS
 
-    PyObject_Free(buffer);
+        PyObject_Free(buffer);
 
     Py_RETURN_NONE;
 }
 
 static PyObject *
-pymem_buffer_overflow(PyObject *self, PyObject *args)
-{
+pymem_buffer_overflow(PyObject *self, PyObject *args) {
     char *buffer;
 
     /* Deliberate buffer overflow to check that PyMem_Free() detects
@@ -487,8 +457,7 @@ pymem_buffer_overflow(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-pymem_api_misuse(PyObject *self, PyObject *args)
-{
+pymem_api_misuse(PyObject *self, PyObject *args) {
     char *buffer;
 
     /* Deliberate misusage of Python allocators:
@@ -500,34 +469,28 @@ pymem_api_misuse(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-pymem_malloc_without_gil(PyObject *self, PyObject *args)
-{
+pymem_malloc_without_gil(PyObject *self, PyObject *args) {
     char *buffer;
 
     /* Deliberate bug to test debug hooks on Python memory allocators:
        call PyMem_Malloc() without holding the GIL */
-    Py_BEGIN_ALLOW_THREADS
-    buffer = PyMem_Malloc(10);
+    Py_BEGIN_ALLOW_THREADS buffer = PyMem_Malloc(10);
     Py_END_ALLOW_THREADS
 
-    PyMem_Free(buffer);
+        PyMem_Free(buffer);
 
     Py_RETURN_NONE;
 }
 
-
 // Tracemalloc tests
 static PyObject *
-tracemalloc_track(PyObject *self, PyObject *args)
-{
+tracemalloc_track(PyObject *self, PyObject *args) {
     unsigned int domain;
     PyObject *ptr_obj;
     Py_ssize_t size;
     int release_gil = 0;
 
-    if (!PyArg_ParseTuple(args, "IOn|i",
-                          &domain, &ptr_obj, &size, &release_gil))
-    {
+    if (!PyArg_ParseTuple(args, "IOn|i", &domain, &ptr_obj, &size, &release_gil)) {
         return NULL;
     }
     void *ptr = PyLong_AsVoidPtr(ptr_obj);
@@ -537,11 +500,9 @@ tracemalloc_track(PyObject *self, PyObject *args)
 
     int res;
     if (release_gil) {
-        Py_BEGIN_ALLOW_THREADS
-        res = PyTraceMalloc_Track(domain, (uintptr_t)ptr, size);
+        Py_BEGIN_ALLOW_THREADS res = PyTraceMalloc_Track(domain, (uintptr_t)ptr, size);
         Py_END_ALLOW_THREADS
-    }
-    else {
+    } else {
         res = PyTraceMalloc_Track(domain, (uintptr_t)ptr, size);
     }
     if (res < 0) {
@@ -553,8 +514,7 @@ tracemalloc_track(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-tracemalloc_untrack(PyObject *self, PyObject *args)
-{
+tracemalloc_untrack(PyObject *self, PyObject *args) {
     unsigned int domain;
     PyObject *ptr_obj;
 
@@ -576,29 +536,32 @@ tracemalloc_untrack(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef test_methods[] = {
-    {"pymem_api_misuse",              pymem_api_misuse,              METH_NOARGS},
-    {"pymem_buffer_overflow",         pymem_buffer_overflow,         METH_NOARGS},
-    {"pymem_malloc_without_gil",      pymem_malloc_without_gil,      METH_NOARGS},
-    {"pyobject_malloc_without_gil",   pyobject_malloc_without_gil,   METH_NOARGS},
-    {"remove_mem_hooks",              remove_mem_hooks,              METH_NOARGS,
-        PyDoc_STR("Remove memory hooks.")},
-    {"set_nomemory",                  (PyCFunction)set_nomemory,     METH_VARARGS,
-        PyDoc_STR("set_nomemory(start:int, stop:int = 0)")},
-    {"test_pymem_alloc0",             test_pymem_alloc0,             METH_NOARGS},
-    {"test_pymem_setallocators",      test_pymem_setallocators,      METH_NOARGS},
-    {"test_pymem_setrawallocators",   test_pymem_setrawallocators,   METH_NOARGS},
-    {"test_pyobject_new",             test_pyobject_new,             METH_NOARGS},
-    {"test_pyobject_setallocators",   test_pyobject_setallocators,   METH_NOARGS},
+    {"pymem_api_misuse", pymem_api_misuse, METH_NOARGS},
+    {"pymem_buffer_overflow", pymem_buffer_overflow, METH_NOARGS},
+    {"pymem_malloc_without_gil", pymem_malloc_without_gil, METH_NOARGS},
+    {"pyobject_malloc_without_gil", pyobject_malloc_without_gil, METH_NOARGS},
+    {"remove_mem_hooks",
+     remove_mem_hooks,
+     METH_NOARGS,
+     PyDoc_STR("Remove memory hooks.")},
+    {"set_nomemory",
+     (PyCFunction)set_nomemory,
+     METH_VARARGS,
+     PyDoc_STR("set_nomemory(start:int, stop:int = 0)")},
+    {"test_pymem_alloc0", test_pymem_alloc0, METH_NOARGS},
+    {"test_pymem_setallocators", test_pymem_setallocators, METH_NOARGS},
+    {"test_pymem_setrawallocators", test_pymem_setrawallocators, METH_NOARGS},
+    {"test_pyobject_new", test_pyobject_new, METH_NOARGS},
+    {"test_pyobject_setallocators", test_pyobject_setallocators, METH_NOARGS},
 
     // Tracemalloc tests
-    {"tracemalloc_track",             tracemalloc_track,             METH_VARARGS},
-    {"tracemalloc_untrack",           tracemalloc_untrack,           METH_VARARGS},
+    {"tracemalloc_track", tracemalloc_track, METH_VARARGS},
+    {"tracemalloc_untrack", tracemalloc_untrack, METH_VARARGS},
     {NULL},
 };
 
 int
-_PyTestCapi_Init_Mem(PyObject *mod)
-{
+_PyTestCapi_Init_Mem(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

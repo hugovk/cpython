@@ -1,5 +1,5 @@
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "parts.h"
@@ -10,7 +10,6 @@
 module _testcapi
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=6361033e795369fc]*/
-
 
 /*[clinic input]
 _testcapi.call_long_compact_api
@@ -24,18 +23,16 @@ _testcapi_call_long_compact_api(PyObject *module, PyObject *arg)
 
 {
     assert(PyLong_Check(arg));
-    int is_compact = PyUnstable_Long_IsCompact((PyLongObject*)arg);
+    int is_compact = PyUnstable_Long_IsCompact((PyLongObject *)arg);
     Py_ssize_t value = -1;
     if (is_compact) {
-        value = PyUnstable_Long_CompactValue((PyLongObject*)arg);
+        value = PyUnstable_Long_CompactValue((PyLongObject *)arg);
     }
     return Py_BuildValue("in", is_compact, value);
 }
 
-
 static PyObject *
-pylong_fromunicodeobject(PyObject *module, PyObject *args)
-{
+pylong_fromunicodeobject(PyObject *module, PyObject *args) {
     PyObject *unicode;
     int base;
     if (!PyArg_ParseTuple(args, "Oi", &unicode, &base)) {
@@ -46,10 +43,8 @@ pylong_fromunicodeobject(PyObject *module, PyObject *args)
     return PyLong_FromUnicodeObject(unicode, base);
 }
 
-
 static PyObject *
-pylong_asnativebytes(PyObject *module, PyObject *args)
-{
+pylong_asnativebytes(PyObject *module, PyObject *args) {
     PyObject *v;
     Py_buffer buffer;
     Py_ssize_t n, flags;
@@ -71,10 +66,8 @@ pylong_asnativebytes(PyObject *module, PyObject *args)
     return res >= 0 ? PyLong_FromSsize_t(res) : NULL;
 }
 
-
 static PyObject *
-pylong_fromnativebytes(PyObject *module, PyObject *args)
-{
+pylong_fromnativebytes(PyObject *module, PyObject *args) {
     Py_buffer buffer;
     Py_ssize_t n, flags, signed_;
     if (!PyArg_ParseTuple(args, "y*nnn", &buffer, &n, &flags, &signed_)) {
@@ -85,17 +78,14 @@ pylong_fromnativebytes(PyObject *module, PyObject *args)
         PyBuffer_Release(&buffer);
         return NULL;
     }
-    PyObject *res = signed_
-        ? PyLong_FromNativeBytes(buffer.buf, n, (int)flags)
-        : PyLong_FromUnsignedNativeBytes(buffer.buf, n, (int)flags);
+    PyObject *res = signed_ ? PyLong_FromNativeBytes(buffer.buf, n, (int)flags)
+                            : PyLong_FromUnsignedNativeBytes(buffer.buf, n, (int)flags);
     PyBuffer_Release(&buffer);
     return res;
 }
 
-
 static PyObject *
-pylong_getsign(PyObject *module, PyObject *arg)
-{
+pylong_getsign(PyObject *module, PyObject *arg) {
     int sign;
     NULLABLE(arg);
     if (PyLong_GetSign(arg, &sign) == -1) {
@@ -104,10 +94,8 @@ pylong_getsign(PyObject *module, PyObject *arg)
     return PyLong_FromLong(sign);
 }
 
-
 static PyObject *
-pylong_aspid(PyObject *module, PyObject *arg)
-{
+pylong_aspid(PyObject *module, PyObject *arg) {
     NULLABLE(arg);
     pid_t value = PyLong_AsPid(arg);
     if (value == -1 && PyErr_Occurred()) {
@@ -116,20 +104,19 @@ pylong_aspid(PyObject *module, PyObject *arg)
     return PyLong_FromPid(value);
 }
 
-
 static PyMethodDef test_methods[] = {
-    _TESTCAPI_CALL_LONG_COMPACT_API_METHODDEF
-    {"pylong_fromunicodeobject",    pylong_fromunicodeobject,   METH_VARARGS},
-    {"pylong_asnativebytes",        pylong_asnativebytes,       METH_VARARGS},
-    {"pylong_fromnativebytes",      pylong_fromnativebytes,     METH_VARARGS},
-    {"pylong_getsign",              pylong_getsign,             METH_O},
-    {"pylong_aspid",                pylong_aspid,               METH_O},
+    _TESTCAPI_CALL_LONG_COMPACT_API_METHODDEF{
+        "pylong_fromunicodeobject", pylong_fromunicodeobject, METH_VARARGS
+    },
+    {"pylong_asnativebytes", pylong_asnativebytes, METH_VARARGS},
+    {"pylong_fromnativebytes", pylong_fromnativebytes, METH_VARARGS},
+    {"pylong_getsign", pylong_getsign, METH_O},
+    {"pylong_aspid", pylong_aspid, METH_O},
     {NULL},
 };
 
 int
-_PyTestCapi_Init_Long(PyObject *mod)
-{
+_PyTestCapi_Init_Long(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

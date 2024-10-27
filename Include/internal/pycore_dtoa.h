@@ -5,16 +5,14 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_pymath.h"        // _PY_SHORT_FLOAT_REPR
-
+#include "pycore_pymath.h"  // _PY_SHORT_FLOAT_REPR
 
 typedef uint32_t ULong;
 
-struct
-Bigint {
+struct Bigint {
     struct Bigint *next;
     int k, maxwds, sign, wds;
     ULong x[1];
@@ -25,8 +23,7 @@ Bigint {
 struct _dtoa_state {
     int _not_used;
 };
-#define _dtoa_state_INIT(INTERP) \
-    {0}
+#define _dtoa_state_INIT(INTERP) {0}
 
 #else  // !Py_USING_MEMORY_DEBUGGER && _PY_SHORT_FLOAT_REPR != 0
 
@@ -39,35 +36,35 @@ struct _dtoa_state {
 #ifndef PRIVATE_MEM
 #define PRIVATE_MEM 2304
 #endif
-#define Bigint_PREALLOC_SIZE \
-    ((PRIVATE_MEM+sizeof(double)-1)/sizeof(double))
+#define Bigint_PREALLOC_SIZE ((PRIVATE_MEM + sizeof(double) - 1) / sizeof(double))
 
 struct _dtoa_state {
     // p5s is an array of powers of 5 of the form:
     // 5**(2**(i+2)) for 0 <= i < Bigint_Pow5size
     struct Bigint *p5s[Bigint_Pow5size];
     // XXX This should be freed during runtime fini.
-    struct Bigint *freelist[Bigint_Kmax+1];
+    struct Bigint *freelist[Bigint_Kmax + 1];
     double preallocated[Bigint_PREALLOC_SIZE];
     double *preallocated_next;
 };
-#define _dtoa_state_INIT(INTERP) \
-    { \
+#define _dtoa_state_INIT(INTERP)                          \
+    {                                                     \
         .preallocated_next = (INTERP)->dtoa.preallocated, \
     }
 
 #endif  // !Py_USING_MEMORY_DEBUGGER
 
+extern double
+_Py_dg_strtod(const char *str, char **ptr);
+extern char *
+_Py_dg_dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);
+extern void
+_Py_dg_freedtoa(char *s);
 
-extern double _Py_dg_strtod(const char *str, char **ptr);
-extern char* _Py_dg_dtoa(double d, int mode, int ndigits,
-                         int *decpt, int *sign, char **rve);
-extern void _Py_dg_freedtoa(char *s);
-
-
-extern PyStatus _PyDtoa_Init(PyInterpreterState *interp);
-extern void _PyDtoa_Fini(PyInterpreterState *interp);
-
+extern PyStatus
+_PyDtoa_Init(PyInterpreterState *interp);
+extern void
+_PyDtoa_Fini(PyInterpreterState *interp);
 
 #ifdef __cplusplus
 }

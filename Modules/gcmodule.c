@@ -6,14 +6,13 @@
 
 #include "Python.h"
 #include "pycore_gc.h"
-#include "pycore_object.h"      // _PyObject_IS_GC()
-#include "pycore_pystate.h"     // _PyInterpreterState_GET()
+#include "pycore_object.h"   // _PyObject_IS_GC()
+#include "pycore_pystate.h"  // _PyInterpreterState_GET()
 
 typedef struct _gc_runtime_state GCState;
 
 static GCState *
-get_gc_state(void)
-{
+get_gc_state(void) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     return &interp->gc;
 }
@@ -152,8 +151,14 @@ Setting 'threshold0' to zero disables collection.
 [clinic start generated code]*/
 
 static PyObject *
-gc_set_threshold_impl(PyObject *module, int threshold0, int group_right_1,
-                      int threshold1, int group_right_2, int threshold2)
+gc_set_threshold_impl(
+    PyObject *module,
+    int threshold0,
+    int group_right_1,
+    int threshold1,
+    int group_right_2,
+    int threshold2
+)
 /*[clinic end generated code: output=2e3c7c7dd59060f3 input=0d9612db50984eec]*/
 {
     GCState *gcstate = get_gc_state();
@@ -179,10 +184,9 @@ gc_get_threshold_impl(PyObject *module)
 /*[clinic end generated code: output=7902bc9f41ecbbd8 input=286d79918034d6e6]*/
 {
     GCState *gcstate = get_gc_state();
-    return Py_BuildValue("(iii)",
-                         gcstate->young.threshold,
-                         gcstate->old[0].threshold,
-                         0);
+    return Py_BuildValue(
+        "(iii)", gcstate->young.threshold, gcstate->old[0].threshold, 0
+    );
 }
 
 /*[clinic input]
@@ -206,10 +210,12 @@ gc_get_count_impl(PyObject *module)
     gc->alloc_count = 0;
 #endif
 
-    return Py_BuildValue("(iii)",
-                         gcstate->young.count,
-                         gcstate->old[gcstate->visited_space].count,
-                         gcstate->old[gcstate->visited_space^1].count);
+    return Py_BuildValue(
+        "(iii)",
+        gcstate->young.count,
+        gcstate->old[gcstate->visited_space].count,
+        gcstate->old[gcstate->visited_space ^ 1].count
+    );
 }
 
 /*[clinic input]
@@ -234,15 +240,13 @@ gc_get_referrers_impl(PyObject *module, PyObject *args)
 
 /* Append obj to list; return true if error (out of memory), false if OK. */
 static int
-referentsvisit(PyObject *obj, void *arg)
-{
+referentsvisit(PyObject *obj, void *arg) {
     PyObject *list = arg;
     return PyList_Append(list, obj) < 0;
 }
 
 static int
-append_referrents(PyObject *result, PyObject *args)
-{
+append_referrents(PyObject *result, PyObject *args) {
     for (Py_ssize_t i = 0; i < PyTuple_GET_SIZE(args); i++) {
         PyObject *obj = PyTuple_GET_ITEM(args, i);
         if (!_PyObject_IS_GC(obj)) {
@@ -313,15 +317,16 @@ gc_get_objects_impl(PyObject *module, Py_ssize_t generation)
     }
 
     if (generation >= NUM_GENERATIONS) {
-        return PyErr_Format(PyExc_ValueError,
-                            "generation parameter must be less than the number of "
-                            "available generations (%i)",
-                            NUM_GENERATIONS);
+        return PyErr_Format(
+            PyExc_ValueError,
+            "generation parameter must be less than the number of "
+            "available generations (%i)",
+            NUM_GENERATIONS
+        );
     }
 
     if (generation < -1) {
-        PyErr_SetString(PyExc_ValueError,
-                        "generation parameter cannot be negative");
+        PyErr_SetString(PyExc_ValueError, "generation parameter cannot be negative");
         return NULL;
     }
 
@@ -356,11 +361,15 @@ gc_get_stats_impl(PyObject *module)
     for (i = 0; i < NUM_GENERATIONS; i++) {
         PyObject *dict;
         st = &stats[i];
-        dict = Py_BuildValue("{snsnsn}",
-                             "collections", st->collections,
-                             "collected", st->collected,
-                             "uncollectable", st->uncollectable
-                            );
+        dict = Py_BuildValue(
+            "{snsnsn}",
+            "collections",
+            st->collections,
+            "collected",
+            st->collected,
+            "uncollectable",
+            st->uncollectable
+        );
         if (dict == NULL)
             goto error;
         if (PyList_Append(result, dict)) {
@@ -375,7 +384,6 @@ error:
     Py_XDECREF(result);
     return NULL;
 }
-
 
 /*[clinic input]
 gc.is_tracked -> bool
@@ -461,54 +469,44 @@ gc_get_freeze_count_impl(PyObject *module)
     return _PyGC_GetFreezeCount(interp);
 }
 
-
-PyDoc_STRVAR(gc__doc__,
-"This module provides access to the garbage collector for reference cycles.\n"
-"\n"
-"enable() -- Enable automatic garbage collection.\n"
-"disable() -- Disable automatic garbage collection.\n"
-"isenabled() -- Returns true if automatic collection is enabled.\n"
-"collect() -- Do a full collection right now.\n"
-"get_count() -- Return the current collection counts.\n"
-"get_stats() -- Return list of dictionaries containing per-generation stats.\n"
-"set_debug() -- Set debugging flags.\n"
-"get_debug() -- Get debugging flags.\n"
-"set_threshold() -- Set the collection thresholds.\n"
-"get_threshold() -- Return the current the collection thresholds.\n"
-"get_objects() -- Return a list of all objects tracked by the collector.\n"
-"is_tracked() -- Returns true if a given object is tracked.\n"
-"is_finalized() -- Returns true if a given object has been already finalized.\n"
-"get_referrers() -- Return the list of objects that refer to an object.\n"
-"get_referents() -- Return the list of objects that an object refers to.\n"
-"freeze() -- Freeze all tracked objects and ignore them for future collections.\n"
-"unfreeze() -- Unfreeze all objects in the permanent generation.\n"
-"get_freeze_count() -- Return the number of objects in the permanent generation.\n");
+PyDoc_STRVAR(
+    gc__doc__,
+    "This module provides access to the garbage collector for reference cycles.\n"
+    "\n"
+    "enable() -- Enable automatic garbage collection.\n"
+    "disable() -- Disable automatic garbage collection.\n"
+    "isenabled() -- Returns true if automatic collection is enabled.\n"
+    "collect() -- Do a full collection right now.\n"
+    "get_count() -- Return the current collection counts.\n"
+    "get_stats() -- Return list of dictionaries containing per-generation stats.\n"
+    "set_debug() -- Set debugging flags.\n"
+    "get_debug() -- Get debugging flags.\n"
+    "set_threshold() -- Set the collection thresholds.\n"
+    "get_threshold() -- Return the current the collection thresholds.\n"
+    "get_objects() -- Return a list of all objects tracked by the collector.\n"
+    "is_tracked() -- Returns true if a given object is tracked.\n"
+    "is_finalized() -- Returns true if a given object has been already finalized.\n"
+    "get_referrers() -- Return the list of objects that refer to an object.\n"
+    "get_referents() -- Return the list of objects that an object refers to.\n"
+    "freeze() -- Freeze all tracked objects and ignore them for future collections.\n"
+    "unfreeze() -- Unfreeze all objects in the permanent generation.\n"
+    "get_freeze_count() -- Return the number of objects in the permanent generation.\n"
+);
 
 static PyMethodDef GcMethods[] = {
-    GC_ENABLE_METHODDEF
-    GC_DISABLE_METHODDEF
-    GC_ISENABLED_METHODDEF
-    GC_SET_DEBUG_METHODDEF
-    GC_GET_DEBUG_METHODDEF
-    GC_GET_COUNT_METHODDEF
-    GC_SET_THRESHOLD_METHODDEF
-    GC_GET_THRESHOLD_METHODDEF
-    GC_COLLECT_METHODDEF
-    GC_GET_OBJECTS_METHODDEF
-    GC_GET_STATS_METHODDEF
-    GC_IS_TRACKED_METHODDEF
-    GC_IS_FINALIZED_METHODDEF
-    GC_GET_REFERRERS_METHODDEF
-    GC_GET_REFERENTS_METHODDEF
-    GC_FREEZE_METHODDEF
-    GC_UNFREEZE_METHODDEF
-    GC_GET_FREEZE_COUNT_METHODDEF
-    {NULL,      NULL}           /* Sentinel */
+    GC_ENABLE_METHODDEF GC_DISABLE_METHODDEF GC_ISENABLED_METHODDEF
+        GC_SET_DEBUG_METHODDEF GC_GET_DEBUG_METHODDEF GC_GET_COUNT_METHODDEF
+            GC_SET_THRESHOLD_METHODDEF GC_GET_THRESHOLD_METHODDEF GC_COLLECT_METHODDEF
+                GC_GET_OBJECTS_METHODDEF GC_GET_STATS_METHODDEF GC_IS_TRACKED_METHODDEF
+                    GC_IS_FINALIZED_METHODDEF GC_GET_REFERRERS_METHODDEF
+                        GC_GET_REFERENTS_METHODDEF GC_FREEZE_METHODDEF
+                            GC_UNFREEZE_METHODDEF GC_GET_FREEZE_COUNT_METHODDEF{
+                                NULL, NULL
+                            } /* Sentinel */
 };
 
 static int
-gcmodule_exec(PyObject *module)
-{
+gcmodule_exec(PyObject *module) {
     GCState *gcstate = get_gc_state();
 
     /* garbage and callbacks are initialized by _PyGC_Init() early in
@@ -522,7 +520,10 @@ gcmodule_exec(PyObject *module)
         return -1;
     }
 
-#define ADD_INT(NAME) if (PyModule_AddIntConstant(module, #NAME, _PyGC_ ## NAME) < 0) { return -1; }
+#define ADD_INT(NAME)                                               \
+    if (PyModule_AddIntConstant(module, #NAME, _PyGC_##NAME) < 0) { \
+        return -1;                                                  \
+    }
     ADD_INT(DEBUG_STATS);
     ADD_INT(DEBUG_COLLECTABLE);
     ADD_INT(DEBUG_UNCOLLECTABLE);
@@ -549,7 +550,6 @@ static struct PyModuleDef gcmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_gc(void)
-{
+PyInit_gc(void) {
     return PyModuleDef_Init(&gcmodule);
 }

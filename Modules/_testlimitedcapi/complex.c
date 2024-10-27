@@ -1,24 +1,20 @@
 #include "parts.h"
 #include "util.h"
 
-
 static PyObject *
-complex_check(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+complex_check(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyComplex_Check(obj));
 }
 
 static PyObject *
-complex_checkexact(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+complex_checkexact(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyComplex_CheckExact(obj));
 }
 
 static PyObject *
-complex_fromdoubles(PyObject *Py_UNUSED(module), PyObject *args)
-{
+complex_fromdoubles(PyObject *Py_UNUSED(module), PyObject *args) {
     double real, imag;
 
     if (!PyArg_ParseTuple(args, "dd", &real, &imag)) {
@@ -29,8 +25,7 @@ complex_fromdoubles(PyObject *Py_UNUSED(module), PyObject *args)
 }
 
 static PyObject *
-complex_realasdouble(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+complex_realasdouble(PyObject *Py_UNUSED(module), PyObject *obj) {
     double real;
 
     NULLABLE(obj);
@@ -44,8 +39,7 @@ complex_realasdouble(PyObject *Py_UNUSED(module), PyObject *obj)
 }
 
 static PyObject *
-complex_imagasdouble(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+complex_imagasdouble(PyObject *Py_UNUSED(module), PyObject *obj) {
     double imag;
 
     NULLABLE(obj);
@@ -58,7 +52,6 @@ complex_imagasdouble(PyObject *Py_UNUSED(module), PyObject *obj)
     return PyFloat_FromDouble(imag);
 }
 
-
 static PyMethodDef test_methods[] = {
     {"complex_check", complex_check, METH_O},
     {"complex_checkexact", complex_checkexact, METH_O},
@@ -69,8 +62,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_Complex(PyObject *mod)
-{
+_PyTestLimitedCAPI_Init_Complex(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

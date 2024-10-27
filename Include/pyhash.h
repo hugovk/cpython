@@ -16,11 +16,10 @@ extern "C" {
  * provide a decent safety margin.
  */
 #ifndef Py_HASH_CUTOFF
-#  define Py_HASH_CUTOFF 0
+#define Py_HASH_CUTOFF 0
 #elif (Py_HASH_CUTOFF > 7 || Py_HASH_CUTOFF < 0)
-#  error Py_HASH_CUTOFF must in range 0...7.
+#error Py_HASH_CUTOFF must in range 0...7.
 #endif /* Py_HASH_CUTOFF */
-
 
 /* Hash algorithm selection
  *
@@ -40,17 +39,17 @@ extern "C" {
 #define Py_HASH_SIPHASH13 3
 
 #ifndef Py_HASH_ALGORITHM
-#  ifndef HAVE_ALIGNED_REQUIRED
-#    define Py_HASH_ALGORITHM Py_HASH_SIPHASH13
-#  else
-#    define Py_HASH_ALGORITHM Py_HASH_FNV
-#  endif /* uint64_t && uint32_t && aligned */
+#ifndef HAVE_ALIGNED_REQUIRED
+#define Py_HASH_ALGORITHM Py_HASH_SIPHASH13
+#else
+#define Py_HASH_ALGORITHM Py_HASH_FNV
+#endif /* uint64_t && uint32_t && aligned */
 #endif /* Py_HASH_ALGORITHM */
 
 #ifndef Py_LIMITED_API
-#  define Py_CPYTHON_HASH_H
-#  include "cpython/pyhash.h"
-#  undef Py_CPYTHON_HASH_H
+#define Py_CPYTHON_HASH_H
+#include "cpython/pyhash.h"
+#undef Py_CPYTHON_HASH_H
 #endif
 
 #ifdef __cplusplus

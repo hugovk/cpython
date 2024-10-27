@@ -60,9 +60,10 @@ PyAPI_FUNC(void) PyMem_Free(void *ptr);
  * overflow checking is always done.
  */
 
-#define PyMem_New(type, n) \
-  ( ((size_t)(n) > PY_SSIZE_T_MAX / sizeof(type)) ? NULL :      \
-        ( (type *) PyMem_Malloc((n) * sizeof(type)) ) )
+#define PyMem_New(type, n)                         \
+    (((size_t)(n) > PY_SSIZE_T_MAX / sizeof(type)) \
+         ? NULL                                    \
+         : ((type *)PyMem_Malloc((n) * sizeof(type))))
 
 /*
  * The value of (p) is always clobbered by this macro regardless of success.
@@ -70,24 +71,23 @@ PyAPI_FUNC(void) PyMem_Free(void *ptr);
  * error if so.  This means the original value of (p) MUST be saved for the
  * caller's memory error handler to not lose track of it.
  */
-#define PyMem_Resize(p, type, n) \
-  ( (p) = ((size_t)(n) > PY_SSIZE_T_MAX / sizeof(type)) ? NULL :        \
-        (type *) PyMem_Realloc((p), (n) * sizeof(type)) )
-
+#define PyMem_Resize(p, type, n)                         \
+    ((p) = ((size_t)(n) > PY_SSIZE_T_MAX / sizeof(type)) \
+               ? NULL                                    \
+               : (type *)PyMem_Realloc((p), (n) * sizeof(type)))
 
 // Deprecated aliases only kept for backward compatibility.
 // PyMem_Del and PyMem_DEL are defined with no parameter to be able to use
 // them as function pointers (ex: dealloc = PyMem_Del).
-#define PyMem_MALLOC(n)           PyMem_Malloc((n))
-#define PyMem_NEW(type, n)        PyMem_New(type, (n))
-#define PyMem_REALLOC(p, n)       PyMem_Realloc((p), (n))
-#define PyMem_RESIZE(p, type, n)  PyMem_Resize((p), type, (n))
-#define PyMem_FREE(p)             PyMem_Free((p))
-#define PyMem_Del(p)              PyMem_Free((p))
-#define PyMem_DEL(p)              PyMem_Free((p))
+#define PyMem_MALLOC(n) PyMem_Malloc((n))
+#define PyMem_NEW(type, n) PyMem_New(type, (n))
+#define PyMem_REALLOC(p, n) PyMem_Realloc((p), (n))
+#define PyMem_RESIZE(p, type, n) PyMem_Resize((p), type, (n))
+#define PyMem_FREE(p) PyMem_Free((p))
+#define PyMem_Del(p) PyMem_Free((p))
+#define PyMem_DEL(p) PyMem_Free((p))
 
-
-#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030d0000
 // Memory allocator which doesn't require the GIL to be held.
 // Usually, it's just a thin wrapper to functions of the standard C library:
 // malloc(), calloc(), realloc() and free(). The difference is that
@@ -99,12 +99,12 @@ PyAPI_FUNC(void) PyMem_RawFree(void *ptr);
 #endif
 
 #ifndef Py_LIMITED_API
-#  define Py_CPYTHON_PYMEM_H
-#  include "cpython/pymem.h"
-#  undef Py_CPYTHON_PYMEM_H
+#define Py_CPYTHON_PYMEM_H
+#include "cpython/pymem.h"
+#undef Py_CPYTHON_PYMEM_H
 #endif
 
 #ifdef __cplusplus
 }
 #endif
-#endif   // !Py_PYMEM_H
+#endif  // !Py_PYMEM_H

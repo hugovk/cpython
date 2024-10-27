@@ -7,50 +7,44 @@
 #include "internal/pycore_instruments.h"
 
 typedef struct {
-    PyObject_HEAD
-    PyMonitoringState *monitoring_states;
+    PyObject_HEAD PyMonitoringState *monitoring_states;
     uint64_t version;
     int num_events;
     /* Other fields */
 } PyCodeLikeObject;
 
-
 static PyObject *
-CodeLike_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
+CodeLike_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     int num_events;
     if (!PyArg_ParseTuple(args, "i", &num_events)) {
         return NULL;
     }
-    PyMonitoringState *states = (PyMonitoringState *)PyMem_Calloc(
-            num_events, sizeof(PyMonitoringState));
+    PyMonitoringState *states =
+        (PyMonitoringState *)PyMem_Calloc(num_events, sizeof(PyMonitoringState));
     if (states == NULL) {
         return NULL;
     }
-    PyCodeLikeObject *self = (PyCodeLikeObject *) type->tp_alloc(type, 0);
+    PyCodeLikeObject *self = (PyCodeLikeObject *)type->tp_alloc(type, 0);
     if (self != NULL) {
         self->version = 0;
         self->monitoring_states = states;
         self->num_events = num_events;
-    }
-    else {
+    } else {
         PyMem_Free(states);
     }
-    return (PyObject *) self;
+    return (PyObject *)self;
 }
 
 static void
-CodeLike_dealloc(PyCodeLikeObject *self)
-{
+CodeLike_dealloc(PyCodeLikeObject *self) {
     if (self->monitoring_states) {
         PyMem_Free(self->monitoring_states);
     }
-    Py_TYPE(self)->tp_free((PyObject *) self);
+    Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 static PyObject *
-CodeLike_str(PyCodeLikeObject *self)
-{
+CodeLike_str(PyCodeLikeObject *self) {
     PyObject *res = NULL;
     PyObject *sep = NULL;
     PyObject *parts = NULL;
@@ -71,7 +65,8 @@ CodeLike_str(PyCodeLikeObject *self)
         }
 
         for (int i = 0; i < self->num_events; i++) {
-            PyObject *part = PyUnicode_FromFormat(" %d", self->monitoring_states[i].active);
+            PyObject *part =
+                PyUnicode_FromFormat(" %d", self->monitoring_states[i].active);
             if (part == NULL) {
                 goto end;
             }
@@ -94,27 +89,28 @@ end:
 }
 
 static PyTypeObject PyCodeLike_Type = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "monitoring.CodeLike",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "monitoring.CodeLike",
     .tp_doc = PyDoc_STR("CodeLike objects"),
     .tp_basicsize = sizeof(PyCodeLikeObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = CodeLike_new,
-    .tp_dealloc = (destructor) CodeLike_dealloc,
-    .tp_str = (reprfunc) CodeLike_str,
+    .tp_dealloc = (destructor)CodeLike_dealloc,
+    .tp_str = (reprfunc)CodeLike_str,
 };
 
-#define RAISE_UNLESS_CODELIKE(v)  if (!Py_IS_TYPE((v), &PyCodeLike_Type)) { \
-        PyErr_Format(PyExc_TypeError, "expected a code-like, got %s", Py_TYPE(v)->tp_name); \
-        return NULL; \
+#define RAISE_UNLESS_CODELIKE(v)                                                 \
+    if (!Py_IS_TYPE((v), &PyCodeLike_Type)) {                                    \
+        PyErr_Format(                                                            \
+            PyExc_TypeError, "expected a code-like, got %s", Py_TYPE(v)->tp_name \
+        );                                                                       \
+        return NULL;                                                             \
     }
 
 /*******************************************************************/
 
 static PyMonitoringState *
-setup_fire(PyObject *codelike, int offset, PyObject *exc)
-{
+setup_fire(PyObject *codelike, int offset, PyObject *exc) {
     RAISE_UNLESS_CODELIKE(codelike);
     PyCodeLikeObject *cl = ((PyCodeLikeObject *)codelike);
     assert(offset >= 0 && offset < cl->num_events);
@@ -127,14 +123,13 @@ setup_fire(PyObject *codelike, int offset, PyObject *exc)
 }
 
 static int
-teardown_fire(int res, PyMonitoringState *state, PyObject *exception)
-{
+teardown_fire(int res, PyMonitoringState *state, PyObject *exception) {
     if (res == -1) {
         return -1;
     }
     if (exception) {
         assert(PyErr_Occurred());
-        assert(((PyObject*)Py_TYPE(exception)) == PyErr_Occurred());
+        assert(((PyObject *)Py_TYPE(exception)) == PyErr_Occurred());
     }
 
     else {
@@ -145,8 +140,7 @@ teardown_fire(int res, PyMonitoringState *state, PyObject *exception)
 }
 
 static PyObject *
-fire_event_py_start(PyObject *self, PyObject *args)
-{
+fire_event_py_start(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     if (!PyArg_ParseTuple(args, "Oi", &codelike, &offset)) {
@@ -162,8 +156,7 @@ fire_event_py_start(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_py_resume(PyObject *self, PyObject *args)
-{
+fire_event_py_resume(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     if (!PyArg_ParseTuple(args, "Oi", &codelike, &offset)) {
@@ -179,8 +172,7 @@ fire_event_py_resume(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_py_return(PyObject *self, PyObject *args)
-{
+fire_event_py_return(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *retval;
@@ -197,8 +189,7 @@ fire_event_py_return(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_c_return(PyObject *self, PyObject *args)
-{
+fire_event_c_return(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *retval;
@@ -215,8 +206,7 @@ fire_event_c_return(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_py_yield(PyObject *self, PyObject *args)
-{
+fire_event_py_yield(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *retval;
@@ -233,8 +223,7 @@ fire_event_py_yield(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_call(PyObject *self, PyObject *args)
-{
+fire_event_call(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *callable, *arg0;
@@ -251,8 +240,7 @@ fire_event_call(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_line(PyObject *self, PyObject *args)
-{
+fire_event_line(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset, lineno;
     if (!PyArg_ParseTuple(args, "Oii", &codelike, &offset, &lineno)) {
@@ -268,8 +256,7 @@ fire_event_line(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_jump(PyObject *self, PyObject *args)
-{
+fire_event_jump(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *target_offset;
@@ -286,8 +273,7 @@ fire_event_jump(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_branch(PyObject *self, PyObject *args)
-{
+fire_event_branch(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *target_offset;
@@ -304,8 +290,7 @@ fire_event_branch(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_py_throw(PyObject *self, PyObject *args)
-{
+fire_event_py_throw(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *exception;
@@ -322,8 +307,7 @@ fire_event_py_throw(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_raise(PyObject *self, PyObject *args)
-{
+fire_event_raise(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *exception;
@@ -340,8 +324,7 @@ fire_event_raise(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_c_raise(PyObject *self, PyObject *args)
-{
+fire_event_c_raise(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *exception;
@@ -358,8 +341,7 @@ fire_event_c_raise(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_reraise(PyObject *self, PyObject *args)
-{
+fire_event_reraise(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *exception;
@@ -376,8 +358,7 @@ fire_event_reraise(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_exception_handled(PyObject *self, PyObject *args)
-{
+fire_event_exception_handled(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *exception;
@@ -394,8 +375,7 @@ fire_event_exception_handled(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_py_unwind(PyObject *self, PyObject *args)
-{
+fire_event_py_unwind(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *exception;
@@ -412,8 +392,7 @@ fire_event_py_unwind(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-fire_event_stop_iteration(PyObject *self, PyObject *args)
-{
+fire_event_stop_iteration(PyObject *self, PyObject *args) {
     PyObject *codelike;
     int offset;
     PyObject *value;
@@ -433,38 +412,32 @@ fire_event_stop_iteration(PyObject *self, PyObject *args)
 /*******************************************************************/
 
 static PyObject *
-enter_scope(PyObject *self, PyObject *args)
-{
+enter_scope(PyObject *self, PyObject *args) {
     PyObject *codelike;
-    int event1, event2=0;
+    int event1, event2 = 0;
     Py_ssize_t num_events = PyTuple_Size(args) - 1;
     if (num_events == 1) {
         if (!PyArg_ParseTuple(args, "Oi", &codelike, &event1)) {
             return NULL;
         }
-    }
-    else {
+    } else {
         assert(num_events == 2);
         if (!PyArg_ParseTuple(args, "Oii", &codelike, &event1, &event2)) {
             return NULL;
         }
     }
     RAISE_UNLESS_CODELIKE(codelike);
-    PyCodeLikeObject *cl = (PyCodeLikeObject *) codelike;
+    PyCodeLikeObject *cl = (PyCodeLikeObject *)codelike;
 
-    uint8_t events[] = { event1, event2 };
+    uint8_t events[] = {event1, event2};
 
-    PyMonitoring_EnterScope(cl->monitoring_states,
-                            &cl->version,
-                            events,
-                            num_events);
+    PyMonitoring_EnterScope(cl->monitoring_states, &cl->version, events, num_events);
 
     Py_RETURN_NONE;
 }
 
 static PyObject *
-exit_scope(PyObject *self, PyObject *args)
-{
+exit_scope(PyObject *self, PyObject *args) {
     PyMonitoring_ExitScope();
     Py_RETURN_NONE;
 }
@@ -492,12 +465,11 @@ static PyMethodDef TestMethods[] = {
 };
 
 int
-_PyTestCapi_Init_Monitoring(PyObject *m)
-{
+_PyTestCapi_Init_Monitoring(PyObject *m) {
     if (PyType_Ready(&PyCodeLike_Type) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "CodeLike", (PyObject *) &PyCodeLike_Type) < 0) {
+    if (PyModule_AddObjectRef(m, "CodeLike", (PyObject *)&PyCodeLike_Type) < 0) {
         Py_DECREF(m);
         return -1;
     }

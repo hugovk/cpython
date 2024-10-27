@@ -5,8 +5,7 @@
  */
 
 static double
-_Py_log1p(double x)
-{
+_Py_log1p(double x) {
     /* Some platforms (e.g. MacOS X 10.8, see gh-59682) supply a log1p function
        but don't respect the sign of zero:  log1p(-0.0) gives 0.0 instead of
        the correct result of -0.0.
@@ -16,8 +15,7 @@ _Py_log1p(double x)
     */
     if (x == 0.0) {
         return x;
-    }
-    else {
+    } else {
         return log1p(x);
     }
 }

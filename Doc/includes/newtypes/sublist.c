@@ -7,35 +7,34 @@ typedef struct {
 } SubListObject;
 
 static PyObject *
-SubList_increment(SubListObject *self, PyObject *unused)
-{
+SubList_increment(SubListObject *self, PyObject *unused) {
     self->state++;
     return PyLong_FromLong(self->state);
 }
 
 static PyMethodDef SubList_methods[] = {
-    {"increment", (PyCFunction) SubList_increment, METH_NOARGS,
+    {"increment",
+     (PyCFunction)SubList_increment,
+     METH_NOARGS,
      PyDoc_STR("increment state counter")},
     {NULL},
 };
 
 static int
-SubList_init(SubListObject *self, PyObject *args, PyObject *kwds)
-{
-    if (PyList_Type.tp_init((PyObject *) self, args, kwds) < 0)
+SubList_init(SubListObject *self, PyObject *args, PyObject *kwds) {
+    if (PyList_Type.tp_init((PyObject *)self, args, kwds) < 0)
         return -1;
     self->state = 0;
     return 0;
 }
 
 static PyTypeObject SubListType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "sublist.SubList",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "sublist.SubList",
     .tp_doc = PyDoc_STR("SubList objects"),
     .tp_basicsize = sizeof(SubListObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_init = (initproc) SubList_init,
+    .tp_init = (initproc)SubList_init,
     .tp_methods = SubList_methods,
 };
 
@@ -47,8 +46,7 @@ static PyModuleDef sublistmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_sublist(void)
-{
+PyInit_sublist(void) {
     PyObject *m;
     SubListType.tp_base = &PyList_Type;
     if (PyType_Ready(&SubListType) < 0)
@@ -58,7 +56,7 @@ PyInit_sublist(void)
     if (m == NULL)
         return NULL;
 
-    if (PyModule_AddObjectRef(m, "SubList", (PyObject *) &SubListType) < 0) {
+    if (PyModule_AddObjectRef(m, "SubList", (PyObject *)&SubListType) < 0) {
         Py_DECREF(m);
         return NULL;
     }

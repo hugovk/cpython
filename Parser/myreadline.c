@@ -10,22 +10,21 @@
 */
 
 #include "Python.h"
-#include "pycore_fileutils.h"     // _Py_BEGIN_SUPPRESS_IPH
-#include "pycore_pystate.h"   // _PyThreadState_GET()
+#include "pycore_fileutils.h"  // _Py_BEGIN_SUPPRESS_IPH
+#include "pycore_pystate.h"    // _PyThreadState_GET()
 #ifdef MS_WINDOWS
-#  ifndef WIN32_LEAN_AND_MEAN
-#    define WIN32_LEAN_AND_MEAN
-#  endif
-#  include "windows.h"
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include "windows.h"
 #endif /* MS_WINDOWS */
 
 #ifdef HAVE_UNISTD_H
-#  include <unistd.h>             // isatty()
+#include <unistd.h>  // isatty()
 #endif
 
-
 // Export the symbol since it's used by the readline shared extension
-PyAPI_DATA(PyThreadState*) _PyOS_ReadlineTState;
+PyAPI_DATA(PyThreadState *) _PyOS_ReadlineTState;
 PyThreadState *_PyOS_ReadlineTState = NULL;
 
 static PyMutex _PyOS_ReadlineLock;
@@ -36,16 +35,14 @@ int (*PyOS_InputHook)(void) = NULL;
    except if _PyOS_InterruptOccurred() returns true. */
 
 static int
-my_fgets(PyThreadState* tstate, char *buf, int len, FILE *fp)
-{
+my_fgets(PyThreadState *tstate, char *buf, int len, FILE *fp) {
 #ifdef MS_WINDOWS
     HANDLE handle;
-    _Py_BEGIN_SUPPRESS_IPH
-    handle = (HANDLE)_get_osfhandle(fileno(fp));
+    _Py_BEGIN_SUPPRESS_IPH handle = (HANDLE)_get_osfhandle(fileno(fp));
     _Py_END_SUPPRESS_IPH
 
-    /* bpo-40826: fgets(fp) does crash if fileno(fp) is closed */
-    if (handle == INVALID_HANDLE_VALUE) {
+        /* bpo-40826: fgets(fp) does crash if fileno(fp) is closed */
+        if (handle == INVALID_HANDLE_VALUE) {
         return -1; /* EOF */
     }
 #endif
@@ -53,8 +50,7 @@ my_fgets(PyThreadState* tstate, char *buf, int len, FILE *fp)
     while (1) {
         if (PyOS_InputHook != NULL &&
             // GH-104668: See PyOS_ReadlineFunctionPointer's comment below...
-            _Py_IsMainInterpreter(tstate->interp))
-        {
+            _Py_IsMainInterpreter(tstate->interp)) {
             (void)(PyOS_InputHook)();
         }
 
@@ -80,14 +76,14 @@ my_fgets(PyThreadState* tstate, char *buf, int len, FILE *fp)
            isn't set assume that this is a Ctrl-Z on its own and drop
            through to check for EOF.
         */
-        if (GetLastError()==ERROR_OPERATION_ABORTED) {
+        if (GetLastError() == ERROR_OPERATION_ABORTED) {
             HANDLE hInterruptEvent = _PyOS_SigintEvent();
             switch (WaitForSingleObjectEx(hInterruptEvent, 10, FALSE)) {
-            case WAIT_OBJECT_0:
-                ResetEvent(hInterruptEvent);
-                return 1; /* Interrupt */
-            case WAIT_FAILED:
-                return -2; /* Error */
+                case WAIT_OBJECT_0:
+                    ResetEvent(hInterruptEvent);
+                    return 1; /* Interrupt */
+                case WAIT_FAILED:
+                    return -2; /* Error */
             }
         }
 #endif /* MS_WINDOWS */
@@ -122,11 +118,11 @@ my_fgets(PyThreadState* tstate, char *buf, int len, FILE *fp)
 #ifdef HAVE_WINDOWS_CONSOLE_IO
 /* Readline implementation using ReadConsoleW */
 
-extern char _get_console_type(HANDLE handle);
+extern char
+_get_console_type(HANDLE handle);
 
 char *
-_PyOS_WindowsConsoleReadline(PyThreadState *tstate, HANDLE hStdIn)
-{
+_PyOS_WindowsConsoleReadline(PyThreadState *tstate, HANDLE hStdIn) {
     static wchar_t wbuf_local[1024 * 16];
     const DWORD chunk_size = 1024;
 
@@ -142,11 +138,12 @@ _PyOS_WindowsConsoleReadline(PyThreadState *tstate, HANDLE hStdIn)
     while (1) {
         if (PyOS_InputHook != NULL &&
             // GH-104668: See PyOS_ReadlineFunctionPointer's comment below...
-            _Py_IsMainInterpreter(tstate->interp))
-        {
+            _Py_IsMainInterpreter(tstate->interp)) {
             (void)(PyOS_InputHook)();
         }
-        if (!ReadConsoleW(hStdIn, &wbuf[total_read], wbuflen - total_read, &n_read, NULL)) {
+        if (!ReadConsoleW(
+                hStdIn, &wbuf[total_read], wbuflen - total_read, &n_read, NULL
+            )) {
             err = GetLastError();
             goto exit;
         }
@@ -160,8 +157,7 @@ _PyOS_WindowsConsoleReadline(PyThreadState *tstate, HANDLE hStdIn)
                 goto exit;
             err = 0;
             HANDLE hInterruptEvent = _PyOS_SigintEvent();
-            if (WaitForSingleObjectEx(hInterruptEvent, 100, FALSE)
-                    == WAIT_OBJECT_0) {
+            if (WaitForSingleObjectEx(hInterruptEvent, 100, FALSE) == WAIT_OBJECT_0) {
                 ResetEvent(hInterruptEvent);
                 PyEval_RestoreThread(tstate);
                 s = PyErr_CheckSignals();
@@ -180,18 +176,16 @@ _PyOS_WindowsConsoleReadline(PyThreadState *tstate, HANDLE hStdIn)
         wbuflen += chunk_size;
         if (wbuf == wbuf_local) {
             wbuf[total_read] = '\0';
-            wbuf = (wchar_t*)PyMem_RawMalloc(wbuflen * sizeof(wchar_t));
+            wbuf = (wchar_t *)PyMem_RawMalloc(wbuflen * sizeof(wchar_t));
             if (wbuf) {
                 wcscpy_s(wbuf, wbuflen, wbuf_local);
-            }
-            else {
+            } else {
                 PyEval_RestoreThread(tstate);
                 PyErr_NoMemory();
                 PyEval_SaveThread();
                 goto exit;
             }
-        }
-        else {
+        } else {
             wchar_t *tmp = PyMem_RawRealloc(wbuf, wbuflen * sizeof(wchar_t));
             if (tmp == NULL) {
                 PyEval_RestoreThread(tstate);
@@ -207,8 +201,7 @@ _PyOS_WindowsConsoleReadline(PyThreadState *tstate, HANDLE hStdIn)
         buf = PyMem_RawMalloc(1);
         if (buf) {
             buf[0] = '\0';
-        }
-        else {
+        } else {
             PyEval_RestoreThread(tstate);
             PyErr_NoMemory();
             PyEval_SaveThread();
@@ -216,10 +209,7 @@ _PyOS_WindowsConsoleReadline(PyThreadState *tstate, HANDLE hStdIn)
         goto exit;
     }
 
-    u8len = WideCharToMultiByte(CP_UTF8, 0,
-                                wbuf, total_read,
-                                NULL, 0,
-                                NULL, NULL);
+    u8len = WideCharToMultiByte(CP_UTF8, 0, wbuf, total_read, NULL, 0, NULL, NULL);
     buf = PyMem_RawMalloc(u8len + 1);
     if (buf == NULL) {
         PyEval_RestoreThread(tstate);
@@ -228,10 +218,7 @@ _PyOS_WindowsConsoleReadline(PyThreadState *tstate, HANDLE hStdIn)
         goto exit;
     }
 
-    u8len = WideCharToMultiByte(CP_UTF8, 0,
-                                wbuf, total_read,
-                                buf, u8len,
-                                NULL, NULL);
+    u8len = WideCharToMultiByte(CP_UTF8, 0, wbuf, total_read, buf, u8len, NULL, NULL);
     buf[u8len] = '\0';
 
 exit:
@@ -249,12 +236,10 @@ exit:
 
 #endif /* HAVE_WINDOWS_CONSOLE_IO */
 
-
 /* Readline implementation using fgets() */
 
 char *
-PyOS_StdioReadline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
-{
+PyOS_StdioReadline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt) {
     size_t n;
     char *p, *pr;
     PyThreadState *tstate = _PyOS_ReadlineTState;
@@ -274,8 +259,7 @@ PyOS_StdioReadline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
                 if (_get_console_type(hStdErr) == 'w') {
                     wchar_t *wbuf;
                     int wlen;
-                    wlen = MultiByteToWideChar(CP_UTF8, 0, prompt, -1,
-                            NULL, 0);
+                    wlen = MultiByteToWideChar(CP_UTF8, 0, prompt, -1, NULL, 0);
                     if (wlen) {
                         wbuf = PyMem_RawMalloc(wlen * sizeof(wchar_t));
                         if (wbuf == NULL) {
@@ -284,8 +268,7 @@ PyOS_StdioReadline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
                             PyEval_SaveThread();
                             return NULL;
                         }
-                        wlen = MultiByteToWideChar(CP_UTF8, 0, prompt, -1,
-                                wbuf, wlen);
+                        wlen = MultiByteToWideChar(CP_UTF8, 0, prompt, -1, wbuf, wlen);
                         if (wlen) {
                             DWORD n;
                             fflush(stderr);
@@ -342,9 +325,9 @@ PyOS_StdioReadline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
             break;
         }
         n += strlen(p + n);
-    } while (p[n-1] != '\n');
+    } while (p[n - 1] != '\n');
 
-    pr = (char *)PyMem_RawRealloc(p, n+1);
+    pr = (char *)PyMem_RawRealloc(p, n + 1);
     if (pr == NULL) {
         PyMem_RawFree(p);
         PyEval_RestoreThread(tstate);
@@ -355,7 +338,6 @@ PyOS_StdioReadline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
     return pr;
 }
 
-
 /* By initializing this function pointer, systems embedding Python can
    override the readline function.
 
@@ -363,27 +345,23 @@ PyOS_StdioReadline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
 
 char *(*PyOS_ReadlineFunctionPointer)(FILE *, FILE *, const char *) = NULL;
 
-
 /* Interface used by file_tokenizer.c and bltinmodule.c */
 
 char *
-PyOS_Readline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
-{
+PyOS_Readline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt) {
     char *rv, *res;
     size_t len;
 
     PyThreadState *tstate = _PyThreadState_GET();
     if (_Py_atomic_load_ptr_relaxed(&_PyOS_ReadlineTState) == tstate) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "can't re-enter readline");
+        PyErr_SetString(PyExc_RuntimeError, "can't re-enter readline");
         return NULL;
     }
 
     // GH-123321: We need to acquire the lock before setting
     // _PyOS_ReadlineTState, otherwise the variable may be nullified by a
     // different thread.
-    Py_BEGIN_ALLOW_THREADS
-    PyMutex_Lock(&_PyOS_ReadlineLock);
+    Py_BEGIN_ALLOW_THREADS PyMutex_Lock(&_PyOS_ReadlineLock);
     _Py_atomic_store_ptr_relaxed(&_PyOS_ReadlineTState, tstate);
     if (PyOS_ReadlineFunctionPointer == NULL) {
         PyOS_ReadlineFunctionPointer = PyOS_StdioReadline;
@@ -404,11 +382,9 @@ PyOS_Readline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
         // work per-interpreter and have ways to access module state, we can
         // certainly add them later (but for now we'll cross our fingers and
         // hope that nobody actually cares):
-        !_Py_IsMainInterpreter(tstate->interp))
-    {
+        !_Py_IsMainInterpreter(tstate->interp)) {
         rv = PyOS_StdioReadline(sys_stdin, sys_stdout, prompt);
-    }
-    else {
+    } else {
         rv = (*PyOS_ReadlineFunctionPointer)(sys_stdin, sys_stdout, prompt);
     }
 
@@ -418,15 +394,13 @@ PyOS_Readline(FILE *sys_stdin, FILE *sys_stdout, const char *prompt)
     PyMutex_Unlock(&_PyOS_ReadlineLock);
     Py_END_ALLOW_THREADS
 
-    if (rv == NULL)
-        return NULL;
+        if (rv == NULL) return NULL;
 
     len = strlen(rv) + 1;
     res = PyMem_Malloc(len);
     if (res != NULL) {
         memcpy(res, rv, len);
-    }
-    else {
+    } else {
         PyErr_NoMemory();
     }
     PyMem_RawFree(rv);

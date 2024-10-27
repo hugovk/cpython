@@ -1,5 +1,5 @@
 #ifndef Py_CPYTHON_CRITICAL_SECTION_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 // Python critical sections
@@ -70,27 +70,20 @@
 typedef struct PyCriticalSection PyCriticalSection;
 typedef struct PyCriticalSection2 PyCriticalSection2;
 
-PyAPI_FUNC(void)
-PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op);
+PyAPI_FUNC(void) PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op);
+
+PyAPI_FUNC(void) PyCriticalSection_End(PyCriticalSection *c);
 
 PyAPI_FUNC(void)
-PyCriticalSection_End(PyCriticalSection *c);
+    PyCriticalSection2_Begin(PyCriticalSection2 *c, PyObject *a, PyObject *b);
 
-PyAPI_FUNC(void)
-PyCriticalSection2_Begin(PyCriticalSection2 *c, PyObject *a, PyObject *b);
-
-PyAPI_FUNC(void)
-PyCriticalSection2_End(PyCriticalSection2 *c);
+PyAPI_FUNC(void) PyCriticalSection2_End(PyCriticalSection2 *c);
 
 #ifndef Py_GIL_DISABLED
-# define Py_BEGIN_CRITICAL_SECTION(op)      \
-    {
-# define Py_END_CRITICAL_SECTION()          \
-    }
-# define Py_BEGIN_CRITICAL_SECTION2(a, b)   \
-    {
-# define Py_END_CRITICAL_SECTION2()         \
-    }
+#define Py_BEGIN_CRITICAL_SECTION(op) {
+#define Py_END_CRITICAL_SECTION() }
+#define Py_BEGIN_CRITICAL_SECTION2(a, b) {
+#define Py_END_CRITICAL_SECTION2() }
 #else /* !Py_GIL_DISABLED */
 
 // NOTE: the contents of this struct are private and may change betweeen
@@ -113,22 +106,22 @@ struct PyCriticalSection2 {
     PyMutex *_cs_mutex2;
 };
 
-# define Py_BEGIN_CRITICAL_SECTION(op)                                  \
-    {                                                                   \
-        PyCriticalSection _py_cs;                                       \
+#define Py_BEGIN_CRITICAL_SECTION(op) \
+    {                                 \
+        PyCriticalSection _py_cs;     \
         PyCriticalSection_Begin(&_py_cs, _PyObject_CAST(op))
 
-# define Py_END_CRITICAL_SECTION()                                      \
-        PyCriticalSection_End(&_py_cs);                                 \
+#define Py_END_CRITICAL_SECTION()   \
+    PyCriticalSection_End(&_py_cs); \
     }
 
-# define Py_BEGIN_CRITICAL_SECTION2(a, b)                               \
-    {                                                                   \
-        PyCriticalSection2 _py_cs2;                                     \
+#define Py_BEGIN_CRITICAL_SECTION2(a, b) \
+    {                                    \
+        PyCriticalSection2 _py_cs2;      \
         PyCriticalSection2_Begin(&_py_cs2, _PyObject_CAST(a), _PyObject_CAST(b))
 
-# define Py_END_CRITICAL_SECTION2()                                     \
-        PyCriticalSection2_End(&_py_cs2);                               \
+#define Py_END_CRITICAL_SECTION2()    \
+    PyCriticalSection2_End(&_py_cs2); \
     }
 
 #endif

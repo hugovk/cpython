@@ -1,9 +1,9 @@
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
-#include "pycore_pylifecycle.h"   // _Py_gitidentifier()
+#include "pycore_pylifecycle.h"  // _Py_gitidentifier()
 
 #ifndef DONT_HAVE_STDIO_H
 #include <stdio.h>
@@ -37,13 +37,12 @@
 #endif
 
 static int initialized = 0;
-static char buildinfo[50 + sizeof(GITVERSION) +
-                      ((sizeof(GITTAG) > sizeof(GITBRANCH)) ?
-                       sizeof(GITTAG) : sizeof(GITBRANCH))];
+static char buildinfo
+    [50 + sizeof(GITVERSION) +
+     ((sizeof(GITTAG) > sizeof(GITBRANCH)) ? sizeof(GITTAG) : sizeof(GITBRANCH))];
 
 const char *
-Py_GetBuildInfo(void)
-{
+Py_GetBuildInfo(void) {
     if (initialized) {
         return buildinfo;
     }
@@ -54,21 +53,26 @@ Py_GetBuildInfo(void)
     if (!(*gitid)) {
         gitid = "main";
     }
-    PyOS_snprintf(buildinfo, sizeof(buildinfo),
-                  "%s%s%s, %.20s, %.9s", gitid, sep, revision,
-                  DATE, TIME);
+    PyOS_snprintf(
+        buildinfo,
+        sizeof(buildinfo),
+        "%s%s%s, %.20s, %.9s",
+        gitid,
+        sep,
+        revision,
+        DATE,
+        TIME
+    );
     return buildinfo;
 }
 
 const char *
-_Py_gitversion(void)
-{
+_Py_gitversion(void) {
     return GITVERSION;
 }
 
 const char *
-_Py_gitidentifier(void)
-{
+_Py_gitidentifier(void) {
     const char *gittag, *gitid;
     gittag = GITTAG;
     if ((*gittag) && strcmp(gittag, "undefined") != 0)

@@ -39,41 +39,42 @@
 #define ENABLE_SPECIALIZATION (0)
 
 #undef GOTO_ERROR
-#define GOTO_ERROR(LABEL)        \
-    do {                         \
-        goto LABEL ## _tier_two; \
+#define GOTO_ERROR(LABEL)      \
+    do {                       \
+        goto LABEL##_tier_two; \
     } while (0)
 
 #undef GOTO_TIER_TWO
-#define GOTO_TIER_TWO(EXECUTOR) \
-do {  \
-    OPT_STAT_INC(traces_executed);                \
-    __attribute__((musttail))                     \
-    return ((jit_func)((EXECUTOR)->jit_side_entry))(frame, stack_pointer, tstate); \
-} while (0)
+#define GOTO_TIER_TWO(EXECUTOR)                                                    \
+    do {                                                                           \
+        OPT_STAT_INC(traces_executed);                                             \
+        __attribute__((musttail)) return ((jit_func)((EXECUTOR)->jit_side_entry))( \
+            frame, stack_pointer, tstate                                           \
+        );                                                                         \
+    } while (0)
 
 #undef GOTO_TIER_ONE
-#define GOTO_TIER_ONE(TARGET) \
-do {  \
-    _PyFrame_SetStackPointer(frame, stack_pointer); \
-    return TARGET; \
-} while (0)
+#define GOTO_TIER_ONE(TARGET)                           \
+    do {                                                \
+        _PyFrame_SetStackPointer(frame, stack_pointer); \
+        return TARGET;                                  \
+    } while (0)
 
 #undef LOAD_IP
 #define LOAD_IP(UNUSED) \
     do {                \
     } while (0)
 
-#define PATCH_VALUE(TYPE, NAME, ALIAS)  \
-    PyAPI_DATA(void) ALIAS;             \
+#define PATCH_VALUE(TYPE, NAME, ALIAS) \
+    PyAPI_DATA(void) ALIAS;            \
     TYPE NAME = (TYPE)(uintptr_t)&ALIAS;
 
-#define PATCH_JUMP(ALIAS)                                    \
-do {                                                         \
-    PyAPI_DATA(void) ALIAS;                                  \
-    __attribute__((musttail))                                \
-    return ((jit_func)&ALIAS)(frame, stack_pointer, tstate); \
-} while (0)
+#define PATCH_JUMP(ALIAS)                                            \
+    do {                                                             \
+        PyAPI_DATA(void) ALIAS;                                      \
+        __attribute__((musttail)                                     \
+        ) return ((jit_func) & ALIAS)(frame, stack_pointer, tstate); \
+    } while (0)
 
 #undef JUMP_TO_JUMP_TARGET
 #define JUMP_TO_JUMP_TARGET() PATCH_JUMP(_JIT_JUMP_TARGET)
@@ -87,8 +88,9 @@ do {                                                         \
 #define TIER_TWO 2
 
 _Py_CODEUNIT *
-_JIT_ENTRY(_PyInterpreterFrame *frame, _PyStackRef *stack_pointer, PyThreadState *tstate)
-{
+_JIT_ENTRY(
+    _PyInterpreterFrame *frame, _PyStackRef *stack_pointer, PyThreadState *tstate
+) {
     // Locals that the instruction implementations expect to exist:
     PATCH_VALUE(_PyExecutorObject *, current_executor, _JIT_EXECUTOR)
     int oparg;
@@ -111,9 +113,7 @@ _JIT_ENTRY(_PyInterpreterFrame *frame, _PyStackRef *stack_pointer, PyThreadState
 
     switch (uopcode) {
         // The actual instruction definition gets inserted here:
-        CASE
-        default:
-            Py_UNREACHABLE();
+        CASE default : Py_UNREACHABLE();
     }
     PATCH_JUMP(_JIT_CONTINUE);
     // Labels that the instruction implementations expect to exist:

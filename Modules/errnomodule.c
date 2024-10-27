@@ -1,63 +1,62 @@
 /* Errno module */
 
 // Need limited C API version 3.13 for Py_mod_gil
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #ifndef Py_GIL_DISABLED
-#  define Py_LIMITED_API 0x030d0000
+#define Py_LIMITED_API 0x030d0000
 #endif
 
 #include "Python.h"
-#include <errno.h>                // EPIPE
+#include <errno.h>  // EPIPE
 
 /* Windows socket errors (WSA*)  */
 #ifdef MS_WINDOWS
-#  ifndef WIN32_LEAN_AND_MEAN
-#    define WIN32_LEAN_AND_MEAN
-#  endif
-#  include <windows.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
 
-   // The following constants were added to errno.h in VS2010 but have
-   // preferred WSA equivalents.
-#  undef EADDRINUSE
-#  undef EADDRNOTAVAIL
-#  undef EAFNOSUPPORT
-#  undef EALREADY
-#  undef ECONNABORTED
-#  undef ECONNREFUSED
-#  undef ECONNRESET
-#  undef EDESTADDRREQ
-#  undef EHOSTUNREACH
-#  undef EINPROGRESS
-#  undef EISCONN
-#  undef ELOOP
-#  undef EMSGSIZE
-#  undef ENETDOWN
-#  undef ENETRESET
-#  undef ENETUNREACH
-#  undef ENOBUFS
-#  undef ENOPROTOOPT
-#  undef ENOTCONN
-#  undef ENOTSOCK
-#  undef EOPNOTSUPP
-#  undef EPROTONOSUPPORT
-#  undef EPROTOTYPE
-#  undef ETIMEDOUT
-#  undef EWOULDBLOCK
+// The following constants were added to errno.h in VS2010 but have
+// preferred WSA equivalents.
+#undef EADDRINUSE
+#undef EADDRNOTAVAIL
+#undef EAFNOSUPPORT
+#undef EALREADY
+#undef ECONNABORTED
+#undef ECONNREFUSED
+#undef ECONNRESET
+#undef EDESTADDRREQ
+#undef EHOSTUNREACH
+#undef EINPROGRESS
+#undef EISCONN
+#undef ELOOP
+#undef EMSGSIZE
+#undef ENETDOWN
+#undef ENETRESET
+#undef ENETUNREACH
+#undef ENOBUFS
+#undef ENOPROTOOPT
+#undef ENOTCONN
+#undef ENOTSOCK
+#undef EOPNOTSUPP
+#undef EPROTONOSUPPORT
+#undef EPROTOTYPE
+#undef ETIMEDOUT
+#undef EWOULDBLOCK
 #endif
 
 /*
  * Pull in the system error definitions
  */
 
-static PyMethodDef errno_methods[] = {
-    {NULL,              NULL}
-};
+static PyMethodDef errno_methods[] = {{NULL, NULL}};
 
 /* Helper function doing the dictionary inserting */
 
 static int
-_add_errcode(PyObject *module_dict, PyObject *error_dict, const char *name_str, int code_int)
-{
+_add_errcode(
+    PyObject *module_dict, PyObject *error_dict, const char *name_str, int code_int
+) {
     PyObject *name = PyUnicode_FromString(name_str);
     if (!name) {
         return -1;
@@ -86,8 +85,7 @@ end:
 }
 
 static int
-errno_exec(PyObject *module)
-{
+errno_exec(PyObject *module) {
     PyObject *module_dict = PyModule_GetDict(module);  // Borrowed ref.
     if (module_dict == NULL) {
         return -1;
@@ -102,12 +100,12 @@ errno_exec(PyObject *module)
     }
 
 /* Macro so I don't have to edit each and every line below... */
-#define add_errcode(name, code, comment)                               \
-    do {                                                               \
-        if (_add_errcode(module_dict, error_dict, name, code) < 0) {   \
-            Py_DECREF(error_dict);                                     \
-            return -1;                                                 \
-        }                                                              \
+#define add_errcode(name, code, comment)                             \
+    do {                                                             \
+        if (_add_errcode(module_dict, error_dict, name, code) < 0) { \
+            Py_DECREF(error_dict);                                   \
+            return -1;                                               \
+        }                                                            \
     } while (0);
 
     /*
@@ -236,10 +234,14 @@ errno_exec(PyObject *module)
 #endif
 #endif
 #ifdef EAFNOSUPPORT
-    add_errcode("EAFNOSUPPORT", EAFNOSUPPORT, "Address family not supported by protocol");
+    add_errcode(
+        "EAFNOSUPPORT", EAFNOSUPPORT, "Address family not supported by protocol"
+    );
 #else
 #ifdef WSAEAFNOSUPPORT
-    add_errcode("EAFNOSUPPORT", WSAEAFNOSUPPORT, "Address family not supported by protocol");
+    add_errcode(
+        "EAFNOSUPPORT", WSAEAFNOSUPPORT, "Address family not supported by protocol"
+    );
 #endif
 #endif
 #ifdef EBADR
@@ -293,14 +295,18 @@ errno_exec(PyObject *module)
     add_errcode("ENOANO", ENOANO, "No anode");
 #endif
 #if defined(__wasi__) && !defined(ESHUTDOWN)
-    // WASI SDK 16 does not have ESHUTDOWN, shutdown results in EPIPE.
-    #define ESHUTDOWN EPIPE
+// WASI SDK 16 does not have ESHUTDOWN, shutdown results in EPIPE.
+#define ESHUTDOWN EPIPE
 #endif
 #ifdef ESHUTDOWN
-    add_errcode("ESHUTDOWN", ESHUTDOWN, "Cannot send after transport endpoint shutdown");
+    add_errcode(
+        "ESHUTDOWN", ESHUTDOWN, "Cannot send after transport endpoint shutdown"
+    );
 #else
 #ifdef WSAESHUTDOWN
-    add_errcode("ESHUTDOWN", WSAESHUTDOWN, "Cannot send after transport endpoint shutdown");
+    add_errcode(
+        "ESHUTDOWN", WSAESHUTDOWN, "Cannot send after transport endpoint shutdown"
+    );
 #endif
 #endif
 #ifdef ECHRNG
@@ -450,7 +456,9 @@ errno_exec(PyObject *module)
     add_errcode("ENETRESET", ENETRESET, "Network dropped connection because of reset");
 #else
 #ifdef WSAENETRESET
-    add_errcode("ENETRESET", WSAENETRESET, "Network dropped connection because of reset");
+    add_errcode(
+        "ENETRESET", WSAENETRESET, "Network dropped connection because of reset"
+    );
 #endif
 #endif
 #ifdef ETIMEDOUT
@@ -585,10 +593,14 @@ errno_exec(PyObject *module)
 #endif
 #endif
 #ifdef EOPNOTSUPP
-    add_errcode("EOPNOTSUPP", EOPNOTSUPP, "Operation not supported on transport endpoint");
+    add_errcode(
+        "EOPNOTSUPP", EOPNOTSUPP, "Operation not supported on transport endpoint"
+    );
 #else
 #ifdef WSAEOPNOTSUPP
-    add_errcode("EOPNOTSUPP", WSAEOPNOTSUPP, "Operation not supported on transport endpoint");
+    add_errcode(
+        "EOPNOTSUPP", WSAEOPNOTSUPP, "Operation not supported on transport endpoint"
+    );
 #endif
 #endif
 #ifdef EREMCHG
@@ -714,13 +726,19 @@ errno_exec(PyObject *module)
     add_errcode("WSAENOTEMPTY", WSAENOTEMPTY, "Directory not empty");
 #endif
 #ifdef WSAESHUTDOWN
-    add_errcode("WSAESHUTDOWN", WSAESHUTDOWN, "Cannot send after transport endpoint shutdown");
+    add_errcode(
+        "WSAESHUTDOWN", WSAESHUTDOWN, "Cannot send after transport endpoint shutdown"
+    );
 #endif
 #ifdef WSAEAFNOSUPPORT
-    add_errcode("WSAEAFNOSUPPORT", WSAEAFNOSUPPORT, "Address family not supported by protocol");
+    add_errcode(
+        "WSAEAFNOSUPPORT", WSAEAFNOSUPPORT, "Address family not supported by protocol"
+    );
 #endif
 #ifdef WSAETOOMANYREFS
-    add_errcode("WSAETOOMANYREFS", WSAETOOMANYREFS, "Too many references: cannot splice");
+    add_errcode(
+        "WSAETOOMANYREFS", WSAETOOMANYREFS, "Too many references: cannot splice"
+    );
 #endif
 #ifdef WSAEACCES
     add_errcode("WSAEACCES", WSAEACCES, "Permission denied");
@@ -768,7 +786,9 @@ errno_exec(PyObject *module)
     add_errcode("WSAEADDRINUSE", WSAEADDRINUSE, "Address already in use");
 #endif
 #ifdef WSAEADDRNOTAVAIL
-    add_errcode("WSAEADDRNOTAVAIL", WSAEADDRNOTAVAIL, "Cannot assign requested address");
+    add_errcode(
+        "WSAEADDRNOTAVAIL", WSAEADDRNOTAVAIL, "Cannot assign requested address"
+    );
 #endif
 #ifdef WSAEALREADY
     add_errcode("WSAEALREADY", WSAEALREADY, "Operation already in progress");
@@ -786,7 +806,9 @@ errno_exec(PyObject *module)
     add_errcode("WSAEPFNOSUPPORT", WSAEPFNOSUPPORT, "Protocol family not supported");
 #endif
 #ifdef WSAEOPNOTSUPP
-    add_errcode("WSAEOPNOTSUPP", WSAEOPNOTSUPP, "Operation not supported on transport endpoint");
+    add_errcode(
+        "WSAEOPNOTSUPP", WSAEOPNOTSUPP, "Operation not supported on transport endpoint"
+    );
 #endif
 #ifdef WSAEISCONN
     add_errcode("WSAEISCONN", WSAEISCONN, "Transport endpoint is already connected");
@@ -828,7 +850,9 @@ errno_exec(PyObject *module)
     add_errcode("WSAECONNREFUSED", WSAECONNREFUSED, "Connection refused");
 #endif
 #ifdef WSAENETRESET
-    add_errcode("WSAENETRESET", WSAENETRESET, "Network dropped connection because of reset");
+    add_errcode(
+        "WSAENETRESET", WSAENETRESET, "Network dropped connection because of reset"
+    );
 #endif
 #ifdef WSAN
     add_errcode("WSAN", WSAN, "Error WSAN");
@@ -955,8 +979,9 @@ static PyModuleDef_Slot errno_slots[] = {
     {0, NULL}
 };
 
-PyDoc_STRVAR(errno__doc__,
-"This module makes available standard errno system symbols.\n\
+PyDoc_STRVAR(
+    errno__doc__,
+    "This module makes available standard errno system symbols.\n\
 \n\
 The value of each symbol is the corresponding integer value,\n\
 e.g., on most systems, errno.ENOENT equals the integer 2.\n\
@@ -967,7 +992,8 @@ e.g., errno.errorcode[2] could be the string 'ENOENT'.\n\
 Symbols that are not relevant to the underlying system are not defined.\n\
 \n\
 To map error codes to error messages, use the function os.strerror(),\n\
-e.g. os.strerror(2) could return 'No such file or directory'.");
+e.g. os.strerror(2) could return 'No such file or directory'."
+);
 
 static struct PyModuleDef errnomodule = {
     PyModuleDef_HEAD_INIT,
@@ -979,7 +1005,6 @@ static struct PyModuleDef errnomodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_errno(void)
-{
+PyInit_errno(void) {
     return PyModuleDef_Init(&errnomodule);
 }

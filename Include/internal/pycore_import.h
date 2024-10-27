@@ -6,36 +6,40 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_lock.h"          // PyMutex
-#include "pycore_hashtable.h"     // _Py_hashtable_t
+#include "pycore_lock.h"       // PyMutex
+#include "pycore_hashtable.h"  // _Py_hashtable_t
 
-extern int _PyImport_IsInitialized(PyInterpreterState *);
+extern int
+_PyImport_IsInitialized(PyInterpreterState *);
 
 // Export for 'pyexpat' shared extension
 PyAPI_FUNC(int) _PyImport_SetModule(PyObject *name, PyObject *module);
 
-extern int _PyImport_SetModuleString(const char *name, PyObject* module);
+extern int
+_PyImport_SetModuleString(const char *name, PyObject *module);
 
-extern void _PyImport_AcquireLock(PyInterpreterState *interp);
-extern void _PyImport_ReleaseLock(PyInterpreterState *interp);
+extern void
+_PyImport_AcquireLock(PyInterpreterState *interp);
+extern void
+_PyImport_ReleaseLock(PyInterpreterState *interp);
 
 // This is used exclusively for the sys and builtins modules:
-extern int _PyImport_FixupBuiltin(
+extern int
+_PyImport_FixupBuiltin(
     PyThreadState *tstate,
     PyObject *mod,
-    const char *name,            /* UTF-8 encoded string */
+    const char *name, /* UTF-8 encoded string */
     PyObject *modules
-    );
+);
 
 // Export for many shared extensions, like '_json'
-PyAPI_FUNC(PyObject*) _PyImport_GetModuleAttr(PyObject *, PyObject *);
+PyAPI_FUNC(PyObject *) _PyImport_GetModuleAttr(PyObject *, PyObject *);
 
 // Export for many shared extensions, like '_datetime'
-PyAPI_FUNC(PyObject*) _PyImport_GetModuleAttrString(const char *, const char *);
-
+PyAPI_FUNC(PyObject *) _PyImport_GetModuleAttrString(const char *, const char *);
 
 struct _import_runtime_state {
     /* The builtin modules (defined in config.c). */
@@ -57,7 +61,7 @@ struct _import_runtime_state {
         _Py_hashtable_t *hashtable;
     } extensions;
     /* Package context -- the full module name for package imports */
-    const char * pkgcontext;
+    const char *pkgcontext;
 };
 
 struct _import_state {
@@ -104,90 +108,100 @@ struct _import_state {
 };
 
 #ifdef HAVE_DLOPEN
-#  include <dlfcn.h>              // RTLD_NOW, RTLD_LAZY
-#  if HAVE_DECL_RTLD_NOW
-#    define _Py_DLOPEN_FLAGS RTLD_NOW
-#  else
-#    define _Py_DLOPEN_FLAGS RTLD_LAZY
-#  endif
-#  define DLOPENFLAGS_INIT .dlopenflags = _Py_DLOPEN_FLAGS,
+#include <dlfcn.h>  // RTLD_NOW, RTLD_LAZY
+#if HAVE_DECL_RTLD_NOW
+#define _Py_DLOPEN_FLAGS RTLD_NOW
 #else
-#  define _Py_DLOPEN_FLAGS 0
-#  define DLOPENFLAGS_INIT
+#define _Py_DLOPEN_FLAGS RTLD_LAZY
+#endif
+#define DLOPENFLAGS_INIT .dlopenflags = _Py_DLOPEN_FLAGS,
+#else
+#define _Py_DLOPEN_FLAGS 0
+#define DLOPENFLAGS_INIT
 #endif
 
-#define IMPORTS_INIT \
-    { \
-        DLOPENFLAGS_INIT \
-        .find_and_load = { \
-            .header = 1, \
-        }, \
+#define IMPORTS_INIT                     \
+    {                                    \
+        DLOPENFLAGS_INIT.find_and_load = \
+            {                            \
+                .header = 1,             \
+            },                           \
     }
 
-extern void _PyImport_ClearCore(PyInterpreterState *interp);
+extern void
+_PyImport_ClearCore(PyInterpreterState *interp);
 
-extern Py_ssize_t _PyImport_GetNextModuleIndex(void);
-extern const char * _PyImport_ResolveNameWithPackageContext(const char *name);
-extern const char * _PyImport_SwapPackageContext(const char *newcontext);
+extern Py_ssize_t
+_PyImport_GetNextModuleIndex(void);
+extern const char *
+_PyImport_ResolveNameWithPackageContext(const char *name);
+extern const char *
+_PyImport_SwapPackageContext(const char *newcontext);
 
-extern int _PyImport_GetDLOpenFlags(PyInterpreterState *interp);
-extern void _PyImport_SetDLOpenFlags(PyInterpreterState *interp, int new_val);
+extern int
+_PyImport_GetDLOpenFlags(PyInterpreterState *interp);
+extern void
+_PyImport_SetDLOpenFlags(PyInterpreterState *interp, int new_val);
 
-extern PyObject * _PyImport_InitModules(PyInterpreterState *interp);
-extern PyObject * _PyImport_GetModules(PyInterpreterState *interp);
-extern void _PyImport_ClearModules(PyInterpreterState *interp);
+extern PyObject *
+_PyImport_InitModules(PyInterpreterState *interp);
+extern PyObject *
+_PyImport_GetModules(PyInterpreterState *interp);
+extern void
+_PyImport_ClearModules(PyInterpreterState *interp);
 
-extern void _PyImport_ClearModulesByIndex(PyInterpreterState *interp);
+extern void
+_PyImport_ClearModulesByIndex(PyInterpreterState *interp);
 
-extern int _PyImport_InitDefaultImportFunc(PyInterpreterState *interp);
-extern int _PyImport_IsDefaultImportFunc(
-        PyInterpreterState *interp,
-        PyObject *func);
+extern int
+_PyImport_InitDefaultImportFunc(PyInterpreterState *interp);
+extern int
+_PyImport_IsDefaultImportFunc(PyInterpreterState *interp, PyObject *func);
 
-extern PyObject * _PyImport_GetImportlibLoader(
-        PyInterpreterState *interp,
-        const char *loader_name);
-extern PyObject * _PyImport_GetImportlibExternalLoader(
-        PyInterpreterState *interp,
-        const char *loader_name);
-extern PyObject * _PyImport_BlessMyLoader(
-        PyInterpreterState *interp,
-        PyObject *module_globals);
-extern PyObject * _PyImport_ImportlibModuleRepr(
-        PyInterpreterState *interp,
-        PyObject *module);
+extern PyObject *
+_PyImport_GetImportlibLoader(PyInterpreterState *interp, const char *loader_name);
+extern PyObject *
+_PyImport_GetImportlibExternalLoader(
+    PyInterpreterState *interp, const char *loader_name
+);
+extern PyObject *
+_PyImport_BlessMyLoader(PyInterpreterState *interp, PyObject *module_globals);
+extern PyObject *
+_PyImport_ImportlibModuleRepr(PyInterpreterState *interp, PyObject *module);
 
+extern PyStatus
+_PyImport_Init(void);
+extern void
+_PyImport_Fini(void);
+extern void
+_PyImport_Fini2(void);
 
-extern PyStatus _PyImport_Init(void);
-extern void _PyImport_Fini(void);
-extern void _PyImport_Fini2(void);
+extern PyStatus
+_PyImport_InitCore(PyThreadState *tstate, PyObject *sysmod, int importlib);
+extern PyStatus
+_PyImport_InitExternal(PyThreadState *tstate);
+extern void
+_PyImport_FiniCore(PyInterpreterState *interp);
+extern void
+_PyImport_FiniExternal(PyInterpreterState *interp);
 
-extern PyStatus _PyImport_InitCore(
-        PyThreadState *tstate,
-        PyObject *sysmod,
-        int importlib);
-extern PyStatus _PyImport_InitExternal(PyThreadState *tstate);
-extern void _PyImport_FiniCore(PyInterpreterState *interp);
-extern void _PyImport_FiniExternal(PyInterpreterState *interp);
-
-
-extern PyObject* _PyImport_GetBuiltinModuleNames(void);
+extern PyObject *
+_PyImport_GetBuiltinModuleNames(void);
 
 struct _module_alias {
-    const char *name;                 /* ASCII encoded string */
-    const char *orig;                 /* ASCII encoded string */
+    const char *name; /* ASCII encoded string */
+    const char *orig; /* ASCII encoded string */
 };
 
 // Export these 3 symbols for test_ctypes
-PyAPI_DATA(const struct _frozen*) _PyImport_FrozenBootstrap;
-PyAPI_DATA(const struct _frozen*) _PyImport_FrozenStdlib;
-PyAPI_DATA(const struct _frozen*) _PyImport_FrozenTest;
+PyAPI_DATA(const struct _frozen *) _PyImport_FrozenBootstrap;
+PyAPI_DATA(const struct _frozen *) _PyImport_FrozenStdlib;
+PyAPI_DATA(const struct _frozen *) _PyImport_FrozenTest;
 
-extern const struct _module_alias * _PyImport_FrozenAliases;
+extern const struct _module_alias *_PyImport_FrozenAliases;
 
-extern int _PyImport_CheckSubinterpIncompatibleExtensionAllowed(
-    const char *name);
-
+extern int
+_PyImport_CheckSubinterpIncompatibleExtensionAllowed(const char *name);
 
 // Export for '_testinternalcapi' shared extension
 PyAPI_FUNC(int) _PyImport_ClearExtension(PyObject *name, PyObject *filename);
@@ -202,7 +216,8 @@ PyAPI_FUNC(int) _PyImport_ClearExtension(PyObject *name, PyObject *filename);
 //   enabled permanently, issue a warning referencing the module's name.
 //
 // This function may raise an exception.
-extern int _PyImport_CheckGILForModule(PyObject *module, PyObject *module_name);
+extern int
+_PyImport_CheckGILForModule(PyObject *module, PyObject *module_name);
 #endif
 
 #ifdef __cplusplus

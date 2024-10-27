@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 // _PyObjectStack is a stack of Python objects implemented as a linked list of
@@ -25,7 +25,6 @@ typedef struct _PyObjectStack {
     _PyObjectStackChunk *head;
 } _PyObjectStack;
 
-
 extern _PyObjectStackChunk *
 _PyObjectStackChunk_New(void);
 
@@ -34,8 +33,7 @@ _PyObjectStackChunk_Free(_PyObjectStackChunk *);
 
 // Push an item onto the stack. Return -1 on allocation failure, 0 on success.
 static inline int
-_PyObjectStack_Push(_PyObjectStack *stack, PyObject *obj)
-{
+_PyObjectStack_Push(_PyObjectStack *stack, PyObject *obj) {
     _PyObjectStackChunk *buf = stack->head;
     if (buf == NULL || buf->n == _Py_OBJECT_STACK_CHUNK_SIZE) {
         buf = _PyObjectStackChunk_New();
@@ -55,8 +53,7 @@ _PyObjectStack_Push(_PyObjectStack *stack, PyObject *obj)
 
 // Pop the top item from the stack.  Return NULL if the stack is empty.
 static inline PyObject *
-_PyObjectStack_Pop(_PyObjectStack *stack)
-{
+_PyObjectStack_Pop(_PyObjectStack *stack) {
     _PyObjectStackChunk *buf = stack->head;
     if (buf == NULL) {
         return NULL;
@@ -72,8 +69,7 @@ _PyObjectStack_Pop(_PyObjectStack *stack)
 }
 
 static inline Py_ssize_t
-_PyObjectStack_Size(_PyObjectStack *stack)
-{
+_PyObjectStack_Size(_PyObjectStack *stack) {
     Py_ssize_t size = 0;
     for (_PyObjectStackChunk *buf = stack->head; buf != NULL; buf = buf->prev) {
         size += buf->n;

@@ -15,9 +15,8 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
-
 
 enum {
     // The thread was unparked by another thread.
@@ -57,10 +56,14 @@ enum {
 //                                 timeout_ns, NULL, 1);
 //    ...
 //  }
-PyAPI_FUNC(int)
-_PyParkingLot_Park(const void *address, const void *expected,
-                   size_t address_size, PyTime_t timeout_ns,
-                   void *park_arg, int detach);
+PyAPI_FUNC(int) _PyParkingLot_Park(
+    const void *address,
+    const void *expected,
+    size_t address_size,
+    PyTime_t timeout_ns,
+    void *park_arg,
+    int detach
+);
 
 // Callback for _PyParkingLot_Unpark:
 //
@@ -71,7 +74,8 @@ _PyParkingLot_Park(const void *address, const void *expected,
 // `has_more_waiters` is true if there are more threads waiting on the same
 //      address. May be true in cases where threads are waiting on a different
 //      address that map to the same internal bucket.
-typedef void _Py_unpark_fn_t(void *arg, void *park_arg, int has_more_waiters);
+typedef void
+_Py_unpark_fn_t(void *arg, void *park_arg, int has_more_waiters);
 
 // Unparks a single thread waiting on `address`.
 //
@@ -83,7 +87,7 @@ typedef void _Py_unpark_fn_t(void *arg, void *park_arg, int has_more_waiters);
 //  void callback(void *arg, void *park_arg, int has_more_waiters);
 //  _PyParkingLot_Unpark(address, &callback, arg);
 PyAPI_FUNC(void)
-_PyParkingLot_Unpark(const void *address, _Py_unpark_fn_t *fn, void *arg);
+    _PyParkingLot_Unpark(const void *address, _Py_unpark_fn_t *fn, void *arg);
 
 // Unparks all threads waiting on `address`.
 PyAPI_FUNC(void) _PyParkingLot_UnparkAll(const void *address);

@@ -29,21 +29,21 @@ typedef struct {
 
         struct {
             USHORT SubstituteNameOffset;
-            USHORT  SubstituteNameLength;
-            USHORT  PrintNameOffset;
-            USHORT  PrintNameLength;
-            WCHAR  PathBuffer[1];
+            USHORT SubstituteNameLength;
+            USHORT PrintNameOffset;
+            USHORT PrintNameLength;
+            WCHAR PathBuffer[1];
         } MountPointReparseBuffer;
 
         struct {
-            UCHAR  DataBuffer[1];
+            UCHAR DataBuffer[1];
         } GenericReparseBuffer;
     };
 } _Py_REPARSE_DATA_BUFFER, *_Py_PREPARSE_DATA_BUFFER;
 
 #define _Py_REPARSE_DATA_BUFFER_HEADER_SIZE \
     FIELD_OFFSET(_Py_REPARSE_DATA_BUFFER, GenericReparseBuffer)
-#define _Py_MAXIMUM_REPARSE_DATA_BUFFER_SIZE  ( 16 * 1024 )
+#define _Py_MAXIMUM_REPARSE_DATA_BUFFER_SIZE (16 * 1024)
 
 // Defined in WinBase.h in 'recent' versions of Windows 10 SDK
 #ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE

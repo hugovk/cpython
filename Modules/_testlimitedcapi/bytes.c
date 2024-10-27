@@ -1,27 +1,23 @@
 #include "parts.h"
 #include "util.h"
 
-
 /* Test PyBytes_Check() */
 static PyObject *
-bytes_check(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+bytes_check(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyBytes_Check(obj));
 }
 
 /* Test PyBytes_CheckExact() */
 static PyObject *
-bytes_checkexact(PyObject *Py_UNUSED(module), PyObject *obj)
-{
+bytes_checkexact(PyObject *Py_UNUSED(module), PyObject *obj) {
     NULLABLE(obj);
     return PyLong_FromLong(PyBytes_CheckExact(obj));
 }
 
 /* Test PyBytes_FromStringAndSize() */
 static PyObject *
-bytes_fromstringandsize(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_fromstringandsize(PyObject *Py_UNUSED(module), PyObject *args) {
     const char *s;
     Py_ssize_t bsize;
     Py_ssize_t size = -100;
@@ -38,8 +34,7 @@ bytes_fromstringandsize(PyObject *Py_UNUSED(module), PyObject *args)
 
 /* Test PyBytes_FromString() */
 static PyObject *
-bytes_fromstring(PyObject *Py_UNUSED(module), PyObject *arg)
-{
+bytes_fromstring(PyObject *Py_UNUSED(module), PyObject *arg) {
     const char *s;
     Py_ssize_t size;
 
@@ -51,24 +46,21 @@ bytes_fromstring(PyObject *Py_UNUSED(module), PyObject *arg)
 
 /* Test PyBytes_FromObject() */
 static PyObject *
-bytes_fromobject(PyObject *Py_UNUSED(module), PyObject *arg)
-{
+bytes_fromobject(PyObject *Py_UNUSED(module), PyObject *arg) {
     NULLABLE(arg);
     return PyBytes_FromObject(arg);
 }
 
 /* Test PyBytes_Size() */
 static PyObject *
-bytes_size(PyObject *Py_UNUSED(module), PyObject *arg)
-{
+bytes_size(PyObject *Py_UNUSED(module), PyObject *arg) {
     NULLABLE(arg);
     RETURN_SIZE(PyBytes_Size(arg));
 }
 
 /* Test PyUnicode_AsString() */
 static PyObject *
-bytes_asstring(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_asstring(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t buflen;
     const char *s;
@@ -86,8 +78,7 @@ bytes_asstring(PyObject *Py_UNUSED(module), PyObject *args)
 
 /* Test PyBytes_AsStringAndSize() */
 static PyObject *
-bytes_asstringandsize(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_asstringandsize(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t buflen;
     char *s = UNINITIALIZED_PTR;
@@ -103,15 +94,13 @@ bytes_asstringandsize(PyObject *Py_UNUSED(module), PyObject *args)
 
     if (s == NULL) {
         return Py_BuildValue("(On)", Py_None, size);
-    }
-    else {
+    } else {
         return Py_BuildValue("(y#n)", s, buflen, size);
     }
 }
 
 static PyObject *
-bytes_asstringandsize_null(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_asstringandsize_null(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     Py_ssize_t buflen;
     char *s = UNINITIALIZED_PTR;
@@ -126,16 +115,14 @@ bytes_asstringandsize_null(PyObject *Py_UNUSED(module), PyObject *args)
 
     if (s == NULL) {
         Py_RETURN_NONE;
-    }
-    else {
+    } else {
         return PyBytes_FromStringAndSize(s, buflen);
     }
 }
 
 /* Test PyBytes_Repr() */
 static PyObject *
-bytes_repr(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_repr(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *obj;
     int smartquotes;
     if (!PyArg_ParseTuple(args, "Oi", &obj, &smartquotes))
@@ -147,8 +134,7 @@ bytes_repr(PyObject *Py_UNUSED(module), PyObject *args)
 
 /* Test PyBytes_Concat() */
 static PyObject *
-bytes_concat(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_concat(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *left, *right;
     int new = 0;
 
@@ -160,13 +146,11 @@ bytes_concat(PyObject *Py_UNUSED(module), PyObject *args)
     if (new) {
         assert(left != NULL);
         assert(PyBytes_CheckExact(left));
-        left = PyBytes_FromStringAndSize(PyBytes_AsString(left),
-                                         PyBytes_Size(left));
+        left = PyBytes_FromStringAndSize(PyBytes_AsString(left), PyBytes_Size(left));
         if (left == NULL) {
             return NULL;
         }
-    }
-    else {
+    } else {
         Py_XINCREF(left);
     }
     PyBytes_Concat(&left, right);
@@ -178,8 +162,7 @@ bytes_concat(PyObject *Py_UNUSED(module), PyObject *args)
 
 /* Test PyBytes_ConcatAndDel() */
 static PyObject *
-bytes_concatanddel(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_concatanddel(PyObject *Py_UNUSED(module), PyObject *args) {
     PyObject *left, *right;
     int new = 0;
 
@@ -191,13 +174,11 @@ bytes_concatanddel(PyObject *Py_UNUSED(module), PyObject *args)
     if (new) {
         assert(left != NULL);
         assert(PyBytes_CheckExact(left));
-        left = PyBytes_FromStringAndSize(PyBytes_AsString(left),
-                                         PyBytes_Size(left));
+        left = PyBytes_FromStringAndSize(PyBytes_AsString(left), PyBytes_Size(left));
         if (left == NULL) {
             return NULL;
         }
-    }
-    else {
+    } else {
         Py_XINCREF(left);
     }
     Py_XINCREF(right);
@@ -210,8 +191,7 @@ bytes_concatanddel(PyObject *Py_UNUSED(module), PyObject *args)
 
 /* Test PyBytes_DecodeEscape() */
 static PyObject *
-bytes_decodeescape(PyObject *Py_UNUSED(module), PyObject *args)
-{
+bytes_decodeescape(PyObject *Py_UNUSED(module), PyObject *args) {
     const char *s;
     Py_ssize_t bsize;
     Py_ssize_t size = -100;
@@ -225,7 +205,6 @@ bytes_decodeescape(PyObject *Py_UNUSED(module), PyObject *args)
     }
     return PyBytes_DecodeEscape(s, size, errors, 0, NULL);
 }
-
 
 static PyMethodDef test_methods[] = {
     {"bytes_check", bytes_check, METH_O},
@@ -245,8 +224,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_Bytes(PyObject *m)
-{
+_PyTestLimitedCAPI_Init_Bytes(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

@@ -29,26 +29,27 @@
 /* The F* formalization talks about the number of elements in the array. The C
    implementation wants a number of bytes in the array. KaRaMeL is aware of this
    and inserts a sizeof multiplication. */
-void Lib_Memzero0_memzero0(void *dst, uint64_t len) {
-  /* This is safe: karamel checks at run-time (if needed) that all object sizes
-     fit within a size_t, so the size we receive has been checked at
-     allocation-time, possibly via KRML_CHECK_SIZE, to fit in a size_t. */
-  size_t len_ = (size_t) len;
+void
+Lib_Memzero0_memzero0(void *dst, uint64_t len) {
+    /* This is safe: karamel checks at run-time (if needed) that all object sizes
+       fit within a size_t, so the size we receive has been checked at
+       allocation-time, possibly via KRML_CHECK_SIZE, to fit in a size_t. */
+    size_t len_ = (size_t)len;
 
-  #ifdef _WIN32
+#ifdef _WIN32
     SecureZeroMemory(dst, len);
-  #elif defined(__APPLE__) && defined(__MACH__)
+#elif defined(__APPLE__) && defined(__MACH__)
     memset_s(dst, len_, 0, len_);
-  #elif (defined(__linux__) && !defined(LINUX_NO_EXPLICIT_BZERO)) || defined(__FreeBSD__)
+#elif (defined(__linux__) && !defined(LINUX_NO_EXPLICIT_BZERO)) || defined(__FreeBSD__)
     explicit_bzero(dst, len_);
-  #elif defined(__NetBSD__)
+#elif defined(__NetBSD__)
     explicit_memset(dst, 0, len_);
-  #else
-    /* Default implementation for platforms with no particular support. */
-    #warning "Your platform does not support any safe implementation of memzero -- consider a pull request!"
-    volatile unsigned char *volatile dst_ = (volatile unsigned char *volatile) dst;
+#else
+/* Default implementation for platforms with no particular support. */
+#warning \
+    "Your platform does not support any safe implementation of memzero -- consider a pull request!"
+    volatile unsigned char *volatile dst_ = (volatile unsigned char *volatile)dst;
     size_t i = 0U;
-    while (i < len)
-      dst_[i++] = 0U;
-  #endif
+    while (i < len) dst_[i++] = 0U;
+#endif
 }

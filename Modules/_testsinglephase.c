@@ -203,13 +203,12 @@ single-phase init modules.
 */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
-//#include <time.h>
+// #include <time.h>
 #include "Python.h"
-#include "pycore_namespace.h"     // _PyNamespace_New()
-
+#include "pycore_namespace.h"  // _PyNamespace_New()
 
 typedef struct {
     PyTime_t initialized;
@@ -217,7 +216,6 @@ typedef struct {
     PyObject *int_const;
     PyObject *str_const;
 } module_state;
-
 
 /* Process-global state is only used by _testsinglephase
    since it's the only one that does not support re-init. */
@@ -230,36 +228,31 @@ static struct {
     .initialized_count = NOT_INITIALIZED,
 };
 
-static void clear_state(module_state *state);
+static void
+clear_state(module_state *state);
 
 static void
-clear_global_state(void)
-{
+clear_global_state(void) {
     clear_state(&global_state.module);
     global_state.initialized_count = NOT_INITIALIZED;
 }
 
-
 static inline module_state *
-get_module_state(PyObject *module)
-{
+get_module_state(PyObject *module) {
     PyModuleDef *def = PyModule_GetDef(module);
     if (def->m_size == -1) {
         return &global_state.module;
-    }
-    else if (def->m_size == 0) {
+    } else if (def->m_size == 0) {
         return NULL;
-    }
-    else {
-        module_state *state = (module_state*)PyModule_GetState(module);
+    } else {
+        module_state *state = (module_state *)PyModule_GetState(module);
         assert(state != NULL);
         return state;
     }
 }
 
 static void
-clear_state(module_state *state)
-{
+clear_state(module_state *state) {
     state->initialized = 0;
     Py_CLEAR(state->error);
     Py_CLEAR(state->int_const);
@@ -267,8 +260,7 @@ clear_state(module_state *state)
 }
 
 static int
-_set_initialized(PyTime_t *initialized)
-{
+_set_initialized(PyTime_t *initialized) {
     /* We go strictly monotonic to ensure each time is unique. */
     PyTime_t prev;
     if (PyTime_Monotonic(&prev) != 0) {
@@ -287,12 +279,11 @@ _set_initialized(PyTime_t *initialized)
 }
 
 static int
-init_state(module_state *state)
-{
-    assert(state->initialized == 0 &&
-           state->error == NULL &&
-           state->int_const == NULL &&
-           state->str_const == NULL);
+init_state(module_state *state) {
+    assert(
+        state->initialized == 0 && state->error == NULL && state->int_const == NULL &&
+        state->str_const == NULL
+    );
 
     if (_set_initialized(&state->initialized) != 0) {
         goto error;
@@ -322,10 +313,8 @@ error:
     return -1;
 }
 
-
 static int
-init_module(PyObject *module, module_state *state)
-{
+init_module(PyObject *module, module_state *state) {
     if (PyModule_AddObjectRef(module, "error", state->error) != 0) {
         return -1;
     }
@@ -344,15 +333,15 @@ init_module(PyObject *module, module_state *state)
     return 0;
 }
 
-
-PyDoc_STRVAR(common_state_initialized_doc,
-"state_initialized()\n\
+PyDoc_STRVAR(
+    common_state_initialized_doc,
+    "state_initialized()\n\
 \n\
-Return the seconds-since-epoch when the module state was initialized.");
+Return the seconds-since-epoch when the module state was initialized."
+);
 
 static PyObject *
-common_state_initialized(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+common_state_initialized(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     module_state *state = get_module_state(self);
     if (state == NULL) {
         Py_RETURN_NONE;
@@ -362,40 +351,41 @@ common_state_initialized(PyObject *self, PyObject *Py_UNUSED(ignored))
 }
 
 #define STATE_INITIALIZED_METHODDEF \
-    {"state_initialized", common_state_initialized, METH_NOARGS, \
+    {"state_initialized",           \
+     common_state_initialized,      \
+     METH_NOARGS,                   \
      common_state_initialized_doc}
 
-
-PyDoc_STRVAR(common_look_up_self_doc,
-"look_up_self()\n\
+PyDoc_STRVAR(
+    common_look_up_self_doc,
+    "look_up_self()\n\
 \n\
-Return the module associated with this module's def.m_base.m_index.");
+Return the module associated with this module's def.m_base.m_index."
+);
 
 static PyObject *
-common_look_up_self(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+common_look_up_self(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     PyModuleDef *def = PyModule_GetDef(self);
     if (def == NULL) {
         return NULL;
     }
-    return Py_NewRef(
-            PyState_FindModule(def));
+    return Py_NewRef(PyState_FindModule(def));
 }
 
 #define LOOK_UP_SELF_METHODDEF \
     {"look_up_self", common_look_up_self, METH_NOARGS, common_look_up_self_doc}
 
-
 /* Function of two integers returning integer */
 
-PyDoc_STRVAR(common_sum_doc,
-"sum(i,j)\n\
+PyDoc_STRVAR(
+    common_sum_doc,
+    "sum(i,j)\n\
 \n\
-Return the sum of i and j.");
+Return the sum of i and j."
+);
 
 static PyObject *
-common_sum(PyObject *self, PyObject *args)
-{
+common_sum(PyObject *self, PyObject *args) {
     long i, j;
     long res;
     if (!PyArg_ParseTuple(args, "ll:sum", &i, &j))
@@ -404,52 +394,53 @@ common_sum(PyObject *self, PyObject *args)
     return PyLong_FromLong(res);
 }
 
-#define SUM_METHODDEF \
-    {"sum", common_sum, METH_VARARGS, common_sum_doc}
+#define SUM_METHODDEF {"sum", common_sum, METH_VARARGS, common_sum_doc}
 
-
-PyDoc_STRVAR(basic_initialized_count_doc,
-"initialized_count()\n\
+PyDoc_STRVAR(
+    basic_initialized_count_doc,
+    "initialized_count()\n\
 \n\
-Return how many times the module has been initialized.");
+Return how many times the module has been initialized."
+);
 
 static PyObject *
-basic_initialized_count(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+basic_initialized_count(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     assert(PyModule_GetDef(self)->m_size == -1);
     return PyLong_FromLong(global_state.initialized_count);
 }
 
 #define INITIALIZED_COUNT_METHODDEF \
-    {"initialized_count", basic_initialized_count, METH_NOARGS, \
+    {"initialized_count",           \
+     basic_initialized_count,       \
+     METH_NOARGS,                   \
      basic_initialized_count_doc}
 
-
-PyDoc_STRVAR(basic__clear_globals_doc,
-"_clear_globals()\n\
+PyDoc_STRVAR(
+    basic__clear_globals_doc,
+    "_clear_globals()\n\
 \n\
-Free all global state and set it to uninitialized.");
+Free all global state and set it to uninitialized."
+);
 
 static PyObject *
-basic__clear_globals(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+basic__clear_globals(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     assert(PyModule_GetDef(self)->m_size == -1);
     clear_global_state();
     Py_RETURN_NONE;
 }
 
 #define _CLEAR_GLOBALS_METHODDEF \
-    {"_clear_globals", basic__clear_globals, METH_NOARGS, \
-     basic__clear_globals_doc}
+    {"_clear_globals", basic__clear_globals, METH_NOARGS, basic__clear_globals_doc}
 
-
-PyDoc_STRVAR(basic__clear_module_state_doc, "_clear_module_state()\n\
+PyDoc_STRVAR(
+    basic__clear_module_state_doc,
+    "_clear_module_state()\n\
 \n\
-Free the module state and set it to uninitialized.");
+Free the module state and set it to uninitialized."
+);
 
 static PyObject *
-basic__clear_module_state(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+basic__clear_module_state(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     module_state *state = get_module_state(self);
     if (state != NULL) {
         clear_state(state);
@@ -458,9 +449,10 @@ basic__clear_module_state(PyObject *self, PyObject *Py_UNUSED(ignored))
 }
 
 #define _CLEAR_MODULE_STATE_METHODDEF \
-    {"_clear_module_state", basic__clear_module_state, METH_NOARGS, \
+    {"_clear_module_state",           \
+     basic__clear_module_state,       \
+     METH_NOARGS,                     \
      basic__clear_module_state_doc}
-
 
 /*********************************************/
 /* the _testsinglephase module (and aliases) */
@@ -484,7 +476,7 @@ static PyMethodDef TestMethods_Basic[] = {
     STATE_INITIALIZED_METHODDEF,
     INITIALIZED_COUNT_METHODDEF,
     _CLEAR_GLOBALS_METHODDEF,
-    {NULL, NULL}           /* sentinel */
+    {NULL, NULL} /* sentinel */
 };
 
 static struct PyModuleDef _testsinglephase_basic = {
@@ -496,8 +488,7 @@ static struct PyModuleDef _testsinglephase_basic = {
 };
 
 static PyObject *
-init__testsinglephase_basic(PyModuleDef *def)
-{
+init__testsinglephase_basic(PyModuleDef *def) {
     if (global_state.initialized_count == -1) {
         global_state.initialized_count = 0;
     }
@@ -530,22 +521,17 @@ finally:
 }
 
 PyMODINIT_FUNC
-PyInit__testsinglephase(void)
-{
+PyInit__testsinglephase(void) {
     return init__testsinglephase_basic(&_testsinglephase_basic);
 }
 
-
 PyMODINIT_FUNC
-PyInit__testsinglephase_basic_wrapper(void)
-{
+PyInit__testsinglephase_basic_wrapper(void) {
     return PyInit__testsinglephase();
 }
 
-
 PyMODINIT_FUNC
-PyInit__testsinglephase_basic_copy(void)
-{
+PyInit__testsinglephase_basic_copy(void) {
     static struct PyModuleDef def = {
         PyModuleDef_HEAD_INIT,
         .m_name = "_testsinglephase_basic_copy",
@@ -555,7 +541,6 @@ PyInit__testsinglephase_basic_copy(void)
     };
     return init__testsinglephase_basic(&def);
 }
-
 
 /*******************************************/
 /* the _testsinglephase_with_reinit module */
@@ -580,7 +565,7 @@ static PyMethodDef TestMethods_Reinit[] = {
     LOOK_UP_SELF_METHODDEF,
     SUM_METHODDEF,
     STATE_INITIALIZED_METHODDEF,
-    {NULL, NULL}           /* sentinel */
+    {NULL, NULL} /* sentinel */
 };
 
 static struct PyModuleDef _testsinglephase_with_reinit = {
@@ -592,8 +577,7 @@ static struct PyModuleDef _testsinglephase_with_reinit = {
 };
 
 PyMODINIT_FUNC
-PyInit__testsinglephase_with_reinit(void)
-{
+PyInit__testsinglephase_with_reinit(void) {
     /* We purposefully do not try PyState_FindModule() first here
        since we want to check the behavior of re-loading the module. */
     PyObject *module = PyModule_Create(&_testsinglephase_with_reinit);
@@ -623,7 +607,6 @@ finally:
     return module;
 }
 
-
 /******************************************/
 /* the _testsinglephase_with_state module */
 /******************************************/
@@ -645,7 +628,7 @@ static PyMethodDef TestMethods_WithState[] = {
     SUM_METHODDEF,
     STATE_INITIALIZED_METHODDEF,
     _CLEAR_MODULE_STATE_METHODDEF,
-    {NULL, NULL}           /* sentinel */
+    {NULL, NULL} /* sentinel */
 };
 
 static struct PyModuleDef _testsinglephase_with_state = {
@@ -657,8 +640,7 @@ static struct PyModuleDef _testsinglephase_with_state = {
 };
 
 PyMODINIT_FUNC
-PyInit__testsinglephase_with_state(void)
-{
+PyInit__testsinglephase_with_state(void) {
     /* We purposefully do not try PyState_FindModule() first here
        since we want to check the behavior of re-loading the module. */
     PyObject *module = PyModule_Create(&_testsinglephase_with_state);
@@ -686,7 +668,6 @@ finally:
     return module;
 }
 
-
 /****************************************************/
 /* the _testsinglephase_*_check_cache_first modules */
 /****************************************************/
@@ -702,8 +683,7 @@ static struct PyModuleDef _testsinglephase_check_cache_first = {
 };
 
 PyMODINIT_FUNC
-PyInit__testsinglephase_check_cache_first(void)
-{
+PyInit__testsinglephase_check_cache_first(void) {
     assert(_testsinglephase_check_cache_first.m_base.m_index == 0);
     PyObject *mod = PyState_FindModule(&_testsinglephase_check_cache_first);
     if (mod != NULL) {
@@ -711,7 +691,6 @@ PyInit__testsinglephase_check_cache_first(void)
     }
     return PyModule_Create(&_testsinglephase_check_cache_first);
 }
-
 
 static struct PyModuleDef _testsinglephase_with_reinit_check_cache_first = {
     PyModuleDef_HEAD_INIT,
@@ -721,8 +700,7 @@ static struct PyModuleDef _testsinglephase_with_reinit_check_cache_first = {
 };
 
 PyMODINIT_FUNC
-PyInit__testsinglephase_with_reinit_check_cache_first(void)
-{
+PyInit__testsinglephase_with_reinit_check_cache_first(void) {
     assert(_testsinglephase_with_reinit_check_cache_first.m_base.m_index == 0);
     PyObject *mod = PyState_FindModule(&_testsinglephase_with_reinit_check_cache_first);
     if (mod != NULL) {
@@ -730,7 +708,6 @@ PyInit__testsinglephase_with_reinit_check_cache_first(void)
     }
     return PyModule_Create(&_testsinglephase_with_reinit_check_cache_first);
 }
-
 
 static struct PyModuleDef _testsinglephase_with_state_check_cache_first = {
     PyModuleDef_HEAD_INIT,
@@ -740,8 +717,7 @@ static struct PyModuleDef _testsinglephase_with_state_check_cache_first = {
 };
 
 PyMODINIT_FUNC
-PyInit__testsinglephase_with_state_check_cache_first(void)
-{
+PyInit__testsinglephase_with_state_check_cache_first(void) {
     assert(_testsinglephase_with_state_check_cache_first.m_base.m_index == 0);
     PyObject *mod = PyState_FindModule(&_testsinglephase_with_state_check_cache_first);
     if (mod != NULL) {
@@ -750,7 +726,6 @@ PyInit__testsinglephase_with_state_check_cache_first(void)
     return PyModule_Create(&_testsinglephase_with_state_check_cache_first);
 }
 
-
 /****************************************/
 /* the _testsinglephase_circular module */
 /****************************************/
@@ -758,8 +733,7 @@ PyInit__testsinglephase_with_state_check_cache_first(void)
 static PyObject *static_module_circular;
 
 static PyObject *
-circularmod_clear_static_var(PyObject *self, PyObject *arg)
-{
+circularmod_clear_static_var(PyObject *self, PyObject *arg) {
     PyObject *result = static_module_circular;
     static_module_circular = NULL;
     return result;
@@ -769,32 +743,34 @@ static struct PyModuleDef _testsinglephase_circular = {
     PyModuleDef_HEAD_INIT,
     .m_name = "_testsinglephase_circular",
     .m_doc = PyDoc_STR("Test module _testsinglephase_circular"),
-    .m_methods = (PyMethodDef[]) {
-        {"clear_static_var", circularmod_clear_static_var, METH_NOARGS,
-         "Clear the static variable and return its previous value."},
-        {NULL, NULL}           /* sentinel */
-    }
+    .m_methods =
+        (PyMethodDef[]){
+            {"clear_static_var",
+             circularmod_clear_static_var,
+             METH_NOARGS,
+             "Clear the static variable and return its previous value."},
+            {NULL, NULL} /* sentinel */
+        }
 };
 
 PyMODINIT_FUNC
-PyInit__testsinglephase_circular(void)
-{
+PyInit__testsinglephase_circular(void) {
     if (!static_module_circular) {
         static_module_circular = PyModule_Create(&_testsinglephase_circular);
         if (!static_module_circular) {
             return NULL;
         }
     }
-    static const char helper_mod_name[] = (
-        "test.test_import.data.circular_imports.singlephase");
+    static const char helper_mod_name[] =
+        ("test.test_import.data.circular_imports.singlephase");
     PyObject *helper_mod = PyImport_ImportModule(helper_mod_name);
     Py_XDECREF(helper_mod);
     if (!helper_mod) {
         return NULL;
     }
-    if(PyModule_AddStringConstant(static_module_circular,
-                                  "helper_mod_name",
-                                  helper_mod_name) < 0) {
+    if (PyModule_AddStringConstant(
+            static_module_circular, "helper_mod_name", helper_mod_name
+        ) < 0) {
         return NULL;
     }
     return Py_NewRef(static_module_circular);

@@ -8,8 +8,7 @@
 */
 
 static PyObject *
-TESTNAME(PyObject *error(const char*))
-{
+TESTNAME(PyObject *error(const char *)) {
     const int NBITS = sizeof(TYPENAME) * 8;
     unsigned TYPENAME base;
     PyObject *pyresult;
@@ -23,10 +22,8 @@ TESTNAME(PyObject *error(const char*))
      * plus the numbers +-1 off from them.
      */
     base = 1;
-    for (i = 0;
-         i < NBITS + 1;  /* on last, base overflows to 0 */
-         ++i, base <<= 1)
-    {
+    for (i = 0; i < NBITS + 1; /* on last, base overflows to 0 */
+         ++i, base <<= 1) {
         int j;
         for (j = 0; j < 6; ++j) {
             TYPENAME in, out;
@@ -43,31 +40,25 @@ TESTNAME(PyObject *error(const char*))
 
             pyresult = F_U_TO_PY(uin);
             if (pyresult == NULL)
-                return error(
-                 "unsigned unexpected null result");
+                return error("unsigned unexpected null result");
 
             uout = F_PY_TO_U(pyresult);
-            if (uout == (unsigned TYPENAME)-1 && PyErr_Occurred())
-                return error(
-                    "unsigned unexpected -1 result");
+            if (uout == (unsigned TYPENAME) - 1 && PyErr_Occurred())
+                return error("unsigned unexpected -1 result");
             if (uout != uin)
-                return error(
-                    "unsigned output != input");
+                return error("unsigned output != input");
             UNBIND(pyresult);
 
             in = (TYPENAME)uin;
             pyresult = F_S_TO_PY(in);
             if (pyresult == NULL)
-                return error(
-                    "signed unexpected null result");
+                return error("signed unexpected null result");
 
             out = F_PY_TO_S(pyresult);
             if (out == (TYPENAME)-1 && PyErr_Occurred())
-                return error(
-                    "signed unexpected -1 result");
+                return error("signed unexpected -1 result");
             if (out != in)
-                return error(
-                    "signed output != input");
+                return error("signed output != input");
             UNBIND(pyresult);
         }
     }
@@ -83,47 +74,45 @@ TESTNAME(PyObject *error(const char*))
 
         one = PyLong_FromLong(1);
         if (one == NULL)
-            return error(
-                "unexpected NULL from PyLong_FromLong");
+            return error("unexpected NULL from PyLong_FromLong");
 
         /* Unsigned complains about -1? */
         x = PyNumber_Negative(one);
         if (x == NULL)
-            return error(
-                "unexpected NULL from PyNumber_Negative");
+            return error("unexpected NULL from PyNumber_Negative");
 
         uout = F_PY_TO_U(x);
-        if (uout != (unsigned TYPENAME)-1 || !PyErr_Occurred())
-            return error(
-                "PyLong_AsUnsignedXXX(-1) didn't complain");
+        if (uout != (unsigned TYPENAME) - 1 || !PyErr_Occurred())
+            return error("PyLong_AsUnsignedXXX(-1) didn't complain");
         if (!PyErr_ExceptionMatches(PyExc_OverflowError))
             return error(
                 "PyLong_AsUnsignedXXX(-1) raised "
-                "something other than OverflowError");
+                "something other than OverflowError"
+            );
         PyErr_Clear();
         UNBIND(x);
 
         /* Unsigned complains about 2**NBITS? */
         y = PyLong_FromLong((long)NBITS);
         if (y == NULL)
-            return error(
-                "unexpected NULL from PyLong_FromLong");
+            return error("unexpected NULL from PyLong_FromLong");
 
         x = PyNumber_Lshift(one, y); /* 1L << NBITS, == 2**NBITS */
         UNBIND(y);
         if (x == NULL)
-            return error(
-                "unexpected NULL from PyNumber_Lshift");
+            return error("unexpected NULL from PyNumber_Lshift");
 
         uout = F_PY_TO_U(x);
-        if (uout != (unsigned TYPENAME)-1 || !PyErr_Occurred())
+        if (uout != (unsigned TYPENAME) - 1 || !PyErr_Occurred())
             return error(
                 "PyLong_AsUnsignedXXX(2**NBITS) didn't "
-                "complain");
+                "complain"
+            );
         if (!PyErr_ExceptionMatches(PyExc_OverflowError))
             return error(
                 "PyLong_AsUnsignedXXX(2**NBITS) raised "
-                "something other than OverflowError");
+                "something other than OverflowError"
+            );
         PyErr_Clear();
 
         /* Signed complains about 2**(NBITS-1)?
@@ -131,43 +120,44 @@ TESTNAME(PyObject *error(const char*))
         y = PyNumber_Rshift(x, one); /* 2**(NBITS-1) */
         UNBIND(x);
         if (y == NULL)
-            return error(
-                "unexpected NULL from PyNumber_Rshift");
+            return error("unexpected NULL from PyNumber_Rshift");
 
         out = F_PY_TO_S(y);
         if (out != (TYPENAME)-1 || !PyErr_Occurred())
             return error(
                 "PyLong_AsXXX(2**(NBITS-1)) didn't "
-                "complain");
+                "complain"
+            );
         if (!PyErr_ExceptionMatches(PyExc_OverflowError))
             return error(
                 "PyLong_AsXXX(2**(NBITS-1)) raised "
-                "something other than OverflowError");
+                "something other than OverflowError"
+            );
         PyErr_Clear();
 
         /* Signed complains about -2**(NBITS-1)-1?;
            y still has 2**(NBITS-1). */
-        x = PyNumber_Negative(y);  /* -(2**(NBITS-1)) */
+        x = PyNumber_Negative(y); /* -(2**(NBITS-1)) */
         UNBIND(y);
         if (x == NULL)
-            return error(
-                "unexpected NULL from PyNumber_Negative");
+            return error("unexpected NULL from PyNumber_Negative");
 
         y = PyNumber_Subtract(x, one); /* -(2**(NBITS-1))-1 */
         UNBIND(x);
         if (y == NULL)
-            return error(
-                "unexpected NULL from PyNumber_Subtract");
+            return error("unexpected NULL from PyNumber_Subtract");
 
         out = F_PY_TO_S(y);
         if (out != (TYPENAME)-1 || !PyErr_Occurred())
             return error(
                 "PyLong_AsXXX(-2**(NBITS-1)-1) didn't "
-                "complain");
+                "complain"
+            );
         if (!PyErr_ExceptionMatches(PyExc_OverflowError))
             return error(
                 "PyLong_AsXXX(-2**(NBITS-1)-1) raised "
-                "something other than OverflowError");
+                "something other than OverflowError"
+            );
         PyErr_Clear();
         UNBIND(y);
 
@@ -187,16 +177,20 @@ TESTNAME(PyObject *error(const char*))
         if (out != (TYPENAME)-1 || !PyErr_Occurred())
             return error("PyLong_AsXXX(None) didn't complain");
         if (!PyErr_ExceptionMatches(PyExc_TypeError))
-            return error("PyLong_AsXXX(None) raised "
-                         "something other than TypeError");
+            return error(
+                "PyLong_AsXXX(None) raised "
+                "something other than TypeError"
+            );
         PyErr_Clear();
 
         uout = F_PY_TO_U(Py_None);
-        if (uout != (unsigned TYPENAME)-1 || !PyErr_Occurred())
+        if (uout != (unsigned TYPENAME) - 1 || !PyErr_Occurred())
             return error("PyLong_AsXXX(None) didn't complain");
         if (!PyErr_ExceptionMatches(PyExc_TypeError))
-            return error("PyLong_AsXXX(None) raised "
-                         "something other than TypeError");
+            return error(
+                "PyLong_AsXXX(None) raised "
+                "something other than TypeError"
+            );
         PyErr_Clear();
 
         Py_DECREF(Py_None);

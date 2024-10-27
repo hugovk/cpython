@@ -4,11 +4,11 @@ Converted to C by Dmitry Vasiliev (dima at hlabs.spb.ru).
 */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
-#include "pycore_call.h"          // _PyObject_CallMethod()
+#include "pycore_call.h"  // _PyObject_CallMethod()
 
 /*[clinic input]
 module _bisect
@@ -21,17 +21,15 @@ typedef struct {
     PyObject *str_insert;
 } bisect_state;
 
-static inline bisect_state*
-get_bisect_state(PyObject *module)
-{
+static inline bisect_state *
+get_bisect_state(PyObject *module) {
     void *state = PyModule_GetState(module);
     assert(state != NULL);
     return (bisect_state *)state;
 }
 
 static ssizeargfunc
-get_sq_item(PyObject *s)
-{
+get_sq_item(PyObject *s) {
     // The parts of PySequence_GetItem that we only need to do once
     PyTypeObject *tp = Py_TYPE(s);
     PySequenceMethods *m = tp->tp_as_sequence;
@@ -41,8 +39,7 @@ get_sq_item(PyObject *s)
     const char *msg;
     if (tp->tp_as_mapping && tp->tp_as_mapping->mp_subscript) {
         msg = "%.200s is not a sequence";
-    }
-    else {
+    } else {
         msg = "'%.200s' object does not support indexing";
     }
     PyErr_Format(PyExc_TypeError, msg, tp->tp_name);
@@ -50,9 +47,9 @@ get_sq_item(PyObject *s)
 }
 
 static inline Py_ssize_t
-internal_bisect_right(PyObject *list, PyObject *item, Py_ssize_t lo, Py_ssize_t hi,
-                      PyObject* key)
-{
+internal_bisect_right(
+    PyObject *list, PyObject *item, Py_ssize_t lo, Py_ssize_t hi, PyObject *key
+) {
     PyObject *litem;
     Py_ssize_t mid;
     int res;
@@ -121,13 +118,11 @@ internal_bisect_right(PyObject *list, PyObject *item, Py_ssize_t lo, Py_ssize_t 
                 Py_DECREF(res_obj);
                 compare = NULL;
                 res = PyObject_RichCompareBool(item, litem, Py_LT);
-            }
-            else {
+            } else {
                 res = PyObject_IsTrue(res_obj);
                 Py_DECREF(res_obj);
             }
-        }
-        else {
+        } else {
             // A default path for comparing arbitrary objects
             res = PyObject_RichCompareBool(item, litem, Py_LT);
         }
@@ -171,8 +166,14 @@ A custom key function can be supplied to customize the sort order.
 [clinic start generated code]*/
 
 static Py_ssize_t
-_bisect_bisect_right_impl(PyObject *module, PyObject *a, PyObject *x,
-                          Py_ssize_t lo, Py_ssize_t hi, PyObject *key)
+_bisect_bisect_right_impl(
+    PyObject *module,
+    PyObject *a,
+    PyObject *x,
+    Py_ssize_t lo,
+    Py_ssize_t hi,
+    PyObject *key
+)
 /*[clinic end generated code: output=3a4bc09cc7c8a73d input=43071869772dd53a]*/
 {
     return internal_bisect_right(a, x, lo, hi, key);
@@ -199,8 +200,14 @@ A custom key function can be supplied to customize the sort order.
 [clinic start generated code]*/
 
 static PyObject *
-_bisect_insort_right_impl(PyObject *module, PyObject *a, PyObject *x,
-                          Py_ssize_t lo, Py_ssize_t hi, PyObject *key)
+_bisect_insort_right_impl(
+    PyObject *module,
+    PyObject *a,
+    PyObject *x,
+    Py_ssize_t lo,
+    Py_ssize_t hi,
+    PyObject *key
+)
 /*[clinic end generated code: output=ac3bf26d07aedda2 input=f60777d2b6ddb239]*/
 {
     PyObject *result, *key_x;
@@ -221,8 +228,7 @@ _bisect_insort_right_impl(PyObject *module, PyObject *a, PyObject *x,
     if (PyList_CheckExact(a)) {
         if (PyList_Insert(a, index, x) < 0)
             return NULL;
-    }
-    else {
+    } else {
         bisect_state *state = get_bisect_state(module);
         result = _PyObject_CallMethod(a, state->str_insert, "nO", index, x);
         if (result == NULL)
@@ -234,9 +240,9 @@ _bisect_insort_right_impl(PyObject *module, PyObject *a, PyObject *x,
 }
 
 static inline Py_ssize_t
-internal_bisect_left(PyObject *list, PyObject *item, Py_ssize_t lo, Py_ssize_t hi,
-                     PyObject *key)
-{
+internal_bisect_left(
+    PyObject *list, PyObject *item, Py_ssize_t lo, Py_ssize_t hi, PyObject *key
+) {
     PyObject *litem;
     Py_ssize_t mid;
     int res;
@@ -305,13 +311,11 @@ internal_bisect_left(PyObject *list, PyObject *item, Py_ssize_t lo, Py_ssize_t h
                 Py_DECREF(res_obj);
                 compare = NULL;
                 res = PyObject_RichCompareBool(litem, item, Py_LT);
-            }
-            else {
+            } else {
                 res = PyObject_IsTrue(res_obj);
                 Py_DECREF(res_obj);
             }
-        }
-        else {
+        } else {
             // A default path for comparing arbitrary objects
             res = PyObject_RichCompareBool(litem, item, Py_LT);
         }
@@ -331,7 +335,6 @@ error:
     Py_XDECREF(litem);
     return -1;
 }
-
 
 /*[clinic input]
 _bisect.bisect_left -> Py_ssize_t
@@ -356,13 +359,18 @@ A custom key function can be supplied to customize the sort order.
 [clinic start generated code]*/
 
 static Py_ssize_t
-_bisect_bisect_left_impl(PyObject *module, PyObject *a, PyObject *x,
-                         Py_ssize_t lo, Py_ssize_t hi, PyObject *key)
+_bisect_bisect_left_impl(
+    PyObject *module,
+    PyObject *a,
+    PyObject *x,
+    Py_ssize_t lo,
+    Py_ssize_t hi,
+    PyObject *key
+)
 /*[clinic end generated code: output=70749d6e5cae9284 input=f29c4fe7f9b797c7]*/
 {
     return internal_bisect_left(a, x, lo, hi, key);
 }
-
 
 /*[clinic input]
 _bisect.insort_left
@@ -385,8 +393,14 @@ A custom key function can be supplied to customize the sort order.
 [clinic start generated code]*/
 
 static PyObject *
-_bisect_insort_left_impl(PyObject *module, PyObject *a, PyObject *x,
-                         Py_ssize_t lo, Py_ssize_t hi, PyObject *key)
+_bisect_insort_left_impl(
+    PyObject *module,
+    PyObject *a,
+    PyObject *x,
+    Py_ssize_t lo,
+    Py_ssize_t hi,
+    PyObject *key
+)
 /*[clinic end generated code: output=b1d33e5e7ffff11e input=0a700a82edbd472c]*/
 {
     PyObject *result, *key_x;
@@ -419,38 +433,36 @@ _bisect_insort_left_impl(PyObject *module, PyObject *a, PyObject *x,
 }
 
 static PyMethodDef bisect_methods[] = {
-    _BISECT_BISECT_RIGHT_METHODDEF
-    _BISECT_INSORT_RIGHT_METHODDEF
-    _BISECT_BISECT_LEFT_METHODDEF
-    _BISECT_INSORT_LEFT_METHODDEF
-    {NULL, NULL} /* sentinel */
+    _BISECT_BISECT_RIGHT_METHODDEF _BISECT_INSORT_RIGHT_METHODDEF
+        _BISECT_BISECT_LEFT_METHODDEF _BISECT_INSORT_LEFT_METHODDEF{
+            NULL, NULL
+        } /* sentinel */
 };
 
-PyDoc_STRVAR(module_doc,
-"Bisection algorithms.\n\
+PyDoc_STRVAR(
+    module_doc,
+    "Bisection algorithms.\n\
 \n\
 This module provides support for maintaining a list in sorted order without\n\
 having to sort the list after each insertion. For long lists of items with\n\
 expensive comparison operations, this can be an improvement over the more\n\
-common approach.\n");
+common approach.\n"
+);
 
 static int
-bisect_clear(PyObject *module)
-{
+bisect_clear(PyObject *module) {
     bisect_state *state = get_bisect_state(module);
     Py_CLEAR(state->str_insert);
     return 0;
 }
 
 static void
-bisect_free(void *module)
-{
+bisect_free(void *module) {
     bisect_clear((PyObject *)module);
 }
 
 static int
-bisect_modexec(PyObject *m)
-{
+bisect_modexec(PyObject *m) {
     bisect_state *state = get_bisect_state(m);
     state->str_insert = PyUnicode_InternFromString("insert");
     if (state->str_insert == NULL) {
@@ -478,7 +490,6 @@ static struct PyModuleDef _bisectmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit__bisect(void)
-{
+PyInit__bisect(void) {
     return PyModuleDef_Init(&_bisectmodule);
 }

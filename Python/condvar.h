@@ -41,8 +41,7 @@
 #define _CONDVAR_IMPL_H_
 
 #include "Python.h"
-#include "pycore_pythread.h"      // _POSIX_THREADS
-
+#include "pycore_pythread.h"  // _POSIX_THREADS
 
 #ifdef _POSIX_THREADS
 /*
@@ -50,25 +49,25 @@
  */
 
 /* These private functions are implemented in Python/thread_pthread.h */
-int _PyThread_cond_init(PyCOND_T *cond);
-void _PyThread_cond_after(long long us, struct timespec *abs);
+int
+_PyThread_cond_init(PyCOND_T *cond);
+void
+_PyThread_cond_after(long long us, struct timespec *abs);
 
 /* The following functions return 0 on success, nonzero on error */
-#define PyMUTEX_INIT(mut)       pthread_mutex_init((mut), NULL)
-#define PyMUTEX_FINI(mut)       pthread_mutex_destroy(mut)
-#define PyMUTEX_LOCK(mut)       pthread_mutex_lock(mut)
-#define PyMUTEX_UNLOCK(mut)     pthread_mutex_unlock(mut)
+#define PyMUTEX_INIT(mut) pthread_mutex_init((mut), NULL)
+#define PyMUTEX_FINI(mut) pthread_mutex_destroy(mut)
+#define PyMUTEX_LOCK(mut) pthread_mutex_lock(mut)
+#define PyMUTEX_UNLOCK(mut) pthread_mutex_unlock(mut)
 
-#define PyCOND_INIT(cond)       _PyThread_cond_init(cond)
-#define PyCOND_FINI(cond)       pthread_cond_destroy(cond)
-#define PyCOND_SIGNAL(cond)     pthread_cond_signal(cond)
-#define PyCOND_BROADCAST(cond)  pthread_cond_broadcast(cond)
-#define PyCOND_WAIT(cond, mut)  pthread_cond_wait((cond), (mut))
+#define PyCOND_INIT(cond) _PyThread_cond_init(cond)
+#define PyCOND_FINI(cond) pthread_cond_destroy(cond)
+#define PyCOND_SIGNAL(cond) pthread_cond_signal(cond)
+#define PyCOND_BROADCAST(cond) pthread_cond_broadcast(cond)
+#define PyCOND_WAIT(cond, mut) pthread_cond_wait((cond), (mut))
 
 /* return 0 for success, 1 on timeout, -1 on error */
-Py_LOCAL_INLINE(int)
-PyCOND_TIMEDWAIT(PyCOND_T *cond, PyMUTEX_T *mut, long long us)
-{
+Py_LOCAL_INLINE(int) PyCOND_TIMEDWAIT(PyCOND_T *cond, PyMUTEX_T *mut, long long us) {
     struct timespec abs_timeout;
     _PyThread_cond_after(us, &abs_timeout);
     int ret = pthread_cond_timedwait(cond, mut, &abs_timeout);
@@ -106,61 +105,44 @@ PyCOND_TIMEDWAIT(PyCOND_T *cond, PyMUTEX_T *mut, long long us)
    http://www.cse.wustl.edu/~schmidt/win32-cv-1.html
 */
 
-Py_LOCAL_INLINE(int)
-PyMUTEX_INIT(PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyMUTEX_INIT(PyMUTEX_T *cs) {
     InitializeCriticalSection(cs);
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyMUTEX_FINI(PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyMUTEX_FINI(PyMUTEX_T *cs) {
     DeleteCriticalSection(cs);
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyMUTEX_LOCK(PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyMUTEX_LOCK(PyMUTEX_T *cs) {
     EnterCriticalSection(cs);
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyMUTEX_UNLOCK(PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyMUTEX_UNLOCK(PyMUTEX_T *cs) {
     LeaveCriticalSection(cs);
     return 0;
 }
 
-
-Py_LOCAL_INLINE(int)
-PyCOND_INIT(PyCOND_T *cv)
-{
+Py_LOCAL_INLINE(int) PyCOND_INIT(PyCOND_T *cv) {
     /* A semaphore with a "large" max value,  The positive value
      * is only needed to catch those "lost wakeup" events and
      * race conditions when a timed wait elapses.
      */
     cv->sem = CreateSemaphore(NULL, 0, 100000, NULL);
-    if (cv->sem==NULL)
+    if (cv->sem == NULL)
         return -1;
     cv->waiting = 0;
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_FINI(PyCOND_T *cv)
-{
-    return CloseHandle(cv->sem) ? 0 : -1;
-}
+Py_LOCAL_INLINE(int) PyCOND_FINI(PyCOND_T *cv) { return CloseHandle(cv->sem) ? 0 : -1; }
 
 /* this implementation can detect a timeout.  Returns 1 on timeout,
  * 0 otherwise (and -1 on error)
  */
-Py_LOCAL_INLINE(int)
-_PyCOND_WAIT_MS(PyCOND_T *cv, PyMUTEX_T *cs, DWORD ms)
-{
+Py_LOCAL_INLINE(int) _PyCOND_WAIT_MS(PyCOND_T *cv, PyMUTEX_T *cs, DWORD ms) {
     DWORD wait;
     cv->waiting++;
     PyMUTEX_UNLOCK(cs);
@@ -172,16 +154,16 @@ _PyCOND_WAIT_MS(PyCOND_T *cv, PyMUTEX_T *cs, DWORD ms)
     PyMUTEX_LOCK(cs);
     if (wait != WAIT_OBJECT_0)
         --cv->waiting;
-        /* Here we have a benign race condition with PyCOND_SIGNAL.
-         * When failure occurs or timeout, it is possible that
-         * PyCOND_SIGNAL also decrements this value
-         * and signals releases the mutex.  This is benign because it
-         * just means an extra spurious wakeup for a waiting thread.
-         * ('waiting' corresponds to the semaphore's "negative" count and
-         * we may end up with e.g. (waiting == -1 && sem.count == 1).  When
-         * a new thread comes along, it will pass right through, having
-         * adjusted it to (waiting == 0 && sem.count == 0).
-         */
+    /* Here we have a benign race condition with PyCOND_SIGNAL.
+     * When failure occurs or timeout, it is possible that
+     * PyCOND_SIGNAL also decrements this value
+     * and signals releases the mutex.  This is benign because it
+     * just means an extra spurious wakeup for a waiting thread.
+     * ('waiting' corresponds to the semaphore's "negative" count and
+     * we may end up with e.g. (waiting == -1 && sem.count == 1).  When
+     * a new thread comes along, it will pass right through, having
+     * adjusted it to (waiting == 0 && sem.count == 0).
+     */
 
     if (wait == WAIT_FAILED)
         return -1;
@@ -189,22 +171,16 @@ _PyCOND_WAIT_MS(PyCOND_T *cv, PyMUTEX_T *cs, DWORD ms)
     return wait != WAIT_OBJECT_0;
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_WAIT(PyCOND_T *cv, PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyCOND_WAIT(PyCOND_T *cv, PyMUTEX_T *cs) {
     int result = _PyCOND_WAIT_MS(cv, cs, INFINITE);
     return result >= 0 ? 0 : result;
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_TIMEDWAIT(PyCOND_T *cv, PyMUTEX_T *cs, long long us)
-{
-    return _PyCOND_WAIT_MS(cv, cs, (DWORD)(us/1000));
+Py_LOCAL_INLINE(int) PyCOND_TIMEDWAIT(PyCOND_T *cv, PyMUTEX_T *cs, long long us) {
+    return _PyCOND_WAIT_MS(cv, cs, (DWORD)(us / 1000));
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_SIGNAL(PyCOND_T *cv)
-{
+Py_LOCAL_INLINE(int) PyCOND_SIGNAL(PyCOND_T *cv) {
     /* this test allows PyCOND_SIGNAL to be a no-op unless required
      * to wake someone up, thus preventing an unbounded increase of
      * the semaphore's internal counter.
@@ -220,9 +196,7 @@ PyCOND_SIGNAL(PyCOND_T *cv)
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_BROADCAST(PyCOND_T *cv)
-{
+Py_LOCAL_INLINE(int) PyCOND_BROADCAST(PyCOND_T *cv) {
     int waiting = cv->waiting;
     if (waiting > 0) {
         cv->waiting = 0;
@@ -233,57 +207,37 @@ PyCOND_BROADCAST(PyCOND_T *cv)
 
 #else /* !_PY_EMULATED_WIN_CV */
 
-Py_LOCAL_INLINE(int)
-PyMUTEX_INIT(PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyMUTEX_INIT(PyMUTEX_T *cs) {
     InitializeSRWLock(cs);
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyMUTEX_FINI(PyMUTEX_T *cs)
-{
-    return 0;
-}
+Py_LOCAL_INLINE(int) PyMUTEX_FINI(PyMUTEX_T *cs) { return 0; }
 
-Py_LOCAL_INLINE(int)
-PyMUTEX_LOCK(PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyMUTEX_LOCK(PyMUTEX_T *cs) {
     AcquireSRWLockExclusive(cs);
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyMUTEX_UNLOCK(PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyMUTEX_UNLOCK(PyMUTEX_T *cs) {
     ReleaseSRWLockExclusive(cs);
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_INIT(PyCOND_T *cv)
-{
+Py_LOCAL_INLINE(int) PyCOND_INIT(PyCOND_T *cv) {
     InitializeConditionVariable(cv);
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_FINI(PyCOND_T *cv)
-{
-    return 0;
-}
+Py_LOCAL_INLINE(int) PyCOND_FINI(PyCOND_T *cv) { return 0; }
 
-Py_LOCAL_INLINE(int)
-PyCOND_WAIT(PyCOND_T *cv, PyMUTEX_T *cs)
-{
+Py_LOCAL_INLINE(int) PyCOND_WAIT(PyCOND_T *cv, PyMUTEX_T *cs) {
     return SleepConditionVariableSRW(cv, cs, INFINITE, 0) ? 0 : -1;
 }
 
 /* return 0 for success, 1 on timeout, -1 on error */
-Py_LOCAL_INLINE(int)
-PyCOND_TIMEDWAIT(PyCOND_T *cv, PyMUTEX_T *cs, long long us)
-{
-    BOOL success = SleepConditionVariableSRW(cv, cs, (DWORD)(us/1000), 0);
+Py_LOCAL_INLINE(int) PyCOND_TIMEDWAIT(PyCOND_T *cv, PyMUTEX_T *cs, long long us) {
+    BOOL success = SleepConditionVariableSRW(cv, cs, (DWORD)(us / 1000), 0);
     if (!success) {
         if (GetLastError() == ERROR_TIMEOUT) {
             return 1;
@@ -293,20 +247,15 @@ PyCOND_TIMEDWAIT(PyCOND_T *cv, PyMUTEX_T *cs, long long us)
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_SIGNAL(PyCOND_T *cv)
-{
+Py_LOCAL_INLINE(int) PyCOND_SIGNAL(PyCOND_T *cv) {
     WakeConditionVariable(cv);
     return 0;
 }
 
-Py_LOCAL_INLINE(int)
-PyCOND_BROADCAST(PyCOND_T *cv)
-{
+Py_LOCAL_INLINE(int) PyCOND_BROADCAST(PyCOND_T *cv) {
     WakeAllConditionVariable(cv);
     return 0;
 }
-
 
 #endif /* _PY_EMULATED_WIN_CV */
 

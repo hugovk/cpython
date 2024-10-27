@@ -19,9 +19,9 @@ PyAPI_FUNC(double) PyComplex_RealAsDouble(PyObject *op);
 PyAPI_FUNC(double) PyComplex_ImagAsDouble(PyObject *op);
 
 #ifndef Py_LIMITED_API
-#  define Py_CPYTHON_COMPLEXOBJECT_H
-#  include "cpython/complexobject.h"
-#  undef Py_CPYTHON_COMPLEXOBJECT_H
+#define Py_CPYTHON_COMPLEXOBJECT_H
+#include "cpython/complexobject.h"
+#undef Py_CPYTHON_COMPLEXOBJECT_H
 #endif
 
 #ifdef __cplusplus

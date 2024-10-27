@@ -3,22 +3,22 @@
 /* Includes needed for the sockaddr_* symbols below */
 #ifndef MS_WINDOWS
 #ifdef __VMS
-#   include <socket.h>
-# else
-#   include <sys/socket.h>
-# endif
-# include <netinet/in.h>
-# include <netinet/tcp.h>
+#include <socket.h>
+#else
+#include <sys/socket.h>
+#endif
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 
 #else /* MS_WINDOWS */
-# include <winsock2.h>
+#include <winsock2.h>
 
 /*
  * If Windows has bluetooth support, include bluetooth constants.
  */
 #ifdef AF_BTH
-# include <ws2bth.h>
-# include <pshpack1.h>
+#include <ws2bth.h>
+#include <pshpack1.h>
 
 /*
  * The current implementation assumes the bdaddr in the sockaddr structs
@@ -33,84 +33,83 @@ typedef ULONGLONG bdaddr_t;
  */
 struct SOCKADDR_BTH_REDEF {
     union {
-        USHORT    addressFamily;
-        USHORT    family;
+        USHORT addressFamily;
+        USHORT family;
     };
 
     union {
         ULONGLONG btAddr;
-        bdaddr_t  bdaddr;
+        bdaddr_t bdaddr;
     };
 
-    GUID      serviceClassId;
+    GUID serviceClassId;
 
     union {
-        ULONG     port;
-        ULONG     channel;
+        ULONG port;
+        ULONG channel;
     };
-
 };
-# include <poppack.h>
+#include <poppack.h>
 #endif
 
 /* Windows 'supports' CMSG_LEN, but does not follow the POSIX standard
  * interface at all, so there is no point including the code that
  * attempts to use it.
  */
-# ifdef PySocket_BUILDING_SOCKET
-#  undef CMSG_LEN
-# endif
-# include <ws2tcpip.h>
+#ifdef PySocket_BUILDING_SOCKET
+#undef CMSG_LEN
+#endif
+#include <ws2tcpip.h>
 /* VC6 is shipped with old platform headers, and does not have MSTcpIP.h
  * Separate SDKs have all the functions we want, but older ones don't have
  * any version information.
  * I use SIO_GET_MULTICAST_FILTER to detect a decent SDK.
  */
-# ifdef SIO_GET_MULTICAST_FILTER
-#  include <mstcpip.h> /* for SIO_RCVALL */
-#  define HAVE_ADDRINFO
-#  define HAVE_SOCKADDR_STORAGE
-#  define HAVE_GETADDRINFO
-#  define HAVE_GETNAMEINFO
-#  define ENABLE_IPV6
-# else
+#ifdef SIO_GET_MULTICAST_FILTER
+#include <mstcpip.h> /* for SIO_RCVALL */
+#define HAVE_ADDRINFO
+#define HAVE_SOCKADDR_STORAGE
+#define HAVE_GETADDRINFO
+#define HAVE_GETNAMEINFO
+#define ENABLE_IPV6
+#else
 typedef int socklen_t;
-# endif /* IPPROTO_IPV6 */
+#endif /* IPPROTO_IPV6 */
 
 /* Remove ifdef once Py_WINVER >= 0x0604
  * socket.h only defines AF_HYPERV if _WIN32_WINNT is at that level or higher
  * so for now it's just manually defined.
  */
-# ifndef AF_HYPERV
-#  define AF_HYPERV 34
-# endif
-# include <hvsocket.h>
+#ifndef AF_HYPERV
+#define AF_HYPERV 34
+#endif
+#include <hvsocket.h>
 #endif /* MS_WINDOWS */
 
 #ifdef HAVE_SYS_UN_H
-# include <sys/un.h>
+#include <sys/un.h>
 #else
-# undef AF_UNIX
+#undef AF_UNIX
 #endif
 
 #ifdef HAVE_LINUX_NETLINK_H
-# ifdef HAVE_ASM_TYPES_H
-#  include <asm/types.h>
-# endif
-# include <linux/netlink.h>
+#ifdef HAVE_ASM_TYPES_H
+#include <asm/types.h>
+#endif
+#include <linux/netlink.h>
 #elif defined(HAVE_NETLINK_NETLINK_H)
-# include <netlink/netlink.h>
+#include <netlink/netlink.h>
 #else
-#  undef AF_NETLINK
+#undef AF_NETLINK
 #endif
 
 #ifdef HAVE_LINUX_QRTR_H
-# ifdef HAVE_ASM_TYPES_H
-#  include <asm/types.h>
-# endif
-# include <linux/qrtr.h>
+#ifdef HAVE_ASM_TYPES_H
+#include <asm/types.h>
+#endif
+#include <linux/qrtr.h>
 #else
-#  undef AF_QIPCRTR
+#undef AF_QIPCRTR
 #endif
 
 #ifdef HAVE_BLUETOOTH_BLUETOOTH_H
@@ -126,25 +125,25 @@ typedef int socklen_t;
 #endif
 
 #ifdef HAVE_NET_IF_H
-# include <net/if.h>
+#include <net/if.h>
 #endif
 
 #ifdef HAVE_NETPACKET_PACKET_H
-# include <sys/ioctl.h>
-# include <netpacket/packet.h>
+#include <sys/ioctl.h>
+#include <netpacket/packet.h>
 #endif
 
 #ifdef HAVE_LINUX_TIPC_H
-# include <linux/tipc.h>
+#include <linux/tipc.h>
 #endif
 
 #ifdef HAVE_LINUX_CAN_H
-# include <linux/can.h>
+#include <linux/can.h>
 #elif defined(HAVE_NETCAN_CAN_H)
-# include <netcan/can.h>
+#include <netcan/can.h>
 #else
-# undef AF_CAN
-# undef PF_CAN
+#undef AF_CAN
+#undef PF_CAN
 #endif
 
 #ifdef HAVE_LINUX_CAN_RAW_H
@@ -167,43 +166,43 @@ typedef int socklen_t;
 #endif
 
 #ifdef HAVE_LINUX_VM_SOCKETS_H
-# include <linux/vm_sockets.h>
+#include <linux/vm_sockets.h>
 #else
-# undef AF_VSOCK
+#undef AF_VSOCK
 #endif
 
 #ifdef HAVE_LINUX_NETFILTER_IPV4_H
-# include <linux/netfilter_ipv4.h>
+#include <linux/netfilter_ipv4.h>
 #endif
 
 #ifdef HAVE_SOCKADDR_ALG
 
-# include <linux/if_alg.h>
-# ifndef AF_ALG
-#  define AF_ALG 38
-# endif
-# ifndef SOL_ALG
-#  define SOL_ALG 279
-# endif
+#include <linux/if_alg.h>
+#ifndef AF_ALG
+#define AF_ALG 38
+#endif
+#ifndef SOL_ALG
+#define SOL_ALG 279
+#endif
 
 /* Linux 3.19 */
-# ifndef ALG_SET_AEAD_ASSOCLEN
-#  define ALG_SET_AEAD_ASSOCLEN           4
-# endif
-# ifndef ALG_SET_AEAD_AUTHSIZE
-#  define ALG_SET_AEAD_AUTHSIZE           5
-# endif
+#ifndef ALG_SET_AEAD_ASSOCLEN
+#define ALG_SET_AEAD_ASSOCLEN 4
+#endif
+#ifndef ALG_SET_AEAD_AUTHSIZE
+#define ALG_SET_AEAD_AUTHSIZE 5
+#endif
 /* Linux 4.8 */
-# ifndef ALG_SET_PUBKEY
-#  define ALG_SET_PUBKEY                  6
-# endif
+#ifndef ALG_SET_PUBKEY
+#define ALG_SET_PUBKEY 6
+#endif
 
-# ifndef ALG_OP_SIGN
-#  define ALG_OP_SIGN                     2
-# endif
-# ifndef ALG_OP_VERIFY
-#  define ALG_OP_VERIFY                   3
-# endif
+#ifndef ALG_OP_SIGN
+#define ALG_OP_SIGN 2
+#endif
+#ifndef ALG_OP_VERIFY
+#define ALG_OP_VERIFY 3
+#endif
 
 #endif /* HAVE_SOCKADDR_ALG */
 
@@ -211,17 +210,17 @@ typedef int socklen_t;
 // wasm32-emscripten sockets only support subset of IPv4 and IPv6.
 // SCTP protocol crashes runtime.
 #ifdef IPPROTO_SCTP
-#  undef IPPROTO_SCTP
+#undef IPPROTO_SCTP
 #endif
 // setsockopt() fails with ENOPROTOOPT, getsockopt only supports SO_ERROR.
 // undef SO_REUSEADDR and SO_REUSEPORT so they cannot be used.
 #ifdef SO_REUSEADDR
-#  undef SO_REUSEADDR
+#undef SO_REUSEADDR
 #endif
 #ifdef SO_REUSEPORT
-#  undef SO_REUSEPORT
+#undef SO_REUSEPORT
 #endif
-#endif // __EMSCRIPTEN__
+#endif  // __EMSCRIPTEN__
 
 #ifndef Py__SOCKET_H
 #define Py__SOCKET_H
@@ -230,34 +229,34 @@ extern "C" {
 #endif
 
 /* Python module and C API name */
-#define PySocket_MODULE_NAME    "_socket"
-#define PySocket_CAPI_NAME      "CAPI"
-#define PySocket_CAPSULE_NAME   PySocket_MODULE_NAME "." PySocket_CAPI_NAME
+#define PySocket_MODULE_NAME "_socket"
+#define PySocket_CAPI_NAME "CAPI"
+#define PySocket_CAPSULE_NAME PySocket_MODULE_NAME "." PySocket_CAPI_NAME
 
 /* Abstract the socket file descriptor type */
 #ifdef MS_WINDOWS
 typedef SOCKET SOCKET_T;
-#       ifdef MS_WIN64
-#               define SIZEOF_SOCKET_T 8
-#       else
-#               define SIZEOF_SOCKET_T 4
-#       endif
+#ifdef MS_WIN64
+#define SIZEOF_SOCKET_T 8
+#else
+#define SIZEOF_SOCKET_T 4
+#endif
 #else
 typedef int SOCKET_T;
-#       define SIZEOF_SOCKET_T SIZEOF_INT
+#define SIZEOF_SOCKET_T SIZEOF_INT
 #endif
 
 #if SIZEOF_SOCKET_T <= SIZEOF_LONG
 #define PyLong_FromSocket_t(fd) PyLong_FromLong((SOCKET_T)(fd))
-#define PyLong_AsSocket_t(fd) (SOCKET_T)PyLong_AsLong(fd)
+#define PyLong_AsSocket_t(fd) (SOCKET_T) PyLong_AsLong(fd)
 #else
 #define PyLong_FromSocket_t(fd) PyLong_FromLongLong((SOCKET_T)(fd))
-#define PyLong_AsSocket_t(fd) (SOCKET_T)PyLong_AsLongLong(fd)
+#define PyLong_AsSocket_t(fd) (SOCKET_T) PyLong_AsLongLong(fd)
 #endif
 
 // AF_HYPERV is only supported on Windows
 #if defined(AF_HYPERV) && defined(MS_WINDOWS)
-#  define HAVE_AF_HYPERV
+#define HAVE_AF_HYPERV
 #endif
 
 /* Socket address */
@@ -318,16 +317,15 @@ typedef union sock_addr {
    arguments properly. */
 
 typedef struct {
-    PyObject_HEAD
-    SOCKET_T sock_fd;           /* Socket file descriptor */
-    int sock_family;            /* Address family, e.g., AF_INET */
-    int sock_type;              /* Socket type, e.g., SOCK_STREAM */
-    int sock_proto;             /* Protocol type, usually 0 */
+    PyObject_HEAD SOCKET_T sock_fd;  /* Socket file descriptor */
+    int sock_family;                 /* Address family, e.g., AF_INET */
+    int sock_type;                   /* Socket type, e.g., SOCK_STREAM */
+    int sock_proto;                  /* Protocol type, usually 0 */
     PyObject *(*errorhandler)(void); /* Error handler; checks
                                         errno, returns NULL and
                                         sets a Python exception */
-    PyTime_t sock_timeout;     /* Operation timeout in seconds;
-                                        0.0 means non-blocking */
+    PyTime_t sock_timeout;           /* Operation timeout in seconds;
+                                              0.0 means non-blocking */
     struct _socket_state *state;
 #ifdef MS_WINDOWS
     int quickack;

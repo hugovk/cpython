@@ -6,7 +6,6 @@
 extern "C" {
 #endif
 
-
 // PyBool_Type is declared by object.h
 
 #define PyBool_Check(x) Py_IS_TYPE((x), &PyBool_Type)
@@ -18,12 +17,12 @@ PyAPI_DATA(PyLongObject) _Py_FalseStruct;
 PyAPI_DATA(PyLongObject) _Py_TrueStruct;
 
 /* Use these macros */
-#if defined(Py_LIMITED_API) && Py_LIMITED_API+0 >= 0x030D0000
-#  define Py_False Py_GetConstantBorrowed(Py_CONSTANT_FALSE)
-#  define Py_True Py_GetConstantBorrowed(Py_CONSTANT_TRUE)
+#if defined(Py_LIMITED_API) && Py_LIMITED_API + 0 >= 0x030D0000
+#define Py_False Py_GetConstantBorrowed(Py_CONSTANT_FALSE)
+#define Py_True Py_GetConstantBorrowed(Py_CONSTANT_TRUE)
 #else
-#  define Py_False _PyObject_CAST(&_Py_FalseStruct)
-#  define Py_True _PyObject_CAST(&_Py_TrueStruct)
+#define Py_False _PyObject_CAST(&_Py_FalseStruct)
+#define Py_True _PyObject_CAST(&_Py_TrueStruct)
 #endif
 
 // Test if an object is the True singleton, the same as "x is True" in Python.

@@ -23,21 +23,17 @@
  * A844         undefined                       U+2015 HORIZONTAL BAR
  */
 
-#define GBK_DECODE(dc1, dc2, writer)                                \
-    if ((dc1) == 0xa1 && (dc2) == 0xaa) {                           \
-        OUTCHAR(0x2014);                                            \
-    }                                                               \
-    else if ((dc1) == 0xa8 && (dc2) == 0x44) {                      \
-        OUTCHAR(0x2015);                                            \
-    }                                                               \
-    else if ((dc1) == 0xa1 && (dc2) == 0xa4) {                      \
-        OUTCHAR(0x00b7);                                            \
-    }                                                               \
-    else if (TRYMAP_DEC(gb2312, decoded, dc1 ^ 0x80, dc2 ^ 0x80)) { \
-        OUTCHAR(decoded);                                           \
-    }                                                               \
-    else if (TRYMAP_DEC(gbkext, decoded, dc1, dc2)) {               \
-        OUTCHAR(decoded);                                           \
+#define GBK_DECODE(dc1, dc2, writer)                                  \
+    if ((dc1) == 0xa1 && (dc2) == 0xaa) {                             \
+        OUTCHAR(0x2014);                                              \
+    } else if ((dc1) == 0xa8 && (dc2) == 0x44) {                      \
+        OUTCHAR(0x2015);                                              \
+    } else if ((dc1) == 0xa1 && (dc2) == 0xa4) {                      \
+        OUTCHAR(0x00b7);                                              \
+    } else if (TRYMAP_DEC(gb2312, decoded, dc1 ^ 0x80, dc2 ^ 0x80)) { \
+        OUTCHAR(decoded);                                             \
+    } else if (TRYMAP_DEC(gbkext, decoded, dc1, dc2)) {               \
+        OUTCHAR(decoded);                                             \
     }
 
 #define GBK_ENCODE(code, assi)                                         \
@@ -61,8 +57,7 @@
  * GB2312 codec
  */
 
-ENCODER(gb2312)
-{
+ENCODER(gb2312) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -93,8 +88,7 @@ ENCODER(gb2312)
     return 0;
 }
 
-DECODER(gb2312)
-{
+DECODER(gb2312) {
     while (inleft > 0) {
         unsigned char c = **inbuf;
         Py_UCS4 decoded;
@@ -109,21 +103,18 @@ DECODER(gb2312)
         if (TRYMAP_DEC(gb2312, decoded, c ^ 0x80, INBYTE2 ^ 0x80)) {
             OUTCHAR(decoded);
             NEXT_IN(2);
-        }
-        else
+        } else
             return 1;
     }
 
     return 0;
 }
 
-
 /*
  * GBK codec
  */
 
-ENCODER(gbk)
-{
+ENCODER(gbk) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -140,8 +131,7 @@ ENCODER(gbk)
         REQUIRE_OUTBUF(2);
 
         GBK_ENCODE(c, code)
-        else
-            return 1;
+        else return 1;
 
         OUTBYTE1((code >> 8) | 0x80);
         if (code & 0x8000)
@@ -154,8 +144,7 @@ ENCODER(gbk)
     return 0;
 }
 
-DECODER(gbk)
-{
+DECODER(gbk) {
     while (inleft > 0) {
         unsigned char c = INBYTE1;
         Py_UCS4 decoded;
@@ -169,8 +158,7 @@ DECODER(gbk)
         REQUIRE_INBUF(2);
 
         GBK_DECODE(c, INBYTE2, writer)
-        else
-            return 1;
+        else return 1;
 
         NEXT_IN(2);
     }
@@ -178,13 +166,11 @@ DECODER(gbk)
     return 0;
 }
 
-
 /*
  * GB18030 codec
  */
 
-ENCODER(gb18030)
-{
+ENCODER(gb18030) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -197,7 +183,7 @@ ENCODER(gb18030)
 
         if (c >= 0x10000) {
             Py_UCS4 tc = c - 0x10000;
-            assert (c <= 0x10FFFF);
+            assert(c <= 0x10FFFF);
 
             REQUIRE_OUTBUF(4);
 
@@ -216,22 +202,17 @@ ENCODER(gb18030)
         REQUIRE_OUTBUF(2);
 
         GBK_ENCODE(c, code)
-        else if (TRYMAP_ENC(gb18030ext, code, c))
-            ;
+        else if (TRYMAP_ENC(gb18030ext, code, c));
         else {
             const struct _gb18030_to_unibmp_ranges *utrrange;
 
             REQUIRE_OUTBUF(4);
 
-            for (utrrange = gb18030_to_unibmp_ranges;
-                 utrrange->first != 0;
-                 utrrange++)
-                if (utrrange->first <= c &&
-                    c <= utrrange->last) {
+            for (utrrange = gb18030_to_unibmp_ranges; utrrange->first != 0; utrrange++)
+                if (utrrange->first <= c && c <= utrrange->last) {
                     Py_UCS4 tc;
 
-                    tc = c - utrrange->first +
-                         utrrange->base;
+                    tc = c - utrrange->first + utrrange->base;
 
                     OUTBYTE4((unsigned char)(tc % 10) + 0x30);
                     tc /= 10;
@@ -262,8 +243,7 @@ ENCODER(gb18030)
     return 0;
 }
 
-DECODER(gb18030)
-{
+DECODER(gb18030) {
     while (inleft > 0) {
         unsigned char c = INBYTE1, c2;
         Py_UCS4 decoded;
@@ -285,28 +265,26 @@ DECODER(gb18030)
             REQUIRE_INBUF(4);
             c3 = INBYTE3;
             c4 = INBYTE4;
-            if (c  < 0x81 || c  > 0xFE ||
-                c3 < 0x81 || c3 > 0xFE ||
-                c4 < 0x30 || c4 > 0x39)
+            if (c < 0x81 || c > 0xFE || c3 < 0x81 || c3 > 0xFE || c4 < 0x30 ||
+                c4 > 0x39)
                 return 1;
-            c -= 0x81;  c2 -= 0x30;
-            c3 -= 0x81; c4 -= 0x30;
+            c -= 0x81;
+            c2 -= 0x30;
+            c3 -= 0x81;
+            c4 -= 0x30;
 
             if (c < 4) { /* U+0080 - U+FFFF */
-                lseq = ((Py_UCS4)c * 10 + c2) * 1260 +
-                    (Py_UCS4)c3 * 10 + c4;
+                lseq = ((Py_UCS4)c * 10 + c2) * 1260 + (Py_UCS4)c3 * 10 + c4;
                 if (lseq < 39420) {
-                    for (utr = gb18030_to_unibmp_ranges;
-                         lseq >= (utr + 1)->base;
-                         utr++) ;
+                    for (utr = gb18030_to_unibmp_ranges; lseq >= (utr + 1)->base;
+                         utr++);
                     OUTCHAR(utr->first - utr->base + lseq);
                     NEXT_IN(4);
                     continue;
                 }
-            }
-            else if (c >= 15) { /* U+10000 - U+10FFFF */
-                lseq = 0x10000 + (((Py_UCS4)c-15) * 10 + c2)
-                    * 1260 + (Py_UCS4)c3 * 10 + c4;
+            } else if (c >= 15) { /* U+10000 - U+10FFFF */
+                lseq = 0x10000 + (((Py_UCS4)c - 15) * 10 + c2) * 1260 +
+                       (Py_UCS4)c3 * 10 + c4;
                 if (lseq <= 0x10FFFF) {
                     OUTCHAR(lseq);
                     NEXT_IN(4);
@@ -317,10 +295,8 @@ DECODER(gb18030)
         }
 
         GBK_DECODE(c, c2, writer)
-        else if (TRYMAP_DEC(gb18030ext, decoded, c, c2))
-            OUTCHAR(decoded);
-        else
-            return 1;
+        else if (TRYMAP_DEC(gb18030ext, decoded, c, c2)) OUTCHAR(decoded);
+        else return 1;
 
         NEXT_IN(2);
     }
@@ -328,19 +304,16 @@ DECODER(gb18030)
     return 0;
 }
 
-
 /*
  * HZ codec
  */
 
-ENCODER_INIT(hz)
-{
+ENCODER_INIT(hz) {
     state->c[CN_STATE_OFFSET] = 0;
     return 0;
 }
 
-ENCODER_RESET(hz)
-{
+ENCODER_RESET(hz) {
     if (state->c[CN_STATE_OFFSET] != 0) {
         WRITEBYTE2('~', '}');
         state->c[CN_STATE_OFFSET] = 0;
@@ -349,8 +322,7 @@ ENCODER_RESET(hz)
     return 0;
 }
 
-ENCODER(hz)
-{
+ENCODER(hz) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -385,8 +357,7 @@ ENCODER(hz)
             WRITEBYTE4('~', '{', code >> 8, code & 0xff);
             NEXT(1, 4);
             state->c[CN_STATE_OFFSET] = 1;
-        }
-        else {
+        } else {
             WRITEBYTE2(code >> 8, code & 0xff);
             NEXT(1, 2);
         }
@@ -395,20 +366,17 @@ ENCODER(hz)
     return 0;
 }
 
-DECODER_INIT(hz)
-{
+DECODER_INIT(hz) {
     state->c[CN_STATE_OFFSET] = 0;
     return 0;
 }
 
-DECODER_RESET(hz)
-{
+DECODER_RESET(hz) {
     state->c[CN_STATE_OFFSET] = 0;
     return 0;
 }
 
-DECODER(hz)
-{
+DECODER(hz) {
     while (inleft > 0) {
         unsigned char c = INBYTE1;
         Py_UCS4 decoded;
@@ -437,14 +405,12 @@ DECODER(hz)
         if (state->c[CN_STATE_OFFSET] == 0) { /* ASCII mode */
             OUTCHAR(c);
             NEXT_IN(1);
-        }
-        else { /* GB mode */
+        } else { /* GB mode */
             REQUIRE_INBUF(2);
             if (TRYMAP_DEC(gb2312, decoded, c, INBYTE2)) {
                 OUTCHAR(decoded);
                 NEXT_IN(2);
-            }
-            else
+            } else
                 return 1;
         }
     }
@@ -452,19 +418,18 @@ DECODER(hz)
     return 0;
 }
 
-
 BEGIN_MAPPINGS_LIST(4)
-  MAPPING_DECONLY(gb2312)
-  MAPPING_DECONLY(gbkext)
-  MAPPING_ENCONLY(gbcommon)
-  MAPPING_ENCDEC(gb18030ext)
+MAPPING_DECONLY(gb2312)
+MAPPING_DECONLY(gbkext)
+MAPPING_ENCONLY(gbcommon)
+MAPPING_ENCDEC(gb18030ext)
 END_MAPPINGS_LIST
 
 BEGIN_CODECS_LIST(4)
-  CODEC_STATELESS(gb2312)
-  CODEC_STATELESS(gbk)
-  CODEC_STATELESS(gb18030)
-  CODEC_STATEFUL(hz)
+CODEC_STATELESS(gb2312)
+CODEC_STATELESS(gbk)
+CODEC_STATELESS(gb18030)
+CODEC_STATEFUL(hz)
 END_CODECS_LIST
 
 I_AM_A_MODULE_FOR(cn)

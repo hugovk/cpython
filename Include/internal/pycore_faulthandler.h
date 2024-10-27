@@ -5,33 +5,30 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #ifdef HAVE_SIGACTION
-#  include <signal.h>             // sigaction
+#include <signal.h>  // sigaction
 #endif
-
 
 #ifndef MS_WINDOWS
-   /* register() is useless on Windows, because only SIGSEGV, SIGABRT and
-      SIGILL can be handled by the process, and these signals can only be used
-      with enable(), not using register() */
-#  define FAULTHANDLER_USER
+/* register() is useless on Windows, because only SIGSEGV, SIGABRT and
+   SIGILL can be handled by the process, and these signals can only be used
+   with enable(), not using register() */
+#define FAULTHANDLER_USER
 #endif
-
 
 #ifdef HAVE_SIGACTION
 /* Using an alternative stack requires sigaltstack()
    and sigaction() SA_ONSTACK */
-#  ifdef HAVE_SIGALTSTACK
-#    define FAULTHANDLER_USE_ALT_STACK
-#  endif
+#ifdef HAVE_SIGALTSTACK
+#define FAULTHANDLER_USE_ALT_STACK
+#endif
 typedef struct sigaction _Py_sighandler_t;
 #else
 typedef PyOS_sighandler_t _Py_sighandler_t;
 #endif  // HAVE_SIGACTION
-
 
 #ifdef FAULTHANDLER_USER
 struct faulthandler_user_signal {
@@ -44,7 +41,6 @@ struct faulthandler_user_signal {
     PyInterpreterState *interp;
 };
 #endif /* FAULTHANDLER_USER */
-
 
 struct _faulthandler_runtime_state {
     struct {
@@ -61,7 +57,7 @@ struct _faulthandler_runtime_state {
     struct {
         PyObject *file;
         int fd;
-        PY_TIMEOUT_T timeout_us;   /* timeout in microseconds */
+        PY_TIMEOUT_T timeout_us; /* timeout in microseconds */
         int repeat;
         PyInterpreterState *interp;
         int exit;
@@ -86,12 +82,12 @@ struct _faulthandler_runtime_state {
 };
 
 #define _faulthandler_runtime_state_INIT \
-    { \
-        .fatal_error = { \
-            .fd = -1, \
-        }, \
+    {                                    \
+        .fatal_error =                   \
+            {                            \
+                .fd = -1,                \
+            },                           \
     }
-
 
 #ifdef __cplusplus
 }

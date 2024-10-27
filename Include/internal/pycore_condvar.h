@@ -2,11 +2,10 @@
 #define Py_INTERNAL_CONDVAR_H
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_pythread.h"      // _POSIX_THREADS
-
+#include "pycore_pythread.h"  // _POSIX_THREADS
 
 #ifdef _POSIX_THREADS
 /*
@@ -15,7 +14,7 @@
 #define Py_HAVE_CONDVAR
 
 #ifdef HAVE_PTHREAD_H
-#  include <pthread.h>            // pthread_mutex_t
+#include <pthread.h>  // pthread_mutex_t
 #endif
 
 #define PyMUTEX_T pthread_mutex_t
@@ -32,14 +31,14 @@
 
 /* include windows if it hasn't been done before */
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>              // CRITICAL_SECTION
+#include <windows.h>  // CRITICAL_SECTION
 
 /* options */
 /* emulated condition variables are provided for those that want
  * to target Windows XP or earlier. Modify this macro to enable them.
  */
 #ifndef _PY_EMULATED_WIN_CV
-#define _PY_EMULATED_WIN_CV 0  /* use non-emulated condition variables */
+#define _PY_EMULATED_WIN_CV 0 /* use non-emulated condition variables */
 #endif
 
 /* fall back to emulation if targeting earlier than Vista */
@@ -69,8 +68,7 @@ typedef CRITICAL_SECTION PyMUTEX_T;
    that would otherwise happen.
  */
 
-typedef struct _PyCOND_T
-{
+typedef struct _PyCOND_T {
     HANDLE sem;
     int waiting; /* to allow PyCOND_SIGNAL to be a no-op */
 } PyCOND_T;
@@ -82,7 +80,7 @@ typedef struct _PyCOND_T
 /* SRWLOCK is faster and better than CriticalSection */
 typedef SRWLOCK PyMUTEX_T;
 
-typedef CONDITION_VARIABLE  PyCOND_T;
+typedef CONDITION_VARIABLE PyCOND_T;
 
 #endif /* _PY_EMULATED_WIN_CV */
 

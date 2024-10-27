@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 
 #include <assert.h>
@@ -35,9 +34,7 @@
 #include "numbertheory.h"
 #include "umodarith.h"
 
-
 /* Bignum: Initialize the Number Theoretic Transform. */
-
 
 /*
  * Return the nth root of unity in F(p). This corresponds to e**((2*pi*i)/n)
@@ -47,8 +44,7 @@
  *    modnum := one of {P1, P2, P3}.
  */
 mpd_uint_t
-_mpd_getkernel(mpd_uint_t n, int sign, int modnum)
-{
+_mpd_getkernel(mpd_uint_t n, int sign, int modnum) {
     mpd_uint_t umod, p, r, xi;
 #ifdef PPRO
     double dmod;
@@ -58,10 +54,10 @@ _mpd_getkernel(mpd_uint_t n, int sign, int modnum)
     SETMODULUS(modnum);
     r = mpd_roots[modnum]; /* primitive root of F(p) */
     p = umod;
-    xi = (p-1) / n;
+    xi = (p - 1) / n;
 
     if (sign == -1)
-        return POWMOD(r, (p-1-xi));
+        return POWMOD(r, (p - 1 - xi));
     else
         return POWMOD(r, xi);
 }
@@ -73,8 +69,7 @@ _mpd_getkernel(mpd_uint_t n, int sign, int modnum)
  *    modnum := one of {P1, P2, P3}.
  */
 struct fnt_params *
-_mpd_init_fnt_params(mpd_size_t n, int sign, int modnum)
-{
+_mpd_init_fnt_params(mpd_size_t n, int sign, int modnum) {
     struct fnt_params *tparams;
     mpd_uint_t umod;
 #ifdef PPRO
@@ -89,8 +84,8 @@ _mpd_init_fnt_params(mpd_size_t n, int sign, int modnum)
     assert(sign == -1 || sign == 1);
     assert(P1 <= modnum && modnum <= P3);
 
-    nhalf = n/2;
-    tparams = mpd_sh_alloc(sizeof *tparams, nhalf, sizeof (mpd_uint_t));
+    nhalf = n / 2;
+    tparams = mpd_sh_alloc(sizeof *tparams, nhalf, sizeof(mpd_uint_t));
     if (tparams == NULL) {
         return NULL;
     }
@@ -114,8 +109,7 @@ _mpd_init_fnt_params(mpd_size_t n, int sign, int modnum)
 
 /* Initialize wtable of size three. */
 void
-_mpd_init_w3table(mpd_uint_t w3table[3], int sign, int modnum)
-{
+_mpd_init_w3table(mpd_uint_t w3table[3], int sign, int modnum) {
     mpd_uint_t umod;
 #ifdef PPRO
     double dmod;

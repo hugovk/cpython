@@ -5,28 +5,27 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #include <stdbool.h>
-#include <stddef.h>               // offsetof()
-#include "pycore_code.h"          // STATS
-#include "pycore_stackref.h"      // _PyStackRef
+#include <stddef.h>           // offsetof()
+#include "pycore_code.h"      // STATS
+#include "pycore_stackref.h"  // _PyStackRef
 
 /* See InternalDocs/frames.md for an explanation of the frame stack
  * including explanation of the PyFrameObject and _PyInterpreterFrame
  * structs. */
 
-
 struct _frame {
-    PyObject_HEAD
-    PyFrameObject *f_back;      /* previous frame, or NULL */
+    PyObject_HEAD PyFrameObject *f_back; /* previous frame, or NULL */
     struct _PyInterpreterFrame *f_frame; /* points to the frame data */
-    PyObject *f_trace;          /* Trace function */
-    int f_lineno;               /* Current line number. Only valid if non-zero */
-    char f_trace_lines;         /* Emit per-line trace events? */
-    char f_trace_opcodes;       /* Emit per-opcode trace events? */
-    PyObject *f_extra_locals;   /* Dict for locals set by users using f_locals, could be NULL */
+    PyObject *f_trace;                   /* Trace function */
+    int f_lineno;         /* Current line number. Only valid if non-zero */
+    char f_trace_lines;   /* Emit per-line trace events? */
+    char f_trace_opcodes; /* Emit per-opcode trace events? */
+    PyObject *
+        f_extra_locals; /* Dict for locals set by users using f_locals, could be NULL */
     /* This is purely for backwards compatibility for PyEval_GetLocals.
        PyEval_GetLocals requires a borrowed reference so the actual reference
        is stored here */
@@ -35,8 +34,8 @@ struct _frame {
     PyObject *_f_frame_data[1];
 };
 
-extern PyFrameObject* _PyFrame_New_NoTrack(PyCodeObject *code);
-
+extern PyFrameObject *
+_PyFrame_New_NoTrack(PyCodeObject *code);
 
 /* other API */
 
@@ -49,7 +48,8 @@ typedef enum _framestate {
     FRAME_CLEARED = 4
 } PyFrameState;
 
-#define FRAME_STATE_SUSPENDED(S) ((S) == FRAME_SUSPENDED || (S) == FRAME_SUSPENDED_YIELD_FROM)
+#define FRAME_STATE_SUSPENDED(S) \
+    ((S) == FRAME_SUSPENDED || (S) == FRAME_SUSPENDED_YIELD_FROM)
 #define FRAME_STATE_FINISHED(S) ((S) >= FRAME_COMPLETED)
 
 enum _frameowner {
@@ -62,14 +62,17 @@ enum _frameowner {
 typedef struct _PyInterpreterFrame {
     _PyStackRef f_executable; /* Deferred or strong reference (code object or None) */
     struct _PyInterpreterFrame *previous;
-    _PyStackRef f_funcobj; /* Deferred or strong reference. Only valid if not on C stack */
-    PyObject *f_globals; /* Borrowed reference. Only valid if not on C stack */
+    _PyStackRef
+        f_funcobj; /* Deferred or strong reference. Only valid if not on C stack */
+    PyObject *f_globals;  /* Borrowed reference. Only valid if not on C stack */
     PyObject *f_builtins; /* Borrowed reference. Only valid if not on C stack */
-    PyObject *f_locals; /* Strong reference, may be NULL. Only valid if not on C stack */
-    PyFrameObject *frame_obj; /* Strong reference, may be NULL. Only valid if not on C stack */
+    PyObject
+        *f_locals; /* Strong reference, may be NULL. Only valid if not on C stack */
+    PyFrameObject
+        *frame_obj; /* Strong reference, may be NULL. Only valid if not on C stack */
     _Py_CODEUNIT *instr_ptr; /* Instruction currently executing (or about to begin) */
     _PyStackRef *stackpointer;
-    uint16_t return_offset;  /* Only relevant during a function call */
+    uint16_t return_offset; /* Only relevant during a function call */
     char owner;
     /* Locals and stack */
     _PyStackRef localsplus[1];
@@ -78,52 +81,58 @@ typedef struct _PyInterpreterFrame {
 #define _PyInterpreterFrame_LASTI(IF) \
     ((int)((IF)->instr_ptr - _PyCode_CODE(_PyFrame_GetCode(IF))))
 
-static inline PyCodeObject *_PyFrame_GetCode(_PyInterpreterFrame *f) {
+static inline PyCodeObject *
+_PyFrame_GetCode(_PyInterpreterFrame *f) {
     PyObject *executable = PyStackRef_AsPyObjectBorrow(f->f_executable);
     assert(PyCode_Check(executable));
     return (PyCodeObject *)executable;
 }
 
-static inline PyFunctionObject *_PyFrame_GetFunction(_PyInterpreterFrame *f) {
+static inline PyFunctionObject *
+_PyFrame_GetFunction(_PyInterpreterFrame *f) {
     PyObject *func = PyStackRef_AsPyObjectBorrow(f->f_funcobj);
     assert(PyFunction_Check(func));
     return (PyFunctionObject *)func;
 }
 
-static inline _PyStackRef *_PyFrame_Stackbase(_PyInterpreterFrame *f) {
+static inline _PyStackRef *
+_PyFrame_Stackbase(_PyInterpreterFrame *f) {
     return (f->localsplus + _PyFrame_GetCode(f)->co_nlocalsplus);
 }
 
-static inline _PyStackRef _PyFrame_StackPeek(_PyInterpreterFrame *f) {
-    assert(f->stackpointer >  f->localsplus + _PyFrame_GetCode(f)->co_nlocalsplus);
+static inline _PyStackRef
+_PyFrame_StackPeek(_PyInterpreterFrame *f) {
+    assert(f->stackpointer > f->localsplus + _PyFrame_GetCode(f)->co_nlocalsplus);
     assert(!PyStackRef_IsNull(f->stackpointer[-1]));
     return f->stackpointer[-1];
 }
 
-static inline _PyStackRef _PyFrame_StackPop(_PyInterpreterFrame *f) {
-    assert(f->stackpointer >  f->localsplus + _PyFrame_GetCode(f)->co_nlocalsplus);
+static inline _PyStackRef
+_PyFrame_StackPop(_PyInterpreterFrame *f) {
+    assert(f->stackpointer > f->localsplus + _PyFrame_GetCode(f)->co_nlocalsplus);
     f->stackpointer--;
     return *f->stackpointer;
 }
 
-static inline void _PyFrame_StackPush(_PyInterpreterFrame *f, _PyStackRef value) {
+static inline void
+_PyFrame_StackPush(_PyInterpreterFrame *f, _PyStackRef value) {
     *f->stackpointer = value;
     f->stackpointer++;
 }
 
-#define FRAME_SPECIALS_SIZE ((int)((sizeof(_PyInterpreterFrame)-1)/sizeof(PyObject *)))
+#define FRAME_SPECIALS_SIZE \
+    ((int)((sizeof(_PyInterpreterFrame) - 1) / sizeof(PyObject *)))
 
 static inline int
-_PyFrame_NumSlotsForCodeObject(PyCodeObject *code)
-{
+_PyFrame_NumSlotsForCodeObject(PyCodeObject *code) {
     /* This function needs to remain in sync with the calculation of
      * co_framesize in Tools/build/deepfreeze.py */
     assert(code->co_framesize >= FRAME_SPECIALS_SIZE);
     return code->co_framesize - FRAME_SPECIALS_SIZE;
 }
 
-static inline void _PyFrame_Copy(_PyInterpreterFrame *src, _PyInterpreterFrame *dest)
-{
+static inline void
+_PyFrame_Copy(_PyInterpreterFrame *src, _PyInterpreterFrame *dest) {
     *dest = *src;
     assert(src->stackpointer != NULL);
     int stacktop = (int)(src->stackpointer - src->localsplus);
@@ -150,9 +159,13 @@ static inline void _PyFrame_Copy(_PyInterpreterFrame *src, _PyInterpreterFrame *
  */
 static inline void
 _PyFrame_Initialize(
-    _PyInterpreterFrame *frame, _PyStackRef func,
-    PyObject *locals, PyCodeObject *code, int null_locals_from, _PyInterpreterFrame *previous)
-{
+    _PyInterpreterFrame *frame,
+    _PyStackRef func,
+    PyObject *locals,
+    PyCodeObject *code,
+    int null_locals_from,
+    _PyInterpreterFrame *previous
+) {
     frame->previous = previous;
     frame->f_funcobj = func;
     frame->f_executable = PyStackRef_FromPyObjectNew(code);
@@ -175,7 +188,8 @@ _PyFrame_Initialize(
     // is not always in sync with the real stack pointer, we have
     // no choice but to traverse the entire stack.
     // This just makes sure we don't pass the GC invalid stack values.
-    for (int i = code->co_nlocalsplus; i < code->co_nlocalsplus + code->co_stacksize; i++) {
+    for (int i = code->co_nlocalsplus; i < code->co_nlocalsplus + code->co_stacksize;
+         i++) {
         frame->localsplus[i] = PyStackRef_NULL;
     }
 #endif
@@ -184,18 +198,16 @@ _PyFrame_Initialize(
 /* Gets the pointer to the locals array
  * that precedes this frame.
  */
-static inline _PyStackRef*
-_PyFrame_GetLocalsArray(_PyInterpreterFrame *frame)
-{
+static inline _PyStackRef *
+_PyFrame_GetLocalsArray(_PyInterpreterFrame *frame) {
     return frame->localsplus;
 }
 
 /* Fetches the stack pointer, and sets stackpointer to NULL.
    Having stackpointer == NULL ensures that invalid
    values are not visible to the cycle GC. */
-static inline _PyStackRef*
-_PyFrame_GetStackPointer(_PyInterpreterFrame *frame)
-{
+static inline _PyStackRef *
+_PyFrame_GetStackPointer(_PyInterpreterFrame *frame) {
     assert(frame->stackpointer != NULL);
     _PyStackRef *sp = frame->stackpointer;
     frame->stackpointer = NULL;
@@ -203,8 +215,7 @@ _PyFrame_GetStackPointer(_PyInterpreterFrame *frame)
 }
 
 static inline void
-_PyFrame_SetStackPointer(_PyInterpreterFrame *frame, _PyStackRef *stack_pointer)
-{
+_PyFrame_SetStackPointer(_PyInterpreterFrame *frame, _PyStackRef *stack_pointer) {
     assert(frame->stackpointer == NULL);
     frame->stackpointer = stack_pointer;
 }
@@ -218,18 +229,17 @@ _PyFrame_SetStackPointer(_PyInterpreterFrame *frame, _PyStackRef *stack_pointer)
  * Frames owned by a generator are always complete.
  */
 static inline bool
-_PyFrame_IsIncomplete(_PyInterpreterFrame *frame)
-{
+_PyFrame_IsIncomplete(_PyInterpreterFrame *frame) {
     if (frame->owner == FRAME_OWNED_BY_CSTACK) {
         return true;
     }
     return frame->owner != FRAME_OWNED_BY_GENERATOR &&
-        frame->instr_ptr < _PyCode_CODE(_PyFrame_GetCode(frame)) + _PyFrame_GetCode(frame)->_co_firsttraceable;
+           frame->instr_ptr < _PyCode_CODE(_PyFrame_GetCode(frame)) +
+                                  _PyFrame_GetCode(frame)->_co_firsttraceable;
 }
 
 static inline _PyInterpreterFrame *
-_PyFrame_GetFirstComplete(_PyInterpreterFrame *frame)
-{
+_PyFrame_GetFirstComplete(_PyInterpreterFrame *frame) {
     while (frame && _PyFrame_IsIncomplete(frame)) {
         frame = frame->previous;
     }
@@ -237,8 +247,7 @@ _PyFrame_GetFirstComplete(_PyInterpreterFrame *frame)
 }
 
 static inline _PyInterpreterFrame *
-_PyThreadState_GetFrame(PyThreadState *tstate)
-{
+_PyThreadState_GetFrame(PyThreadState *tstate) {
     return _PyFrame_GetFirstComplete(tstate->current_frame);
 }
 
@@ -251,11 +260,9 @@ _PyFrame_MakeAndSetFrameObject(_PyInterpreterFrame *frame);
  * creating it if necessary.
  * Returns a borrowed reference */
 static inline PyFrameObject *
-_PyFrame_GetFrameObject(_PyInterpreterFrame *frame)
-{
-
+_PyFrame_GetFrameObject(_PyInterpreterFrame *frame) {
     assert(!_PyFrame_IsIncomplete(frame));
-    PyFrameObject *res =  frame->frame_obj;
+    PyFrameObject *res = frame->frame_obj;
     if (res != NULL) {
         return res;
     }
@@ -275,7 +282,7 @@ _PyFrame_ClearLocals(_PyInterpreterFrame *frame);
  * frames like the ones in generators and coroutines.
  */
 void
-_PyFrame_ClearExceptCode(_PyInterpreterFrame * frame);
+_PyFrame_ClearExceptCode(_PyInterpreterFrame *frame);
 
 int
 _PyFrame_Traverse(_PyInterpreterFrame *frame, visitproc visit, void *arg);
@@ -287,28 +294,31 @@ PyObject *
 _PyFrame_GetLocals(_PyInterpreterFrame *frame);
 
 static inline bool
-_PyThreadState_HasStackSpace(PyThreadState *tstate, int size)
-{
+_PyThreadState_HasStackSpace(PyThreadState *tstate, int size) {
     assert(
-        (tstate->datastack_top == NULL && tstate->datastack_limit == NULL)
-        ||
+        (tstate->datastack_top == NULL && tstate->datastack_limit == NULL) ||
         (tstate->datastack_top != NULL && tstate->datastack_limit != NULL)
     );
     return tstate->datastack_top != NULL &&
-        size < tstate->datastack_limit - tstate->datastack_top;
+           size < tstate->datastack_limit - tstate->datastack_top;
 }
 
 extern _PyInterpreterFrame *
 _PyThreadState_PushFrame(PyThreadState *tstate, size_t size);
 
-PyAPI_FUNC(void) _PyThreadState_PopFrame(PyThreadState *tstate, _PyInterpreterFrame *frame);
+PyAPI_FUNC(void)
+    _PyThreadState_PopFrame(PyThreadState *tstate, _PyInterpreterFrame *frame);
 
 /* Pushes a frame without checking for space.
  * Must be guarded by _PyThreadState_HasStackSpace()
  * Consumes reference to func. */
 static inline _PyInterpreterFrame *
-_PyFrame_PushUnchecked(PyThreadState *tstate, _PyStackRef func, int null_locals_from, _PyInterpreterFrame * previous)
-{
+_PyFrame_PushUnchecked(
+    PyThreadState *tstate,
+    _PyStackRef func,
+    int null_locals_from,
+    _PyInterpreterFrame *previous
+) {
     CALL_STAT_INC(frames_pushed);
     PyFunctionObject *func_obj = (PyFunctionObject *)PyStackRef_AsPyObjectBorrow(func);
     PyCodeObject *code = (PyCodeObject *)func_obj->func_code;
@@ -322,8 +332,12 @@ _PyFrame_PushUnchecked(PyThreadState *tstate, _PyStackRef func, int null_locals_
 /* Pushes a trampoline frame without checking for space.
  * Must be guarded by _PyThreadState_HasStackSpace() */
 static inline _PyInterpreterFrame *
-_PyFrame_PushTrampolineUnchecked(PyThreadState *tstate, PyCodeObject *code, int stackdepth, _PyInterpreterFrame * previous)
-{
+_PyFrame_PushTrampolineUnchecked(
+    PyThreadState *tstate,
+    PyCodeObject *code,
+    int stackdepth,
+    _PyInterpreterFrame *previous
+) {
     CALL_STAT_INC(frames_pushed);
     _PyInterpreterFrame *frame = (_PyInterpreterFrame *)tstate->datastack_top;
     tstate->datastack_top += code->co_framesize;
@@ -352,11 +366,15 @@ _PyFrame_PushTrampolineUnchecked(PyThreadState *tstate, PyCodeObject *code, int 
     return frame;
 }
 
-PyAPI_FUNC(_PyInterpreterFrame *)
-_PyEvalFramePushAndInit(PyThreadState *tstate, _PyStackRef func,
-                        PyObject *locals, _PyStackRef const* args,
-                        size_t argcount, PyObject *kwnames,
-                        _PyInterpreterFrame *previous);
+PyAPI_FUNC(_PyInterpreterFrame *) _PyEvalFramePushAndInit(
+    PyThreadState *tstate,
+    _PyStackRef func,
+    PyObject *locals,
+    _PyStackRef const *args,
+    size_t argcount,
+    PyObject *kwnames,
+    _PyInterpreterFrame *previous
+);
 
 #ifdef __cplusplus
 }

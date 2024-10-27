@@ -5,19 +5,17 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 #include "pycore_freelist_state.h"  // _Py_freelists
 #include "pycore_hashtable.h"       // _Py_hashtable_t
 
-
 /* Reference tracer state */
 struct _reftracer_runtime_state {
     PyRefTracer tracer_func;
-    void* tracer_data;
+    void *tracer_data;
 };
-
 
 struct _py_object_runtime_state {
 #ifdef Py_REF_DEBUG
@@ -41,7 +39,6 @@ struct _py_object_state {
 #endif
     int _not_used;
 };
-
 
 #ifdef __cplusplus
 }

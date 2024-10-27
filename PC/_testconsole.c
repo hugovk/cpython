@@ -2,9 +2,9 @@
  */
 
 // Need limited C API version 3.13 for Py_mod_gil
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #ifndef Py_GIL_DISABLED
-#  define Py_LIMITED_API 0x030d0000
+#define Py_LIMITED_API 0x030d0000
 #endif
 
 #include "Python.h"
@@ -15,16 +15,14 @@
 #include <windows.h>
 #include <fcntl.h>
 
- /* The full definition is in iomodule. We reproduce
- enough here to get the fd, which is all we want. */
+/* The full definition is in iomodule. We reproduce
+enough here to get the fd, which is all we want. */
 typedef struct {
-    PyObject_HEAD
-    int fd;
+    PyObject_HEAD int fd;
 } winconsoleio;
 
-
-static int execfunc(PyObject *m)
-{
+static int
+execfunc(PyObject *m) {
     return 0;
 }
 
@@ -73,7 +71,8 @@ _testconsole_write_input_impl(PyObject *module, PyObject *file, Py_buffer *s)
         return NULL;
     }
 
-    PyTypeObject *winconsoleio_type = (PyTypeObject *)PyObject_GetAttrString(mod, "_WindowsConsoleIO");
+    PyTypeObject *winconsoleio_type =
+        (PyTypeObject *)PyObject_GetAttrString(mod, "_WindowsConsoleIO");
     Py_DECREF(mod);
     if (winconsoleio_type == NULL) {
         return NULL;
@@ -88,7 +87,7 @@ _testconsole_write_input_impl(PyObject *module, PyObject *file, Py_buffer *s)
     const wchar_t *p = (const wchar_t *)s->buf;
     DWORD size = (DWORD)s->len / sizeof(wchar_t);
 
-    rec = (INPUT_RECORD*)PyMem_Calloc(size, sizeof(INPUT_RECORD));
+    rec = (INPUT_RECORD *)PyMem_Calloc(size, sizeof(INPUT_RECORD));
     if (!rec)
         goto error;
 
@@ -100,7 +99,7 @@ _testconsole_write_input_impl(PyObject *module, PyObject *file, Py_buffer *s)
         prec->Event.KeyEvent.uChar.UnicodeChar = *p;
     }
 
-    HANDLE hInput = (HANDLE)_get_osfhandle(((winconsoleio*)file)->fd);
+    HANDLE hInput = (HANDLE)_get_osfhandle(((winconsoleio *)file)->fd);
     if (hInput == INVALID_HANDLE_VALUE) {
         PyErr_SetFromErrno(PyExc_OSError);
         goto error;
@@ -116,12 +115,12 @@ _testconsole_write_input_impl(PyObject *module, PyObject *file, Py_buffer *s)
         total += wrote;
     }
 
-    PyMem_Free((void*)rec);
+    PyMem_Free((void *)rec);
 
     Py_RETURN_NONE;
 error:
     if (rec)
-        PyMem_Free((void*)rec);
+        PyMem_Free((void *)rec);
     return NULL;
 }
 
@@ -139,30 +138,26 @@ _testconsole_read_output_impl(PyObject *module, PyObject *file)
     Py_RETURN_NONE;
 }
 
-
 #include "clinic\_testconsole.c.h"
 
 PyMethodDef testconsole_methods[] = {
-    _TESTCONSOLE_WRITE_INPUT_METHODDEF
-    _TESTCONSOLE_READ_OUTPUT_METHODDEF
-    {NULL, NULL}
+    _TESTCONSOLE_WRITE_INPUT_METHODDEF _TESTCONSOLE_READ_OUTPUT_METHODDEF{NULL, NULL}
 };
 
 static PyModuleDef testconsole_def = {
-    PyModuleDef_HEAD_INIT,                      /* m_base */
-    "_testconsole",                             /* m_name */
+    PyModuleDef_HEAD_INIT,                            /* m_base */
+    "_testconsole",                                   /* m_name */
     PyDoc_STR("Test module for the Windows console"), /* m_doc */
-    0,                                          /* m_size */
-    testconsole_methods,                        /* m_methods */
-    testconsole_slots,                          /* m_slots */
-    NULL,                                       /* m_traverse */
-    NULL,                                       /* m_clear */
-    NULL,                                       /* m_free */
+    0,                                                /* m_size */
+    testconsole_methods,                              /* m_methods */
+    testconsole_slots,                                /* m_slots */
+    NULL,                                             /* m_traverse */
+    NULL,                                             /* m_clear */
+    NULL,                                             /* m_free */
 };
 
 PyMODINIT_FUNC
-PyInit__testconsole(PyObject *spec)
-{
+PyInit__testconsole(PyObject *spec) {
     return PyModuleDef_Init(&testconsole_def);
 }
 

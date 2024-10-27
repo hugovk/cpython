@@ -44,7 +44,7 @@
 
 // Py_INFINITY: Value that evaluates to a positive double infinity.
 #ifndef Py_INFINITY
-#  define Py_INFINITY ((double)INFINITY)
+#define Py_INFINITY ((double)INFINITY)
 #endif
 
 /* Py_HUGE_VAL should always be the same as Py_INFINITY.  But historically
@@ -52,14 +52,14 @@
  * conformity.  Prefer Py_INFINITY for new code.
  */
 #ifndef Py_HUGE_VAL
-#  define Py_HUGE_VAL HUGE_VAL
+#define Py_HUGE_VAL HUGE_VAL
 #endif
 
 /* Py_NAN: Value that evaluates to a quiet Not-a-Number (NaN).  The sign is
  * undefined and normally not relevant, but e.g. fixed for float("nan").
  */
 #if !defined(Py_NAN)
-#    define Py_NAN ((double)NAN)
+#define Py_NAN ((double)NAN)
 #endif
 
 #endif /* Py_PYMATH_H */

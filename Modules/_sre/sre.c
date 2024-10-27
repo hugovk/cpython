@@ -35,27 +35,27 @@
  * other compatibility work.
  */
 
-static const char copyright[] =
-    " SRE 2.2.2 Copyright (c) 1997-2002 by Secret Labs AB ";
+static const char copyright[] = " SRE 2.2.2 Copyright (c) 1997-2002 by Secret Labs AB ";
 
 #include "Python.h"
-#include "pycore_critical_section.h" // Py_BEGIN_CRITICAL_SECTION
-#include "pycore_dict.h"             // _PyDict_Next()
-#include "pycore_long.h"             // _PyLong_GetZero()
-#include "pycore_moduleobject.h"     // _PyModule_GetState()
+#include "pycore_critical_section.h"  // Py_BEGIN_CRITICAL_SECTION
+#include "pycore_dict.h"              // _PyDict_Next()
+#include "pycore_long.h"              // _PyLong_GetZero()
+#include "pycore_moduleobject.h"      // _PyModule_GetState()
 
-#include "sre.h"                     // SRE_CODE
+#include "sre.h"  // SRE_CODE
 
-#include <ctype.h>                   // tolower(), toupper(), isalnum()
+#include <ctype.h>  // tolower(), toupper(), isalnum()
 
 #define SRE_CODE_BITS (8 * sizeof(SRE_CODE))
 
 // On macOS, use the wide character ctype API using btowc()
 #if defined(__APPLE__)
-#  define USE_CTYPE_WINT_T
+#define USE_CTYPE_WINT_T
 #endif
 
-static int sre_isalnum(unsigned int ch) {
+static int
+sre_isalnum(unsigned int ch) {
 #ifdef USE_CTYPE_WINT_T
     return (unsigned int)iswalnum(btowc((int)ch));
 #else
@@ -63,7 +63,8 @@ static int sre_isalnum(unsigned int ch) {
 #endif
 }
 
-static unsigned int sre_tolower(unsigned int ch) {
+static unsigned int
+sre_tolower(unsigned int ch) {
 #ifdef USE_CTYPE_WINT_T
     return (unsigned int)towlower(btowc((int)ch));
 #else
@@ -71,7 +72,8 @@ static unsigned int sre_tolower(unsigned int ch) {
 #endif
 }
 
-static unsigned int sre_toupper(unsigned int ch) {
+static unsigned int
+sre_toupper(unsigned int ch) {
 #ifdef USE_CTYPE_WINT_T
     return (unsigned int)towupper(btowc((int)ch));
 #else
@@ -85,14 +87,14 @@ static unsigned int sre_toupper(unsigned int ch) {
  * 2 -- always
  */
 #ifndef VERBOSE
-#  define VERBOSE 0
+#define VERBOSE 0
 #endif
 
 /* -------------------------------------------------------------------- */
 
 #if defined(_MSC_VER)
-#pragma optimize("agtw", on) /* doesn't seem to make much difference... */
-#pragma warning(disable: 4710) /* who cares if functions are not inlined ;-) */
+#pragma optimize("agtw", on)    /* doesn't seem to make much difference... */
+#pragma warning(disable : 4710) /* who cares if functions are not inlined ;-) */
 /* fastest possible local call under MSVC */
 #define LOCAL(type) static __inline type __fastcall
 #else
@@ -100,46 +102,43 @@ static unsigned int sre_toupper(unsigned int ch) {
 #endif
 
 /* error codes */
-#define SRE_ERROR_ILLEGAL -1 /* illegal opcode */
-#define SRE_ERROR_STATE -2 /* illegal state */
+#define SRE_ERROR_ILLEGAL -1         /* illegal opcode */
+#define SRE_ERROR_STATE -2           /* illegal state */
 #define SRE_ERROR_RECURSION_LIMIT -3 /* runaway recursion */
-#define SRE_ERROR_MEMORY -9 /* out of memory */
-#define SRE_ERROR_INTERRUPTED -10 /* signal handler raised exception */
+#define SRE_ERROR_MEMORY -9          /* out of memory */
+#define SRE_ERROR_INTERRUPTED -10    /* signal handler raised exception */
 
 #if VERBOSE == 0
-#  define INIT_TRACE(state)
-#  define DO_TRACE 0
-#  define TRACE(v)
+#define INIT_TRACE(state)
+#define DO_TRACE 0
+#define TRACE(v)
 #elif VERBOSE == 1
-#  define INIT_TRACE(state) int _debug = (state)->debug
-#  define DO_TRACE (_debug)
-#  define TRACE(v) do {     \
+#define INIT_TRACE(state) int _debug = (state)->debug
+#define DO_TRACE (_debug)
+#define TRACE(v)      \
+    do {              \
         if (_debug) { \
-            printf v;       \
-        }                   \
+            printf v; \
+        }             \
     } while (0)
 #elif VERBOSE == 2
-#  define INIT_TRACE(state)
-#  define DO_TRACE 1
-#  define TRACE(v) printf v
+#define INIT_TRACE(state)
+#define DO_TRACE 1
+#define TRACE(v) printf v
 #else
-#  error VERBOSE must be 0, 1 or 2
+#error VERBOSE must be 0, 1 or 2
 #endif
 
 /* -------------------------------------------------------------------- */
 /* search engine state */
 
-#define SRE_IS_DIGIT(ch)\
-    ((ch) <= '9' && Py_ISDIGIT(ch))
-#define SRE_IS_SPACE(ch)\
-    ((ch) <= ' ' && Py_ISSPACE(ch))
-#define SRE_IS_LINEBREAK(ch)\
-    ((ch) == '\n')
-#define SRE_IS_WORD(ch)\
-    ((ch) <= 'z' && (Py_ISALNUM(ch) || (ch) == '_'))
+#define SRE_IS_DIGIT(ch) ((ch) <= '9' && Py_ISDIGIT(ch))
+#define SRE_IS_SPACE(ch) ((ch) <= ' ' && Py_ISSPACE(ch))
+#define SRE_IS_LINEBREAK(ch) ((ch) == '\n')
+#define SRE_IS_WORD(ch) ((ch) <= 'z' && (Py_ISALNUM(ch) || (ch) == '_'))
 
-static unsigned int sre_lower_ascii(unsigned int ch)
-{
+static unsigned int
+sre_lower_ascii(unsigned int ch) {
     return ((ch) < 128 ? Py_TOLOWER(ch) : ch);
 }
 
@@ -149,13 +148,13 @@ static unsigned int sre_lower_ascii(unsigned int ch)
 #define SRE_LOC_IS_ALNUM(ch) (!((ch) & ~255) ? sre_isalnum((ch)) : 0)
 #define SRE_LOC_IS_WORD(ch) (SRE_LOC_IS_ALNUM((ch)) || (ch) == '_')
 
-static unsigned int sre_lower_locale(unsigned int ch)
-{
+static unsigned int
+sre_lower_locale(unsigned int ch) {
     return ((ch) < 256 ? (unsigned int)sre_tolower((ch)) : ch);
 }
 
-static unsigned int sre_upper_locale(unsigned int ch)
-{
+static unsigned int
+sre_upper_locale(unsigned int ch) {
     return ((ch) < 256 ? (unsigned int)sre_toupper((ch)) : ch);
 }
 
@@ -167,77 +166,71 @@ static unsigned int sre_upper_locale(unsigned int ch)
 #define SRE_UNI_IS_ALNUM(ch) Py_UNICODE_ISALNUM(ch)
 #define SRE_UNI_IS_WORD(ch) (SRE_UNI_IS_ALNUM(ch) || (ch) == '_')
 
-static unsigned int sre_lower_unicode(unsigned int ch)
-{
-    return (unsigned int) Py_UNICODE_TOLOWER(ch);
+static unsigned int
+sre_lower_unicode(unsigned int ch) {
+    return (unsigned int)Py_UNICODE_TOLOWER(ch);
 }
 
-static unsigned int sre_upper_unicode(unsigned int ch)
-{
-    return (unsigned int) Py_UNICODE_TOUPPER(ch);
+static unsigned int
+sre_upper_unicode(unsigned int ch) {
+    return (unsigned int)Py_UNICODE_TOUPPER(ch);
 }
 
 LOCAL(int)
-sre_category(SRE_CODE category, unsigned int ch)
-{
+sre_category(SRE_CODE category, unsigned int ch) {
     switch (category) {
+        case SRE_CATEGORY_DIGIT:
+            return SRE_IS_DIGIT(ch);
+        case SRE_CATEGORY_NOT_DIGIT:
+            return !SRE_IS_DIGIT(ch);
+        case SRE_CATEGORY_SPACE:
+            return SRE_IS_SPACE(ch);
+        case SRE_CATEGORY_NOT_SPACE:
+            return !SRE_IS_SPACE(ch);
+        case SRE_CATEGORY_WORD:
+            return SRE_IS_WORD(ch);
+        case SRE_CATEGORY_NOT_WORD:
+            return !SRE_IS_WORD(ch);
+        case SRE_CATEGORY_LINEBREAK:
+            return SRE_IS_LINEBREAK(ch);
+        case SRE_CATEGORY_NOT_LINEBREAK:
+            return !SRE_IS_LINEBREAK(ch);
 
-    case SRE_CATEGORY_DIGIT:
-        return SRE_IS_DIGIT(ch);
-    case SRE_CATEGORY_NOT_DIGIT:
-        return !SRE_IS_DIGIT(ch);
-    case SRE_CATEGORY_SPACE:
-        return SRE_IS_SPACE(ch);
-    case SRE_CATEGORY_NOT_SPACE:
-        return !SRE_IS_SPACE(ch);
-    case SRE_CATEGORY_WORD:
-        return SRE_IS_WORD(ch);
-    case SRE_CATEGORY_NOT_WORD:
-        return !SRE_IS_WORD(ch);
-    case SRE_CATEGORY_LINEBREAK:
-        return SRE_IS_LINEBREAK(ch);
-    case SRE_CATEGORY_NOT_LINEBREAK:
-        return !SRE_IS_LINEBREAK(ch);
+        case SRE_CATEGORY_LOC_WORD:
+            return SRE_LOC_IS_WORD(ch);
+        case SRE_CATEGORY_LOC_NOT_WORD:
+            return !SRE_LOC_IS_WORD(ch);
 
-    case SRE_CATEGORY_LOC_WORD:
-        return SRE_LOC_IS_WORD(ch);
-    case SRE_CATEGORY_LOC_NOT_WORD:
-        return !SRE_LOC_IS_WORD(ch);
-
-    case SRE_CATEGORY_UNI_DIGIT:
-        return SRE_UNI_IS_DIGIT(ch);
-    case SRE_CATEGORY_UNI_NOT_DIGIT:
-        return !SRE_UNI_IS_DIGIT(ch);
-    case SRE_CATEGORY_UNI_SPACE:
-        return SRE_UNI_IS_SPACE(ch);
-    case SRE_CATEGORY_UNI_NOT_SPACE:
-        return !SRE_UNI_IS_SPACE(ch);
-    case SRE_CATEGORY_UNI_WORD:
-        return SRE_UNI_IS_WORD(ch);
-    case SRE_CATEGORY_UNI_NOT_WORD:
-        return !SRE_UNI_IS_WORD(ch);
-    case SRE_CATEGORY_UNI_LINEBREAK:
-        return SRE_UNI_IS_LINEBREAK(ch);
-    case SRE_CATEGORY_UNI_NOT_LINEBREAK:
-        return !SRE_UNI_IS_LINEBREAK(ch);
+        case SRE_CATEGORY_UNI_DIGIT:
+            return SRE_UNI_IS_DIGIT(ch);
+        case SRE_CATEGORY_UNI_NOT_DIGIT:
+            return !SRE_UNI_IS_DIGIT(ch);
+        case SRE_CATEGORY_UNI_SPACE:
+            return SRE_UNI_IS_SPACE(ch);
+        case SRE_CATEGORY_UNI_NOT_SPACE:
+            return !SRE_UNI_IS_SPACE(ch);
+        case SRE_CATEGORY_UNI_WORD:
+            return SRE_UNI_IS_WORD(ch);
+        case SRE_CATEGORY_UNI_NOT_WORD:
+            return !SRE_UNI_IS_WORD(ch);
+        case SRE_CATEGORY_UNI_LINEBREAK:
+            return SRE_UNI_IS_LINEBREAK(ch);
+        case SRE_CATEGORY_UNI_NOT_LINEBREAK:
+            return !SRE_UNI_IS_LINEBREAK(ch);
     }
     return 0;
 }
 
 LOCAL(int)
-char_loc_ignore(SRE_CODE pattern, SRE_CODE ch)
-{
-    return ch == pattern
-        || (SRE_CODE) sre_lower_locale(ch) == pattern
-        || (SRE_CODE) sre_upper_locale(ch) == pattern;
+char_loc_ignore(SRE_CODE pattern, SRE_CODE ch) {
+    return ch == pattern || (SRE_CODE)sre_lower_locale(ch) == pattern ||
+           (SRE_CODE)sre_upper_locale(ch) == pattern;
 }
-
 
 /* helpers */
 
 static void
-data_stack_dealloc(SRE_STATE* state)
-{
+data_stack_dealloc(SRE_STATE *state) {
     if (state->data_stack) {
         PyMem_Free(state->data_stack);
         state->data_stack = NULL;
@@ -246,15 +239,14 @@ data_stack_dealloc(SRE_STATE* state)
 }
 
 static int
-data_stack_grow(SRE_STATE* state, Py_ssize_t size)
-{
+data_stack_grow(SRE_STATE *state, Py_ssize_t size) {
     INIT_TRACE(state);
     Py_ssize_t minsize, cursize;
-    minsize = state->data_stack_base+size;
+    minsize = state->data_stack_base + size;
     cursize = state->data_stack_size;
     if (cursize < minsize) {
-        void* stack;
-        cursize = minsize+minsize/4+1024;
+        void *stack;
+        cursize = minsize + minsize / 4 + 1024;
         TRACE(("allocate/grow stack %zd\n", cursize));
         stack = PyMem_Realloc(state->data_stack, cursize);
         if (!stack) {
@@ -301,27 +293,27 @@ typedef struct {
 } _sremodulestate;
 
 static _sremodulestate *
-get_sre_module_state(PyObject *m)
-{
+get_sre_module_state(PyObject *m) {
     _sremodulestate *state = (_sremodulestate *)_PyModule_GetState(m);
     assert(state);
     return state;
 }
 
 static struct PyModuleDef sremodule;
-#define get_sre_module_state_by_class(cls) \
-    (get_sre_module_state(PyType_GetModule(cls)))
+#define get_sre_module_state_by_class(cls) (get_sre_module_state(PyType_GetModule(cls)))
 
 /* see sre.h for object declarations */
-static PyObject*pattern_new_match(_sremodulestate *, PatternObject*, SRE_STATE*, Py_ssize_t);
-static PyObject *pattern_scanner(_sremodulestate *, PatternObject *, PyObject *, Py_ssize_t, Py_ssize_t);
+static PyObject *
+pattern_new_match(_sremodulestate *, PatternObject *, SRE_STATE *, Py_ssize_t);
+static PyObject *
+pattern_scanner(_sremodulestate *, PatternObject *, PyObject *, Py_ssize_t, Py_ssize_t);
 
 /*[clinic input]
 module _sre
-class _sre.SRE_Pattern "PatternObject *" "get_sre_module_state_by_class(tp)->Pattern_Type"
-class _sre.SRE_Match "MatchObject *" "get_sre_module_state_by_class(tp)->Match_Type"
-class _sre.SRE_Scanner "ScannerObject *" "get_sre_module_state_by_class(tp)->Scanner_Type"
-[clinic start generated code]*/
+class _sre.SRE_Pattern "PatternObject *"
+"get_sre_module_state_by_class(tp)->Pattern_Type" class _sre.SRE_Match "MatchObject *"
+"get_sre_module_state_by_class(tp)->Match_Type" class _sre.SRE_Scanner "ScannerObject *"
+"get_sre_module_state_by_class(tp)->Scanner_Type" [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=fe2966e32b66a231]*/
 
 /*[clinic input]
@@ -398,8 +390,7 @@ _sre_unicode_tolower_impl(PyObject *module, int character)
 }
 
 LOCAL(void)
-state_reset(SRE_STATE* state)
-{
+state_reset(SRE_STATE *state) {
     /* state->mark will be set to 0 in SRE_OP_MARK dynamically. */
     /*memset(state->mark, 0, sizeof(*state->mark) * SRE_MARK_SIZE);*/
 
@@ -411,11 +402,14 @@ state_reset(SRE_STATE* state)
     data_stack_dealloc(state);
 }
 
-static const void*
-getstring(PyObject* string, Py_ssize_t* p_length,
-          int* p_isbytes, int* p_charsize,
-          Py_buffer *view)
-{
+static const void *
+getstring(
+    PyObject *string,
+    Py_ssize_t *p_length,
+    int *p_isbytes,
+    int *p_charsize,
+    Py_buffer *view
+) {
     /* given a python object, return a data pointer, a length (in
        characters), and a character size.  return NULL if the object
        is not a string (or not compatible) */
@@ -431,8 +425,12 @@ getstring(PyObject* string, Py_ssize_t* p_length,
 
     /* get pointer to byte string buffer */
     if (PyObject_GetBuffer(string, view, PyBUF_SIMPLE) != 0) {
-        PyErr_Format(PyExc_TypeError, "expected string or bytes-like "
-                     "object, got '%.200s'", Py_TYPE(string)->tp_name);
+        PyErr_Format(
+            PyExc_TypeError,
+            "expected string or bytes-like "
+            "object, got '%.200s'",
+            Py_TYPE(string)->tp_name
+        );
         return NULL;
     }
 
@@ -449,15 +447,19 @@ getstring(PyObject* string, Py_ssize_t* p_length,
     return view->buf;
 }
 
-LOCAL(PyObject*)
-state_init(SRE_STATE* state, PatternObject* pattern, PyObject* string,
-           Py_ssize_t start, Py_ssize_t end)
-{
+LOCAL(PyObject *)
+state_init(
+    SRE_STATE *state,
+    PatternObject *pattern,
+    PyObject *string,
+    Py_ssize_t start,
+    Py_ssize_t end
+) {
     /* prepare state object */
 
     Py_ssize_t length;
     int isbytes, charsize;
-    const void* ptr;
+    const void *ptr;
 
     memset(state, 0, sizeof(SRE_STATE));
 
@@ -475,13 +477,15 @@ state_init(SRE_STATE* state, PatternObject* pattern, PyObject* string,
         goto err;
 
     if (isbytes && pattern->isbytes == 0) {
-        PyErr_SetString(PyExc_TypeError,
-                        "cannot use a string pattern on a bytes-like object");
+        PyErr_SetString(
+            PyExc_TypeError, "cannot use a string pattern on a bytes-like object"
+        );
         goto err;
     }
     if (!isbytes && pattern->isbytes > 0) {
-        PyErr_SetString(PyExc_TypeError,
-                        "cannot use a bytes pattern on a string-like object");
+        PyErr_SetString(
+            PyExc_TypeError, "cannot use a bytes pattern on a string-like object"
+        );
         goto err;
     }
 
@@ -504,19 +508,19 @@ state_init(SRE_STATE* state, PatternObject* pattern, PyObject* string,
 
     state->beginning = ptr;
 
-    state->start = (void*) ((char*) ptr + start * state->charsize);
-    state->end = (void*) ((char*) ptr + end * state->charsize);
+    state->start = (void *)((char *)ptr + start * state->charsize);
+    state->end = (void *)((char *)ptr + end * state->charsize);
 
     state->string = Py_NewRef(string);
     state->pos = start;
     state->endpos = end;
 
     return string;
-  err:
+err:
     /* We add an explicit cast here because MSVC has a bug when
        compiling C code where it believes that `const void**` cannot be
        safely casted to `void*`, see bpo-39943 for details. */
-    PyMem_Free((void*) state->mark);
+    PyMem_Free((void *)state->mark);
     state->mark = NULL;
     if (state->buffer.buf)
         PyBuffer_Release(&state->buffer);
@@ -524,46 +528,43 @@ state_init(SRE_STATE* state, PatternObject* pattern, PyObject* string,
 }
 
 LOCAL(void)
-state_fini(SRE_STATE* state)
-{
+state_fini(SRE_STATE *state) {
     if (state->buffer.buf)
         PyBuffer_Release(&state->buffer);
     Py_XDECREF(state->string);
     data_stack_dealloc(state);
     /* See above PyMem_Free() for why we explicitly cast here. */
-    PyMem_Free((void*) state->mark);
+    PyMem_Free((void *)state->mark);
     state->mark = NULL;
 }
 
 /* calculate offset from start of string */
-#define STATE_OFFSET(state, member)\
-    (((char*)(member) - (char*)(state)->beginning) / (state)->charsize)
+#define STATE_OFFSET(state, member) \
+    (((char *)(member) - (char *)(state)->beginning) / (state)->charsize)
 
-LOCAL(PyObject*)
-getslice(int isbytes, const void *ptr,
-         PyObject* string, Py_ssize_t start, Py_ssize_t end)
-{
+LOCAL(PyObject *)
+getslice(
+    int isbytes, const void *ptr, PyObject *string, Py_ssize_t start, Py_ssize_t end
+) {
     if (isbytes) {
-        if (PyBytes_CheckExact(string) &&
-            start == 0 && end == PyBytes_GET_SIZE(string)) {
+        if (PyBytes_CheckExact(string) && start == 0 &&
+            end == PyBytes_GET_SIZE(string)) {
             return Py_NewRef(string);
         }
-        return PyBytes_FromStringAndSize(
-                (const char *)ptr + start, end - start);
-    }
-    else {
+        return PyBytes_FromStringAndSize((const char *)ptr + start, end - start);
+    } else {
         return PyUnicode_Substring(string, start, end);
     }
 }
 
-LOCAL(PyObject*)
-state_getslice(SRE_STATE* state, Py_ssize_t index, PyObject* string, int empty)
-{
+LOCAL(PyObject *)
+state_getslice(SRE_STATE *state, Py_ssize_t index, PyObject *string, int empty) {
     Py_ssize_t i, j;
 
     index = (index - 1) * 2;
 
-    if (string == Py_None || index >= state->lastmark || !state->mark[index] || !state->mark[index+1]) {
+    if (string == Py_None || index >= state->lastmark || !state->mark[index] ||
+        !state->mark[index + 1]) {
         if (empty)
             /* want empty string */
             i = j = 0;
@@ -572,13 +573,15 @@ state_getslice(SRE_STATE* state, Py_ssize_t index, PyObject* string, int empty)
         }
     } else {
         i = STATE_OFFSET(state, state->mark[index]);
-        j = STATE_OFFSET(state, state->mark[index+1]);
+        j = STATE_OFFSET(state, state->mark[index + 1]);
 
         /* check wrong span */
         if (i > j) {
-            PyErr_SetString(PyExc_SystemError,
-                            "The span of capturing group is wrong,"
-                            " please report a bug for the re module.");
+            PyErr_SetString(
+                PyExc_SystemError,
+                "The span of capturing group is wrong,"
+                " please report a bug for the re module."
+            );
             return NULL;
         }
     }
@@ -587,34 +590,28 @@ state_getslice(SRE_STATE* state, Py_ssize_t index, PyObject* string, int empty)
 }
 
 static void
-pattern_error(Py_ssize_t status)
-{
+pattern_error(Py_ssize_t status) {
     switch (status) {
-    case SRE_ERROR_RECURSION_LIMIT:
-        /* This error code seems to be unused. */
-        PyErr_SetString(
-            PyExc_RecursionError,
-            "maximum recursion limit exceeded"
-            );
-        break;
-    case SRE_ERROR_MEMORY:
-        PyErr_NoMemory();
-        break;
-    case SRE_ERROR_INTERRUPTED:
-    /* An exception has already been raised, so let it fly */
-        break;
-    default:
-        /* other error codes indicate compiler/engine bugs */
-        PyErr_SetString(
-            PyExc_RuntimeError,
-            "internal error in regular expression engine"
+        case SRE_ERROR_RECURSION_LIMIT:
+            /* This error code seems to be unused. */
+            PyErr_SetString(PyExc_RecursionError, "maximum recursion limit exceeded");
+            break;
+        case SRE_ERROR_MEMORY:
+            PyErr_NoMemory();
+            break;
+        case SRE_ERROR_INTERRUPTED:
+            /* An exception has already been raised, so let it fly */
+            break;
+        default:
+            /* other error codes indicate compiler/engine bugs */
+            PyErr_SetString(
+                PyExc_RuntimeError, "internal error in regular expression engine"
             );
     }
 }
 
 static int
-pattern_traverse(PatternObject *self, visitproc visit, void *arg)
-{
+pattern_traverse(PatternObject *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->groupindex);
     Py_VISIT(self->indexgroup);
@@ -623,8 +620,7 @@ pattern_traverse(PatternObject *self, visitproc visit, void *arg)
 }
 
 static int
-pattern_clear(PatternObject *self)
-{
+pattern_clear(PatternObject *self) {
     Py_CLEAR(self->groupindex);
     Py_CLEAR(self->indexgroup);
     Py_CLEAR(self->pattern);
@@ -632,13 +628,12 @@ pattern_clear(PatternObject *self)
 }
 
 static void
-pattern_dealloc(PatternObject* self)
-{
+pattern_dealloc(PatternObject *self) {
     PyTypeObject *tp = Py_TYPE(self);
 
     PyObject_GC_UnTrack(self);
     if (self->weakreflist != NULL) {
-        PyObject_ClearWeakRefs((PyObject *) self);
+        PyObject_ClearWeakRefs((PyObject *)self);
     }
     (void)pattern_clear(self);
     tp->tp_free(self);
@@ -646,8 +641,7 @@ pattern_dealloc(PatternObject* self)
 }
 
 LOCAL(Py_ssize_t)
-sre_match(SRE_STATE* state, SRE_CODE* pattern)
-{
+sre_match(SRE_STATE *state, SRE_CODE *pattern) {
     if (state->charsize == 1)
         return sre_ucs1_match(state, pattern, 1);
     if (state->charsize == 2)
@@ -657,8 +651,7 @@ sre_match(SRE_STATE* state, SRE_CODE* pattern)
 }
 
 LOCAL(Py_ssize_t)
-sre_search(SRE_STATE* state, SRE_CODE* pattern)
-{
+sre_search(SRE_STATE *state, SRE_CODE *pattern) {
     if (state->charsize == 1)
         return sre_ucs1_search(state, pattern);
     if (state->charsize == 2)
@@ -680,9 +673,13 @@ Matches zero or more characters at the beginning of the string.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_match_impl(PatternObject *self, PyTypeObject *cls,
-                            PyObject *string, Py_ssize_t pos,
-                            Py_ssize_t endpos)
+_sre_SRE_Pattern_match_impl(
+    PatternObject *self,
+    PyTypeObject *cls,
+    PyObject *string,
+    Py_ssize_t pos,
+    Py_ssize_t endpos
+)
 /*[clinic end generated code: output=ec6208ea58a0cca0 input=4bdb9c3e564d13ac]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
@@ -724,9 +721,13 @@ Matches against all of the string.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_fullmatch_impl(PatternObject *self, PyTypeObject *cls,
-                                PyObject *string, Py_ssize_t pos,
-                                Py_ssize_t endpos)
+_sre_SRE_Pattern_fullmatch_impl(
+    PatternObject *self,
+    PyTypeObject *cls,
+    PyObject *string,
+    Py_ssize_t pos,
+    Py_ssize_t endpos
+)
 /*[clinic end generated code: output=625b75b027ef94da input=50981172ab0fcfdd]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
@@ -765,15 +766,20 @@ _sre.SRE_Pattern.search
     pos: Py_ssize_t = 0
     endpos: Py_ssize_t(c_default="PY_SSIZE_T_MAX") = sys.maxsize
 
-Scan through string looking for a match, and return a corresponding match object instance.
+Scan through string looking for a match, and return a corresponding match object
+instance.
 
 Return None if no position in the string matches.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_search_impl(PatternObject *self, PyTypeObject *cls,
-                             PyObject *string, Py_ssize_t pos,
-                             Py_ssize_t endpos)
+_sre_SRE_Pattern_search_impl(
+    PatternObject *self,
+    PyTypeObject *cls,
+    PyObject *string,
+    Py_ssize_t pos,
+    Py_ssize_t endpos
+)
 /*[clinic end generated code: output=bd7f2d9d583e1463 input=afa9afb66a74a4b3]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
@@ -812,12 +818,13 @@ Return a list of all non-overlapping matches of pattern in string.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_findall_impl(PatternObject *self, PyObject *string,
-                              Py_ssize_t pos, Py_ssize_t endpos)
+_sre_SRE_Pattern_findall_impl(
+    PatternObject *self, PyObject *string, Py_ssize_t pos, Py_ssize_t endpos
+)
 /*[clinic end generated code: output=f4966baceea60aca input=5b6a4ee799741563]*/
 {
     SRE_STATE state;
-    PyObject* list;
+    PyObject *list;
     Py_ssize_t status;
     Py_ssize_t i, b, e;
 
@@ -831,8 +838,7 @@ _sre_SRE_Pattern_findall_impl(PatternObject *self, PyObject *string,
     }
 
     while (state.start <= state.end) {
-
-        PyObject* item;
+        PyObject *item;
 
         state_reset(&state);
 
@@ -851,32 +857,31 @@ _sre_SRE_Pattern_findall_impl(PatternObject *self, PyObject *string,
 
         /* don't bother to build a match object */
         switch (self->groups) {
-        case 0:
-            b = STATE_OFFSET(&state, state.start);
-            e = STATE_OFFSET(&state, state.ptr);
-            item = getslice(state.isbytes, state.beginning,
-                            string, b, e);
-            if (!item)
-                goto error;
-            break;
-        case 1:
-            item = state_getslice(&state, 1, string, 1);
-            if (!item)
-                goto error;
-            break;
-        default:
-            item = PyTuple_New(self->groups);
-            if (!item)
-                goto error;
-            for (i = 0; i < self->groups; i++) {
-                PyObject* o = state_getslice(&state, i+1, string, 1);
-                if (!o) {
-                    Py_DECREF(item);
+            case 0:
+                b = STATE_OFFSET(&state, state.start);
+                e = STATE_OFFSET(&state, state.ptr);
+                item = getslice(state.isbytes, state.beginning, string, b, e);
+                if (!item)
                     goto error;
+                break;
+            case 1:
+                item = state_getslice(&state, 1, string, 1);
+                if (!item)
+                    goto error;
+                break;
+            default:
+                item = PyTuple_New(self->groups);
+                if (!item)
+                    goto error;
+                for (i = 0; i < self->groups; i++) {
+                    PyObject *o = state_getslice(&state, i + 1, string, 1);
+                    if (!o) {
+                        Py_DECREF(item);
+                        goto error;
+                    }
+                    PyTuple_SET_ITEM(item, i, o);
                 }
-                PyTuple_SET_ITEM(item, i, o);
-            }
-            break;
+                break;
         }
 
         status = PyList_Append(list, item);
@@ -895,7 +900,6 @@ error:
     Py_DECREF(list);
     state_fini(&state);
     return NULL;
-
 }
 
 /*[clinic input]
@@ -913,15 +917,19 @@ For each match, the iterator returns a match object.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_finditer_impl(PatternObject *self, PyTypeObject *cls,
-                               PyObject *string, Py_ssize_t pos,
-                               Py_ssize_t endpos)
+_sre_SRE_Pattern_finditer_impl(
+    PatternObject *self,
+    PyTypeObject *cls,
+    PyObject *string,
+    Py_ssize_t pos,
+    Py_ssize_t endpos
+)
 /*[clinic end generated code: output=1791dbf3618ade56 input=812e332a4848cbaf]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
-    PyObject* scanner;
-    PyObject* search;
-    PyObject* iterator;
+    PyObject *scanner;
+    PyObject *search;
+    PyObject *iterator;
 
     scanner = pattern_scanner(module_state, self, string, pos, endpos);
     if (!scanner)
@@ -950,9 +958,13 @@ _sre.SRE_Pattern.scanner
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_scanner_impl(PatternObject *self, PyTypeObject *cls,
-                              PyObject *string, Py_ssize_t pos,
-                              Py_ssize_t endpos)
+_sre_SRE_Pattern_scanner_impl(
+    PatternObject *self,
+    PyTypeObject *cls,
+    PyObject *string,
+    Py_ssize_t pos,
+    Py_ssize_t endpos
+)
 /*[clinic end generated code: output=f70cd506112f1bd9 input=2e487e5151bcee4c]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
@@ -970,17 +982,16 @@ Split string by the occurrences of pattern.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_split_impl(PatternObject *self, PyObject *string,
-                            Py_ssize_t maxsplit)
+_sre_SRE_Pattern_split_impl(PatternObject *self, PyObject *string, Py_ssize_t maxsplit)
 /*[clinic end generated code: output=7ac66f381c45e0be input=1eeeb10dafc9947a]*/
 {
     SRE_STATE state;
-    PyObject* list;
-    PyObject* item;
+    PyObject *list;
+    PyObject *item;
     Py_ssize_t status;
     Py_ssize_t n;
     Py_ssize_t i;
-    const void* last;
+    const void *last;
 
     assert(self->codesize != 0);
 
@@ -997,7 +1008,6 @@ _sre_SRE_Pattern_split_impl(PatternObject *self, PyObject *string,
     last = state.start;
 
     while (!maxsplit || n < maxsplit) {
-
         state_reset(&state);
 
         state.ptr = state.start;
@@ -1014,10 +1024,13 @@ _sre_SRE_Pattern_split_impl(PatternObject *self, PyObject *string,
         }
 
         /* get segment before this match */
-        item = getslice(state.isbytes, state.beginning,
-            string, STATE_OFFSET(&state, last),
+        item = getslice(
+            state.isbytes,
+            state.beginning,
+            string,
+            STATE_OFFSET(&state, last),
             STATE_OFFSET(&state, state.start)
-            );
+        );
         if (!item)
             goto error;
         status = PyList_Append(list, item);
@@ -1027,7 +1040,7 @@ _sre_SRE_Pattern_split_impl(PatternObject *self, PyObject *string,
 
         /* add groups (if any) */
         for (i = 0; i < self->groups; i++) {
-            item = state_getslice(&state, i+1, string, 0);
+            item = state_getslice(&state, i + 1, string, 0);
             if (!item)
                 goto error;
             status = PyList_Append(list, item);
@@ -1039,13 +1052,12 @@ _sre_SRE_Pattern_split_impl(PatternObject *self, PyObject *string,
         n = n + 1;
         state.must_advance = (state.ptr == state.start);
         last = state.start = state.ptr;
-
     }
 
     /* get segment following last match (even if empty) */
-    item = getslice(state.isbytes, state.beginning,
-        string, STATE_OFFSET(&state, last), state.endpos
-        );
+    item = getslice(
+        state.isbytes, state.beginning, string, STATE_OFFSET(&state, last), state.endpos
+    );
     if (!item)
         goto error;
     status = PyList_Append(list, item);
@@ -1060,13 +1072,12 @@ error:
     Py_DECREF(list);
     state_fini(&state);
     return NULL;
-
 }
 
 static PyObject *
-compile_template(_sremodulestate *module_state,
-                 PatternObject *pattern, PyObject *template)
-{
+compile_template(
+    _sremodulestate *module_state, PatternObject *pattern, PyObject *template
+) {
     /* delegate to Python code */
     PyObject *func = module_state->compile_template;
     if (func == NULL) {
@@ -1086,12 +1097,10 @@ compile_template(_sremodulestate *module_state,
         if (PyUnicode_Check(template) && !PyUnicode_CheckExact(template)) {
             PyErr_Clear();
             template = _PyUnicode_Copy(template);
-        }
-        else if (PyObject_CheckBuffer(template) && !PyBytes_CheckExact(template)) {
+        } else if (PyObject_CheckBuffer(template) && !PyBytes_CheckExact(template)) {
             PyErr_Clear();
             template = PyBytes_FromObject(template);
-        }
-        else {
+        } else {
             return NULL;
         }
         if (template == NULL) {
@@ -1103,37 +1112,41 @@ compile_template(_sremodulestate *module_state,
     }
 
     if (result != NULL && Py_TYPE(result) != module_state->Template_Type) {
-        PyErr_Format(PyExc_RuntimeError,
-                    "the result of compiling a replacement string is %.200s",
-                    Py_TYPE(result)->tp_name);
+        PyErr_Format(
+            PyExc_RuntimeError,
+            "the result of compiling a replacement string is %.200s",
+            Py_TYPE(result)->tp_name
+        );
         Py_DECREF(result);
         return NULL;
     }
     return result;
 }
 
-static PyObject *expand_template(TemplateObject *, MatchObject *); /* Forward */
+static PyObject *
+expand_template(TemplateObject *, MatchObject *); /* Forward */
 
-static PyObject*
-pattern_subx(_sremodulestate* module_state,
-             PatternObject* self,
-             PyObject* ptemplate,
-             PyObject* string,
-             Py_ssize_t count,
-             Py_ssize_t subn)
-{
+static PyObject *
+pattern_subx(
+    _sremodulestate *module_state,
+    PatternObject *self,
+    PyObject *ptemplate,
+    PyObject *string,
+    Py_ssize_t count,
+    Py_ssize_t subn
+) {
     SRE_STATE state;
-    PyObject* list;
-    PyObject* joiner;
-    PyObject* item;
-    PyObject* filter;
-    PyObject* match;
-    const void* ptr;
+    PyObject *list;
+    PyObject *joiner;
+    PyObject *item;
+    PyObject *filter;
+    PyObject *match;
+    const void *ptr;
     Py_ssize_t status;
     Py_ssize_t n;
     Py_ssize_t i, b, e;
     int isbytes, charsize;
-    enum {LITERAL, TEMPLATE, CALLABLE} filter_type;
+    enum { LITERAL, TEMPLATE, CALLABLE } filter_type;
     Py_buffer view;
 
     if (PyCallable_Check(ptemplate)) {
@@ -1167,11 +1180,9 @@ pattern_subx(_sremodulestate* module_state,
 
             assert(Py_TYPE(filter) == module_state->Template_Type);
             if (Py_SIZE(filter) == 0) {
-                Py_SETREF(filter,
-                          Py_NewRef(((TemplateObject *)filter)->literal));
+                Py_SETREF(filter, Py_NewRef(((TemplateObject *)filter)->literal));
                 filter_type = LITERAL;
-            }
-            else {
+            } else {
                 filter_type = TEMPLATE;
             }
         }
@@ -1192,7 +1203,6 @@ pattern_subx(_sremodulestate* module_state,
     n = i = 0;
 
     while (!count || n < count) {
-
         state_reset(&state);
 
         state.ptr = state.start;
@@ -1213,15 +1223,13 @@ pattern_subx(_sremodulestate* module_state,
 
         if (i < b) {
             /* get segment before this match */
-            item = getslice(state.isbytes, state.beginning,
-                string, i, b);
+            item = getslice(state.isbytes, state.beginning, string, i, b);
             if (!item)
                 goto error;
             status = PyList_Append(list, item);
             Py_DECREF(item);
             if (status < 0)
                 goto error;
-
         }
 
         if (filter_type != LITERAL) {
@@ -1230,10 +1238,8 @@ pattern_subx(_sremodulestate* module_state,
             if (!match)
                 goto error;
             if (filter_type == TEMPLATE) {
-                item = expand_template((TemplateObject *)filter,
-                                       (MatchObject *)match);
-            }
-            else {
+                item = expand_template((TemplateObject *)filter, (MatchObject *)match);
+            } else {
                 assert(filter_type == CALLABLE);
                 item = PyObject_CallOneArg(filter, match);
             }
@@ -1261,8 +1267,7 @@ pattern_subx(_sremodulestate* module_state,
 
     /* get segment following last match */
     if (i < state.endpos) {
-        item = getslice(state.isbytes, state.beginning,
-                        string, i, state.endpos);
+        item = getslice(state.isbytes, state.beginning, string, i, state.endpos);
         if (!item)
             goto error;
         status = PyList_Append(list, item);
@@ -1284,8 +1289,7 @@ pattern_subx(_sremodulestate* module_state,
     if (PyList_GET_SIZE(list) == 0) {
         Py_DECREF(list);
         item = joiner;
-    }
-    else {
+    } else {
         if (state.isbytes)
             item = PyBytes_Join(joiner, list);
         else
@@ -1306,7 +1310,6 @@ error:
     state_fini(&state);
     Py_DECREF(filter);
     return NULL;
-
 }
 
 /*[clinic input]
@@ -1318,12 +1321,17 @@ _sre.SRE_Pattern.sub
     string: object
     count: Py_ssize_t = 0
 
-Return the string obtained by replacing the leftmost non-overlapping occurrences of pattern in string by the replacement repl.
-[clinic start generated code]*/
+Return the string obtained by replacing the leftmost non-overlapping occurrences of
+pattern in string by the replacement repl. [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_sub_impl(PatternObject *self, PyTypeObject *cls,
-                          PyObject *repl, PyObject *string, Py_ssize_t count)
+_sre_SRE_Pattern_sub_impl(
+    PatternObject *self,
+    PyTypeObject *cls,
+    PyObject *repl,
+    PyObject *string,
+    Py_ssize_t count
+)
 /*[clinic end generated code: output=4be141ab04bca60d input=d8d1d4ac2311a07c]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
@@ -1340,13 +1348,18 @@ _sre.SRE_Pattern.subn
     string: object
     count: Py_ssize_t = 0
 
-Return the tuple (new_string, number_of_subs_made) found by replacing the leftmost non-overlapping occurrences of pattern with the replacement repl.
-[clinic start generated code]*/
+Return the tuple (new_string, number_of_subs_made) found by replacing the leftmost
+non-overlapping occurrences of pattern with the replacement repl. [clinic start
+generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_subn_impl(PatternObject *self, PyTypeObject *cls,
-                           PyObject *repl, PyObject *string,
-                           Py_ssize_t count)
+_sre_SRE_Pattern_subn_impl(
+    PatternObject *self,
+    PyTypeObject *cls,
+    PyObject *repl,
+    PyObject *string,
+    Py_ssize_t count
+)
 /*[clinic end generated code: output=da02fd85258b1e1f input=8b78a65b8302e58d]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
@@ -1382,8 +1395,7 @@ _sre_SRE_Pattern___deepcopy__(PatternObject *self, PyObject *memo)
 }
 
 static PyObject *
-pattern_repr(PatternObject *obj)
-{
+pattern_repr(PatternObject *obj) {
     static const struct {
         const char *name;
         int value;
@@ -1403,9 +1415,8 @@ pattern_repr(PatternObject *obj)
     int flags = obj->flags;
 
     /* Omit re.UNICODE for valid string patterns. */
-    if (obj->isbytes == 0 &&
-        (flags & (SRE_FLAG_LOCALE|SRE_FLAG_UNICODE|SRE_FLAG_ASCII)) ==
-         SRE_FLAG_UNICODE)
+    if (obj->isbytes == 0 && (flags & (SRE_FLAG_LOCALE | SRE_FLAG_UNICODE |
+                                       SRE_FLAG_ASCII)) == SRE_FLAG_UNICODE)
         flags &= ~SRE_FLAG_UNICODE;
 
     flag_items = PyList_New(0);
@@ -1447,11 +1458,10 @@ pattern_repr(PatternObject *obj)
         Py_DECREF(sep);
         if (!flags_result)
             goto done;
-        result = PyUnicode_FromFormat("re.compile(%.200R, %S)",
-                                      obj->pattern, flags_result);
+        result =
+            PyUnicode_FromFormat("re.compile(%.200R, %S)", obj->pattern, flags_result);
         Py_DECREF(flags_result);
-    }
-    else {
+    } else {
         result = PyUnicode_FromFormat("re.compile(%.200R)", obj->pattern);
     }
 
@@ -1464,14 +1474,14 @@ PyDoc_STRVAR(pattern_doc, "Compiled regular expression object.");
 
 /* PatternObject's 'groupindex' method. */
 static PyObject *
-pattern_groupindex(PatternObject *self, void *Py_UNUSED(ignored))
-{
+pattern_groupindex(PatternObject *self, void *Py_UNUSED(ignored)) {
     if (self->groupindex == NULL)
         return PyDict_New();
     return PyDictProxy_New(self->groupindex);
 }
 
-static int _validate(PatternObject *self); /* Forward */
+static int
+_validate(PatternObject *self); /* Forward */
 
 /*[clinic input]
 _sre.compile
@@ -1486,15 +1496,21 @@ _sre.compile
 [clinic start generated code]*/
 
 static PyObject *
-_sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
-                  PyObject *code, Py_ssize_t groups, PyObject *groupindex,
-                  PyObject *indexgroup)
+_sre_compile_impl(
+    PyObject *module,
+    PyObject *pattern,
+    int flags,
+    PyObject *code,
+    Py_ssize_t groups,
+    PyObject *groupindex,
+    PyObject *indexgroup
+)
 /*[clinic end generated code: output=ef9c2b3693776404 input=0a68476dbbe5db30]*/
 {
     /* "compile" pattern descriptor to pattern object */
 
     _sremodulestate *module_state = get_sre_module_state(module);
-    PatternObject* self;
+    PatternObject *self;
     Py_ssize_t i, n;
 
     n = PyList_GET_SIZE(code);
@@ -1515,10 +1531,11 @@ _sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
         if (value == (unsigned long)-1 && PyErr_Occurred()) {
             break;
         }
-        self->code[i] = (SRE_CODE) value;
-        if ((unsigned long) self->code[i] != value) {
-            PyErr_SetString(PyExc_OverflowError,
-                            "regular expression code size limit exceeded");
+        self->code[i] = (SRE_CODE)value;
+        if ((unsigned long)self->code[i] != value) {
+            PyErr_SetString(
+                PyExc_OverflowError, "regular expression code size limit exceeded"
+            );
             break;
         }
     }
@@ -1531,14 +1548,12 @@ _sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
 
     if (pattern == Py_None) {
         self->isbytes = -1;
-    }
-    else {
+    } else {
         Py_ssize_t p_length;
         int charsize;
         Py_buffer view;
         view.buf = NULL;
-        if (!getstring(pattern, &p_length, &self->isbytes,
-                       &charsize, &view)) {
+        if (!getstring(pattern, &p_length, &self->isbytes, &charsize, &view)) {
             Py_DECREF(self);
             return NULL;
         }
@@ -1564,7 +1579,7 @@ _sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
         return NULL;
     }
 
-    return (PyObject*) self;
+    return (PyObject *)self;
 }
 
 /*[clinic input]
@@ -1597,10 +1612,10 @@ _sre_template_impl(PyObject *module, PyObject *pattern, PyObject *template)
     self = PyObject_GC_NewVar(TemplateObject, module_state->Template_Type, n);
     if (!self)
         return NULL;
-    self->chunks = 1 + 2*n;
+    self->chunks = 1 + 2 * n;
     self->literal = Py_NewRef(PyList_GET_ITEM(template, 0));
     for (Py_ssize_t i = 0; i < n; i++) {
-        Py_ssize_t index = PyLong_AsSsize_t(PyList_GET_ITEM(template, 2*i+1));
+        Py_ssize_t index = PyLong_AsSsize_t(PyList_GET_ITEM(template, 2 * i + 1));
         if (index == -1 && PyErr_Occurred()) {
             Py_SET_SIZE(self, i);
             Py_DECREF(self);
@@ -1612,18 +1627,17 @@ _sre_template_impl(PyObject *module, PyObject *pattern, PyObject *template)
         }
         self->items[i].index = index;
 
-        PyObject *literal = PyList_GET_ITEM(template, 2*i+2);
+        PyObject *literal = PyList_GET_ITEM(template, 2 * i + 2);
         // Skip empty literals.
         if ((PyUnicode_Check(literal) && !PyUnicode_GET_LENGTH(literal)) ||
-            (PyBytes_Check(literal) && !PyBytes_GET_SIZE(literal)))
-        {
+            (PyBytes_Check(literal) && !PyBytes_GET_SIZE(literal))) {
             literal = NULL;
             self->chunks--;
         }
         self->items[i].literal = Py_XNewRef(literal);
     }
     PyObject_GC_Track(self);
-    return (PyObject*) self;
+    return (PyObject *)self;
 
 bad_template:
     PyErr_SetString(PyExc_TypeError, "invalid template");
@@ -1663,43 +1677,50 @@ bad_template:
 #if defined(VVERBOSE)
 #define VTRACE(v) printf v
 #else
-#define VTRACE(v) do {} while(0)  /* do nothing */
+#define VTRACE(v) \
+    do {          \
+    } while (0) /* do nothing */
 #endif
 
 /* Report failure */
-#define FAIL do { VTRACE(("FAIL: %d\n", __LINE__)); return -1; } while (0)
+#define FAIL                              \
+    do {                                  \
+        VTRACE(("FAIL: %d\n", __LINE__)); \
+        return -1;                        \
+    } while (0)
 
 /* Extract opcode, argument, or skip count from code array */
-#define GET_OP                                          \
-    do {                                                \
-        VTRACE(("%p: ", code));                         \
-        if (code >= end) FAIL;                          \
-        op = *code++;                                   \
-        VTRACE(("%lu (op)\n", (unsigned long)op));      \
+#define GET_OP                                     \
+    do {                                           \
+        VTRACE(("%p: ", code));                    \
+        if (code >= end)                           \
+            FAIL;                                  \
+        op = *code++;                              \
+        VTRACE(("%lu (op)\n", (unsigned long)op)); \
     } while (0)
-#define GET_ARG                                         \
-    do {                                                \
-        VTRACE(("%p= ", code));                         \
-        if (code >= end) FAIL;                          \
-        arg = *code++;                                  \
-        VTRACE(("%lu (arg)\n", (unsigned long)arg));    \
+#define GET_ARG                                      \
+    do {                                             \
+        VTRACE(("%p= ", code));                      \
+        if (code >= end)                             \
+            FAIL;                                    \
+        arg = *code++;                               \
+        VTRACE(("%lu (arg)\n", (unsigned long)arg)); \
     } while (0)
-#define GET_SKIP_ADJ(adj)                               \
-    do {                                                \
-        VTRACE(("%p= ", code));                         \
-        if (code >= end) FAIL;                          \
-        skip = *code;                                   \
-        VTRACE(("%lu (skip to %p)\n",                   \
-               (unsigned long)skip, code+skip));        \
-        if (skip-adj > (uintptr_t)(end - code))         \
-            FAIL;                                       \
-        code++;                                         \
+#define GET_SKIP_ADJ(adj)                                                 \
+    do {                                                                  \
+        VTRACE(("%p= ", code));                                           \
+        if (code >= end)                                                  \
+            FAIL;                                                         \
+        skip = *code;                                                     \
+        VTRACE(("%lu (skip to %p)\n", (unsigned long)skip, code + skip)); \
+        if (skip - adj > (uintptr_t)(end - code))                         \
+            FAIL;                                                         \
+        code++;                                                           \
     } while (0)
 #define GET_SKIP GET_SKIP_ADJ(0)
 
 static int
-_validate_charset(SRE_CODE *code, SRE_CODE *end)
-{
+_validate_charset(SRE_CODE *code, SRE_CODE *end) {
     /* Some variables are manipulated by the macros above */
     SRE_CODE op;
     SRE_CODE arg;
@@ -1709,74 +1730,72 @@ _validate_charset(SRE_CODE *code, SRE_CODE *end)
     while (code < end) {
         GET_OP;
         switch (op) {
-
-        case SRE_OP_NEGATE:
-            break;
-
-        case SRE_OP_LITERAL:
-            GET_ARG;
-            break;
-
-        case SRE_OP_RANGE:
-        case SRE_OP_RANGE_UNI_IGNORE:
-            GET_ARG;
-            GET_ARG;
-            break;
-
-        case SRE_OP_CHARSET:
-            offset = 256/SRE_CODE_BITS; /* 256-bit bitmap */
-            if (offset > (uintptr_t)(end - code))
-                FAIL;
-            code += offset;
-            break;
-
-        case SRE_OP_BIGCHARSET:
-            GET_ARG; /* Number of blocks */
-            offset = 256/sizeof(SRE_CODE); /* 256-byte table */
-            if (offset > (uintptr_t)(end - code))
-                FAIL;
-            /* Make sure that each byte points to a valid block */
-            for (i = 0; i < 256; i++) {
-                if (((unsigned char *)code)[i] >= arg)
-                    FAIL;
-            }
-            code += offset;
-            offset = arg * (256/SRE_CODE_BITS); /* 256-bit bitmap times arg */
-            if (offset > (uintptr_t)(end - code))
-                FAIL;
-            code += offset;
-            break;
-
-        case SRE_OP_CATEGORY:
-            GET_ARG;
-            switch (arg) {
-            case SRE_CATEGORY_DIGIT:
-            case SRE_CATEGORY_NOT_DIGIT:
-            case SRE_CATEGORY_SPACE:
-            case SRE_CATEGORY_NOT_SPACE:
-            case SRE_CATEGORY_WORD:
-            case SRE_CATEGORY_NOT_WORD:
-            case SRE_CATEGORY_LINEBREAK:
-            case SRE_CATEGORY_NOT_LINEBREAK:
-            case SRE_CATEGORY_LOC_WORD:
-            case SRE_CATEGORY_LOC_NOT_WORD:
-            case SRE_CATEGORY_UNI_DIGIT:
-            case SRE_CATEGORY_UNI_NOT_DIGIT:
-            case SRE_CATEGORY_UNI_SPACE:
-            case SRE_CATEGORY_UNI_NOT_SPACE:
-            case SRE_CATEGORY_UNI_WORD:
-            case SRE_CATEGORY_UNI_NOT_WORD:
-            case SRE_CATEGORY_UNI_LINEBREAK:
-            case SRE_CATEGORY_UNI_NOT_LINEBREAK:
+            case SRE_OP_NEGATE:
                 break;
+
+            case SRE_OP_LITERAL:
+                GET_ARG;
+                break;
+
+            case SRE_OP_RANGE:
+            case SRE_OP_RANGE_UNI_IGNORE:
+                GET_ARG;
+                GET_ARG;
+                break;
+
+            case SRE_OP_CHARSET:
+                offset = 256 / SRE_CODE_BITS; /* 256-bit bitmap */
+                if (offset > (uintptr_t)(end - code))
+                    FAIL;
+                code += offset;
+                break;
+
+            case SRE_OP_BIGCHARSET:
+                GET_ARG;                         /* Number of blocks */
+                offset = 256 / sizeof(SRE_CODE); /* 256-byte table */
+                if (offset > (uintptr_t)(end - code))
+                    FAIL;
+                /* Make sure that each byte points to a valid block */
+                for (i = 0; i < 256; i++) {
+                    if (((unsigned char *)code)[i] >= arg)
+                        FAIL;
+                }
+                code += offset;
+                offset = arg * (256 / SRE_CODE_BITS); /* 256-bit bitmap times arg */
+                if (offset > (uintptr_t)(end - code))
+                    FAIL;
+                code += offset;
+                break;
+
+            case SRE_OP_CATEGORY:
+                GET_ARG;
+                switch (arg) {
+                    case SRE_CATEGORY_DIGIT:
+                    case SRE_CATEGORY_NOT_DIGIT:
+                    case SRE_CATEGORY_SPACE:
+                    case SRE_CATEGORY_NOT_SPACE:
+                    case SRE_CATEGORY_WORD:
+                    case SRE_CATEGORY_NOT_WORD:
+                    case SRE_CATEGORY_LINEBREAK:
+                    case SRE_CATEGORY_NOT_LINEBREAK:
+                    case SRE_CATEGORY_LOC_WORD:
+                    case SRE_CATEGORY_LOC_NOT_WORD:
+                    case SRE_CATEGORY_UNI_DIGIT:
+                    case SRE_CATEGORY_UNI_NOT_DIGIT:
+                    case SRE_CATEGORY_UNI_SPACE:
+                    case SRE_CATEGORY_UNI_NOT_SPACE:
+                    case SRE_CATEGORY_UNI_WORD:
+                    case SRE_CATEGORY_UNI_NOT_WORD:
+                    case SRE_CATEGORY_UNI_LINEBREAK:
+                    case SRE_CATEGORY_UNI_NOT_LINEBREAK:
+                        break;
+                    default:
+                        FAIL;
+                }
+                break;
+
             default:
                 FAIL;
-            }
-            break;
-
-        default:
-            FAIL;
-
         }
     }
 
@@ -1785,8 +1804,7 @@ _validate_charset(SRE_CODE *code, SRE_CODE *end)
 
 /* Returns 0 on success, -1 on failure, and 1 if the last op is JUMP. */
 static int
-_validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
-{
+_validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups) {
     /* Some variables are manipulated by the macros above */
     SRE_CODE op;
     SRE_CODE arg;
@@ -1800,76 +1818,74 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
     while (code < end) {
         GET_OP;
         switch (op) {
-
-        case SRE_OP_MARK:
-            /* We don't check whether marks are properly nested; the
-               sre_match() code is robust even if they don't, and the worst
-               you can get is nonsensical match results. */
-            GET_ARG;
-            if (arg > 2 * (size_t)groups + 1) {
-                VTRACE(("arg=%d, groups=%d\n", (int)arg, (int)groups));
-                FAIL;
-            }
-            break;
-
-        case SRE_OP_LITERAL:
-        case SRE_OP_NOT_LITERAL:
-        case SRE_OP_LITERAL_IGNORE:
-        case SRE_OP_NOT_LITERAL_IGNORE:
-        case SRE_OP_LITERAL_UNI_IGNORE:
-        case SRE_OP_NOT_LITERAL_UNI_IGNORE:
-        case SRE_OP_LITERAL_LOC_IGNORE:
-        case SRE_OP_NOT_LITERAL_LOC_IGNORE:
-            GET_ARG;
-            /* The arg is just a character, nothing to check */
-            break;
-
-        case SRE_OP_SUCCESS:
-        case SRE_OP_FAILURE:
-            /* Nothing to check; these normally end the matching process */
-            break;
-
-        case SRE_OP_AT:
-            GET_ARG;
-            switch (arg) {
-            case SRE_AT_BEGINNING:
-            case SRE_AT_BEGINNING_STRING:
-            case SRE_AT_BEGINNING_LINE:
-            case SRE_AT_END:
-            case SRE_AT_END_LINE:
-            case SRE_AT_END_STRING:
-            case SRE_AT_BOUNDARY:
-            case SRE_AT_NON_BOUNDARY:
-            case SRE_AT_LOC_BOUNDARY:
-            case SRE_AT_LOC_NON_BOUNDARY:
-            case SRE_AT_UNI_BOUNDARY:
-            case SRE_AT_UNI_NON_BOUNDARY:
+            case SRE_OP_MARK:
+                /* We don't check whether marks are properly nested; the
+                   sre_match() code is robust even if they don't, and the worst
+                   you can get is nonsensical match results. */
+                GET_ARG;
+                if (arg > 2 * (size_t)groups + 1) {
+                    VTRACE(("arg=%d, groups=%d\n", (int)arg, (int)groups));
+                    FAIL;
+                }
                 break;
-            default:
-                FAIL;
-            }
-            break;
 
-        case SRE_OP_ANY:
-        case SRE_OP_ANY_ALL:
-            /* These have no operands */
-            break;
+            case SRE_OP_LITERAL:
+            case SRE_OP_NOT_LITERAL:
+            case SRE_OP_LITERAL_IGNORE:
+            case SRE_OP_NOT_LITERAL_IGNORE:
+            case SRE_OP_LITERAL_UNI_IGNORE:
+            case SRE_OP_NOT_LITERAL_UNI_IGNORE:
+            case SRE_OP_LITERAL_LOC_IGNORE:
+            case SRE_OP_NOT_LITERAL_LOC_IGNORE:
+                GET_ARG;
+                /* The arg is just a character, nothing to check */
+                break;
 
-        case SRE_OP_IN:
-        case SRE_OP_IN_IGNORE:
-        case SRE_OP_IN_UNI_IGNORE:
-        case SRE_OP_IN_LOC_IGNORE:
-            GET_SKIP;
-            /* Stop 1 before the end; we check the FAILURE below */
-            if (_validate_charset(code, code+skip-2))
-                FAIL;
-            if (code[skip-2] != SRE_OP_FAILURE)
-                FAIL;
-            code += skip-1;
-            break;
+            case SRE_OP_SUCCESS:
+            case SRE_OP_FAILURE:
+                /* Nothing to check; these normally end the matching process */
+                break;
 
-        case SRE_OP_INFO:
-            {
+            case SRE_OP_AT:
+                GET_ARG;
+                switch (arg) {
+                    case SRE_AT_BEGINNING:
+                    case SRE_AT_BEGINNING_STRING:
+                    case SRE_AT_BEGINNING_LINE:
+                    case SRE_AT_END:
+                    case SRE_AT_END_LINE:
+                    case SRE_AT_END_STRING:
+                    case SRE_AT_BOUNDARY:
+                    case SRE_AT_NON_BOUNDARY:
+                    case SRE_AT_LOC_BOUNDARY:
+                    case SRE_AT_LOC_NON_BOUNDARY:
+                    case SRE_AT_UNI_BOUNDARY:
+                    case SRE_AT_UNI_NON_BOUNDARY:
+                        break;
+                    default:
+                        FAIL;
+                }
+                break;
+
+            case SRE_OP_ANY:
+            case SRE_OP_ANY_ALL:
+                /* These have no operands */
+                break;
+
+            case SRE_OP_IN:
+            case SRE_OP_IN_IGNORE:
+            case SRE_OP_IN_UNI_IGNORE:
+            case SRE_OP_IN_LOC_IGNORE:
+                GET_SKIP;
+                /* Stop 1 before the end; we check the FAILURE below */
+                if (_validate_charset(code, code + skip - 2))
+                    FAIL;
+                if (code[skip - 2] != SRE_OP_FAILURE)
+                    FAIL;
+                code += skip - 1;
+                break;
+
+            case SRE_OP_INFO: {
                 /* A minimal info field is
                    <INFO> <1=skip> <2=flags> <3=min> <4=max>;
                    If SRE_INFO_PREFIX or SRE_INFO_CHARSET is in the flags,
@@ -1877,27 +1893,26 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                 SRE_CODE flags, i;
                 SRE_CODE *newcode;
                 GET_SKIP;
-                newcode = code+skip-1;
-                GET_ARG; flags = arg;
+                newcode = code + skip - 1;
+                GET_ARG;
+                flags = arg;
                 GET_ARG;
                 GET_ARG;
                 /* Check that only valid flags are present */
-                if ((flags & ~(SRE_INFO_PREFIX |
-                               SRE_INFO_LITERAL |
-                               SRE_INFO_CHARSET)) != 0)
+                if ((flags & ~(SRE_INFO_PREFIX | SRE_INFO_LITERAL | SRE_INFO_CHARSET)
+                    ) != 0)
                     FAIL;
                 /* PREFIX and CHARSET are mutually exclusive */
-                if ((flags & SRE_INFO_PREFIX) &&
-                    (flags & SRE_INFO_CHARSET))
+                if ((flags & SRE_INFO_PREFIX) && (flags & SRE_INFO_CHARSET))
                     FAIL;
                 /* LITERAL implies PREFIX */
-                if ((flags & SRE_INFO_LITERAL) &&
-                    !(flags & SRE_INFO_PREFIX))
+                if ((flags & SRE_INFO_LITERAL) && !(flags & SRE_INFO_PREFIX))
                     FAIL;
                 /* Validate the prefix */
                 if (flags & SRE_INFO_PREFIX) {
                     SRE_CODE prefix_len;
-                    GET_ARG; prefix_len = arg;
+                    GET_ARG;
+                    prefix_len = arg;
                     GET_ARG;
                     /* Here comes the prefix string */
                     if (prefix_len > (uintptr_t)(newcode - code))
@@ -1915,30 +1930,27 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                 }
                 /* Validate the charset */
                 if (flags & SRE_INFO_CHARSET) {
-                    if (_validate_charset(code, newcode-1))
+                    if (_validate_charset(code, newcode - 1))
                         FAIL;
                     if (newcode[-1] != SRE_OP_FAILURE)
                         FAIL;
                     code = newcode;
-                }
-                else if (code != newcode) {
-                  VTRACE(("code=%p, newcode=%p\n", code, newcode));
+                } else if (code != newcode) {
+                    VTRACE(("code=%p, newcode=%p\n", code, newcode));
                     FAIL;
                 }
-            }
-            break;
+            } break;
 
-        case SRE_OP_BRANCH:
-            {
+            case SRE_OP_BRANCH: {
                 SRE_CODE *target = NULL;
                 for (;;) {
                     GET_SKIP;
                     if (skip == 0)
                         break;
                     /* Stop 2 before the end; we check the JUMP below */
-                    if (_validate_inner(code, code+skip-3, groups))
+                    if (_validate_inner(code, code + skip - 3, groups))
                         FAIL;
-                    code += skip-3;
+                    code += skip - 3;
                     /* Check that it ends with a JUMP, and that each JUMP
                        has the same target */
                     GET_OP;
@@ -1946,153 +1958,148 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                         FAIL;
                     GET_SKIP;
                     if (target == NULL)
-                        target = code+skip-1;
-                    else if (code+skip-1 != target)
+                        target = code + skip - 1;
+                    else if (code + skip - 1 != target)
                         FAIL;
                 }
                 if (code != target)
                     FAIL;
-            }
-            break;
+            } break;
 
-        case SRE_OP_REPEAT_ONE:
-        case SRE_OP_MIN_REPEAT_ONE:
-        case SRE_OP_POSSESSIVE_REPEAT_ONE:
-            {
+            case SRE_OP_REPEAT_ONE:
+            case SRE_OP_MIN_REPEAT_ONE:
+            case SRE_OP_POSSESSIVE_REPEAT_ONE: {
                 SRE_CODE min, max;
                 GET_SKIP;
-                GET_ARG; min = arg;
-                GET_ARG; max = arg;
+                GET_ARG;
+                min = arg;
+                GET_ARG;
+                max = arg;
                 if (min > max)
                     FAIL;
                 if (max > SRE_MAXREPEAT)
                     FAIL;
-                if (_validate_inner(code, code+skip-4, groups))
+                if (_validate_inner(code, code + skip - 4, groups))
                     FAIL;
-                code += skip-4;
+                code += skip - 4;
                 GET_OP;
                 if (op != SRE_OP_SUCCESS)
                     FAIL;
-            }
-            break;
+            } break;
 
-        case SRE_OP_REPEAT:
-        case SRE_OP_POSSESSIVE_REPEAT:
-            {
+            case SRE_OP_REPEAT:
+            case SRE_OP_POSSESSIVE_REPEAT: {
                 SRE_CODE op1 = op, min, max;
                 GET_SKIP;
-                GET_ARG; min = arg;
-                GET_ARG; max = arg;
+                GET_ARG;
+                min = arg;
+                GET_ARG;
+                max = arg;
                 if (min > max)
                     FAIL;
                 if (max > SRE_MAXREPEAT)
                     FAIL;
-                if (_validate_inner(code, code+skip-3, groups))
+                if (_validate_inner(code, code + skip - 3, groups))
                     FAIL;
-                code += skip-3;
+                code += skip - 3;
                 GET_OP;
                 if (op1 == SRE_OP_POSSESSIVE_REPEAT) {
                     if (op != SRE_OP_SUCCESS)
                         FAIL;
-                }
-                else {
+                } else {
                     if (op != SRE_OP_MAX_UNTIL && op != SRE_OP_MIN_UNTIL)
                         FAIL;
                 }
-            }
-            break;
+            } break;
 
-        case SRE_OP_ATOMIC_GROUP:
-            {
+            case SRE_OP_ATOMIC_GROUP: {
                 GET_SKIP;
-                if (_validate_inner(code, code+skip-2, groups))
+                if (_validate_inner(code, code + skip - 2, groups))
                     FAIL;
-                code += skip-2;
+                code += skip - 2;
                 GET_OP;
                 if (op != SRE_OP_SUCCESS)
                     FAIL;
-            }
-            break;
+            } break;
 
-        case SRE_OP_GROUPREF:
-        case SRE_OP_GROUPREF_IGNORE:
-        case SRE_OP_GROUPREF_UNI_IGNORE:
-        case SRE_OP_GROUPREF_LOC_IGNORE:
-            GET_ARG;
-            if (arg >= (size_t)groups)
-                FAIL;
-            break;
+            case SRE_OP_GROUPREF:
+            case SRE_OP_GROUPREF_IGNORE:
+            case SRE_OP_GROUPREF_UNI_IGNORE:
+            case SRE_OP_GROUPREF_LOC_IGNORE:
+                GET_ARG;
+                if (arg >= (size_t)groups)
+                    FAIL;
+                break;
 
-        case SRE_OP_GROUPREF_EXISTS:
-            /* The regex syntax for this is: '(?(group)then|else)', where
-               'group' is either an integer group number or a group name,
-               'then' and 'else' are sub-regexes, and 'else' is optional. */
-            GET_ARG;
-            if (arg >= (size_t)groups)
-                FAIL;
-            GET_SKIP_ADJ(1);
-            code--; /* The skip is relative to the first arg! */
-            /* There are two possibilities here: if there is both a 'then'
-               part and an 'else' part, the generated code looks like:
+            case SRE_OP_GROUPREF_EXISTS:
+                /* The regex syntax for this is: '(?(group)then|else)', where
+                   'group' is either an integer group number or a group name,
+                   'then' and 'else' are sub-regexes, and 'else' is optional. */
+                GET_ARG;
+                if (arg >= (size_t)groups)
+                    FAIL;
+                GET_SKIP_ADJ(1);
+                code--; /* The skip is relative to the first arg! */
+                /* There are two possibilities here: if there is both a 'then'
+                   part and an 'else' part, the generated code looks like:
 
-               GROUPREF_EXISTS
-               <group>
-               <skipyes>
-               ...then part...
-               JUMP
-               <skipno>
-               (<skipyes> jumps here)
-               ...else part...
-               (<skipno> jumps here)
+                   GROUPREF_EXISTS
+                   <group>
+                   <skipyes>
+                   ...then part...
+                   JUMP
+                   <skipno>
+                   (<skipyes> jumps here)
+                   ...else part...
+                   (<skipno> jumps here)
 
-               If there is only a 'then' part, it looks like:
+                   If there is only a 'then' part, it looks like:
 
-               GROUPREF_EXISTS
-               <group>
-               <skip>
-               ...then part...
-               (<skip> jumps here)
+                   GROUPREF_EXISTS
+                   <group>
+                   <skip>
+                   ...then part...
+                   (<skip> jumps here)
 
-               There is no direct way to decide which it is, and we don't want
-               to allow arbitrary jumps anywhere in the code; so we just look
-               for a JUMP opcode preceding our skip target.
-            */
-            VTRACE(("then part:\n"));
-            int rc = _validate_inner(code+1, code+skip-1, groups);
-            if (rc == 1) {
-                VTRACE(("else part:\n"));
-                code += skip-2; /* Position after JUMP, at <skipno> */
+                   There is no direct way to decide which it is, and we don't want
+                   to allow arbitrary jumps anywhere in the code; so we just look
+                   for a JUMP opcode preceding our skip target.
+                */
+                VTRACE(("then part:\n"));
+                int rc = _validate_inner(code + 1, code + skip - 1, groups);
+                if (rc == 1) {
+                    VTRACE(("else part:\n"));
+                    code += skip - 2; /* Position after JUMP, at <skipno> */
+                    GET_SKIP;
+                    rc = _validate_inner(code, code + skip - 1, groups);
+                }
+                if (rc)
+                    FAIL;
+                code += skip - 1;
+                break;
+
+            case SRE_OP_ASSERT:
+            case SRE_OP_ASSERT_NOT:
                 GET_SKIP;
-                rc = _validate_inner(code, code+skip-1, groups);
-            }
-            if (rc)
-                FAIL;
-            code += skip-1;
-            break;
+                GET_ARG; /* 0 for lookahead, width for lookbehind */
+                code--;  /* Back up over arg to simplify math below */
+                /* Stop 1 before the end; we check the SUCCESS below */
+                if (_validate_inner(code + 1, code + skip - 2, groups))
+                    FAIL;
+                code += skip - 2;
+                GET_OP;
+                if (op != SRE_OP_SUCCESS)
+                    FAIL;
+                break;
 
-        case SRE_OP_ASSERT:
-        case SRE_OP_ASSERT_NOT:
-            GET_SKIP;
-            GET_ARG; /* 0 for lookahead, width for lookbehind */
-            code--; /* Back up over arg to simplify math below */
-            /* Stop 1 before the end; we check the SUCCESS below */
-            if (_validate_inner(code+1, code+skip-2, groups))
-                FAIL;
-            code += skip-2;
-            GET_OP;
-            if (op != SRE_OP_SUCCESS)
-                FAIL;
-            break;
+            case SRE_OP_JUMP:
+                if (code + 1 != end)
+                    FAIL;
+                VTRACE(("JUMP: %d\n", __LINE__));
+                return 1;
 
-        case SRE_OP_JUMP:
-            if (code + 1 != end)
+            default:
                 FAIL;
-            VTRACE(("JUMP: %d\n", __LINE__));
-            return 1;
-
-        default:
-            FAIL;
-
         }
     }
 
@@ -2101,23 +2108,19 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
 }
 
 static int
-_validate_outer(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
-{
-    if (groups < 0 || (size_t)groups > SRE_MAXGROUPS ||
-        code >= end || end[-1] != SRE_OP_SUCCESS)
+_validate_outer(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups) {
+    if (groups < 0 || (size_t)groups > SRE_MAXGROUPS || code >= end ||
+        end[-1] != SRE_OP_SUCCESS)
         FAIL;
-    return _validate_inner(code, end-1, groups);
+    return _validate_inner(code, end - 1, groups);
 }
 
 static int
-_validate(PatternObject *self)
-{
-    if (_validate_outer(self->code, self->code+self->codesize, self->groups))
-    {
+_validate(PatternObject *self) {
+    if (_validate_outer(self->code, self->code + self->codesize, self->groups)) {
         PyErr_SetString(PyExc_RuntimeError, "invalid SRE code");
         return 0;
-    }
-    else
+    } else
         VTRACE(("Success!\n"));
     return 1;
 }
@@ -2126,8 +2129,7 @@ _validate(PatternObject *self)
 /* match methods */
 
 static int
-match_traverse(MatchObject *self, visitproc visit, void *arg)
-{
+match_traverse(MatchObject *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->string);
     Py_VISIT(self->regs);
@@ -2136,8 +2138,7 @@ match_traverse(MatchObject *self, visitproc visit, void *arg)
 }
 
 static int
-match_clear(MatchObject *self)
-{
+match_clear(MatchObject *self) {
     Py_CLEAR(self->string);
     Py_CLEAR(self->regs);
     Py_CLEAR(self->pattern);
@@ -2145,8 +2146,7 @@ match_clear(MatchObject *self)
 }
 
 static void
-match_dealloc(MatchObject* self)
-{
+match_dealloc(MatchObject *self) {
     PyTypeObject *tp = Py_TYPE(self);
 
     PyObject_GC_UnTrack(self);
@@ -2155,14 +2155,13 @@ match_dealloc(MatchObject* self)
     Py_DECREF(tp);
 }
 
-static PyObject*
-match_getslice_by_index(MatchObject* self, Py_ssize_t index, PyObject* def)
-{
+static PyObject *
+match_getslice_by_index(MatchObject *self, Py_ssize_t index, PyObject *def) {
     Py_ssize_t length;
     int isbytes, charsize;
     Py_buffer view;
     PyObject *result;
-    const void* ptr;
+    const void *ptr;
     Py_ssize_t i, j;
 
     assert(0 <= index && index < self->groups);
@@ -2178,7 +2177,7 @@ match_getslice_by_index(MatchObject* self, Py_ssize_t index, PyObject* def)
         return NULL;
 
     i = self->mark[index];
-    j = self->mark[index+1];
+    j = self->mark[index + 1];
     i = Py_MIN(i, length);
     j = Py_MIN(j, length);
     result = getslice(isbytes, ptr, self->string, i, j);
@@ -2188,8 +2187,7 @@ match_getslice_by_index(MatchObject* self, Py_ssize_t index, PyObject* def)
 }
 
 static Py_ssize_t
-match_getindex(MatchObject* self, PyObject* index)
-{
+match_getindex(MatchObject *self, PyObject *index) {
     Py_ssize_t i;
 
     if (index == NULL)
@@ -2198,8 +2196,7 @@ match_getindex(MatchObject* self, PyObject* index)
 
     if (PyIndex_Check(index)) {
         i = PyNumber_AsSsize_t(index, NULL);
-    }
-    else {
+    } else {
         i = -1;
 
         if (self->pattern->groupindex) {
@@ -2222,9 +2219,8 @@ match_getindex(MatchObject* self, PyObject* index)
     return i;
 }
 
-static PyObject*
-match_getslice(MatchObject* self, PyObject* index, PyObject* def)
-{
+static PyObject *
+match_getslice(MatchObject *self, PyObject *index, PyObject *def) {
     Py_ssize_t i = match_getindex(self, index);
 
     if (i < 0) {
@@ -2239,8 +2235,8 @@ _sre.SRE_Match.expand
 
     template: object
 
-Return the string obtained by doing backslash substitution on the string template, as done by the sub() method.
-[clinic start generated code]*/
+Return the string obtained by doing backslash substitution on the string template, as
+done by the sub() method. [clinic start generated code]*/
 
 static PyObject *
 _sre_SRE_Match_expand_impl(MatchObject *self, PyObject *template)
@@ -2256,44 +2252,41 @@ _sre_SRE_Match_expand_impl(MatchObject *self, PyObject *template)
     return result;
 }
 
-static PyObject*
-match_group(MatchObject* self, PyObject* args)
-{
-    PyObject* result;
+static PyObject *
+match_group(MatchObject *self, PyObject *args) {
+    PyObject *result;
     Py_ssize_t i, size;
 
     size = PyTuple_GET_SIZE(args);
 
     switch (size) {
-    case 0:
-        result = match_getslice(self, _PyLong_GetZero(), Py_None);
-        break;
-    case 1:
-        result = match_getslice(self, PyTuple_GET_ITEM(args, 0), Py_None);
-        break;
-    default:
-        /* fetch multiple items */
-        result = PyTuple_New(size);
-        if (!result)
-            return NULL;
-        for (i = 0; i < size; i++) {
-            PyObject* item = match_getslice(
-                self, PyTuple_GET_ITEM(args, i), Py_None
-                );
-            if (!item) {
-                Py_DECREF(result);
+        case 0:
+            result = match_getslice(self, _PyLong_GetZero(), Py_None);
+            break;
+        case 1:
+            result = match_getslice(self, PyTuple_GET_ITEM(args, 0), Py_None);
+            break;
+        default:
+            /* fetch multiple items */
+            result = PyTuple_New(size);
+            if (!result)
                 return NULL;
+            for (i = 0; i < size; i++) {
+                PyObject *item =
+                    match_getslice(self, PyTuple_GET_ITEM(args, i), Py_None);
+                if (!item) {
+                    Py_DECREF(result);
+                    return NULL;
+                }
+                PyTuple_SET_ITEM(result, i, item);
             }
-            PyTuple_SET_ITEM(result, i, item);
-        }
-        break;
+            break;
     }
     return result;
 }
 
-static PyObject*
-match_getitem(MatchObject* self, PyObject* name)
-{
+static PyObject *
+match_getitem(MatchObject *self, PyObject *name) {
     return match_getslice(self, name, Py_None);
 }
 
@@ -2310,21 +2303,21 @@ static PyObject *
 _sre_SRE_Match_groups_impl(MatchObject *self, PyObject *default_value)
 /*[clinic end generated code: output=daf8e2641537238a input=bb069ef55dabca91]*/
 {
-    PyObject* result;
+    PyObject *result;
     Py_ssize_t index;
 
-    result = PyTuple_New(self->groups-1);
+    result = PyTuple_New(self->groups - 1);
     if (!result)
         return NULL;
 
     for (index = 1; index < self->groups; index++) {
-        PyObject* item;
+        PyObject *item;
         item = match_getslice_by_index(self, index, default_value);
         if (!item) {
             Py_DECREF(result);
             return NULL;
         }
-        PyTuple_SET_ITEM(result, index-1, item);
+        PyTuple_SET_ITEM(result, index - 1, item);
     }
 
     return result;
@@ -2336,8 +2329,8 @@ _sre.SRE_Match.groupdict
     default: object = None
         Is used for groups that did not participate in the match.
 
-Return a dictionary containing all the named subgroups of the match, keyed by the subgroup name.
-[clinic start generated code]*/
+Return a dictionary containing all the named subgroups of the match, keyed by the
+subgroup name. [clinic start generated code]*/
 
 static PyObject *
 _sre_SRE_Match_groupdict_impl(MatchObject *self, PyObject *default_value)
@@ -2397,7 +2390,7 @@ _sre_SRE_Match_start_impl(MatchObject *self, PyObject *group)
     }
 
     /* mark is -1 if group is undefined */
-    return self->mark[index*2];
+    return self->mark[index * 2];
 }
 
 /*[clinic input]
@@ -2420,14 +2413,13 @@ _sre_SRE_Match_end_impl(MatchObject *self, PyObject *group)
     }
 
     /* mark is -1 if group is undefined */
-    return self->mark[index*2+1];
+    return self->mark[index * 2 + 1];
 }
 
-LOCAL(PyObject*)
-_pair(Py_ssize_t i1, Py_ssize_t i2)
-{
-    PyObject* pair;
-    PyObject* item;
+LOCAL(PyObject *)
+_pair(Py_ssize_t i1, Py_ssize_t i2) {
+    PyObject *pair;
+    PyObject *item;
 
     pair = PyTuple_New(2);
     if (!pair)
@@ -2445,7 +2437,7 @@ _pair(Py_ssize_t i1, Py_ssize_t i2)
 
     return pair;
 
-  error:
+error:
     Py_DECREF(pair);
     return NULL;
 }
@@ -2470,14 +2462,13 @@ _sre_SRE_Match_span_impl(MatchObject *self, PyObject *group)
     }
 
     /* marks are -1 if group is undefined */
-    return _pair(self->mark[index*2], self->mark[index*2+1]);
+    return _pair(self->mark[index * 2], self->mark[index * 2 + 1]);
 }
 
-static PyObject*
-match_regs(MatchObject* self)
-{
-    PyObject* regs;
-    PyObject* item;
+static PyObject *
+match_regs(MatchObject *self) {
+    PyObject *regs;
+    PyObject *item;
     Py_ssize_t index;
 
     regs = PyTuple_New(self->groups);
@@ -2485,7 +2476,7 @@ match_regs(MatchObject* self)
         return NULL;
 
     for (index = 0; index < self->groups; index++) {
-        item = _pair(self->mark[index*2], self->mark[index*2+1]);
+        item = _pair(self->mark[index * 2], self->mark[index * 2 + 1]);
         if (!item) {
             Py_DECREF(regs);
             return NULL;
@@ -2525,40 +2516,38 @@ _sre_SRE_Match___deepcopy__(MatchObject *self, PyObject *memo)
     return Py_NewRef(self);
 }
 
-PyDoc_STRVAR(match_doc,
-"The result of re.match() and re.search().\n\
-Match objects always have a boolean value of True.");
+PyDoc_STRVAR(
+    match_doc,
+    "The result of re.match() and re.search().\n\
+Match objects always have a boolean value of True."
+);
 
-PyDoc_STRVAR(match_group_doc,
-"group([group1, ...]) -> str or tuple.\n\
+PyDoc_STRVAR(
+    match_group_doc,
+    "group([group1, ...]) -> str or tuple.\n\
     Return subgroup(s) of the match by indices or names.\n\
-    For 0 returns the entire match.");
+    For 0 returns the entire match."
+);
 
 static PyObject *
-match_lastindex_get(MatchObject *self, void *Py_UNUSED(ignored))
-{
+match_lastindex_get(MatchObject *self, void *Py_UNUSED(ignored)) {
     if (self->lastindex >= 0)
         return PyLong_FromSsize_t(self->lastindex);
     Py_RETURN_NONE;
 }
 
 static PyObject *
-match_lastgroup_get(MatchObject *self, void *Py_UNUSED(ignored))
-{
-    if (self->pattern->indexgroup &&
-        self->lastindex >= 0 &&
-        self->lastindex < PyTuple_GET_SIZE(self->pattern->indexgroup))
-    {
-        PyObject *result = PyTuple_GET_ITEM(self->pattern->indexgroup,
-                                            self->lastindex);
+match_lastgroup_get(MatchObject *self, void *Py_UNUSED(ignored)) {
+    if (self->pattern->indexgroup && self->lastindex >= 0 &&
+        self->lastindex < PyTuple_GET_SIZE(self->pattern->indexgroup)) {
+        PyObject *result = PyTuple_GET_ITEM(self->pattern->indexgroup, self->lastindex);
         return Py_NewRef(result);
     }
     Py_RETURN_NONE;
 }
 
 static PyObject *
-match_regs_get(MatchObject *self, void *Py_UNUSED(ignored))
-{
+match_regs_get(MatchObject *self, void *Py_UNUSED(ignored)) {
     if (self->regs) {
         return Py_NewRef(self->regs);
     } else
@@ -2566,74 +2555,77 @@ match_regs_get(MatchObject *self, void *Py_UNUSED(ignored))
 }
 
 static PyObject *
-match_repr(MatchObject *self)
-{
+match_repr(MatchObject *self) {
     PyObject *result;
     PyObject *group0 = match_getslice_by_index(self, 0, Py_None);
     if (group0 == NULL)
         return NULL;
     result = PyUnicode_FromFormat(
-            "<%s object; span=(%zd, %zd), match=%.50R>",
-            Py_TYPE(self)->tp_name,
-            self->mark[0], self->mark[1], group0);
+        "<%s object; span=(%zd, %zd), match=%.50R>",
+        Py_TYPE(self)->tp_name,
+        self->mark[0],
+        self->mark[1],
+        group0
+    );
     Py_DECREF(group0);
     return result;
 }
 
-
-static PyObject*
-pattern_new_match(_sremodulestate* module_state,
-                  PatternObject* pattern,
-                  SRE_STATE* state,
-                  Py_ssize_t status)
-{
+static PyObject *
+pattern_new_match(
+    _sremodulestate *module_state,
+    PatternObject *pattern,
+    SRE_STATE *state,
+    Py_ssize_t status
+) {
     /* create match object (from state object) */
 
-    MatchObject* match;
+    MatchObject *match;
     Py_ssize_t i, j;
-    char* base;
+    char *base;
     int n;
 
     if (status > 0) {
-
         /* create match object (with room for extra group marks) */
         /* coverity[ampersand_in_size] */
-        match = PyObject_GC_NewVar(MatchObject,
-                                   module_state->Match_Type,
-                                   2*(pattern->groups+1));
+        match = PyObject_GC_NewVar(
+            MatchObject, module_state->Match_Type, 2 * (pattern->groups + 1)
+        );
         if (!match)
             return NULL;
 
-        match->pattern = (PatternObject*)Py_NewRef(pattern);
+        match->pattern = (PatternObject *)Py_NewRef(pattern);
 
         match->string = Py_NewRef(state->string);
 
         match->regs = NULL;
-        match->groups = pattern->groups+1;
+        match->groups = pattern->groups + 1;
 
         /* fill in group slices */
 
-        base = (char*) state->beginning;
+        base = (char *)state->beginning;
         n = state->charsize;
 
-        match->mark[0] = ((char*) state->start - base) / n;
-        match->mark[1] = ((char*) state->ptr - base) / n;
+        match->mark[0] = ((char *)state->start - base) / n;
+        match->mark[1] = ((char *)state->ptr - base) / n;
 
-        for (i = j = 0; i < pattern->groups; i++, j+=2)
-            if (j+1 <= state->lastmark && state->mark[j] && state->mark[j+1]) {
-                match->mark[j+2] = ((char*) state->mark[j] - base) / n;
-                match->mark[j+3] = ((char*) state->mark[j+1] - base) / n;
+        for (i = j = 0; i < pattern->groups; i++, j += 2)
+            if (j + 1 <= state->lastmark && state->mark[j] && state->mark[j + 1]) {
+                match->mark[j + 2] = ((char *)state->mark[j] - base) / n;
+                match->mark[j + 3] = ((char *)state->mark[j + 1] - base) / n;
 
                 /* check wrong span */
-                if (match->mark[j+2] > match->mark[j+3]) {
-                    PyErr_SetString(PyExc_SystemError,
-                                    "The span of capturing group is wrong,"
-                                    " please report a bug for the re module.");
+                if (match->mark[j + 2] > match->mark[j + 3]) {
+                    PyErr_SetString(
+                        PyExc_SystemError,
+                        "The span of capturing group is wrong,"
+                        " please report a bug for the re module."
+                    );
                     Py_DECREF(match);
                     return NULL;
                 }
             } else
-                match->mark[j+2] = match->mark[j+3] = -1; /* undefined */
+                match->mark[j + 2] = match->mark[j + 3] = -1; /* undefined */
 
         match->pos = state->pos;
         match->endpos = state->endpos;
@@ -2641,13 +2633,11 @@ pattern_new_match(_sremodulestate* module_state,
         match->lastindex = state->lastindex;
 
         PyObject_GC_Track(match);
-        return (PyObject*) match;
+        return (PyObject *)match;
 
     } else if (status == 0) {
-
         /* no match */
         Py_RETURN_NONE;
-
     }
 
     /* internal error */
@@ -2655,28 +2645,24 @@ pattern_new_match(_sremodulestate* module_state,
     return NULL;
 }
 
-
 /* -------------------------------------------------------------------- */
 /* scanner methods (experimental) */
 
 static int
-scanner_traverse(ScannerObject *self, visitproc visit, void *arg)
-{
+scanner_traverse(ScannerObject *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->pattern);
     return 0;
 }
 
 static int
-scanner_clear(ScannerObject *self)
-{
+scanner_clear(ScannerObject *self) {
     Py_CLEAR(self->pattern);
     return 0;
 }
 
 static void
-scanner_dealloc(ScannerObject* self)
-{
+scanner_dealloc(ScannerObject *self) {
     PyTypeObject *tp = Py_TYPE(self);
 
     PyObject_GC_UnTrack(self);
@@ -2687,11 +2673,11 @@ scanner_dealloc(ScannerObject* self)
 }
 
 static int
-scanner_begin(ScannerObject* self)
-{
+scanner_begin(ScannerObject *self) {
     if (self->executing) {
-        PyErr_SetString(PyExc_ValueError,
-                        "regular expression scanner already executing");
+        PyErr_SetString(
+            PyExc_ValueError, "regular expression scanner already executing"
+        );
         return 0;
     }
     self->executing = 1;
@@ -2699,8 +2685,7 @@ scanner_begin(ScannerObject* self)
 }
 
 static void
-scanner_end(ScannerObject* self)
-{
+scanner_end(ScannerObject *self) {
     assert(self->executing);
     self->executing = 0;
 }
@@ -2718,8 +2703,8 @@ _sre_SRE_Scanner_match_impl(ScannerObject *self, PyTypeObject *cls)
 /*[clinic end generated code: output=6e22c149dc0f0325 input=b5146e1f30278cb7]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
-    SRE_STATE* state = &self->state;
-    PyObject* match;
+    SRE_STATE *state = &self->state;
+    PyObject *match;
     Py_ssize_t status;
 
     if (!scanner_begin(self)) {
@@ -2740,8 +2725,8 @@ _sre_SRE_Scanner_match_impl(ScannerObject *self, PyTypeObject *cls)
         return NULL;
     }
 
-    match = pattern_new_match(module_state, (PatternObject*) self->pattern,
-                              state, status);
+    match =
+        pattern_new_match(module_state, (PatternObject *)self->pattern, state, status);
 
     if (status == 0)
         state->start = NULL;
@@ -2753,7 +2738,6 @@ _sre_SRE_Scanner_match_impl(ScannerObject *self, PyTypeObject *cls)
     scanner_end(self);
     return match;
 }
-
 
 /*[clinic input]
 _sre.SRE_Scanner.search
@@ -2768,8 +2752,8 @@ _sre_SRE_Scanner_search_impl(ScannerObject *self, PyTypeObject *cls)
 /*[clinic end generated code: output=23e8fc78013f9161 input=056c2d37171d0bf2]*/
 {
     _sremodulestate *module_state = get_sre_module_state_by_class(cls);
-    SRE_STATE* state = &self->state;
-    PyObject* match;
+    SRE_STATE *state = &self->state;
+    PyObject *match;
     Py_ssize_t status;
 
     if (!scanner_begin(self)) {
@@ -2790,8 +2774,8 @@ _sre_SRE_Scanner_search_impl(ScannerObject *self, PyTypeObject *cls)
         return NULL;
     }
 
-    match = pattern_new_match(module_state, (PatternObject*) self->pattern,
-                              state, status);
+    match =
+        pattern_new_match(module_state, (PatternObject *)self->pattern, state, status);
 
     if (status == 0)
         state->start = NULL;
@@ -2805,13 +2789,14 @@ _sre_SRE_Scanner_search_impl(ScannerObject *self, PyTypeObject *cls)
 }
 
 static PyObject *
-pattern_scanner(_sremodulestate *module_state,
-                PatternObject *self,
-                PyObject *string,
-                Py_ssize_t pos,
-                Py_ssize_t endpos)
-{
-    ScannerObject* scanner;
+pattern_scanner(
+    _sremodulestate *module_state,
+    PatternObject *self,
+    PyObject *string,
+    Py_ssize_t pos,
+    Py_ssize_t endpos
+) {
+    ScannerObject *scanner;
 
     /* create scanner object */
     scanner = PyObject_GC_New(ScannerObject, module_state->Scanner_Type);
@@ -2829,15 +2814,14 @@ pattern_scanner(_sremodulestate *module_state,
     scanner->pattern = Py_NewRef(self);
 
     PyObject_GC_Track(scanner);
-    return (PyObject*) scanner;
+    return (PyObject *)scanner;
 }
 
 /* -------------------------------------------------------------------- */
 /* template methods */
 
 static int
-template_traverse(TemplateObject *self, visitproc visit, void *arg)
-{
+template_traverse(TemplateObject *self, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->literal);
     for (Py_ssize_t i = 0, n = Py_SIZE(self); i < n; i++) {
@@ -2847,8 +2831,7 @@ template_traverse(TemplateObject *self, visitproc visit, void *arg)
 }
 
 static int
-template_clear(TemplateObject *self)
-{
+template_clear(TemplateObject *self) {
     Py_CLEAR(self->literal);
     for (Py_ssize_t i = 0, n = Py_SIZE(self); i < n; i++) {
         Py_CLEAR(self->items[i].literal);
@@ -2857,8 +2840,7 @@ template_clear(TemplateObject *self)
 }
 
 static void
-template_dealloc(TemplateObject *self)
-{
+template_dealloc(TemplateObject *self) {
     PyTypeObject *tp = Py_TYPE(self);
 
     PyObject_GC_UnTrack(self);
@@ -2868,8 +2850,7 @@ template_dealloc(TemplateObject *self)
 }
 
 static PyObject *
-expand_template(TemplateObject *self, MatchObject *match)
-{
+expand_template(TemplateObject *self, MatchObject *match) {
     if (Py_SIZE(self) == 0) {
         return Py_NewRef(self->literal);
     }
@@ -2882,8 +2863,7 @@ expand_template(TemplateObject *self, MatchObject *match)
     PyObject **out = buffer;
     PyObject *list = NULL;
     if (self->chunks > (int)Py_ARRAY_LENGTH(buffer) ||
-        !PyUnicode_Check(self->literal))
-    {
+        !PyUnicode_Check(self->literal)) {
         list = PyList_New(self->chunks);
         if (!list) {
             return NULL;
@@ -2915,8 +2895,7 @@ expand_template(TemplateObject *self, MatchObject *match)
 
     if (PyUnicode_Check(self->literal)) {
         result = _PyUnicode_JoinArray(&_Py_STR(empty), out, count);
-    }
-    else {
+    } else {
         Py_SET_SIZE(list, count);
         result = PyBytes_Join((PyObject *)&_Py_SINGLETON(bytes_empty), list);
     }
@@ -2924,8 +2903,7 @@ expand_template(TemplateObject *self, MatchObject *match)
 cleanup:
     if (list) {
         Py_DECREF(list);
-    }
-    else {
+    } else {
         for (Py_ssize_t i = 0; i < count; i++) {
             Py_DECREF(out[i]);
         }
@@ -2933,10 +2911,8 @@ cleanup:
     return result;
 }
 
-
 static Py_hash_t
-pattern_hash(PatternObject *self)
-{
+pattern_hash(PatternObject *self) {
     Py_hash_t hash, hash2;
 
     hash = PyObject_Hash(self->pattern);
@@ -2957,9 +2933,8 @@ pattern_hash(PatternObject *self)
     return hash;
 }
 
-static PyObject*
-pattern_richcompare(PyObject *lefto, PyObject *righto, int op)
-{
+static PyObject *
+pattern_richcompare(PyObject *lefto, PyObject *righto, int op) {
     PyTypeObject *tp = Py_TYPE(lefto);
     _sremodulestate *module_state = get_sre_module_state_by_class(tp);
     PatternObject *left, *right;
@@ -2969,8 +2944,7 @@ pattern_richcompare(PyObject *lefto, PyObject *righto, int op)
         Py_RETURN_NOTIMPLEMENTED;
     }
 
-    if (!Py_IS_TYPE(righto, module_state->Pattern_Type))
-    {
+    if (!Py_IS_TYPE(righto, module_state->Pattern_Type)) {
         Py_RETURN_NOTIMPLEMENTED;
     }
 
@@ -2982,20 +2956,20 @@ pattern_richcompare(PyObject *lefto, PyObject *righto, int op)
     left = (PatternObject *)lefto;
     right = (PatternObject *)righto;
 
-    cmp = (left->flags == right->flags
-           && left->isbytes == right->isbytes
-           && left->codesize == right->codesize);
+    cmp =
+        (left->flags == right->flags && left->isbytes == right->isbytes &&
+         left->codesize == right->codesize);
     if (cmp) {
         /* Compare the code and the pattern because the same pattern can
            produce different codes depending on the locale used to compile the
            pattern when the re.LOCALE flag is used. Don't compare groups,
            indexgroup nor groupindex: they are derivated from the pattern. */
-        cmp = (memcmp(left->code, right->code,
-                      sizeof(left->code[0]) * left->codesize) == 0);
+        cmp =
+            (memcmp(left->code, right->code, sizeof(left->code[0]) * left->codesize) ==
+             0);
     }
     if (cmp) {
-        cmp = PyObject_RichCompareBool(left->pattern, right->pattern,
-                                       Py_EQ);
+        cmp = PyObject_RichCompareBool(left->pattern, right->pattern, Py_EQ);
         if (cmp < 0) {
             return NULL;
         }
@@ -3009,38 +2983,47 @@ pattern_richcompare(PyObject *lefto, PyObject *righto, int op)
 #include "clinic/sre.c.h"
 
 static PyMethodDef pattern_methods[] = {
-    _SRE_SRE_PATTERN_MATCH_METHODDEF
-    _SRE_SRE_PATTERN_FULLMATCH_METHODDEF
-    _SRE_SRE_PATTERN_SEARCH_METHODDEF
-    _SRE_SRE_PATTERN_SUB_METHODDEF
-    _SRE_SRE_PATTERN_SUBN_METHODDEF
-    _SRE_SRE_PATTERN_FINDALL_METHODDEF
-    _SRE_SRE_PATTERN_SPLIT_METHODDEF
-    _SRE_SRE_PATTERN_FINDITER_METHODDEF
-    _SRE_SRE_PATTERN_SCANNER_METHODDEF
-    _SRE_SRE_PATTERN___COPY___METHODDEF
-    _SRE_SRE_PATTERN___DEEPCOPY___METHODDEF
-    {"__class_getitem__", Py_GenericAlias, METH_O|METH_CLASS,
-     PyDoc_STR("See PEP 585")},
+    _SRE_SRE_PATTERN_MATCH_METHODDEF _SRE_SRE_PATTERN_FULLMATCH_METHODDEF
+        _SRE_SRE_PATTERN_SEARCH_METHODDEF _SRE_SRE_PATTERN_SUB_METHODDEF
+            _SRE_SRE_PATTERN_SUBN_METHODDEF _SRE_SRE_PATTERN_FINDALL_METHODDEF
+                _SRE_SRE_PATTERN_SPLIT_METHODDEF _SRE_SRE_PATTERN_FINDITER_METHODDEF
+                    _SRE_SRE_PATTERN_SCANNER_METHODDEF
+                        _SRE_SRE_PATTERN___COPY___METHODDEF
+                            _SRE_SRE_PATTERN___DEEPCOPY___METHODDEF{
+                                "__class_getitem__",
+                                Py_GenericAlias,
+                                METH_O | METH_CLASS,
+                                PyDoc_STR("See PEP 585")
+                            },
     {NULL, NULL}
 };
 
 static PyGetSetDef pattern_getset[] = {
-    {"groupindex", (getter)pattern_groupindex, (setter)NULL,
-      "A dictionary mapping group names to group numbers."},
-    {NULL}  /* Sentinel */
+    {"groupindex",
+     (getter)pattern_groupindex,
+     (setter)NULL,
+     "A dictionary mapping group names to group numbers."},
+    {NULL} /* Sentinel */
 };
 
 #define PAT_OFF(x) offsetof(PatternObject, x)
 static PyMemberDef pattern_members[] = {
-    {"pattern",    _Py_T_OBJECT,    PAT_OFF(pattern),       Py_READONLY,
+    {"pattern",
+     _Py_T_OBJECT,
+     PAT_OFF(pattern),
+     Py_READONLY,
      "The pattern string from which the RE object was compiled."},
-    {"flags",      Py_T_INT,       PAT_OFF(flags),         Py_READONLY,
-     "The regex matching flags."},
-    {"groups",     Py_T_PYSSIZET,  PAT_OFF(groups),        Py_READONLY,
+    {"flags", Py_T_INT, PAT_OFF(flags), Py_READONLY, "The regex matching flags."},
+    {"groups",
+     Py_T_PYSSIZET,
+     PAT_OFF(groups),
+     Py_READONLY,
      "The number of capturing groups in the pattern."},
-    {"__weaklistoffset__", Py_T_PYSSIZET, offsetof(PatternObject, weakreflist), Py_READONLY},
-    {NULL}  /* Sentinel */
+    {"__weaklistoffset__",
+     Py_T_PYSSIZET,
+     offsetof(PatternObject, weakreflist),
+     Py_READONLY},
+    {NULL} /* Sentinel */
 };
 
 static PyType_Slot pattern_slots[] = {
@@ -3061,44 +3044,60 @@ static PyType_Spec pattern_spec = {
     .name = "re.Pattern",
     .basicsize = sizeof(PatternObject),
     .itemsize = sizeof(SRE_CODE),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-              Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+         Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
     .slots = pattern_slots,
 };
 
 static PyMethodDef match_methods[] = {
-    {"group", (PyCFunction) match_group, METH_VARARGS, match_group_doc},
-    _SRE_SRE_MATCH_START_METHODDEF
-    _SRE_SRE_MATCH_END_METHODDEF
-    _SRE_SRE_MATCH_SPAN_METHODDEF
-    _SRE_SRE_MATCH_GROUPS_METHODDEF
-    _SRE_SRE_MATCH_GROUPDICT_METHODDEF
-    _SRE_SRE_MATCH_EXPAND_METHODDEF
-    _SRE_SRE_MATCH___COPY___METHODDEF
-    _SRE_SRE_MATCH___DEEPCOPY___METHODDEF
-    {"__class_getitem__", Py_GenericAlias, METH_O|METH_CLASS,
-     PyDoc_STR("See PEP 585")},
+    {"group", (PyCFunction)match_group, METH_VARARGS, match_group_doc},
+    _SRE_SRE_MATCH_START_METHODDEF _SRE_SRE_MATCH_END_METHODDEF
+        _SRE_SRE_MATCH_SPAN_METHODDEF _SRE_SRE_MATCH_GROUPS_METHODDEF
+            _SRE_SRE_MATCH_GROUPDICT_METHODDEF _SRE_SRE_MATCH_EXPAND_METHODDEF
+                _SRE_SRE_MATCH___COPY___METHODDEF _SRE_SRE_MATCH___DEEPCOPY___METHODDEF{
+                    "__class_getitem__",
+                    Py_GenericAlias,
+                    METH_O | METH_CLASS,
+                    PyDoc_STR("See PEP 585")
+                },
     {NULL, NULL}
 };
 
 static PyGetSetDef match_getset[] = {
-    {"lastindex", (getter)match_lastindex_get, (setter)NULL,
+    {"lastindex",
+     (getter)match_lastindex_get,
+     (setter)NULL,
      "The integer index of the last matched capturing group."},
-    {"lastgroup", (getter)match_lastgroup_get, (setter)NULL,
+    {"lastgroup",
+     (getter)match_lastgroup_get,
+     (setter)NULL,
      "The name of the last matched capturing group."},
-    {"regs",      (getter)match_regs_get,      (setter)NULL},
+    {"regs", (getter)match_regs_get, (setter)NULL},
     {NULL}
 };
 
 #define MATCH_OFF(x) offsetof(MatchObject, x)
 static PyMemberDef match_members[] = {
-    {"string",  _Py_T_OBJECT,   MATCH_OFF(string),  Py_READONLY,
+    {"string",
+     _Py_T_OBJECT,
+     MATCH_OFF(string),
+     Py_READONLY,
      "The string passed to match() or search()."},
-    {"re",      _Py_T_OBJECT,   MATCH_OFF(pattern), Py_READONLY,
+    {"re",
+     _Py_T_OBJECT,
+     MATCH_OFF(pattern),
+     Py_READONLY,
      "The regular expression object."},
-    {"pos",     Py_T_PYSSIZET, MATCH_OFF(pos),     Py_READONLY,
+    {"pos",
+     Py_T_PYSSIZET,
+     MATCH_OFF(pos),
+     Py_READONLY,
      "The index into the string at which the RE engine started looking for a match."},
-    {"endpos",  Py_T_PYSSIZET, MATCH_OFF(endpos),  Py_READONLY,
+    {"endpos",
+     Py_T_PYSSIZET,
+     MATCH_OFF(endpos),
+     Py_READONLY,
      "The index into the string beyond which the RE engine will not go."},
     {NULL}
 };
@@ -3129,21 +3128,19 @@ static PyType_Spec match_spec = {
     .name = "re.Match",
     .basicsize = sizeof(MatchObject),
     .itemsize = sizeof(Py_ssize_t),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-              Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+         Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
     .slots = match_slots,
 };
 
 static PyMethodDef scanner_methods[] = {
-    _SRE_SRE_SCANNER_MATCH_METHODDEF
-    _SRE_SRE_SCANNER_SEARCH_METHODDEF
-    {NULL, NULL}
+    _SRE_SRE_SCANNER_MATCH_METHODDEF _SRE_SRE_SCANNER_SEARCH_METHODDEF{NULL, NULL}
 };
 
 #define SCAN_OFF(x) offsetof(ScannerObject, x)
 static PyMemberDef scanner_members[] = {
-    {"pattern", _Py_T_OBJECT, SCAN_OFF(pattern), Py_READONLY},
-    {NULL}  /* Sentinel */
+    {"pattern", _Py_T_OBJECT, SCAN_OFF(pattern), Py_READONLY}, {NULL} /* Sentinel */
 };
 
 static PyType_Slot scanner_slots[] = {
@@ -3158,8 +3155,9 @@ static PyType_Slot scanner_slots[] = {
 static PyType_Spec scanner_spec = {
     .name = "_sre.SRE_Scanner",
     .basicsize = sizeof(ScannerObject),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-              Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+         Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
     .slots = scanner_slots,
 };
 
@@ -3174,25 +3172,20 @@ static PyType_Spec template_spec = {
     .name = "_sre.SRE_Template",
     .basicsize = sizeof(TemplateObject),
     .itemsize = sizeof(((TemplateObject *)0)->items[0]),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-              Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+         Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
     .slots = template_slots,
 };
 
 static PyMethodDef _functions[] = {
-    _SRE_COMPILE_METHODDEF
-    _SRE_TEMPLATE_METHODDEF
-    _SRE_GETCODESIZE_METHODDEF
-    _SRE_ASCII_ISCASED_METHODDEF
-    _SRE_UNICODE_ISCASED_METHODDEF
-    _SRE_ASCII_TOLOWER_METHODDEF
-    _SRE_UNICODE_TOLOWER_METHODDEF
-    {NULL, NULL}
+    _SRE_COMPILE_METHODDEF _SRE_TEMPLATE_METHODDEF _SRE_GETCODESIZE_METHODDEF
+        _SRE_ASCII_ISCASED_METHODDEF _SRE_UNICODE_ISCASED_METHODDEF
+            _SRE_ASCII_TOLOWER_METHODDEF _SRE_UNICODE_TOLOWER_METHODDEF{NULL, NULL}
 };
 
 static int
-sre_traverse(PyObject *module, visitproc visit, void *arg)
-{
+sre_traverse(PyObject *module, visitproc visit, void *arg) {
     _sremodulestate *state = get_sre_module_state(module);
 
     Py_VISIT(state->Pattern_Type);
@@ -3205,8 +3198,7 @@ sre_traverse(PyObject *module, visitproc visit, void *arg)
 }
 
 static int
-sre_clear(PyObject *module)
-{
+sre_clear(PyObject *module) {
     _sremodulestate *state = get_sre_module_state(module);
 
     Py_CLEAR(state->Pattern_Type);
@@ -3219,29 +3211,27 @@ sre_clear(PyObject *module)
 }
 
 static void
-sre_free(void *module)
-{
+sre_free(void *module) {
     sre_clear((PyObject *)module);
 }
 
-#define CREATE_TYPE(m, type, spec)                                  \
-do {                                                                \
-    type = (PyTypeObject *)PyType_FromModuleAndSpec(m, spec, NULL); \
-    if (type == NULL) {                                             \
-        goto error;                                                 \
-    }                                                               \
-} while (0)
+#define CREATE_TYPE(m, type, spec)                                      \
+    do {                                                                \
+        type = (PyTypeObject *)PyType_FromModuleAndSpec(m, spec, NULL); \
+        if (type == NULL) {                                             \
+            goto error;                                                 \
+        }                                                               \
+    } while (0)
 
-#define ADD_ULONG_CONSTANT(module, name, value)           \
-    do {                                                  \
+#define ADD_ULONG_CONSTANT(module, name, value)                               \
+    do {                                                                      \
         if (PyModule_Add(module, name, PyLong_FromUnsignedLong(value)) < 0) { \
-            goto error;                                   \
-        }                                                 \
-} while (0)
+            goto error;                                                       \
+        }                                                                     \
+    } while (0)
 
 static int
-sre_exec(PyObject *m)
-{
+sre_exec(PyObject *m) {
     _sremodulestate *state;
 
     /* Create heap types */
@@ -3291,10 +3281,9 @@ static struct PyModuleDef sremodule = {
 };
 
 PyMODINIT_FUNC
-PyInit__sre(void)
-{
+PyInit__sre(void) {
     return PyModuleDef_Init(&sremodule);
 }
 
 /* vim:ts=4:sw=4:et
-*/
+ */

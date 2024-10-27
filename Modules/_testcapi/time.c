@@ -1,12 +1,9 @@
 #include "parts.h"
 
-
 static int
-pytime_from_nanoseconds(PyTime_t *tp, PyObject *obj)
-{
+pytime_from_nanoseconds(PyTime_t *tp, PyObject *obj) {
     if (!PyLong_Check(obj)) {
-        PyErr_Format(PyExc_TypeError, "expect int, got %s",
-                     Py_TYPE(obj)->tp_name);
+        PyErr_Format(PyExc_TypeError, "expect int, got %s", Py_TYPE(obj)->tp_name);
         return -1;
     }
 
@@ -20,10 +17,8 @@ pytime_from_nanoseconds(PyTime_t *tp, PyObject *obj)
     return 0;
 }
 
-
 static PyObject *
-test_pytime_assecondsdouble(PyObject *Py_UNUSED(self), PyObject *args)
-{
+test_pytime_assecondsdouble(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *obj;
     if (!PyArg_ParseTuple(args, "O", &obj)) {
         return NULL;
@@ -36,18 +31,13 @@ test_pytime_assecondsdouble(PyObject *Py_UNUSED(self), PyObject *args)
     return PyFloat_FromDouble(d);
 }
 
-
-static PyObject*
-pytime_as_float(PyTime_t t)
-{
+static PyObject *
+pytime_as_float(PyTime_t t) {
     return PyFloat_FromDouble(PyTime_AsSecondsDouble(t));
 }
 
-
-
-static PyObject*
-test_pytime_monotonic(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
-{
+static PyObject *
+test_pytime_monotonic(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args)) {
     PyTime_t t;
     int res = PyTime_Monotonic(&t);
     if (res < 0) {
@@ -58,16 +48,12 @@ test_pytime_monotonic(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
     return pytime_as_float(t);
 }
 
-
-static PyObject*
-test_pytime_monotonic_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
-{
+static PyObject *
+test_pytime_monotonic_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args)) {
     PyTime_t t;
     int res;
-    Py_BEGIN_ALLOW_THREADS
-    res = PyTime_MonotonicRaw(&t);
-    Py_END_ALLOW_THREADS
-    if (res < 0) {
+    Py_BEGIN_ALLOW_THREADS res = PyTime_MonotonicRaw(&t);
+    Py_END_ALLOW_THREADS if (res < 0) {
         assert(t == 0);
         PyErr_SetString(PyExc_RuntimeError, "PyTime_MonotonicRaw() failed");
         return NULL;
@@ -76,10 +62,8 @@ test_pytime_monotonic_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
     return pytime_as_float(t);
 }
 
-
-static PyObject*
-test_pytime_perf_counter(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
-{
+static PyObject *
+test_pytime_perf_counter(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args)) {
     PyTime_t t;
     int res = PyTime_PerfCounter(&t);
     if (res < 0) {
@@ -90,16 +74,12 @@ test_pytime_perf_counter(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
     return pytime_as_float(t);
 }
 
-
-static PyObject*
-test_pytime_perf_counter_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
-{
+static PyObject *
+test_pytime_perf_counter_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args)) {
     PyTime_t t;
     int res;
-    Py_BEGIN_ALLOW_THREADS
-    res = PyTime_PerfCounterRaw(&t);
-    Py_END_ALLOW_THREADS
-    if (res < 0) {
+    Py_BEGIN_ALLOW_THREADS res = PyTime_PerfCounterRaw(&t);
+    Py_END_ALLOW_THREADS if (res < 0) {
         assert(t == 0);
         PyErr_SetString(PyExc_RuntimeError, "PyTime_PerfCounterRaw() failed");
         return NULL;
@@ -108,10 +88,8 @@ test_pytime_perf_counter_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args
     return pytime_as_float(t);
 }
 
-
-static PyObject*
-test_pytime_time(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
-{
+static PyObject *
+test_pytime_time(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args)) {
     PyTime_t t;
     int res = PyTime_Time(&t);
     if (res < 0) {
@@ -122,16 +100,12 @@ test_pytime_time(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
     return pytime_as_float(t);
 }
 
-
-static PyObject*
-test_pytime_time_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
-{
+static PyObject *
+test_pytime_time_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args)) {
     PyTime_t t;
     int res;
-    Py_BEGIN_ALLOW_THREADS
-    res = PyTime_TimeRaw(&t);
-    Py_END_ALLOW_THREADS
-    if (res < 0) {
+    Py_BEGIN_ALLOW_THREADS res = PyTime_TimeRaw(&t);
+    Py_END_ALLOW_THREADS if (res < 0) {
         assert(t == 0);
         PyErr_SetString(PyExc_RuntimeError, "PyTime_TimeRaw() failed");
         return NULL;
@@ -139,7 +113,6 @@ test_pytime_time_raw(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
     assert(res == 0);
     return pytime_as_float(t);
 }
-
 
 static PyMethodDef test_methods[] = {
     {"PyTime_AsSecondsDouble", test_pytime_assecondsdouble, METH_VARARGS},
@@ -153,8 +126,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Time(PyObject *m)
-{
+_PyTestCapi_Init_Time(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

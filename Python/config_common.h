@@ -1,7 +1,6 @@
 
 static inline int
-_config_dict_get(PyObject *dict, const char *name, PyObject **p_item)
-{
+_config_dict_get(PyObject *dict, const char *name, PyObject **p_item) {
     PyObject *item;
     if (PyDict_GetItemStringRef(dict, name, &item) < 0) {
         return -1;
@@ -14,10 +13,8 @@ _config_dict_get(PyObject *dict, const char *name, PyObject **p_item)
     return 0;
 }
 
-
-static PyObject*
-config_dict_get(PyObject *dict, const char *name)
-{
+static PyObject *
+config_dict_get(PyObject *dict, const char *name) {
     PyObject *item;
     if (_config_dict_get(dict, name, &item) < 0) {
         if (!PyErr_Occurred()) {
@@ -28,9 +25,7 @@ config_dict_get(PyObject *dict, const char *name)
     return item;
 }
 
-
 static void
-config_dict_invalid_type(const char *name)
-{
+config_dict_invalid_type(const char *name) {
     PyErr_Format(PyExc_TypeError, "invalid config type: %s", name);
 }

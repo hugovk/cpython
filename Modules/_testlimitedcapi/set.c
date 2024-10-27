@@ -2,50 +2,43 @@
 #include "util.h"
 
 static PyObject *
-set_check(PyObject *self, PyObject *obj)
-{
+set_check(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PySet_Check(obj));
 }
 
 static PyObject *
-set_checkexact(PyObject *self, PyObject *obj)
-{
+set_checkexact(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PySet_CheckExact(obj));
 }
 
 static PyObject *
-frozenset_check(PyObject *self, PyObject *obj)
-{
+frozenset_check(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PyFrozenSet_Check(obj));
 }
 
 static PyObject *
-frozenset_checkexact(PyObject *self, PyObject *obj)
-{
+frozenset_checkexact(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PyFrozenSet_CheckExact(obj));
 }
 
 static PyObject *
-anyset_check(PyObject *self, PyObject *obj)
-{
+anyset_check(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PyAnySet_Check(obj));
 }
 
 static PyObject *
-anyset_checkexact(PyObject *self, PyObject *obj)
-{
+anyset_checkexact(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PyAnySet_CheckExact(obj));
 }
 
 static PyObject *
-set_new(PyObject *self, PyObject *args)
-{
+set_new(PyObject *self, PyObject *args) {
     PyObject *iterable = NULL;
     if (!PyArg_ParseTuple(args, "|O", &iterable)) {
         return NULL;
@@ -54,8 +47,7 @@ set_new(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-frozenset_new(PyObject *self, PyObject *args)
-{
+frozenset_new(PyObject *self, PyObject *args) {
     PyObject *iterable = NULL;
     if (!PyArg_ParseTuple(args, "|O", &iterable)) {
         return NULL;
@@ -64,15 +56,13 @@ frozenset_new(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-set_size(PyObject *self, PyObject *obj)
-{
+set_size(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PySet_Size(obj));
 }
 
 static PyObject *
-set_contains(PyObject *self, PyObject *args)
-{
+set_contains(PyObject *self, PyObject *args) {
     PyObject *obj, *item;
     if (!PyArg_ParseTuple(args, "OO", &obj, &item)) {
         return NULL;
@@ -83,8 +73,7 @@ set_contains(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-set_add(PyObject *self, PyObject *args)
-{
+set_add(PyObject *self, PyObject *args) {
     PyObject *obj, *item;
     if (!PyArg_ParseTuple(args, "OO", &obj, &item)) {
         return NULL;
@@ -95,8 +84,7 @@ set_add(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-set_discard(PyObject *self, PyObject *args)
-{
+set_discard(PyObject *self, PyObject *args) {
     PyObject *obj, *item;
     if (!PyArg_ParseTuple(args, "OO", &obj, &item)) {
         return NULL;
@@ -107,22 +95,19 @@ set_discard(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-set_pop(PyObject *self, PyObject *obj)
-{
+set_pop(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     return PySet_Pop(obj);
 }
 
 static PyObject *
-set_clear(PyObject *self, PyObject *obj)
-{
+set_clear(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_INT(PySet_Clear(obj));
 }
 
 static PyObject *
-test_frozenset_add_in_capi(PyObject *self, PyObject *Py_UNUSED(obj))
-{
+test_frozenset_add_in_capi(PyObject *self, PyObject *Py_UNUSED(obj)) {
     // Test that `frozenset` can be used with `PySet_Add`,
     // when frozenset is just created in CAPI.
     PyObject *fs = PyFrozenSet_New(NULL);
@@ -139,8 +124,7 @@ test_frozenset_add_in_capi(PyObject *self, PyObject *Py_UNUSED(obj))
     int contains = PySet_Contains(fs, num);
     if (contains < 0) {
         goto error;
-    }
-    else if (contains == 0) {
+    } else if (contains == 0) {
         goto unexpected;
     }
     Py_DECREF(fs);
@@ -179,8 +163,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_Set(PyObject *m)
-{
+_PyTestLimitedCAPI_Init_Set(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

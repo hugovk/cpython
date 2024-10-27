@@ -1,18 +1,17 @@
 #include "Python.h"
-#include "pycore_ceval.h"         // _PyPerf_Callbacks
+#include "pycore_ceval.h"  // _PyPerf_Callbacks
 #include "pycore_frame.h"
 #include "pycore_interp.h"
-
 
 #ifdef PY_HAVE_PERF_TRAMPOLINE
 
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/mman.h>             // mmap()
+#include <sys/mman.h>  // mmap()
 #include <sys/types.h>
-#include <unistd.h>               // sysconf()
-#include <sys/time.h>           // gettimeofday()
+#include <unistd.h>    // sysconf()
+#include <sys/time.h>  // gettimeofday()
 #include <sys/syscall.h>
 
 // ----------------------------------
@@ -20,9 +19,9 @@
 // ----------------------------------
 
 typedef struct {
-    FILE* perf_map;
+    FILE *perf_map;
     PyThread_type_lock map_lock;
-    void* mapped_buffer;
+    void *mapped_buffer;
     size_t mapped_size;
     int code_id;
 } PerfMapJitState;
@@ -66,33 +65,35 @@ DSO:
   -------------------------------------------------------------------------------------------------------
   /tmp/jitted-PID-0.so   | (headers) | .text | unwind info |
   /tmp/jitted-PID-1.so                         | (headers) | .text | unwind info |
-  /tmp/jitted-PID-2.so                                               | (headers) | .text | unwind info |
+  /tmp/jitted-PID-2.so                                               | (headers) | .text
+| unwind info |
     ...
   -------------------------------------------------------------------------------------------------------
 
-As the trampolines are constant, we add a constant padding but in general the padding needs to have the
-size of the unwind info rounded to 16 bytes. In general, for our trampolines this is 0x50
+As the trampolines are constant, we add a constant padding but in general the padding
+needs to have the size of the unwind info rounded to 16 bytes. In general, for our
+trampolines this is 0x50
  */
 
 #define PERF_JIT_CODE_PADDING 0x100
 #define trampoline_api _PyRuntime.ceval.perf.trampoline_api
 
 typedef uint64_t uword;
-typedef const char* CodeComments;
+typedef const char *CodeComments;
 
 #define Pd "d"
 #define MB (1024 * 1024)
 
-#define EM_386      3
-#define EM_X86_64   62
-#define EM_ARM      40
-#define EM_AARCH64  183
-#define EM_RISCV    243
+#define EM_386 3
+#define EM_X86_64 62
+#define EM_ARM 40
+#define EM_AARCH64 183
+#define EM_RISCV 243
 
-#define TARGET_ARCH_IA32   0
-#define TARGET_ARCH_X64    0
-#define TARGET_ARCH_ARM    0
-#define TARGET_ARCH_ARM64  0
+#define TARGET_ARCH_IA32 0
+#define TARGET_ARCH_X64 0
+#define TARGET_ARCH_ARM 0
+#define TARGET_ARCH_ARM64 0
 #define TARGET_ARCH_RISCV32 0
 #define TARGET_ARCH_RISCV64 0
 
@@ -103,7 +104,8 @@ typedef const char* CodeComments;
 
 #define UNREACHABLE()
 
-static uword GetElfMachineArchitecture(void) {
+static uword
+GetElfMachineArchitecture(void) {
 #if TARGET_ARCH_IA32
     return EM_386;
 #elif TARGET_ARCH_X64
@@ -131,7 +133,7 @@ typedef struct {
     uint64_t flags;
 } Header;
 
- enum PerfEvent {
+enum PerfEvent {
     PerfLoad = 0,
     PerfMove = 1,
     PerfDebugInfo = 2,
@@ -143,7 +145,7 @@ struct BaseEvent {
     uint32_t event;
     uint32_t size;
     uint64_t time_stamp;
-  };
+};
 
 typedef struct {
     struct BaseEvent base;
@@ -182,7 +184,8 @@ typedef struct {
     int32_t to;
 } EhFrameHeader;
 
-static int64_t get_current_monotonic_ticks(void) {
+static int64_t
+get_current_monotonic_ticks(void) {
     struct timespec ts;
     if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
         UNREACHABLE();
@@ -195,18 +198,19 @@ static int64_t get_current_monotonic_ticks(void) {
     return result;
 }
 
-static int64_t get_current_time_microseconds(void) {
-  // gettimeofday has microsecond resolution.
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
-    UNREACHABLE();
-    return 0;
-  }
-  return ((int64_t)(tv.tv_sec) * 1000000) + tv.tv_usec;
+static int64_t
+get_current_time_microseconds(void) {
+    // gettimeofday has microsecond resolution.
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) < 0) {
+        UNREACHABLE();
+        return 0;
+    }
+    return ((int64_t)(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 
-
-static size_t round_up(int64_t value, int64_t multiple) {
+static size_t
+round_up(int64_t value, int64_t multiple) {
     if (multiple == 0) {
         // Avoid division by zero
         return value;
@@ -227,10 +231,10 @@ static size_t round_up(int64_t value, int64_t multiple) {
     return rounded_up_value;
 }
 
-
-static void perf_map_jit_write_fully(const void* buffer, size_t size) {
-    FILE* out_file = perf_jit_map_state.perf_map;
-    const char* ptr = (const char*)(buffer);
+static void
+perf_map_jit_write_fully(const void *buffer, size_t size) {
+    FILE *out_file = perf_jit_map_state.perf_map;
+    const char *ptr = (const char *)(buffer);
     while (size > 0) {
         const size_t written = fwrite(ptr, 1, size, out_file);
         if (written == 0) {
@@ -242,7 +246,8 @@ static void perf_map_jit_write_fully(const void* buffer, size_t size) {
     }
 }
 
-static void perf_map_jit_write_header(int pid, FILE* out_file) {
+static void
+perf_map_jit_write_header(int pid, FILE *out_file) {
     Header header;
     header.magic = 0x4A695444;
     header.version = 1;
@@ -254,7 +259,8 @@ static void perf_map_jit_write_header(int pid, FILE* out_file) {
     perf_map_jit_write_fully(&header, sizeof(header));
 }
 
-static void* perf_map_jit_init(void) {
+static void *
+perf_map_jit_init(void) {
     char filename[100];
     int pid = getpid();
     snprintf(filename, sizeof(filename) - 1, "/tmp/jit-%d.dump", pid);
@@ -271,7 +277,8 @@ static void* perf_map_jit_init(void) {
 
     // The perf jit interface forces us to map the first page of the file
     // to signal that we are using the interface.
-    perf_jit_map_state.mapped_buffer = mmap(NULL, page_size, PROT_READ | PROT_EXEC, MAP_PRIVATE, fd, 0);
+    perf_jit_map_state.mapped_buffer =
+        mmap(NULL, page_size, PROT_READ | PROT_EXEC, MAP_PRIVATE, fd, 0);
     if (perf_jit_map_state.mapped_buffer == NULL) {
         close(fd);
         return NULL;
@@ -310,8 +317,7 @@ enum {
     DWRF_CFA_offset = 0x80
 };
 
-enum
-  {
+enum {
     DWRF_EH_PE_absptr = 0x00,
     DWRF_EH_PE_omit = 0xff,
 
@@ -334,17 +340,27 @@ enum
     DWRF_EH_PE_aligned = 0x50,
 
     DWRF_EH_PE_indirect = 0x80
-  };
+};
 
 enum { DWRF_TAG_compile_unit = 0x11 };
 
 enum { DWRF_children_no = 0, DWRF_children_yes = 1 };
 
-enum { DWRF_AT_name = 0x03, DWRF_AT_stmt_list = 0x10, DWRF_AT_low_pc = 0x11, DWRF_AT_high_pc = 0x12 };
+enum {
+    DWRF_AT_name = 0x03,
+    DWRF_AT_stmt_list = 0x10,
+    DWRF_AT_low_pc = 0x11,
+    DWRF_AT_high_pc = 0x12
+};
 
 enum { DWRF_FORM_addr = 0x01, DWRF_FORM_data4 = 0x06, DWRF_FORM_string = 0x08 };
 
-enum { DWRF_LNS_extended_op = 0, DWRF_LNS_copy = 1, DWRF_LNS_advance_pc = 2, DWRF_LNS_advance_line = 3 };
+enum {
+    DWRF_LNS_extended_op = 0,
+    DWRF_LNS_copy = 1,
+    DWRF_LNS_advance_pc = 2,
+    DWRF_LNS_advance_line = 3
+};
 
 enum { DWRF_LNE_end_sequence = 1, DWRF_LNE_set_address = 2 };
 
@@ -372,23 +388,21 @@ enum {
     DWRF_REG_SP = 31,
     DWRF_REG_RA = 30,
 #else
-#    error "Unsupported target architecture"
+#error "Unsupported target architecture"
 #endif
 };
 
-typedef struct ELFObjectContext
-{
-    uint8_t* p; /* Pointer to next address in obj.space. */
-    uint8_t* startp; /* Pointer to start address in obj.space. */
-    uint8_t* eh_frame_p; /* Pointer to start address in obj.space. */
-    uint32_t code_size; /* Size of machine code. */
+typedef struct ELFObjectContext {
+    uint8_t *p;          /* Pointer to next address in obj.space. */
+    uint8_t *startp;     /* Pointer to start address in obj.space. */
+    uint8_t *eh_frame_p; /* Pointer to start address in obj.space. */
+    uint32_t code_size;  /* Size of machine code. */
 } ELFObjectContext;
 
 /* Append a null-terminated string. */
 static uint32_t
-elfctx_append_string(ELFObjectContext* ctx, const char* str)
-{
-    uint8_t* p = ctx->p;
+elfctx_append_string(ELFObjectContext *ctx, const char *str) {
+    uint8_t *p = ctx->p;
     uint32_t ofs = (uint32_t)(p - ctx->startp);
     do {
         *p++ = (uint8_t)*str;
@@ -399,9 +413,8 @@ elfctx_append_string(ELFObjectContext* ctx, const char* str)
 
 /* Append a SLEB128 value. */
 static void
-elfctx_append_sleb128(ELFObjectContext* ctx, int32_t v)
-{
-    uint8_t* p = ctx->p;
+elfctx_append_sleb128(ELFObjectContext *ctx, int32_t v) {
+    uint8_t *p = ctx->p;
     for (; (uint32_t)(v + 0x40) >= 0x80; v >>= 7) {
         *p++ = (uint8_t)((v & 0x7f) | 0x80);
     }
@@ -411,9 +424,8 @@ elfctx_append_sleb128(ELFObjectContext* ctx, int32_t v)
 
 /* Append a ULEB128 to buffer. */
 static void
-elfctx_append_uleb128(ELFObjectContext* ctx, uint32_t v)
-{
-    uint8_t* p = ctx->p;
+elfctx_append_uleb128(ELFObjectContext *ctx, uint32_t v) {
+    uint8_t *p = ctx->p;
     for (; v >= 0x80; v >>= 7) {
         *p++ = (char)((v & 0x7f) | 0x80);
     }
@@ -423,85 +435,91 @@ elfctx_append_uleb128(ELFObjectContext* ctx, uint32_t v)
 
 /* Shortcuts to generate DWARF structures. */
 #define DWRF_U8(x) (*p++ = (x))
-#define DWRF_I8(x) (*(int8_t*)p = (x), p++)
-#define DWRF_U16(x) (*(uint16_t*)p = (x), p += 2)
-#define DWRF_U32(x) (*(uint32_t*)p = (x), p += 4)
-#define DWRF_ADDR(x) (*(uintptr_t*)p = (x), p += sizeof(uintptr_t))
+#define DWRF_I8(x) (*(int8_t *)p = (x), p++)
+#define DWRF_U16(x) (*(uint16_t *)p = (x), p += 2)
+#define DWRF_U32(x) (*(uint32_t *)p = (x), p += 4)
+#define DWRF_ADDR(x) (*(uintptr_t *)p = (x), p += sizeof(uintptr_t))
 #define DWRF_UV(x) (ctx->p = p, elfctx_append_uleb128(ctx, (x)), p = ctx->p)
 #define DWRF_SV(x) (ctx->p = p, elfctx_append_sleb128(ctx, (x)), p = ctx->p)
 #define DWRF_STR(str) (ctx->p = p, elfctx_append_string(ctx, (str)), p = ctx->p)
-#define DWRF_ALIGNNOP(s)                                                                                \
-    while ((uintptr_t)p & ((s)-1)) {                                                                    \
-        *p++ = DWRF_CFA_nop;                                                                            \
+#define DWRF_ALIGNNOP(s)               \
+    while ((uintptr_t)p & ((s) - 1)) { \
+        *p++ = DWRF_CFA_nop;           \
     }
-#define DWRF_SECTION(name, stmt)                                                                        \
-    {                                                                                                   \
-        uint32_t* szp_##name = (uint32_t*)p;                                                            \
-        p += 4;                                                                                         \
-        stmt;                                                                                           \
-        *szp_##name = (uint32_t)((p - (uint8_t*)szp_##name) - 4);                                       \
+#define DWRF_SECTION(name, stmt)                                   \
+    {                                                              \
+        uint32_t *szp_##name = (uint32_t *)p;                      \
+        p += 4;                                                    \
+        stmt;                                                      \
+        *szp_##name = (uint32_t)((p - (uint8_t *)szp_##name) - 4); \
     }
 
 /* Initialize .eh_frame section. */
 static void
-elf_init_ehframe(ELFObjectContext* ctx)
-{
-    uint8_t* p = ctx->p;
-    uint8_t* framep = p;
+elf_init_ehframe(ELFObjectContext *ctx) {
+    uint8_t *p = ctx->p;
+    uint8_t *framep = p;
 
     /* Emit DWARF EH CIE. */
     DWRF_SECTION(CIE, DWRF_U32(0); /* Offset to CIE itself. */
                  DWRF_U8(DWRF_CIE_VERSION);
-                 DWRF_STR("zR"); /* Augmentation. */
-                 DWRF_UV(1); /* Code alignment factor. */
+                 DWRF_STR("zR");                       /* Augmentation. */
+                 DWRF_UV(1);                           /* Code alignment factor. */
                  DWRF_SV(-(int64_t)sizeof(uintptr_t)); /* Data alignment factor. */
-                 DWRF_U8(DWRF_REG_RA); /* Return address register. */
+                 DWRF_U8(DWRF_REG_RA);                 /* Return address register. */
                  DWRF_UV(1);
                  DWRF_U8(DWRF_EH_PE_pcrel | DWRF_EH_PE_sdata4); /* Augmentation data. */
-                 DWRF_U8(DWRF_CFA_def_cfa); DWRF_UV(DWRF_REG_SP); DWRF_UV(sizeof(uintptr_t));
-                 DWRF_U8(DWRF_CFA_offset|DWRF_REG_RA); DWRF_UV(1);
-                 DWRF_ALIGNNOP(sizeof(uintptr_t));
-    )
+                 DWRF_U8(DWRF_CFA_def_cfa);
+                 DWRF_UV(DWRF_REG_SP);
+                 DWRF_UV(sizeof(uintptr_t));
+                 DWRF_U8(DWRF_CFA_offset | DWRF_REG_RA);
+                 DWRF_UV(1);
+                 DWRF_ALIGNNOP(sizeof(uintptr_t));)
 
     ctx->eh_frame_p = p;
 
     /* Emit DWARF EH FDE. */
     DWRF_SECTION(FDE, DWRF_U32((uint32_t)(p - framep)); /* Offset to CIE. */
-                 DWRF_U32(-0x30); /* Machine code offset relative to .text. */
+                 DWRF_U32(-0x30);          /* Machine code offset relative to .text. */
                  DWRF_U32(ctx->code_size); /* Machine code length. */
-                 DWRF_U8(0); /* Augmentation data. */
+                 DWRF_U8(0);               /* Augmentation data. */
     /* Registers saved in CFRAME. */
 #ifdef __x86_64__
                  DWRF_U8(DWRF_CFA_advance_loc | 4);
-                 DWRF_U8(DWRF_CFA_def_cfa_offset); DWRF_UV(16);
+                 DWRF_U8(DWRF_CFA_def_cfa_offset);
+                 DWRF_UV(16);
                  DWRF_U8(DWRF_CFA_advance_loc | 6);
-                 DWRF_U8(DWRF_CFA_def_cfa_offset); DWRF_UV(8);
+                 DWRF_U8(DWRF_CFA_def_cfa_offset);
+                 DWRF_UV(8);
     /* Extra registers saved for JIT-compiled code. */
 #elif defined(__aarch64__) && defined(__AARCH64EL__) && !defined(__ILP32__)
                  DWRF_U8(DWRF_CFA_advance_loc | 1);
-                 DWRF_U8(DWRF_CFA_def_cfa_offset); DWRF_UV(16);
-                 DWRF_U8(DWRF_CFA_offset | 29); DWRF_UV(2);
-                 DWRF_U8(DWRF_CFA_offset | 30); DWRF_UV(1);
+                 DWRF_U8(DWRF_CFA_def_cfa_offset);
+                 DWRF_UV(16);
+                 DWRF_U8(DWRF_CFA_offset | 29);
+                 DWRF_UV(2);
+                 DWRF_U8(DWRF_CFA_offset | 30);
+                 DWRF_UV(1);
                  DWRF_U8(DWRF_CFA_advance_loc | 3);
                  DWRF_U8(DWRF_CFA_offset | -(64 - 29));
                  DWRF_U8(DWRF_CFA_offset | -(64 - 30));
                  DWRF_U8(DWRF_CFA_def_cfa_offset);
                  DWRF_UV(0);
 #else
-#    error "Unsupported target architecture"
+#error "Unsupported target architecture"
 #endif
                  DWRF_ALIGNNOP(sizeof(uintptr_t));)
 
     ctx->p = p;
 }
 
-static void perf_map_jit_write_entry(void *state, const void *code_addr,
-                         unsigned int code_size, PyCodeObject *co)
-{
-
+static void
+perf_map_jit_write_entry(
+    void *state, const void *code_addr, unsigned int code_size, PyCodeObject *co
+) {
     if (perf_jit_map_state.perf_map == NULL) {
-        void* ret = perf_map_jit_init();
-        if(ret == NULL){
+        void *ret = perf_map_jit_init();
+        if (ret == NULL) {
             return;
         }
     }
@@ -515,9 +533,8 @@ static void perf_map_jit_write_entry(void *state, const void *code_addr,
         filename = PyUnicode_AsUTF8(co->co_filename);
     }
 
-
     size_t perf_map_entry_size = snprintf(NULL, 0, "py::%s:%s", entry, filename) + 1;
-    char* perf_map_entry = (char*) PyMem_RawMalloc(perf_map_entry_size);
+    char *perf_map_entry = (char *)PyMem_RawMalloc(perf_map_entry_size);
     if (perf_map_entry == NULL) {
         return;
     }
@@ -533,7 +550,7 @@ static void perf_map_jit_write_entry(void *state, const void *code_addr,
     ELFObjectContext ctx;
     char buffer[1024];
     ctx.code_size = code_size;
-    ctx.startp = ctx.p = (uint8_t*)buffer;
+    ctx.startp = ctx.p = (uint8_t *)buffer;
     elf_init_ehframe(&ctx);
     int eh_frame_size = ctx.p - ctx.startp;
 
@@ -550,7 +567,6 @@ static void perf_map_jit_write_entry(void *state, const void *code_addr,
     int padding_size = round_up(content_size, 8) - content_size;
     ev2.base.size = content_size + padding_size;
     perf_map_jit_write_fully(&ev2, sizeof(ev2));
-
 
     // Populate the eh Frame header
     EhFrameHeader f;
@@ -573,7 +589,7 @@ static void perf_map_jit_write_entry(void *state, const void *code_addr,
     // Write the code load event.
     CodeLoadEvent ev;
     ev.base.event = PerfLoad;
-    ev.base.size = sizeof(ev) + (name_length+1) + size;
+    ev.base.size = sizeof(ev) + (name_length + 1) + size;
     ev.base.time_stamp = get_current_monotonic_ticks();
     ev.process_id = getpid();
     ev.thread_id = syscall(SYS_gettid);
@@ -584,12 +600,13 @@ static void perf_map_jit_write_entry(void *state, const void *code_addr,
     ev.code_id = perf_jit_map_state.code_id;
 
     perf_map_jit_write_fully(&ev, sizeof(ev));
-    perf_map_jit_write_fully(perf_map_entry, name_length+1);
-    perf_map_jit_write_fully((void*)(base), size);
+    perf_map_jit_write_fully(perf_map_entry, name_length + 1);
+    perf_map_jit_write_fully((void *)(base), size);
     return;
 }
 
-static int perf_map_jit_fini(void* state) {
+static int
+perf_map_jit_fini(void *state) {
     if (perf_jit_map_state.perf_map != NULL) {
         // close the file
         PyThread_acquire_lock(perf_jit_map_state.map_lock, 1);

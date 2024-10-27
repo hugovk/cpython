@@ -12,9 +12,9 @@
  */
 
 // Need limited C API version 3.13 for PyModule_Add() on Windows
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #ifndef Py_GIL_DISABLED
-#  define Py_LIMITED_API 0x030d0000
+#define Py_LIMITED_API 0x030d0000
 #endif
 
 #include "Python.h"
@@ -34,22 +34,22 @@ typedef unsigned short mode_t;
 /* FILE_ATTRIBUTE_INTEGRITY_STREAM and FILE_ATTRIBUTE_NO_SCRUB_DATA
    are not present in VC2010, so define them manually */
 #ifndef FILE_ATTRIBUTE_INTEGRITY_STREAM
-#  define FILE_ATTRIBUTE_INTEGRITY_STREAM 0x8000
+#define FILE_ATTRIBUTE_INTEGRITY_STREAM 0x8000
 #endif
 
 #ifndef FILE_ATTRIBUTE_NO_SCRUB_DATA
-#  define FILE_ATTRIBUTE_NO_SCRUB_DATA 0x20000
+#define FILE_ATTRIBUTE_NO_SCRUB_DATA 0x20000
 #endif
 
 #ifndef IO_REPARSE_TAG_APPEXECLINK
-#  define IO_REPARSE_TAG_APPEXECLINK 0x8000001BL
+#define IO_REPARSE_TAG_APPEXECLINK 0x8000001BL
 #endif
 
 #endif /* MS_WINDOWS */
 
 /* From Python's stat.py */
 #ifndef S_IMODE
-#  define S_IMODE 07777
+#define S_IMODE 07777
 #endif
 
 /* S_IFXXX constants (file types)
@@ -61,237 +61,232 @@ typedef unsigned short mode_t;
  */
 
 #ifndef S_IFBLK
-#  define S_IFBLK 0060000
+#define S_IFBLK 0060000
 #endif
 
 #ifndef S_IFIFO
-#  define S_IFIFO 0010000
+#define S_IFIFO 0010000
 #endif
 
 #ifndef S_IFSOCK
-#  define S_IFSOCK 0140000
+#define S_IFSOCK 0140000
 #endif
 
 #ifndef S_IFDOOR
-#  define S_IFDOOR 0
+#define S_IFDOOR 0
 #endif
 
 #ifndef S_IFPORT
-#  define S_IFPORT 0
+#define S_IFPORT 0
 #endif
 
 #ifndef S_IFWHT
-#  define S_IFWHT 0
+#define S_IFWHT 0
 #endif
-
 
 /* S_ISXXX()
  * pyport.h defines S_ISDIR(), S_ISREG() and S_ISCHR()
  */
 
 #ifndef S_ISBLK
-#  define S_ISBLK(mode) (((mode) & S_IFMT) == S_IFBLK)
+#define S_ISBLK(mode) (((mode) & S_IFMT) == S_IFBLK)
 #endif
 
 #ifndef S_ISFIFO
-#  define S_ISFIFO(mode) (((mode) & S_IFMT) == S_IFIFO)
+#define S_ISFIFO(mode) (((mode) & S_IFMT) == S_IFIFO)
 #endif
 
 #ifndef S_ISLNK
-#  define S_ISLNK(mode) (((mode) & S_IFMT) == S_IFLNK)
+#define S_ISLNK(mode) (((mode) & S_IFMT) == S_IFLNK)
 #endif
 
 #ifndef S_ISSOCK
-#  define S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
+#define S_ISSOCK(mode) (((mode) & S_IFMT) == S_IFSOCK)
 #endif
 
 #ifndef S_ISDOOR
-#  define S_ISDOOR(mode) 0
+#define S_ISDOOR(mode) 0
 #endif
 
 #ifndef S_ISPORT
-#  define S_ISPORT(mode) 0
+#define S_ISPORT(mode) 0
 #endif
 
 #ifndef S_ISWHT
-#  define S_ISWHT(mode) 0
+#define S_ISWHT(mode) 0
 #endif
-
 
 /* S_I* file permission
  *
  * The permission bit value are defined by POSIX standards.
  */
 #ifndef S_ISUID
-#  define S_ISUID 04000
+#define S_ISUID 04000
 #endif
 
 #ifndef S_ISGID
-#  define S_ISGID 02000
+#define S_ISGID 02000
 #endif
 
 /* what is S_ENFMT? */
 #ifndef S_ENFMT
-#  define S_ENFMT S_ISGID
+#define S_ENFMT S_ISGID
 #endif
 
 #ifndef S_ISVTX
-#  define S_ISVTX 01000
+#define S_ISVTX 01000
 #endif
 
 #ifndef S_IREAD
-#  define S_IREAD 00400
+#define S_IREAD 00400
 #endif
 
 #ifndef S_IWRITE
-#  define S_IWRITE 00200
+#define S_IWRITE 00200
 #endif
 
 #ifndef S_IEXEC
-#  define S_IEXEC 00100
+#define S_IEXEC 00100
 #endif
 
 #ifndef S_IRWXU
-#  define S_IRWXU 00700
+#define S_IRWXU 00700
 #endif
 
 #ifndef S_IRUSR
-#  define S_IRUSR 00400
+#define S_IRUSR 00400
 #endif
 
 #ifndef S_IWUSR
-#  define S_IWUSR 00200
+#define S_IWUSR 00200
 #endif
 
 #ifndef S_IXUSR
-#  define S_IXUSR 00100
+#define S_IXUSR 00100
 #endif
 
 #ifndef S_IRWXG
-#  define S_IRWXG 00070
+#define S_IRWXG 00070
 #endif
 
 #ifndef S_IRGRP
-#  define S_IRGRP 00040
+#define S_IRGRP 00040
 #endif
 
 #ifndef S_IWGRP
-#  define S_IWGRP 00020
+#define S_IWGRP 00020
 #endif
 
 #ifndef S_IXGRP
-#  define S_IXGRP 00010
+#define S_IXGRP 00010
 #endif
 
 #ifndef S_IRWXO
-#  define S_IRWXO 00007
+#define S_IRWXO 00007
 #endif
 
 #ifndef S_IROTH
-#  define S_IROTH 00004
+#define S_IROTH 00004
 #endif
 
 #ifndef S_IWOTH
-#  define S_IWOTH 00002
+#define S_IWOTH 00002
 #endif
 
 #ifndef S_IXOTH
-#  define S_IXOTH 00001
+#define S_IXOTH 00001
 #endif
-
 
 /* Names for file flags */
 #ifndef UF_SETTABLE
-#  define UF_SETTABLE 0x0000ffff
+#define UF_SETTABLE 0x0000ffff
 #endif
 
 #ifndef UF_NODUMP
-#  define UF_NODUMP 0x00000001
+#define UF_NODUMP 0x00000001
 #endif
 
 #ifndef UF_IMMUTABLE
-#  define UF_IMMUTABLE 0x00000002
+#define UF_IMMUTABLE 0x00000002
 #endif
 
 #ifndef UF_APPEND
-#  define UF_APPEND 0x00000004
+#define UF_APPEND 0x00000004
 #endif
 
 #ifndef UF_OPAQUE
-#  define UF_OPAQUE 0x00000008
+#define UF_OPAQUE 0x00000008
 #endif
 
 #ifndef UF_NOUNLINK
-#  define UF_NOUNLINK 0x00000010
+#define UF_NOUNLINK 0x00000010
 #endif
 
 #ifndef UF_COMPRESSED
-#  define UF_COMPRESSED 0x00000020
+#define UF_COMPRESSED 0x00000020
 #endif
 
 #ifndef UF_TRACKED
-#  define UF_TRACKED 0x00000040
+#define UF_TRACKED 0x00000040
 #endif
 
 #ifndef UF_DATAVAULT
-#  define UF_DATAVAULT 0x00000080
+#define UF_DATAVAULT 0x00000080
 #endif
 
 #ifndef UF_HIDDEN
-#  define UF_HIDDEN 0x00008000
+#define UF_HIDDEN 0x00008000
 #endif
 
 #ifndef SF_SETTABLE
-#  define SF_SETTABLE 0xffff0000
+#define SF_SETTABLE 0xffff0000
 #endif
 
 #ifndef SF_ARCHIVED
-#  define SF_ARCHIVED 0x00010000
+#define SF_ARCHIVED 0x00010000
 #endif
 
 #ifndef SF_IMMUTABLE
-#  define SF_IMMUTABLE 0x00020000
+#define SF_IMMUTABLE 0x00020000
 #endif
 
 #ifndef SF_APPEND
-#  define SF_APPEND 0x00040000
+#define SF_APPEND 0x00040000
 #endif
 
 #ifndef SF_NOUNLINK
-#  define SF_NOUNLINK 0x00100000
+#define SF_NOUNLINK 0x00100000
 #endif
 
 #ifndef SF_SNAPSHOT
-#  define SF_SNAPSHOT 0x00200000
+#define SF_SNAPSHOT 0x00200000
 #endif
 
 #ifndef SF_FIRMLINK
-#  define SF_FIRMLINK 0x00800000
+#define SF_FIRMLINK 0x00800000
 #endif
 
 #ifndef SF_DATALESS
-#  define SF_DATALESS 0x40000000
+#define SF_DATALESS 0x40000000
 #endif
 
 #if defined(__APPLE__) && !defined(SF_SUPPORTED)
-   /* On older macOS versions the definition of SF_SUPPORTED is different
-    * from that on newer versions.
-    *
-    * Provide a consistent experience by redefining.
-    *
-    * None of bit bits set in the actual SF_SUPPORTED but not in this
-    * definition are defined on these versions of macOS.
-    */
-#  undef SF_SETTABLE
-#  define SF_SUPPORTED 0x009f0000
-#  define SF_SETTABLE 0x3fff0000
-#  define SF_SYNTHETIC 0xc0000000
+/* On older macOS versions the definition of SF_SUPPORTED is different
+ * from that on newer versions.
+ *
+ * Provide a consistent experience by redefining.
+ *
+ * None of bit bits set in the actual SF_SUPPORTED but not in this
+ * definition are defined on these versions of macOS.
+ */
+#undef SF_SETTABLE
+#define SF_SUPPORTED 0x009f0000
+#define SF_SETTABLE 0x3fff0000
+#define SF_SYNTHETIC 0xc0000000
 #endif
 
-
 static mode_t
-_PyLong_AsMode_t(PyObject *op)
-{
+_PyLong_AsMode_t(PyObject *op) {
     unsigned long value;
     mode_t mode;
 
@@ -307,78 +302,95 @@ _PyLong_AsMode_t(PyObject *op)
     return mode;
 }
 
+#define stat_S_ISFUNC(isfunc, doc)                                    \
+    static PyObject *stat_##isfunc(PyObject *self, PyObject *omode) { \
+        mode_t mode = _PyLong_AsMode_t(omode);                        \
+        if ((mode == (mode_t) - 1) && PyErr_Occurred())               \
+            return NULL;                                              \
+        return PyBool_FromLong(isfunc(mode));                         \
+    }                                                                 \
+    PyDoc_STRVAR(stat_##isfunc##_doc, doc)
 
-#define stat_S_ISFUNC(isfunc, doc)                             \
-    static PyObject *                                          \
-    stat_ ##isfunc (PyObject *self, PyObject *omode)           \
-    {                                                          \
-       mode_t mode = _PyLong_AsMode_t(omode);                   \
-       if ((mode == (mode_t)-1) && PyErr_Occurred())           \
-           return NULL;                                        \
-       return PyBool_FromLong(isfunc(mode));                   \
-    }                                                          \
-    PyDoc_STRVAR(stat_ ## isfunc ## _doc, doc)
-
-stat_S_ISFUNC(S_ISDIR,
+stat_S_ISFUNC(
+    S_ISDIR,
     "S_ISDIR(mode) -> bool\n\n"
-    "Return True if mode is from a directory.");
+    "Return True if mode is from a directory."
+);
 
-stat_S_ISFUNC(S_ISCHR,
+stat_S_ISFUNC(
+    S_ISCHR,
     "S_ISCHR(mode) -> bool\n\n"
-    "Return True if mode is from a character special device file.");
+    "Return True if mode is from a character special device file."
+);
 
-stat_S_ISFUNC(S_ISBLK,
+stat_S_ISFUNC(
+    S_ISBLK,
     "S_ISBLK(mode) -> bool\n\n"
-    "Return True if mode is from a block special device file.");
+    "Return True if mode is from a block special device file."
+);
 
-stat_S_ISFUNC(S_ISREG,
+stat_S_ISFUNC(
+    S_ISREG,
     "S_ISREG(mode) -> bool\n\n"
-    "Return True if mode is from a regular file.");
+    "Return True if mode is from a regular file."
+);
 
-stat_S_ISFUNC(S_ISFIFO,
+stat_S_ISFUNC(
+    S_ISFIFO,
     "S_ISFIFO(mode) -> bool\n\n"
-    "Return True if mode is from a FIFO (named pipe).");
+    "Return True if mode is from a FIFO (named pipe)."
+);
 
-stat_S_ISFUNC(S_ISLNK,
+stat_S_ISFUNC(
+    S_ISLNK,
     "S_ISLNK(mode) -> bool\n\n"
-    "Return True if mode is from a symbolic link.");
+    "Return True if mode is from a symbolic link."
+);
 
-stat_S_ISFUNC(S_ISSOCK,
+stat_S_ISFUNC(
+    S_ISSOCK,
     "S_ISSOCK(mode) -> bool\n\n"
-    "Return True if mode is from a socket.");
+    "Return True if mode is from a socket."
+);
 
-stat_S_ISFUNC(S_ISDOOR,
+stat_S_ISFUNC(
+    S_ISDOOR,
     "S_ISDOOR(mode) -> bool\n\n"
-    "Return True if mode is from a door.");
+    "Return True if mode is from a door."
+);
 
-stat_S_ISFUNC(S_ISPORT,
+stat_S_ISFUNC(
+    S_ISPORT,
     "S_ISPORT(mode) -> bool\n\n"
-    "Return True if mode is from an event port.");
+    "Return True if mode is from an event port."
+);
 
-stat_S_ISFUNC(S_ISWHT,
+stat_S_ISFUNC(
+    S_ISWHT,
     "S_ISWHT(mode) -> bool\n\n"
-    "Return True if mode is from a whiteout.");
+    "Return True if mode is from a whiteout."
+);
 
-
-PyDoc_STRVAR(stat_S_IMODE_doc,
-"Return the portion of the file's mode that can be set by os.chmod().");
+PyDoc_STRVAR(
+    stat_S_IMODE_doc,
+    "Return the portion of the file's mode that can be set by os.chmod()."
+);
 
 static PyObject *
-stat_S_IMODE(PyObject *self, PyObject *omode)
-{
+stat_S_IMODE(PyObject *self, PyObject *omode) {
     mode_t mode = _PyLong_AsMode_t(omode);
     if ((mode == (mode_t)-1) && PyErr_Occurred())
         return NULL;
     return PyLong_FromUnsignedLong(mode & S_IMODE);
 }
 
-
-PyDoc_STRVAR(stat_S_IFMT_doc,
-"Return the portion of the file's mode that describes the file type.");
+PyDoc_STRVAR(
+    stat_S_IFMT_doc,
+    "Return the portion of the file's mode that describes the file type."
+);
 
 static PyObject *
-stat_S_IFMT(PyObject *self, PyObject *omode)
-{
+stat_S_IFMT(PyObject *self, PyObject *omode) {
     mode_t mode = _PyLong_AsMode_t(omode);
     if ((mode == (mode_t)-1) && PyErr_Occurred())
         return NULL;
@@ -389,28 +401,36 @@ stat_S_IFMT(PyObject *self, PyObject *omode)
    http://en.wikibooks.org/wiki/C_Programming/POSIX_Reference/sys/stat.h */
 
 static char
-filetype(mode_t mode)
-{
+filetype(mode_t mode) {
     /* common cases first */
-    if (S_ISREG(mode))  return '-';
-    if (S_ISDIR(mode))  return 'd';
-    if (S_ISLNK(mode))  return 'l';
+    if (S_ISREG(mode))
+        return '-';
+    if (S_ISDIR(mode))
+        return 'd';
+    if (S_ISLNK(mode))
+        return 'l';
     /* special files */
-    if (S_ISBLK(mode))  return 'b';
-    if (S_ISCHR(mode))  return 'c';
-    if (S_ISFIFO(mode)) return 'p';
-    if (S_ISSOCK(mode)) return 's';
+    if (S_ISBLK(mode))
+        return 'b';
+    if (S_ISCHR(mode))
+        return 'c';
+    if (S_ISFIFO(mode))
+        return 'p';
+    if (S_ISSOCK(mode))
+        return 's';
     /* non-standard types */
-    if (S_ISDOOR(mode)) return 'D';
-    if (S_ISPORT(mode)) return 'P';
-    if (S_ISWHT(mode))  return 'w';
+    if (S_ISDOOR(mode))
+        return 'D';
+    if (S_ISPORT(mode))
+        return 'P';
+    if (S_ISWHT(mode))
+        return 'w';
     /* unknown */
     return '?';
 }
 
 static void
-fileperm(mode_t mode, char *buf)
-{
+fileperm(mode_t mode, char *buf) {
     buf[0] = mode & S_IRUSR ? 'r' : '-';
     buf[1] = mode & S_IWUSR ? 'w' : '-';
     if (mode & S_ISUID) {
@@ -434,12 +454,12 @@ fileperm(mode_t mode, char *buf)
     }
 }
 
-PyDoc_STRVAR(stat_filemode_doc,
-"Convert a file's mode to a string of the form '-rwxrwxrwx'");
+PyDoc_STRVAR(
+    stat_filemode_doc, "Convert a file's mode to a string of the form '-rwxrwxrwx'"
+);
 
 static PyObject *
-stat_filemode(PyObject *self, PyObject *omode)
-{
+stat_filemode(PyObject *self, PyObject *omode) {
     char buf[10];
     mode_t mode;
 
@@ -452,27 +472,26 @@ stat_filemode(PyObject *self, PyObject *omode)
     return PyUnicode_FromStringAndSize(buf, 10);
 }
 
-
 static PyMethodDef stat_methods[] = {
-    {"S_ISDIR",         stat_S_ISDIR,  METH_O, stat_S_ISDIR_doc},
-    {"S_ISCHR",         stat_S_ISCHR,  METH_O, stat_S_ISCHR_doc},
-    {"S_ISBLK",         stat_S_ISBLK,  METH_O, stat_S_ISBLK_doc},
-    {"S_ISREG",         stat_S_ISREG,  METH_O, stat_S_ISREG_doc},
-    {"S_ISFIFO",        stat_S_ISFIFO, METH_O, stat_S_ISFIFO_doc},
-    {"S_ISLNK",         stat_S_ISLNK,  METH_O, stat_S_ISLNK_doc},
-    {"S_ISSOCK",        stat_S_ISSOCK, METH_O, stat_S_ISSOCK_doc},
-    {"S_ISDOOR",        stat_S_ISDOOR, METH_O, stat_S_ISDOOR_doc},
-    {"S_ISPORT",        stat_S_ISPORT, METH_O, stat_S_ISPORT_doc},
-    {"S_ISWHT",         stat_S_ISWHT,  METH_O, stat_S_ISWHT_doc},
-    {"S_IMODE",         stat_S_IMODE,  METH_O, stat_S_IMODE_doc},
-    {"S_IFMT",          stat_S_IFMT,   METH_O, stat_S_IFMT_doc},
-    {"filemode",        stat_filemode, METH_O, stat_filemode_doc},
-    {NULL,              NULL}           /* sentinel */
+    {"S_ISDIR", stat_S_ISDIR, METH_O, stat_S_ISDIR_doc},
+    {"S_ISCHR", stat_S_ISCHR, METH_O, stat_S_ISCHR_doc},
+    {"S_ISBLK", stat_S_ISBLK, METH_O, stat_S_ISBLK_doc},
+    {"S_ISREG", stat_S_ISREG, METH_O, stat_S_ISREG_doc},
+    {"S_ISFIFO", stat_S_ISFIFO, METH_O, stat_S_ISFIFO_doc},
+    {"S_ISLNK", stat_S_ISLNK, METH_O, stat_S_ISLNK_doc},
+    {"S_ISSOCK", stat_S_ISSOCK, METH_O, stat_S_ISSOCK_doc},
+    {"S_ISDOOR", stat_S_ISDOOR, METH_O, stat_S_ISDOOR_doc},
+    {"S_ISPORT", stat_S_ISPORT, METH_O, stat_S_ISPORT_doc},
+    {"S_ISWHT", stat_S_ISWHT, METH_O, stat_S_ISWHT_doc},
+    {"S_IMODE", stat_S_IMODE, METH_O, stat_S_IMODE_doc},
+    {"S_IFMT", stat_S_IFMT, METH_O, stat_S_IFMT_doc},
+    {"filemode", stat_filemode, METH_O, stat_filemode_doc},
+    {NULL, NULL} /* sentinel */
 };
 
-
-PyDoc_STRVAR(module_doc,
-"S_IFMT_: file type bits\n\
+PyDoc_STRVAR(
+    module_doc,
+    "S_IFMT_: file type bits\n\
 S_IFDIR: directory\n\
 S_IFCHR: character device\n\
 S_IFBLK: block device\n\
@@ -485,7 +504,7 @@ S_IFPORT: event port\n\
 S_IFWHT: whiteout\n\
 \n"
 
-"S_ISUID: set UID bit\n\
+    "S_ISUID: set UID bit\n\
 S_ISGID: set GID bit\n\
 S_ENFMT: file locking enforcement\n\
 S_ISVTX: sticky bit\n\
@@ -506,7 +525,7 @@ S_IWOTH: write by others\n\
 S_IXOTH: execute by others\n\
 \n"
 
-"UF_SETTABLE: mask of owner changeable flags\n\
+    "UF_SETTABLE: mask of owner changeable flags\n\
 UF_NODUMP: do not dump file\n\
 UF_IMMUTABLE: file may not be changed\n\
 UF_APPEND: file may only be appended to\n\
@@ -531,7 +550,7 @@ SF_SUPPORTED: mask of super user supported flags\n\
 SF_SYNTHETIC: mask of read-only synthetic flags\n\
 \n"
 
-"ST_MODE\n\
+    "ST_MODE\n\
 ST_INO\n\
 ST_DEV\n\
 ST_NLINK\n\
@@ -543,19 +562,18 @@ ST_MTIME\n\
 ST_CTIME\n\
 \n"
 
-"FILE_ATTRIBUTE_*: Windows file attribute constants\n\
+    "FILE_ATTRIBUTE_*: Windows file attribute constants\n\
                    (only present on Windows)\n\
-");
-
+"
+);
 
 static int
-stat_exec(PyObject *module)
-{
-#define ADD_INT_MACRO(module, macro)                                  \
-    do {                                                              \
-        if (PyModule_AddIntConstant(module, #macro, macro) < 0) {     \
-            return -1;                                                \
-        }                                                             \
+stat_exec(PyObject *module) {
+#define ADD_INT_MACRO(module, macro)                              \
+    do {                                                          \
+        if (PyModule_AddIntConstant(module, #macro, macro) < 0) { \
+            return -1;                                            \
+        }                                                         \
     } while (0)
 
     ADD_INT_MACRO(module, S_IFDIR);
@@ -619,8 +637,7 @@ stat_exec(PyObject *module)
     ADD_INT_MACRO(module, SF_SYNTHETIC);
 #endif
 
-
-    const char* st_constants[] = {
+    const char *st_constants[] = {
         "ST_MODE",
         "ST_INO",
         "ST_DEV",
@@ -658,16 +675,25 @@ stat_exec(PyObject *module)
     ADD_INT_MACRO(module, FILE_ATTRIBUTE_TEMPORARY);
     ADD_INT_MACRO(module, FILE_ATTRIBUTE_VIRTUAL);
 
-    if (PyModule_Add(module, "IO_REPARSE_TAG_SYMLINK",
-            PyLong_FromUnsignedLong(IO_REPARSE_TAG_SYMLINK)) < 0) {
+    if (PyModule_Add(
+            module,
+            "IO_REPARSE_TAG_SYMLINK",
+            PyLong_FromUnsignedLong(IO_REPARSE_TAG_SYMLINK)
+        ) < 0) {
         return -1;
     }
-    if (PyModule_Add(module, "IO_REPARSE_TAG_MOUNT_POINT",
-            PyLong_FromUnsignedLong(IO_REPARSE_TAG_MOUNT_POINT)) < 0) {
+    if (PyModule_Add(
+            module,
+            "IO_REPARSE_TAG_MOUNT_POINT",
+            PyLong_FromUnsignedLong(IO_REPARSE_TAG_MOUNT_POINT)
+        ) < 0) {
         return -1;
     }
-    if (PyModule_Add(module, "IO_REPARSE_TAG_APPEXECLINK",
-            PyLong_FromUnsignedLong(IO_REPARSE_TAG_APPEXECLINK)) < 0) {
+    if (PyModule_Add(
+            module,
+            "IO_REPARSE_TAG_APPEXECLINK",
+            PyLong_FromUnsignedLong(IO_REPARSE_TAG_APPEXECLINK)
+        ) < 0) {
         return -1;
     }
 #endif
@@ -675,14 +701,12 @@ stat_exec(PyObject *module)
     return 0;
 }
 
-
 static PyModuleDef_Slot stat_slots[] = {
     {Py_mod_exec, stat_exec},
     {Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
     {Py_mod_gil, Py_MOD_GIL_NOT_USED},
     {0, NULL}
 };
-
 
 static struct PyModuleDef statmodule = {
     PyModuleDef_HEAD_INIT,
@@ -693,9 +717,7 @@ static struct PyModuleDef statmodule = {
     .m_slots = stat_slots,
 };
 
-
 PyMODINIT_FUNC
-PyInit__stat(void)
-{
+PyInit__stat(void) {
     return PyModuleDef_Init(&statmodule);
 }

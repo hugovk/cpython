@@ -22,7 +22,7 @@
  */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "connection.h"
@@ -33,7 +33,7 @@
 #include "row.h"
 #include "blob.h"
 
-#include "pycore_import.h"        // _PyImport_GetModuleAttrString()
+#include "pycore_import.h"  // _PyImport_GetModuleAttrString()
 
 #if SQLITE_VERSION_NUMBER < 3015002
 #error "SQLite 3.15.2 or higher required"
@@ -56,29 +56,30 @@ module _sqlite3
 #include "clinic/_sqlite3.connect.c.h"
 
 static PyObject *
-pysqlite_connect(PyObject *module, PyObject *const *args, Py_ssize_t nargsf,
-                 PyObject *kwnames)
-{
+pysqlite_connect(
+    PyObject *module, PyObject *const *args, Py_ssize_t nargsf, PyObject *kwnames
+) {
     pysqlite_state *state = pysqlite_get_state(module);
     PyObject *factory = (PyObject *)state->ConnectionType;
 
     static const int FACTORY_POS = 5;
     Py_ssize_t nargs = PyVectorcall_NARGS(nargsf);
     if (nargs > 1 && nargs <= 8) {
-        if (PyErr_WarnEx(PyExc_DeprecationWarning,
+        if (PyErr_WarnEx(
+                PyExc_DeprecationWarning,
                 "Passing more than 1 positional argument to sqlite3.connect()"
                 " is deprecated. Parameters 'timeout', 'detect_types', "
                 "'isolation_level', 'check_same_thread', 'factory', "
                 "'cached_statements' and 'uri' will become keyword-only "
-                "parameters in Python 3.15.", 1))
-        {
-                return NULL;
+                "parameters in Python 3.15.",
+                1
+            )) {
+            return NULL;
         }
     }
     if (nargs > FACTORY_POS) {
         factory = args[FACTORY_POS];
-    }
-    else if (kwnames != NULL) {
+    } else if (kwnames != NULL) {
         for (Py_ssize_t i = 0; i < PyTuple_GET_SIZE(kwnames); i++) {
             PyObject *item = PyTuple_GET_ITEM(kwnames, i);  // borrowed ref.
             if (PyUnicode_CompareWithASCIIString(item, "factory") == 0) {
@@ -121,16 +122,15 @@ Register a function to adapt Python objects to SQLite values.
 [clinic start generated code]*/
 
 static PyObject *
-pysqlite_register_adapter_impl(PyObject *module, PyTypeObject *type,
-                               PyObject *caster)
+pysqlite_register_adapter_impl(PyObject *module, PyTypeObject *type, PyObject *caster)
 /*[clinic end generated code: output=a287e8db18e8af23 input=29a5e0f213030242]*/
 {
     int rc;
 
-    /* a basic type is adapted; there's a performance optimization if that's not the case
-     * (99 % of all usages) */
-    if (type == &PyLong_Type || type == &PyFloat_Type
-            || type == &PyUnicode_Type || type == &PyByteArray_Type) {
+    /* a basic type is adapted; there's a performance optimization if that's not the
+     * case (99 % of all usages) */
+    if (type == &PyLong_Type || type == &PyFloat_Type || type == &PyUnicode_Type ||
+        type == &PyByteArray_Type) {
         pysqlite_state *state = pysqlite_get_state(module);
         state->BaseTypeAdapted = 1;
     }
@@ -156,12 +156,13 @@ Register a function to convert SQLite values to Python objects.
 [clinic start generated code]*/
 
 static PyObject *
-pysqlite_register_converter_impl(PyObject *module, PyObject *orig_name,
-                                 PyObject *callable)
+pysqlite_register_converter_impl(
+    PyObject *module, PyObject *orig_name, PyObject *callable
+)
 /*[clinic end generated code: output=a2f2bfeed7230062 input=159a444971b40378]*/
 {
-    PyObject* name = NULL;
-    PyObject* retval = NULL;
+    PyObject *name = NULL;
+    PyObject *retval = NULL;
 
     /* convert the name to upper case */
     pysqlite_state *state = pysqlite_get_state(module);
@@ -203,24 +204,23 @@ pysqlite_enable_callback_trace_impl(PyObject *module, int enable)
 _sqlite3.adapt as pysqlite_adapt
 
     obj: object
-    proto: object(c_default='(PyObject *)clinic_state()->PrepareProtocolType') = PrepareProtocolType
-    alt: object = NULL
+    proto: object(c_default='(PyObject *)clinic_state()->PrepareProtocolType') =
+PrepareProtocolType alt: object = NULL
     /
 
 Adapt given object to given protocol.
 [clinic start generated code]*/
 
 static PyObject *
-pysqlite_adapt_impl(PyObject *module, PyObject *obj, PyObject *proto,
-                    PyObject *alt)
+pysqlite_adapt_impl(PyObject *module, PyObject *obj, PyObject *proto, PyObject *alt)
 /*[clinic end generated code: output=0c3927c5fcd23dd9 input=a53dc9993e81e15f]*/
 {
     pysqlite_state *state = pysqlite_get_state(module);
     return pysqlite_microprotocols_adapt(state, obj, proto, alt);
 }
 
-static int converters_init(PyObject* module)
-{
+static int
+converters_init(PyObject *module) {
     pysqlite_state *state = pysqlite_get_state(module);
     state->converters = PyDict_New();
     if (state->converters == NULL) {
@@ -231,8 +231,7 @@ static int converters_init(PyObject* module)
 }
 
 static int
-load_functools_lru_cache(PyObject *module)
-{
+load_functools_lru_cache(PyObject *module) {
     pysqlite_state *state = pysqlite_get_state(module);
     state->lru_cache = _PyImport_GetModuleAttrString("functools", "lru_cache");
     if (state->lru_cache == NULL) {
@@ -242,13 +241,14 @@ load_functools_lru_cache(PyObject *module)
 }
 
 static PyMethodDef module_methods[] = {
-    PYSQLITE_ADAPT_METHODDEF
-    PYSQLITE_COMPLETE_STATEMENT_METHODDEF
-    {"connect", _PyCFunction_CAST(pysqlite_connect), METH_FASTCALL|METH_KEYWORDS, pysqlite_connect__doc__},
-    PYSQLITE_ENABLE_CALLBACK_TRACE_METHODDEF
-    PYSQLITE_REGISTER_ADAPTER_METHODDEF
-    PYSQLITE_REGISTER_CONVERTER_METHODDEF
-    {NULL, NULL}
+    PYSQLITE_ADAPT_METHODDEF PYSQLITE_COMPLETE_STATEMENT_METHODDEF{
+        "connect",
+        _PyCFunction_CAST(pysqlite_connect),
+        METH_FASTCALL | METH_KEYWORDS,
+        pysqlite_connect__doc__
+    },
+    PYSQLITE_ENABLE_CALLBACK_TRACE_METHODDEF PYSQLITE_REGISTER_ADAPTER_METHODDEF
+        PYSQLITE_REGISTER_CONVERTER_METHODDEF{NULL, NULL}
 };
 
 /* SQLite C API result codes. See also:
@@ -392,8 +392,7 @@ static const struct {
 };
 
 static int
-add_error_constants(PyObject *module)
-{
+add_error_constants(PyObject *module) {
     for (int i = 0; error_codes[i].name != NULL; i++) {
         const char *name = error_codes[i].name;
         const long value = error_codes[i].value;
@@ -405,8 +404,7 @@ add_error_constants(PyObject *module)
 }
 
 const char *
-pysqlite_error_name(int rc)
-{
+pysqlite_error_name(int rc) {
     for (int i = 0; error_codes[i].name != NULL; i++) {
         if (error_codes[i].value == rc) {
             return error_codes[i].name;
@@ -423,7 +421,7 @@ add_integer_constants(PyObject *module) {
         if (PyModule_AddIntConstant(module, #ival, ival) < 0) { \
             return -1;                                          \
         }                                                       \
-    } while (0);                                                \
+    } while (0);
 
     ADD_INT(PARSE_DECLTYPES);
     ADD_INT(PARSE_COLNAMES);
@@ -522,27 +520,28 @@ add_integer_constants(PyObject *module) {
  * SQLITE_THREADSAFE) to the corresponding DB-API 2.0 (PEP 249) threadsafety
  * level. */
 static int
-get_threadsafety(pysqlite_state *state)
-{
+get_threadsafety(pysqlite_state *state) {
     int mode = sqlite3_threadsafe();
     switch (mode) {
-    case 0:        // Single-thread mode; threads may not share the module.
-        return 0;
-    case 1:        // Serialized mode; threads may share the module,
-        return 3;  // connections, and cursors.
-    case 2:        // Multi-thread mode; threads may share the module, but not
-        return 1;  // connections.
-    default:
-        PyErr_Format(state->InterfaceError,
-                     "Unable to interpret SQLite threadsafety mode. Got %d, "
-                     "expected 0, 1, or 2", mode);
-        return -1;
+        case 0:  // Single-thread mode; threads may not share the module.
+            return 0;
+        case 1:        // Serialized mode; threads may share the module,
+            return 3;  // connections, and cursors.
+        case 2:        // Multi-thread mode; threads may share the module, but not
+            return 1;  // connections.
+        default:
+            PyErr_Format(
+                state->InterfaceError,
+                "Unable to interpret SQLite threadsafety mode. Got %d, "
+                "expected 0, 1, or 2",
+                mode
+            );
+            return -1;
     }
 }
 
 static int
-module_traverse(PyObject *module, visitproc visit, void *arg)
-{
+module_traverse(PyObject *module, visitproc visit, void *arg) {
     pysqlite_state *state = pysqlite_get_state(module);
 
     // Exceptions
@@ -574,8 +573,7 @@ module_traverse(PyObject *module, visitproc visit, void *arg)
 }
 
 static int
-module_clear(PyObject *module)
-{
+module_clear(PyObject *module) {
     pysqlite_state *state = pysqlite_get_state(module);
 
     // Exceptions
@@ -617,41 +615,41 @@ module_clear(PyObject *module)
 }
 
 static void
-module_free(void *module)
-{
+module_free(void *module) {
     module_clear((PyObject *)module);
 }
 
-#define ADD_TYPE(module, type)                 \
-do {                                           \
-    if (PyModule_AddType(module, type) < 0) {  \
-        goto error;                            \
-    }                                          \
-} while (0)
+#define ADD_TYPE(module, type)                    \
+    do {                                          \
+        if (PyModule_AddType(module, type) < 0) { \
+            goto error;                           \
+        }                                         \
+    } while (0)
 
-#define ADD_EXCEPTION(module, state, exc, base)                        \
-do {                                                                   \
-    state->exc = PyErr_NewException(MODULE_NAME "." #exc, base, NULL); \
-    if (state->exc == NULL) {                                          \
-        goto error;                                                    \
-    }                                                                  \
-    ADD_TYPE(module, (PyTypeObject *)state->exc);                      \
-} while (0)
+#define ADD_EXCEPTION(module, state, exc, base)                            \
+    do {                                                                   \
+        state->exc = PyErr_NewException(MODULE_NAME "." #exc, base, NULL); \
+        if (state->exc == NULL) {                                          \
+            goto error;                                                    \
+        }                                                                  \
+        ADD_TYPE(module, (PyTypeObject *)state->exc);                      \
+    } while (0)
 
-#define ADD_INTERNED(state, string)                      \
-do {                                                     \
-    PyObject *tmp = PyUnicode_InternFromString(#string); \
-    if (tmp == NULL) {                                   \
-        goto error;                                      \
-    }                                                    \
-    state->str_ ## string = tmp;                         \
-} while (0)
+#define ADD_INTERNED(state, string)                          \
+    do {                                                     \
+        PyObject *tmp = PyUnicode_InternFromString(#string); \
+        if (tmp == NULL) {                                   \
+            goto error;                                      \
+        }                                                    \
+        state->str_##string = tmp;                           \
+    } while (0)
 
 static int
-module_exec(PyObject *module)
-{
+module_exec(PyObject *module) {
     if (sqlite3_libversion_number() < 3015002) {
-        PyErr_SetString(PyExc_ImportError, MODULE_NAME ": SQLite 3.15.2 or higher required");
+        PyErr_SetString(
+            PyExc_ImportError, MODULE_NAME ": SQLite 3.15.2 or higher required"
+        );
         return -1;
     }
 
@@ -666,8 +664,7 @@ module_exec(PyObject *module)
         (pysqlite_connection_setup_types(module) < 0) ||
         (pysqlite_statement_setup_types(module) < 0) ||
         (pysqlite_prepare_protocol_setup_types(module) < 0) ||
-        (pysqlite_blob_setup_types(module) < 0)
-       ) {
+        (pysqlite_blob_setup_types(module) < 0)) {
         goto error;
     }
 
@@ -770,7 +767,6 @@ struct PyModuleDef _sqlite3module = {
 };
 
 PyMODINIT_FUNC
-PyInit__sqlite3(void)
-{
+PyInit__sqlite3(void) {
     return PyModuleDef_Init(&_sqlite3module);
 }

@@ -5,24 +5,21 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-extern PyObject* _PyBytes_FormatEx(
-    const char *format,
-    Py_ssize_t format_len,
-    PyObject *args,
-    int use_bytearray);
+extern PyObject *
+_PyBytes_FormatEx(
+    const char *format, Py_ssize_t format_len, PyObject *args, int use_bytearray
+);
 
-extern PyObject* _PyBytes_FromHex(
-    PyObject *string,
-    int use_bytearray);
+extern PyObject *
+_PyBytes_FromHex(PyObject *string, int use_bytearray);
 
 // Helper for PyBytes_DecodeEscape that detects invalid escape chars.
 // Export for test_peg_generator.
-PyAPI_FUNC(PyObject*) _PyBytes_DecodeEscape(const char *, Py_ssize_t,
-                                            const char *, const char **);
-
+PyAPI_FUNC(PyObject *)
+    _PyBytes_DecodeEscape(const char *, Py_ssize_t, const char *, const char **);
 
 // Substring Search.
 //
@@ -32,18 +29,23 @@ PyAPI_FUNC(PyObject*) _PyBytes_DecodeEscape(const char *, Py_ssize_t,
 // If the needle is found, add offset to the index.
 //
 // Export for 'mmap' shared extension.
-PyAPI_FUNC(Py_ssize_t)
-_PyBytes_Find(const char *haystack, Py_ssize_t len_haystack,
-              const char *needle, Py_ssize_t len_needle,
-              Py_ssize_t offset);
+PyAPI_FUNC(Py_ssize_t) _PyBytes_Find(
+    const char *haystack,
+    Py_ssize_t len_haystack,
+    const char *needle,
+    Py_ssize_t len_needle,
+    Py_ssize_t offset
+);
 
 // Same as above, but search right-to-left.
 // Export for 'mmap' shared extension.
-PyAPI_FUNC(Py_ssize_t)
-_PyBytes_ReverseFind(const char *haystack, Py_ssize_t len_haystack,
-                     const char *needle, Py_ssize_t len_needle,
-                     Py_ssize_t offset);
-
+PyAPI_FUNC(Py_ssize_t) _PyBytes_ReverseFind(
+    const char *haystack,
+    Py_ssize_t len_haystack,
+    const char *needle,
+    Py_ssize_t len_needle,
+    Py_ssize_t offset
+);
 
 // Helper function to implement the repeat and inplace repeat methods on a
 // buffer.
@@ -55,9 +57,8 @@ _PyBytes_ReverseFind(const char *haystack, Py_ssize_t len_haystack,
 // the number of invocations of memcpy.
 //
 // Export for 'array' shared extension.
-PyAPI_FUNC(void)
-_PyBytes_Repeat(char* dest, Py_ssize_t len_dest,
-    const char* src, Py_ssize_t len_src);
+PyAPI_FUNC(void
+) _PyBytes_Repeat(char *dest, Py_ssize_t len_dest, const char *src, Py_ssize_t len_src);
 
 /* --- _PyBytesWriter ----------------------------------------------------- */
 
@@ -98,8 +99,7 @@ PyAPI_FUNC(void) _PyBytesWriter_Init(_PyBytesWriter *writer);
 /* Get the buffer content and reset the writer.
    Return a bytes object, or a bytearray object if use_bytearray is non-zero.
    Raise an exception and return NULL on error. */
-PyAPI_FUNC(PyObject *) _PyBytesWriter_Finish(_PyBytesWriter *writer,
-    void *str);
+PyAPI_FUNC(PyObject *) _PyBytesWriter_Finish(_PyBytesWriter *writer, void *str);
 
 /* Deallocate memory of a writer (clear its internal buffer). */
 PyAPI_FUNC(void) _PyBytesWriter_Dealloc(_PyBytesWriter *writer);
@@ -107,8 +107,7 @@ PyAPI_FUNC(void) _PyBytesWriter_Dealloc(_PyBytesWriter *writer);
 /* Allocate the buffer to write size bytes.
    Return the pointer to the beginning of buffer data.
    Raise an exception and return NULL on error. */
-PyAPI_FUNC(void*) _PyBytesWriter_Alloc(_PyBytesWriter *writer,
-    Py_ssize_t size);
+PyAPI_FUNC(void *) _PyBytesWriter_Alloc(_PyBytesWriter *writer, Py_ssize_t size);
 
 /* Ensure that the buffer is large enough to write *size* bytes.
    Add size to the writer minimum size (min_size attribute).
@@ -116,9 +115,8 @@ PyAPI_FUNC(void*) _PyBytesWriter_Alloc(_PyBytesWriter *writer,
    str is the current pointer inside the buffer.
    Return the updated current pointer inside the buffer.
    Raise an exception and return NULL on error. */
-PyAPI_FUNC(void*) _PyBytesWriter_Prepare(_PyBytesWriter *writer,
-    void *str,
-    Py_ssize_t size);
+PyAPI_FUNC(void *)
+    _PyBytesWriter_Prepare(_PyBytesWriter *writer, void *str, Py_ssize_t size);
 
 /* Resize the buffer to make it larger.
    The new buffer may be larger than size bytes because of overallocation.
@@ -131,16 +129,14 @@ PyAPI_FUNC(void*) _PyBytesWriter_Prepare(_PyBytesWriter *writer,
 
    See also _PyBytesWriter_Prepare().
    */
-PyAPI_FUNC(void*) _PyBytesWriter_Resize(_PyBytesWriter *writer,
-    void *str,
-    Py_ssize_t size);
+PyAPI_FUNC(void *)
+    _PyBytesWriter_Resize(_PyBytesWriter *writer, void *str, Py_ssize_t size);
 
 /* Write bytes.
    Raise an exception and return NULL on error. */
-PyAPI_FUNC(void*) _PyBytesWriter_WriteBytes(_PyBytesWriter *writer,
-    void *str,
-    const void *bytes,
-    Py_ssize_t size);
+PyAPI_FUNC(void *) _PyBytesWriter_WriteBytes(
+    _PyBytesWriter *writer, void *str, const void *bytes, Py_ssize_t size
+);
 
 #ifdef __cplusplus
 }

@@ -11,8 +11,7 @@
  * BIG5 codec
  */
 
-ENCODER(big5)
-{
+ENCODER(big5) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -42,8 +41,7 @@ ENCODER(big5)
     return 0;
 }
 
-DECODER(big5)
-{
+DECODER(big5) {
     while (inleft > 0) {
         unsigned char c = INBYTE1;
         Py_UCS4 decoded;
@@ -58,20 +56,18 @@ DECODER(big5)
         if (TRYMAP_DEC(big5, decoded, c, INBYTE2)) {
             OUTCHAR(decoded);
             NEXT_IN(2);
-        }
-        else return 1;
+        } else
+            return 1;
     }
 
     return 0;
 }
 
-
 /*
  * CP950 codec
  */
 
-ENCODER(cp950)
-{
+ENCODER(cp950) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -101,8 +97,7 @@ ENCODER(cp950)
     return 0;
 }
 
-DECODER(cp950)
-{
+DECODER(cp950) {
     while (inleft > 0) {
         unsigned char c = INBYTE1;
         Py_UCS4 decoded;
@@ -128,16 +123,14 @@ DECODER(cp950)
     return 0;
 }
 
-
-
 BEGIN_MAPPINGS_LIST(2)
-  MAPPING_ENCDEC(big5)
-  MAPPING_ENCDEC(cp950ext)
+MAPPING_ENCDEC(big5)
+MAPPING_ENCDEC(cp950ext)
 END_MAPPINGS_LIST
 
 BEGIN_CODECS_LIST(2)
-  CODEC_STATELESS(big5)
-  CODEC_STATELESS(cp950)
+CODEC_STATELESS(big5)
+CODEC_STATELESS(cp950)
 END_CODECS_LIST
 
 I_AM_A_MODULE_FOR(tw)

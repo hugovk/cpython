@@ -1,14 +1,13 @@
 // _sysconfig provides data for the Python sysconfig module
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
 
-#include "pycore_importdl.h"   // _PyImport_DynLoadFiletab
-#include "pycore_long.h"       // _PyLong_GetZero, _PyLong_GetOne
-
+#include "pycore_importdl.h"  // _PyImport_DynLoadFiletab
+#include "pycore_long.h"      // _PyLong_GetZero, _PyLong_GetOne
 
 /*[clinic input]
 module _sysconfig
@@ -19,8 +18,7 @@ module _sysconfig
 
 #ifdef MS_WINDOWS
 static int
-add_string_value(PyObject *dict, const char *key, const char *str_value)
-{
+add_string_value(PyObject *dict, const char *key, const char *str_value) {
     PyObject *value = PyUnicode_FromString(str_value);
     if (value == NULL) {
         return -1;
@@ -70,12 +68,10 @@ _sysconfig_config_vars_impl(PyObject *module)
     return config;
 }
 
-PyDoc_STRVAR(sysconfig__doc__,
-"A helper for the sysconfig module.");
+PyDoc_STRVAR(sysconfig__doc__, "A helper for the sysconfig module.");
 
 static struct PyMethodDef sysconfig_methods[] = {
-    _SYSCONFIG_CONFIG_VARS_METHODDEF
-    {NULL, NULL}
+    _SYSCONFIG_CONFIG_VARS_METHODDEF{NULL, NULL}
 };
 
 static PyModuleDef_Slot sysconfig_slots[] = {
@@ -93,7 +89,6 @@ static PyModuleDef sysconfig_module = {
 };
 
 PyMODINIT_FUNC
-PyInit__sysconfig(void)
-{
+PyInit__sysconfig(void) {
     return PyModuleDef_Init(&sysconfig_module);
 }

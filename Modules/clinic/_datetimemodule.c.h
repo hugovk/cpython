@@ -3,64 +3,72 @@ preserve
 [clinic start generated code]*/
 
 #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
-#  include "pycore_gc.h"          // PyGC_Head
-#  include "pycore_runtime.h"     // _Py_ID()
+#include "pycore_gc.h"       // PyGC_Head
+#include "pycore_runtime.h"  // _Py_ID()
 #endif
-#include "pycore_modsupport.h"    // _PyArg_UnpackKeywords()
+#include "pycore_modsupport.h"  // _PyArg_UnpackKeywords()
 
-PyDoc_STRVAR(datetime_date_fromtimestamp__doc__,
-"fromtimestamp($type, timestamp, /)\n"
-"--\n"
-"\n"
-"Create a date from a POSIX timestamp.\n"
-"\n"
-"The timestamp is a number, e.g. created via time.time(), that is interpreted\n"
-"as local time.");
+PyDoc_STRVAR(
+    datetime_date_fromtimestamp__doc__,
+    "fromtimestamp($type, timestamp, /)\n"
+    "--\n"
+    "\n"
+    "Create a date from a POSIX timestamp.\n"
+    "\n"
+    "The timestamp is a number, e.g. created via time.time(), that is interpreted\n"
+    "as local time."
+);
 
-#define DATETIME_DATE_FROMTIMESTAMP_METHODDEF    \
-    {"fromtimestamp", (PyCFunction)datetime_date_fromtimestamp, METH_O|METH_CLASS, datetime_date_fromtimestamp__doc__},
+#define DATETIME_DATE_FROMTIMESTAMP_METHODDEF  \
+    {"fromtimestamp",                          \
+     (PyCFunction)datetime_date_fromtimestamp, \
+     METH_O | METH_CLASS,                      \
+     datetime_date_fromtimestamp__doc__},
 
 static PyObject *
-iso_calendar_date_new_impl(PyTypeObject *type, int year, int week,
-                           int weekday);
+iso_calendar_date_new_impl(PyTypeObject *type, int year, int week, int weekday);
 
 static PyObject *
-iso_calendar_date_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+iso_calendar_date_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 3
+#define NUM_KEYWORDS 3
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(year), &_Py_ID(week), &_Py_ID(weekday), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(year),
+                &_Py_ID(week),
+                &_Py_ID(weekday),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"year", "week", "weekday", NULL};
+    static const char *const _keywords[] = {"year", "week", "weekday", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "IsoCalendarDate",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[3];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     int year;
     int week;
     int weekday;
 
-    fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 3, 3, 0, argsbuf);
+    fastargs = _PyArg_UnpackKeywords(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 3, 3, 0, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }
@@ -82,55 +90,64 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(datetime_date_replace__doc__,
-"replace($self, /, year=unchanged, month=unchanged, day=unchanged)\n"
-"--\n"
-"\n"
-"Return date with new specified fields.");
+PyDoc_STRVAR(
+    datetime_date_replace__doc__,
+    "replace($self, /, year=unchanged, month=unchanged, day=unchanged)\n"
+    "--\n"
+    "\n"
+    "Return date with new specified fields."
+);
 
-#define DATETIME_DATE_REPLACE_METHODDEF    \
-    {"replace", _PyCFunction_CAST(datetime_date_replace), METH_FASTCALL|METH_KEYWORDS, datetime_date_replace__doc__},
+#define DATETIME_DATE_REPLACE_METHODDEF        \
+    {"replace",                                \
+     _PyCFunction_CAST(datetime_date_replace), \
+     METH_FASTCALL | METH_KEYWORDS,            \
+     datetime_date_replace__doc__},
 
 static PyObject *
-datetime_date_replace_impl(PyDateTime_Date *self, int year, int month,
-                           int day);
+datetime_date_replace_impl(PyDateTime_Date *self, int year, int month, int day);
 
 static PyObject *
-datetime_date_replace(PyDateTime_Date *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
-{
+datetime_date_replace(
+    PyDateTime_Date *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames
+) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 3
+#define NUM_KEYWORDS 3
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(year), &_Py_ID(month), &_Py_ID(day), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(year),
+                &_Py_ID(month),
+                &_Py_ID(day),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"year", "month", "day", NULL};
+    static const char *const _keywords[] = {"year", "month", "day", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "replace",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[3];
     Py_ssize_t noptargs = nargs + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 0;
     int year = GET_YEAR(self);
     int month = GET_MONTH(self);
     int day = GET_DAY(self);
 
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 3, 0, argsbuf);
+    args =
+        _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 3, 0, argsbuf);
     if (!args) {
         goto exit;
     }
@@ -166,50 +183,70 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(datetime_time_replace__doc__,
-"replace($self, /, hour=unchanged, minute=unchanged, second=unchanged,\n"
-"        microsecond=unchanged, tzinfo=unchanged, *, fold=unchanged)\n"
-"--\n"
-"\n"
-"Return time with new specified fields.");
+PyDoc_STRVAR(
+    datetime_time_replace__doc__,
+    "replace($self, /, hour=unchanged, minute=unchanged, second=unchanged,\n"
+    "        microsecond=unchanged, tzinfo=unchanged, *, fold=unchanged)\n"
+    "--\n"
+    "\n"
+    "Return time with new specified fields."
+);
 
-#define DATETIME_TIME_REPLACE_METHODDEF    \
-    {"replace", _PyCFunction_CAST(datetime_time_replace), METH_FASTCALL|METH_KEYWORDS, datetime_time_replace__doc__},
+#define DATETIME_TIME_REPLACE_METHODDEF        \
+    {"replace",                                \
+     _PyCFunction_CAST(datetime_time_replace), \
+     METH_FASTCALL | METH_KEYWORDS,            \
+     datetime_time_replace__doc__},
 
 static PyObject *
-datetime_time_replace_impl(PyDateTime_Time *self, int hour, int minute,
-                           int second, int microsecond, PyObject *tzinfo,
-                           int fold);
+datetime_time_replace_impl(
+    PyDateTime_Time *self,
+    int hour,
+    int minute,
+    int second,
+    int microsecond,
+    PyObject *tzinfo,
+    int fold
+);
 
 static PyObject *
-datetime_time_replace(PyDateTime_Time *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
-{
+datetime_time_replace(
+    PyDateTime_Time *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames
+) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 6
+#define NUM_KEYWORDS 6
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(hour), &_Py_ID(minute), &_Py_ID(second), &_Py_ID(microsecond), &_Py_ID(tzinfo), &_Py_ID(fold), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(hour),
+                &_Py_ID(minute),
+                &_Py_ID(second),
+                &_Py_ID(microsecond),
+                &_Py_ID(tzinfo),
+                &_Py_ID(fold),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"hour", "minute", "second", "microsecond", "tzinfo", "fold", NULL};
+    static const char *const _keywords[] = {
+        "hour", "minute", "second", "microsecond", "tzinfo", "fold", NULL
+    };
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "replace",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[6];
     Py_ssize_t noptargs = nargs + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 0;
     int hour = TIME_GET_HOUR(self);
@@ -219,7 +256,8 @@ datetime_time_replace(PyDateTime_Time *self, PyObject *const *args, Py_ssize_t n
     PyObject *tzinfo = HASTZINFO(self) ? self->tzinfo : Py_None;
     int fold = TIME_GET_FOLD(self);
 
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 5, 0, argsbuf);
+    args =
+        _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 5, 0, argsbuf);
     if (!args) {
         goto exit;
     }
@@ -277,63 +315,73 @@ skip_optional_pos:
         goto exit;
     }
 skip_optional_kwonly:
-    return_value = datetime_time_replace_impl(self, hour, minute, second, microsecond, tzinfo, fold);
+    return_value = datetime_time_replace_impl(
+        self, hour, minute, second, microsecond, tzinfo, fold
+    );
 
 exit:
     return return_value;
 }
 
-PyDoc_STRVAR(datetime_datetime_now__doc__,
-"now($type, /, tz=None)\n"
-"--\n"
-"\n"
-"Returns new datetime object representing current time local to tz.\n"
-"\n"
-"  tz\n"
-"    Timezone object.\n"
-"\n"
-"If no tz is specified, uses local timezone.");
+PyDoc_STRVAR(
+    datetime_datetime_now__doc__,
+    "now($type, /, tz=None)\n"
+    "--\n"
+    "\n"
+    "Returns new datetime object representing current time local to tz.\n"
+    "\n"
+    "  tz\n"
+    "    Timezone object.\n"
+    "\n"
+    "If no tz is specified, uses local timezone."
+);
 
-#define DATETIME_DATETIME_NOW_METHODDEF    \
-    {"now", _PyCFunction_CAST(datetime_datetime_now), METH_FASTCALL|METH_KEYWORDS|METH_CLASS, datetime_datetime_now__doc__},
+#define DATETIME_DATETIME_NOW_METHODDEF          \
+    {"now",                                      \
+     _PyCFunction_CAST(datetime_datetime_now),   \
+     METH_FASTCALL | METH_KEYWORDS | METH_CLASS, \
+     datetime_datetime_now__doc__},
 
 static PyObject *
 datetime_datetime_now_impl(PyTypeObject *type, PyObject *tz);
 
 static PyObject *
-datetime_datetime_now(PyTypeObject *type, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
-{
+datetime_datetime_now(
+    PyTypeObject *type, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames
+) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 1
+#define NUM_KEYWORDS 1
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(tz), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(tz),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"tz", NULL};
+    static const char *const _keywords[] = {"tz", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "now",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[1];
     Py_ssize_t noptargs = nargs + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 0;
     PyObject *tz = Py_None;
 
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 1, 0, argsbuf);
+    args =
+        _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 1, 0, argsbuf);
     if (!args) {
         goto exit;
     }
@@ -348,52 +396,89 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(datetime_datetime_replace__doc__,
-"replace($self, /, year=unchanged, month=unchanged, day=unchanged,\n"
-"        hour=unchanged, minute=unchanged, second=unchanged,\n"
-"        microsecond=unchanged, tzinfo=unchanged, *, fold=unchanged)\n"
-"--\n"
-"\n"
-"Return datetime with new specified fields.");
+PyDoc_STRVAR(
+    datetime_datetime_replace__doc__,
+    "replace($self, /, year=unchanged, month=unchanged, day=unchanged,\n"
+    "        hour=unchanged, minute=unchanged, second=unchanged,\n"
+    "        microsecond=unchanged, tzinfo=unchanged, *, fold=unchanged)\n"
+    "--\n"
+    "\n"
+    "Return datetime with new specified fields."
+);
 
-#define DATETIME_DATETIME_REPLACE_METHODDEF    \
-    {"replace", _PyCFunction_CAST(datetime_datetime_replace), METH_FASTCALL|METH_KEYWORDS, datetime_datetime_replace__doc__},
+#define DATETIME_DATETIME_REPLACE_METHODDEF        \
+    {"replace",                                    \
+     _PyCFunction_CAST(datetime_datetime_replace), \
+     METH_FASTCALL | METH_KEYWORDS,                \
+     datetime_datetime_replace__doc__},
 
 static PyObject *
-datetime_datetime_replace_impl(PyDateTime_DateTime *self, int year,
-                               int month, int day, int hour, int minute,
-                               int second, int microsecond, PyObject *tzinfo,
-                               int fold);
+datetime_datetime_replace_impl(
+    PyDateTime_DateTime *self,
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+    int second,
+    int microsecond,
+    PyObject *tzinfo,
+    int fold
+);
 
 static PyObject *
-datetime_datetime_replace(PyDateTime_DateTime *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
-{
+datetime_datetime_replace(
+    PyDateTime_DateTime *self,
+    PyObject *const *args,
+    Py_ssize_t nargs,
+    PyObject *kwnames
+) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 9
+#define NUM_KEYWORDS 9
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(year), &_Py_ID(month), &_Py_ID(day), &_Py_ID(hour), &_Py_ID(minute), &_Py_ID(second), &_Py_ID(microsecond), &_Py_ID(tzinfo), &_Py_ID(fold), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(year),
+                &_Py_ID(month),
+                &_Py_ID(day),
+                &_Py_ID(hour),
+                &_Py_ID(minute),
+                &_Py_ID(second),
+                &_Py_ID(microsecond),
+                &_Py_ID(tzinfo),
+                &_Py_ID(fold),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"year", "month", "day", "hour", "minute", "second", "microsecond", "tzinfo", "fold", NULL};
+    static const char *const _keywords[] = {
+        "year",
+        "month",
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "microsecond",
+        "tzinfo",
+        "fold",
+        NULL
+    };
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "replace",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[9];
     Py_ssize_t noptargs = nargs + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 0;
     int year = GET_YEAR(self);
@@ -406,7 +491,8 @@ datetime_datetime_replace(PyDateTime_DateTime *self, PyObject *const *args, Py_s
     PyObject *tzinfo = HASTZINFO(self) ? self->tzinfo : Py_None;
     int fold = DATE_GET_FOLD(self);
 
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 8, 0, argsbuf);
+    args =
+        _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 8, 0, argsbuf);
     if (!args) {
         goto exit;
     }
@@ -491,7 +577,9 @@ skip_optional_pos:
         goto exit;
     }
 skip_optional_kwonly:
-    return_value = datetime_datetime_replace_impl(self, year, month, day, hour, minute, second, microsecond, tzinfo, fold);
+    return_value = datetime_datetime_replace_impl(
+        self, year, month, day, hour, minute, second, microsecond, tzinfo, fold
+    );
 
 exit:
     return return_value;

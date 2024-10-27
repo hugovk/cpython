@@ -1,15 +1,14 @@
 /* Cell object implementation */
 
 #include "Python.h"
-#include "pycore_cell.h"          // PyCell_GetRef()
-#include "pycore_modsupport.h"    // _PyArg_NoKeywords()
+#include "pycore_cell.h"        // PyCell_GetRef()
+#include "pycore_modsupport.h"  // _PyArg_NoKeywords()
 #include "pycore_object.h"
 
-#define _PyCell_CAST(op) _Py_CAST(PyCellObject*, (op))
+#define _PyCell_CAST(op) _Py_CAST(PyCellObject *, (op))
 
 PyObject *
-PyCell_New(PyObject *obj)
-{
+PyCell_New(PyObject *obj) {
     PyCellObject *op;
 
     op = (PyCellObject *)PyObject_GC_New(PyCellObject, &PyCell_Type);
@@ -21,21 +20,21 @@ PyCell_New(PyObject *obj)
     return (PyObject *)op;
 }
 
-PyDoc_STRVAR(cell_new_doc,
-"cell([contents])\n"
-"--\n"
-"\n"
-"Create a new cell object.\n"
-"\n"
-"  contents\n"
-"    the contents of the cell. If not specified, the cell will be empty,\n"
-"    and \n further attempts to access its cell_contents attribute will\n"
-"    raise a ValueError.");
-
+PyDoc_STRVAR(
+    cell_new_doc,
+    "cell([contents])\n"
+    "--\n"
+    "\n"
+    "Create a new cell object.\n"
+    "\n"
+    "  contents\n"
+    "    the contents of the cell. If not specified, the cell will be empty,\n"
+    "    and \n further attempts to access its cell_contents attribute will\n"
+    "    raise a ValueError."
+);
 
 static PyObject *
-cell_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+cell_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
     PyObject *obj = NULL;
 
@@ -53,8 +52,7 @@ exit:
 }
 
 PyObject *
-PyCell_Get(PyObject *op)
-{
+PyCell_Get(PyObject *op) {
     if (!PyCell_Check(op)) {
         PyErr_BadInternalCall();
         return NULL;
@@ -63,8 +61,7 @@ PyCell_Get(PyObject *op)
 }
 
 int
-PyCell_Set(PyObject *op, PyObject *value)
-{
+PyCell_Set(PyObject *op, PyObject *value) {
     if (!PyCell_Check(op)) {
         PyErr_BadInternalCall();
         return -1;
@@ -74,8 +71,7 @@ PyCell_Set(PyObject *op, PyObject *value)
 }
 
 static void
-cell_dealloc(PyObject *self)
-{
+cell_dealloc(PyObject *self) {
     PyCellObject *op = _PyCell_CAST(self);
     _PyObject_GC_UNTRACK(op);
     Py_XDECREF(op->ob_ref);
@@ -83,8 +79,7 @@ cell_dealloc(PyObject *self)
 }
 
 static PyObject *
-cell_richcompare(PyObject *a, PyObject *b, int op)
-{
+cell_richcompare(PyObject *a, PyObject *b, int op) {
     /* neither argument should be NULL, unless something's gone wrong */
     assert(a != NULL && b != NULL);
 
@@ -103,37 +98,33 @@ cell_richcompare(PyObject *a, PyObject *b, int op)
 }
 
 static PyObject *
-cell_repr(PyObject *self)
-{
+cell_repr(PyObject *self) {
     PyCellObject *op = _PyCell_CAST(self);
     if (op->ob_ref == NULL) {
         return PyUnicode_FromFormat("<cell at %p: empty>", op);
     }
 
-    return PyUnicode_FromFormat("<cell at %p: %.80s object at %p>",
-                               op, Py_TYPE(op->ob_ref)->tp_name,
-                               op->ob_ref);
+    return PyUnicode_FromFormat(
+        "<cell at %p: %.80s object at %p>", op, Py_TYPE(op->ob_ref)->tp_name, op->ob_ref
+    );
 }
 
 static int
-cell_traverse(PyObject *self, visitproc visit, void *arg)
-{
+cell_traverse(PyObject *self, visitproc visit, void *arg) {
     PyCellObject *op = _PyCell_CAST(self);
     Py_VISIT(op->ob_ref);
     return 0;
 }
 
 static int
-cell_clear(PyObject *self)
-{
+cell_clear(PyObject *self) {
     PyCellObject *op = _PyCell_CAST(self);
     Py_CLEAR(op->ob_ref);
     return 0;
 }
 
 static PyObject *
-cell_get_contents(PyObject *self, void *closure)
-{
+cell_get_contents(PyObject *self, void *closure) {
     PyCellObject *op = _PyCell_CAST(self);
     if (op->ob_ref == NULL) {
         PyErr_SetString(PyExc_ValueError, "Cell is empty");
@@ -143,56 +134,53 @@ cell_get_contents(PyObject *self, void *closure)
 }
 
 static int
-cell_set_contents(PyObject *self, PyObject *obj, void *Py_UNUSED(ignored))
-{
+cell_set_contents(PyObject *self, PyObject *obj, void *Py_UNUSED(ignored)) {
     PyCellObject *op = _PyCell_CAST(self);
     Py_XSETREF(op->ob_ref, Py_XNewRef(obj));
     return 0;
 }
 
 static PyGetSetDef cell_getsetlist[] = {
-    {"cell_contents", cell_get_contents, cell_set_contents, NULL},
-    {NULL} /* sentinel */
+    {"cell_contents", cell_get_contents, cell_set_contents, NULL}, {NULL} /* sentinel */
 };
 
 PyTypeObject PyCell_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "cell",
+    PyVarObject_HEAD_INIT(&PyType_Type, 0) "cell",
     sizeof(PyCellObject),
     0,
-    cell_dealloc,                               /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    0,                                          /* tp_getattr */
-    0,                                          /* tp_setattr */
-    0,                                          /* tp_as_async */
-    cell_repr,                                  /* tp_repr */
-    0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
-    0,                                          /* tp_as_mapping */
-    0,                                          /* tp_hash */
-    0,                                          /* tp_call */
-    0,                                          /* tp_str */
-    PyObject_GenericGetAttr,                    /* tp_getattro */
-    0,                                          /* tp_setattro */
-    0,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,    /* tp_flags */
-    cell_new_doc,                               /* tp_doc */
-    cell_traverse,                              /* tp_traverse */
-    cell_clear,                                 /* tp_clear */
-    cell_richcompare,                           /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    0,                                          /* tp_methods */
-    0,                                          /* tp_members */
-    cell_getsetlist,                            /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    0,                                          /* tp_init */
-    0,                                          /* tp_alloc */
-    cell_new,                                   /* tp_new */
-    0,                                          /* tp_free */
+    cell_dealloc,                            /* tp_dealloc */
+    0,                                       /* tp_vectorcall_offset */
+    0,                                       /* tp_getattr */
+    0,                                       /* tp_setattr */
+    0,                                       /* tp_as_async */
+    cell_repr,                               /* tp_repr */
+    0,                                       /* tp_as_number */
+    0,                                       /* tp_as_sequence */
+    0,                                       /* tp_as_mapping */
+    0,                                       /* tp_hash */
+    0,                                       /* tp_call */
+    0,                                       /* tp_str */
+    PyObject_GenericGetAttr,                 /* tp_getattro */
+    0,                                       /* tp_setattro */
+    0,                                       /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
+    cell_new_doc,                            /* tp_doc */
+    cell_traverse,                           /* tp_traverse */
+    cell_clear,                              /* tp_clear */
+    cell_richcompare,                        /* tp_richcompare */
+    0,                                       /* tp_weaklistoffset */
+    0,                                       /* tp_iter */
+    0,                                       /* tp_iternext */
+    0,                                       /* tp_methods */
+    0,                                       /* tp_members */
+    cell_getsetlist,                         /* tp_getset */
+    0,                                       /* tp_base */
+    0,                                       /* tp_dict */
+    0,                                       /* tp_descr_get */
+    0,                                       /* tp_descr_set */
+    0,                                       /* tp_dictoffset */
+    0,                                       /* tp_init */
+    0,                                       /* tp_alloc */
+    cell_new,                                /* tp_new */
+    0,                                       /* tp_free */
 };

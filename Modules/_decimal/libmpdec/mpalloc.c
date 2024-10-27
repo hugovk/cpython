@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 
 #include <assert.h>
@@ -36,33 +35,28 @@
 #include "mpalloc.h"
 #include "typearith.h"
 
-
 #if defined(_MSC_VER)
-  #pragma warning(disable : 4232)
+#pragma warning(disable : 4232)
 #endif
-
 
 /* Guaranteed minimum allocation for a coefficient. May be changed once
    at program start using mpd_setminalloc(). */
 mpd_ssize_t MPD_MINALLOC = MPD_MINALLOC_MIN;
 
 /* Custom allocation and free functions */
-void *(* mpd_mallocfunc)(size_t size) = malloc;
-void *(* mpd_reallocfunc)(void *ptr, size_t size) = realloc;
-void *(* mpd_callocfunc)(size_t nmemb, size_t size) = calloc;
-void (* mpd_free)(void *ptr) = free;
-
+void *(*mpd_mallocfunc)(size_t size) = malloc;
+void *(*mpd_reallocfunc)(void *ptr, size_t size) = realloc;
+void *(*mpd_callocfunc)(size_t nmemb, size_t size) = calloc;
+void (*mpd_free)(void *ptr) = free;
 
 /* emulate calloc if it is not available */
 void *
-mpd_callocfunc_em(size_t nmemb, size_t size)
-{
+mpd_callocfunc_em(size_t nmemb, size_t size) {
     void *ptr;
     size_t req;
     mpd_size_t overflow;
 
-    req = mul_size_t_overflow((mpd_size_t)nmemb, (mpd_size_t)size,
-                              &overflow);
+    req = mul_size_t_overflow((mpd_size_t)nmemb, (mpd_size_t)size, &overflow);
     if (overflow) {
         return NULL;
     }
@@ -77,11 +71,9 @@ mpd_callocfunc_em(size_t nmemb, size_t size)
     return ptr;
 }
 
-
 /* malloc with overflow checking */
 void *
-mpd_alloc(mpd_size_t nmemb, mpd_size_t size)
-{
+mpd_alloc(mpd_size_t nmemb, mpd_size_t size) {
     mpd_size_t req, overflow;
 
     req = mul_size_t_overflow(nmemb, size, &overflow);
@@ -94,8 +86,7 @@ mpd_alloc(mpd_size_t nmemb, mpd_size_t size)
 
 /* calloc with overflow checking */
 void *
-mpd_calloc(mpd_size_t nmemb, mpd_size_t size)
-{
+mpd_calloc(mpd_size_t nmemb, mpd_size_t size) {
     mpd_size_t overflow;
 
     (void)mul_size_t_overflow(nmemb, size, &overflow);
@@ -108,8 +99,7 @@ mpd_calloc(mpd_size_t nmemb, mpd_size_t size)
 
 /* realloc with overflow checking */
 void *
-mpd_realloc(void *ptr, mpd_size_t nmemb, mpd_size_t size, uint8_t *err)
-{
+mpd_realloc(void *ptr, mpd_size_t nmemb, mpd_size_t size, uint8_t *err) {
     void *new;
     mpd_size_t req, overflow;
 
@@ -130,8 +120,7 @@ mpd_realloc(void *ptr, mpd_size_t nmemb, mpd_size_t size, uint8_t *err)
 
 /* struct hack malloc with overflow checking */
 void *
-mpd_sh_alloc(mpd_size_t struct_size, mpd_size_t nmemb, mpd_size_t size)
-{
+mpd_sh_alloc(mpd_size_t struct_size, mpd_size_t nmemb, mpd_size_t size) {
     mpd_size_t req, overflow;
 
     req = mul_size_t_overflow(nmemb, size, &overflow);
@@ -147,12 +136,10 @@ mpd_sh_alloc(mpd_size_t struct_size, mpd_size_t nmemb, mpd_size_t size)
     return mpd_mallocfunc(req);
 }
 
-
 /* Allocate a new decimal with a coefficient of length 'nwords'. In case
    of an error the return value is NULL. */
 mpd_t *
-mpd_qnew_size(mpd_ssize_t nwords)
-{
+mpd_qnew_size(mpd_ssize_t nwords) {
     mpd_t *result;
 
     nwords = (nwords < MPD_MINALLOC) ? MPD_MINALLOC : nwords;
@@ -180,16 +167,14 @@ mpd_qnew_size(mpd_ssize_t nwords)
 /* Allocate a new decimal with a coefficient of length MPD_MINALLOC.
    In case of an error the return value is NULL. */
 mpd_t *
-mpd_qnew(void)
-{
+mpd_qnew(void) {
     return mpd_qnew_size(MPD_MINALLOC);
 }
 
 /* Allocate new decimal. Caller can check for NULL or MPD_Malloc_error.
    Raises on error. */
 mpd_t *
-mpd_new(mpd_context_t *ctx)
-{
+mpd_new(mpd_context_t *ctx) {
     mpd_t *result;
 
     result = mpd_qnew();
@@ -208,8 +193,7 @@ mpd_new(mpd_context_t *ctx)
  * Otherwise, set 'result' to NaN and update 'status' with MPD_Malloc_error.
  */
 int
-mpd_switch_to_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
-{
+mpd_switch_to_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status) {
     mpd_uint_t *p = result->data;
 
     assert(nwords >= result->alloc);
@@ -237,8 +221,7 @@ mpd_switch_to_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
  * malloc fails, set 'result' to NaN and update 'status' with MPD_Malloc_error.
  */
 int
-mpd_switch_to_dyn_zero(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
-{
+mpd_switch_to_dyn_zero(mpd_t *result, mpd_ssize_t nwords, uint32_t *status) {
     mpd_uint_t *p = result->data;
 
     result->data = mpd_calloc(nwords, sizeof *result->data);
@@ -272,15 +255,13 @@ mpd_switch_to_dyn_zero(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
  *       'result' is unchanged. Reuse the now oversized coefficient. Return 1.
  */
 int
-mpd_realloc_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
-{
+mpd_realloc_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status) {
     uint8_t err = 0;
 
     result->data = mpd_realloc(result->data, nwords, sizeof *result->data, &err);
     if (!err) {
         result->alloc = nwords;
-    }
-    else if (nwords > result->alloc) {
+    } else if (nwords > result->alloc) {
         mpd_set_qnan(result);
         mpd_set_positive(result);
         result->exp = result->digits = result->len = 0;
@@ -301,8 +282,7 @@ mpd_realloc_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
  * On failure the value of 'result' is unchanged.
  */
 int
-mpd_switch_to_dyn_cxx(mpd_t *result, mpd_ssize_t nwords)
-{
+mpd_switch_to_dyn_cxx(mpd_t *result, mpd_ssize_t nwords) {
     assert(nwords >= result->alloc);
 
     mpd_uint_t *data = mpd_alloc(nwords, sizeof *result->data);
@@ -332,16 +312,14 @@ mpd_switch_to_dyn_cxx(mpd_t *result, mpd_ssize_t nwords)
  *       'result' is unchanged. Reuse the now oversized coefficient. Return 1.
  */
 int
-mpd_realloc_dyn_cxx(mpd_t *result, mpd_ssize_t nwords)
-{
+mpd_realloc_dyn_cxx(mpd_t *result, mpd_ssize_t nwords) {
     uint8_t err = 0;
 
     mpd_uint_t *p = mpd_realloc(result->data, nwords, sizeof *result->data, &err);
     if (!err) {
         result->data = p;
         result->alloc = nwords;
-    }
-    else if (nwords > result->alloc) {
+    } else if (nwords > result->alloc) {
         return 0;
     }
 

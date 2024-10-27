@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 
 #include <assert.h>
@@ -36,14 +35,11 @@
 #include "typearith.h"
 #include "umodarith.h"
 
-
 /* Bignum: Chinese Remainder Theorem, extends the maximum transform length. */
-
 
 /* Multiply P1P2 by v, store result in w. */
 static inline void
-_crt_mulP1P2_3(mpd_uint_t w[3], mpd_uint_t v)
-{
+_crt_mulP1P2_3(mpd_uint_t w[3], mpd_uint_t v) {
     mpd_uint_t hi1, hi2, lo;
 
     _mpd_mul_words(&hi1, &lo, LH_P1P2, v);
@@ -51,7 +47,8 @@ _crt_mulP1P2_3(mpd_uint_t w[3], mpd_uint_t v)
 
     _mpd_mul_words(&hi2, &lo, UH_P1P2, v);
     lo = hi1 + lo;
-    if (lo < hi1) hi2++;
+    if (lo < hi1)
+        hi2++;
 
     w[1] = lo;
     w[2] = hi2;
@@ -59,33 +56,32 @@ _crt_mulP1P2_3(mpd_uint_t w[3], mpd_uint_t v)
 
 /* Add 3 words from v to w. The result is known to fit in w. */
 static inline void
-_crt_add3(mpd_uint_t w[3], mpd_uint_t v[3])
-{
+_crt_add3(mpd_uint_t w[3], mpd_uint_t v[3]) {
     mpd_uint_t carry;
 
     w[0] = w[0] + v[0];
     carry = (w[0] < v[0]);
 
     w[1] = w[1] + v[1];
-    if (w[1] < v[1]) w[2]++;
+    if (w[1] < v[1])
+        w[2]++;
 
     w[1] = w[1] + carry;
-    if (w[1] < carry) w[2]++;
+    if (w[1] < carry)
+        w[2]++;
 
     w[2] += v[2];
 }
 
 /* Divide 3 words in u by v, store result in w, return remainder. */
 static inline mpd_uint_t
-_crt_div3(mpd_uint_t *w, const mpd_uint_t *u, mpd_uint_t v)
-{
+_crt_div3(mpd_uint_t *w, const mpd_uint_t *u, mpd_uint_t v) {
     mpd_uint_t r1 = u[2];
     mpd_uint_t r2;
 
     if (r1 < v) {
         w[2] = 0;
-    }
-    else {
+    } else {
         _mpd_div_word(&w[2], &r1, u[2], v); /* GCOV_NOT_REACHED */
     }
 
@@ -94,7 +90,6 @@ _crt_div3(mpd_uint_t *w, const mpd_uint_t *u, mpd_uint_t v)
 
     return r1;
 }
-
 
 /*
  * Chinese Remainder Theorem:
@@ -132,8 +127,7 @@ _crt_div3(mpd_uint_t *w, const mpd_uint_t *u, mpd_uint_t v)
  *   3) If c <= cmax, then c_next = (c + zmax) / MPD_RADIX <= cmax.
  */
 void
-crt3(mpd_uint_t *x1, mpd_uint_t *x2, mpd_uint_t *x3, mpd_size_t rsize)
-{
+crt3(mpd_uint_t *x1, mpd_uint_t *x2, mpd_uint_t *x3, mpd_size_t rsize) {
     mpd_uint_t p1 = mpd_moduli[P1];
     mpd_uint_t umod;
 #ifdef PPRO
@@ -143,12 +137,11 @@ crt3(mpd_uint_t *x1, mpd_uint_t *x2, mpd_uint_t *x3, mpd_size_t rsize)
     mpd_uint_t a1, a2, a3;
     mpd_uint_t s;
     mpd_uint_t z[3], t[3];
-    mpd_uint_t carry[3] = {0,0,0};
+    mpd_uint_t carry[3] = {0, 0, 0};
     mpd_uint_t hi, lo;
     mpd_size_t i;
 
     for (i = 0; i < rsize; i++) {
-
         a1 = x1[i];
         a2 = x2[i];
         a3 = x3[i];
@@ -159,7 +152,8 @@ crt3(mpd_uint_t *x1, mpd_uint_t *x2, mpd_uint_t *x3, mpd_size_t rsize)
 
         _mpd_mul_words(&hi, &lo, s, p1);
         lo = lo + a1;
-        if (lo < a1) hi++;
+        if (lo < a1)
+            hi++;
 
         SETMODULUS(P3);
         s = dw_submod(a3, hi, lo, umod);

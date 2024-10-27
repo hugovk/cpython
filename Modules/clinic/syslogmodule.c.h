@@ -3,62 +3,71 @@ preserve
 [clinic start generated code]*/
 
 #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
-#  include "pycore_gc.h"          // PyGC_Head
-#  include "pycore_runtime.h"     // _Py_ID()
+#include "pycore_gc.h"       // PyGC_Head
+#include "pycore_runtime.h"  // _Py_ID()
 #endif
-#include "pycore_critical_section.h"// Py_BEGIN_CRITICAL_SECTION()
-#include "pycore_modsupport.h"    // _PyArg_UnpackKeywords()
+#include "pycore_critical_section.h"  // Py_BEGIN_CRITICAL_SECTION()
+#include "pycore_modsupport.h"        // _PyArg_UnpackKeywords()
 
-PyDoc_STRVAR(syslog_openlog__doc__,
-"openlog($module, /, ident=<unrepresentable>, logoption=0,\n"
-"        facility=LOG_USER)\n"
-"--\n"
-"\n"
-"Set logging options of subsequent syslog() calls.");
+PyDoc_STRVAR(
+    syslog_openlog__doc__,
+    "openlog($module, /, ident=<unrepresentable>, logoption=0,\n"
+    "        facility=LOG_USER)\n"
+    "--\n"
+    "\n"
+    "Set logging options of subsequent syslog() calls."
+);
 
-#define SYSLOG_OPENLOG_METHODDEF    \
-    {"openlog", _PyCFunction_CAST(syslog_openlog), METH_FASTCALL|METH_KEYWORDS, syslog_openlog__doc__},
+#define SYSLOG_OPENLOG_METHODDEF        \
+    {"openlog",                         \
+     _PyCFunction_CAST(syslog_openlog), \
+     METH_FASTCALL | METH_KEYWORDS,     \
+     syslog_openlog__doc__},
 
 static PyObject *
-syslog_openlog_impl(PyObject *module, PyObject *ident, long logopt,
-                    long facility);
+syslog_openlog_impl(PyObject *module, PyObject *ident, long logopt, long facility);
 
 static PyObject *
-syslog_openlog(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
-{
+syslog_openlog(
+    PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames
+) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 3
+#define NUM_KEYWORDS 3
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(ident), &_Py_ID(logoption), &_Py_ID(facility), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(ident),
+                &_Py_ID(logoption),
+                &_Py_ID(facility),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"ident", "logoption", "facility", NULL};
+    static const char *const _keywords[] = {"ident", "logoption", "facility", NULL};
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "openlog",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[3];
     Py_ssize_t noptargs = nargs + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 0;
     PyObject *ident = NULL;
     long logopt = 0;
     long facility = LOG_USER;
 
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 3, 0, argsbuf);
+    args =
+        _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 3, 0, argsbuf);
     if (!args) {
         goto exit;
     }
@@ -97,20 +106,22 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(syslog_syslog__doc__,
-"syslog([priority=LOG_INFO,] message)\n"
-"Send the string message to the system logger.");
+PyDoc_STRVAR(
+    syslog_syslog__doc__,
+    "syslog([priority=LOG_INFO,] message)\n"
+    "Send the string message to the system logger."
+);
 
-#define SYSLOG_SYSLOG_METHODDEF    \
+#define SYSLOG_SYSLOG_METHODDEF \
     {"syslog", (PyCFunction)syslog_syslog, METH_VARARGS, syslog_syslog__doc__},
 
 static PyObject *
-syslog_syslog_impl(PyObject *module, int group_left_1, int priority,
-                   const char *message);
+syslog_syslog_impl(
+    PyObject *module, int group_left_1, int priority, const char *message
+);
 
 static PyObject *
-syslog_syslog(PyObject *module, PyObject *args)
-{
+syslog_syslog(PyObject *module, PyObject *args) {
     PyObject *return_value = NULL;
     int group_left_1 = 0;
     int priority = LOG_INFO;
@@ -140,21 +151,22 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(syslog_closelog__doc__,
-"closelog($module, /)\n"
-"--\n"
-"\n"
-"Reset the syslog module values and call the system library closelog().");
+PyDoc_STRVAR(
+    syslog_closelog__doc__,
+    "closelog($module, /)\n"
+    "--\n"
+    "\n"
+    "Reset the syslog module values and call the system library closelog()."
+);
 
-#define SYSLOG_CLOSELOG_METHODDEF    \
+#define SYSLOG_CLOSELOG_METHODDEF \
     {"closelog", (PyCFunction)syslog_closelog, METH_NOARGS, syslog_closelog__doc__},
 
 static PyObject *
 syslog_closelog_impl(PyObject *module);
 
 static PyObject *
-syslog_closelog(PyObject *module, PyObject *Py_UNUSED(ignored))
-{
+syslog_closelog(PyObject *module, PyObject *Py_UNUSED(ignored)) {
     PyObject *return_value = NULL;
 
     Py_BEGIN_CRITICAL_SECTION(module);
@@ -164,21 +176,22 @@ syslog_closelog(PyObject *module, PyObject *Py_UNUSED(ignored))
     return return_value;
 }
 
-PyDoc_STRVAR(syslog_setlogmask__doc__,
-"setlogmask($module, maskpri, /)\n"
-"--\n"
-"\n"
-"Set the priority mask to maskpri and return the previous mask value.");
+PyDoc_STRVAR(
+    syslog_setlogmask__doc__,
+    "setlogmask($module, maskpri, /)\n"
+    "--\n"
+    "\n"
+    "Set the priority mask to maskpri and return the previous mask value."
+);
 
-#define SYSLOG_SETLOGMASK_METHODDEF    \
+#define SYSLOG_SETLOGMASK_METHODDEF \
     {"setlogmask", (PyCFunction)syslog_setlogmask, METH_O, syslog_setlogmask__doc__},
 
 static long
 syslog_setlogmask_impl(PyObject *module, long maskpri);
 
 static PyObject *
-syslog_setlogmask(PyObject *module, PyObject *arg)
-{
+syslog_setlogmask(PyObject *module, PyObject *arg) {
     PyObject *return_value = NULL;
     long maskpri;
     long _return_value;
@@ -197,21 +210,22 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(syslog_LOG_MASK__doc__,
-"LOG_MASK($module, pri, /)\n"
-"--\n"
-"\n"
-"Calculates the mask for the individual priority pri.");
+PyDoc_STRVAR(
+    syslog_LOG_MASK__doc__,
+    "LOG_MASK($module, pri, /)\n"
+    "--\n"
+    "\n"
+    "Calculates the mask for the individual priority pri."
+);
 
-#define SYSLOG_LOG_MASK_METHODDEF    \
+#define SYSLOG_LOG_MASK_METHODDEF \
     {"LOG_MASK", (PyCFunction)syslog_LOG_MASK, METH_O, syslog_LOG_MASK__doc__},
 
 static long
 syslog_LOG_MASK_impl(PyObject *module, long pri);
 
 static PyObject *
-syslog_LOG_MASK(PyObject *module, PyObject *arg)
-{
+syslog_LOG_MASK(PyObject *module, PyObject *arg) {
     PyObject *return_value = NULL;
     long pri;
     long _return_value;
@@ -230,21 +244,22 @@ exit:
     return return_value;
 }
 
-PyDoc_STRVAR(syslog_LOG_UPTO__doc__,
-"LOG_UPTO($module, pri, /)\n"
-"--\n"
-"\n"
-"Calculates the mask for all priorities up to and including pri.");
+PyDoc_STRVAR(
+    syslog_LOG_UPTO__doc__,
+    "LOG_UPTO($module, pri, /)\n"
+    "--\n"
+    "\n"
+    "Calculates the mask for all priorities up to and including pri."
+);
 
-#define SYSLOG_LOG_UPTO_METHODDEF    \
+#define SYSLOG_LOG_UPTO_METHODDEF \
     {"LOG_UPTO", (PyCFunction)syslog_LOG_UPTO, METH_O, syslog_LOG_UPTO__doc__},
 
 static long
 syslog_LOG_UPTO_impl(PyObject *module, long pri);
 
 static PyObject *
-syslog_LOG_UPTO(PyObject *module, PyObject *arg)
-{
+syslog_LOG_UPTO(PyObject *module, PyObject *arg) {
     PyObject *return_value = NULL;
     long pri;
     long _return_value;

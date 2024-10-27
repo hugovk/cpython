@@ -2,100 +2,98 @@
 /* Module support implementation */
 
 #include "Python.h"
-#include "pycore_abstract.h"   // _PyIndex_Check()
-#include "pycore_object.h"     // _PyType_IsReady()
+#include "pycore_abstract.h"  // _PyIndex_Check()
+#include "pycore_object.h"    // _PyType_IsReady()
 
 typedef double va_double;
 
-static PyObject *va_build_value(const char *, va_list);
-
+static PyObject *
+va_build_value(const char *, va_list);
 
 int
-_Py_convert_optional_to_ssize_t(PyObject *obj, void *result)
-{
+_Py_convert_optional_to_ssize_t(PyObject *obj, void *result) {
     Py_ssize_t limit;
     if (obj == Py_None) {
         return 1;
-    }
-    else if (_PyIndex_Check(obj)) {
+    } else if (_PyIndex_Check(obj)) {
         limit = PyNumber_AsSsize_t(obj, PyExc_OverflowError);
         if (limit == -1 && PyErr_Occurred()) {
             return 0;
         }
-    }
-    else {
-        PyErr_Format(PyExc_TypeError,
-                     "argument should be integer or None, not '%.200s'",
-                     Py_TYPE(obj)->tp_name);
+    } else {
+        PyErr_Format(
+            PyExc_TypeError,
+            "argument should be integer or None, not '%.200s'",
+            Py_TYPE(obj)->tp_name
+        );
         return 0;
     }
     *((Py_ssize_t *)result) = limit;
     return 1;
 }
 
-
 /* Helper for mkvalue() to scan the length of a format */
 
 static Py_ssize_t
-countformat(const char *format, char endchar)
-{
+countformat(const char *format, char endchar) {
     Py_ssize_t count = 0;
     int level = 0;
     while (level > 0 || *format != endchar) {
         switch (*format) {
-        case '\0':
-            /* Premature end */
-            PyErr_SetString(PyExc_SystemError,
-                            "unmatched paren in format");
-            return -1;
-        case '(':
-        case '[':
-        case '{':
-            if (level == 0) {
-                count++;
-            }
-            level++;
-            break;
-        case ')':
-        case ']':
-        case '}':
-            level--;
-            break;
-        case '#':
-        case '&':
-        case ',':
-        case ':':
-        case ' ':
-        case '\t':
-            break;
-        default:
-            if (level == 0) {
-                count++;
-            }
+            case '\0':
+                /* Premature end */
+                PyErr_SetString(PyExc_SystemError, "unmatched paren in format");
+                return -1;
+            case '(':
+            case '[':
+            case '{':
+                if (level == 0) {
+                    count++;
+                }
+                level++;
+                break;
+            case ')':
+            case ']':
+            case '}':
+                level--;
+                break;
+            case '#':
+            case '&':
+            case ',':
+            case ':':
+            case ' ':
+            case '\t':
+                break;
+            default:
+                if (level == 0) {
+                    count++;
+                }
         }
         format++;
     }
     return count;
 }
 
-
 /* Generic function to create a value -- the inverse of getargs() */
 /* After an original idea and first implementation by Steven Miale */
 
-static PyObject *do_mktuple(const char**, va_list *, char, Py_ssize_t);
-static int do_mkstack(PyObject **, const char**, va_list *, char, Py_ssize_t);
-static PyObject *do_mklist(const char**, va_list *, char, Py_ssize_t);
-static PyObject *do_mkdict(const char**, va_list *, char, Py_ssize_t);
-static PyObject *do_mkvalue(const char**, va_list *);
+static PyObject *
+do_mktuple(const char **, va_list *, char, Py_ssize_t);
+static int
+do_mkstack(PyObject **, const char **, va_list *, char, Py_ssize_t);
+static PyObject *
+do_mklist(const char **, va_list *, char, Py_ssize_t);
+static PyObject *
+do_mkdict(const char **, va_list *, char, Py_ssize_t);
+static PyObject *
+do_mkvalue(const char **, va_list *);
 
 static int
-check_end(const char **p_format, char endchar)
-{
+check_end(const char **p_format, char endchar) {
     const char *f = *p_format;
     while (*f != endchar) {
         if (*f != ' ' && *f != '\t' && *f != ',' && *f != ':') {
-            PyErr_SetString(PyExc_SystemError,
-                            "Unmatched paren in format");
+            PyErr_SetString(PyExc_SystemError, "Unmatched paren in format");
             return 0;
         }
         f++;
@@ -108,8 +106,7 @@ check_end(const char **p_format, char endchar)
 }
 
 static void
-do_ignore(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
-{
+do_ignore(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n) {
     assert(PyErr_Occurred());
     PyObject *v = PyTuple_New(n);
     for (Py_ssize_t i = 0; i < n; i++) {
@@ -119,8 +116,7 @@ do_ignore(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
         if (w != NULL) {
             if (v != NULL) {
                 PyTuple_SET_ITEM(v, i, w);
-            }
-            else {
+            } else {
                 Py_DECREF(w);
             }
         }
@@ -132,15 +128,13 @@ do_ignore(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
 }
 
 static PyObject *
-do_mkdict(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
-{
+do_mkdict(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n) {
     PyObject *d;
     Py_ssize_t i;
     if (n < 0)
         return NULL;
     if (n % 2) {
-        PyErr_SetString(PyExc_SystemError,
-                        "Bad dict format");
+        PyErr_SetString(PyExc_SystemError, "Bad dict format");
         do_ignore(p_format, p_va, endchar, n);
         return NULL;
     }
@@ -150,7 +144,7 @@ do_mkdict(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
         do_ignore(p_format, p_va, endchar, n);
         return NULL;
     }
-    for (i = 0; i < n; i+= 2) {
+    for (i = 0; i < n; i += 2) {
         PyObject *k, *v;
 
         k = do_mkvalue(p_format, p_va);
@@ -178,8 +172,7 @@ do_mkdict(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
 }
 
 static PyObject *
-do_mklist(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
-{
+do_mklist(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n) {
     PyObject *v;
     Py_ssize_t i;
     if (n < 0)
@@ -208,9 +201,9 @@ do_mklist(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
 }
 
 static int
-do_mkstack(PyObject **stack, const char **p_format, va_list *p_va,
-           char endchar, Py_ssize_t n)
-{
+do_mkstack(
+    PyObject **stack, const char **p_format, va_list *p_va, char endchar, Py_ssize_t n
+) {
     Py_ssize_t i;
 
     if (n < 0) {
@@ -233,15 +226,14 @@ do_mkstack(PyObject **stack, const char **p_format, va_list *p_va,
 
 error:
     n = i;
-    for (i=0; i < n; i++) {
+    for (i = 0; i < n; i++) {
         Py_DECREF(stack[i]);
     }
     return -1;
 }
 
 static PyObject *
-do_mktuple(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
-{
+do_mktuple(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n) {
     PyObject *v;
     Py_ssize_t i;
     if (n < 0)
@@ -269,214 +261,198 @@ do_mktuple(const char **p_format, va_list *p_va, char endchar, Py_ssize_t n)
 }
 
 static PyObject *
-do_mkvalue(const char **p_format, va_list *p_va)
-{
+do_mkvalue(const char **p_format, va_list *p_va) {
     for (;;) {
         switch (*(*p_format)++) {
-        case '(':
-            return do_mktuple(p_format, p_va, ')',
-                              countformat(*p_format, ')'));
+            case '(':
+                return do_mktuple(p_format, p_va, ')', countformat(*p_format, ')'));
 
-        case '[':
-            return do_mklist(p_format, p_va, ']',
-                             countformat(*p_format, ']'));
+            case '[':
+                return do_mklist(p_format, p_va, ']', countformat(*p_format, ']'));
 
-        case '{':
-            return do_mkdict(p_format, p_va, '}',
-                             countformat(*p_format, '}'));
+            case '{':
+                return do_mkdict(p_format, p_va, '}', countformat(*p_format, '}'));
 
-        case 'b':
-        case 'B':
-        case 'h':
-        case 'i':
-            return PyLong_FromLong((long)va_arg(*p_va, int));
+            case 'b':
+            case 'B':
+            case 'h':
+            case 'i':
+                return PyLong_FromLong((long)va_arg(*p_va, int));
 
-        case 'H':
-            return PyLong_FromLong((long)va_arg(*p_va, unsigned int));
+            case 'H':
+                return PyLong_FromLong((long)va_arg(*p_va, unsigned int));
 
-        case 'I':
-        {
-            unsigned int n;
-            n = va_arg(*p_va, unsigned int);
-            return PyLong_FromUnsignedLong(n);
-        }
+            case 'I': {
+                unsigned int n;
+                n = va_arg(*p_va, unsigned int);
+                return PyLong_FromUnsignedLong(n);
+            }
 
-        case 'n':
-#if SIZEOF_SIZE_T!=SIZEOF_LONG
-            return PyLong_FromSsize_t(va_arg(*p_va, Py_ssize_t));
+            case 'n':
+#if SIZEOF_SIZE_T != SIZEOF_LONG
+                return PyLong_FromSsize_t(va_arg(*p_va, Py_ssize_t));
 #endif
-            /* Fall through from 'n' to 'l' if Py_ssize_t is long */
-            _Py_FALLTHROUGH;
-        case 'l':
-            return PyLong_FromLong(va_arg(*p_va, long));
+                /* Fall through from 'n' to 'l' if Py_ssize_t is long */
+                _Py_FALLTHROUGH;
+            case 'l':
+                return PyLong_FromLong(va_arg(*p_va, long));
 
-        case 'k':
-        {
-            unsigned long n;
-            n = va_arg(*p_va, unsigned long);
-            return PyLong_FromUnsignedLong(n);
-        }
-
-        case 'L':
-            return PyLong_FromLongLong((long long)va_arg(*p_va, long long));
-
-        case 'K':
-            return PyLong_FromUnsignedLongLong((long long)va_arg(*p_va, unsigned long long));
-
-        case 'u':
-        {
-            PyObject *v;
-            const wchar_t *u = va_arg(*p_va, wchar_t*);
-            Py_ssize_t n;
-            if (**p_format == '#') {
-                ++*p_format;
-                n = va_arg(*p_va, Py_ssize_t);
+            case 'k': {
+                unsigned long n;
+                n = va_arg(*p_va, unsigned long);
+                return PyLong_FromUnsignedLong(n);
             }
-            else
-                n = -1;
-            if (u == NULL) {
-                v = Py_NewRef(Py_None);
-            }
-            else {
-                if (n < 0)
-                    n = wcslen(u);
-                v = PyUnicode_FromWideChar(u, n);
-            }
-            return v;
-        }
-        case 'f':
-        case 'd':
-            return PyFloat_FromDouble(
-                (double)va_arg(*p_va, va_double));
 
-        case 'D':
-            return PyComplex_FromCComplex(
-                *((Py_complex *)va_arg(*p_va, Py_complex *)));
+            case 'L':
+                return PyLong_FromLongLong((long long)va_arg(*p_va, long long));
 
-        case 'c':
-        {
-            char p[1];
-            p[0] = (char)va_arg(*p_va, int);
-            return PyBytes_FromStringAndSize(p, 1);
-        }
-        case 'C':
-        {
-            int i = va_arg(*p_va, int);
-            return PyUnicode_FromOrdinal(i);
-        }
+            case 'K':
+                return PyLong_FromUnsignedLongLong((long long
+                )va_arg(*p_va, unsigned long long));
 
-        case 's':
-        case 'z':
-        case 'U':   /* XXX deprecated alias */
-        {
-            PyObject *v;
-            const char *str = va_arg(*p_va, const char *);
-            Py_ssize_t n;
-            if (**p_format == '#') {
-                ++*p_format;
-                n = va_arg(*p_va, Py_ssize_t);
-            }
-            else
-                n = -1;
-            if (str == NULL) {
-                v = Py_NewRef(Py_None);
-            }
-            else {
-                if (n < 0) {
-                    size_t m = strlen(str);
-                    if (m > PY_SSIZE_T_MAX) {
-                        PyErr_SetString(PyExc_OverflowError,
-                            "string too long for Python string");
-                        return NULL;
-                    }
-                    n = (Py_ssize_t)m;
+            case 'u': {
+                PyObject *v;
+                const wchar_t *u = va_arg(*p_va, wchar_t *);
+                Py_ssize_t n;
+                if (**p_format == '#') {
+                    ++*p_format;
+                    n = va_arg(*p_va, Py_ssize_t);
+                } else
+                    n = -1;
+                if (u == NULL) {
+                    v = Py_NewRef(Py_None);
+                } else {
+                    if (n < 0)
+                        n = wcslen(u);
+                    v = PyUnicode_FromWideChar(u, n);
                 }
-                v = PyUnicode_FromStringAndSize(str, n);
+                return v;
             }
-            return v;
-        }
+            case 'f':
+            case 'd':
+                return PyFloat_FromDouble((double)va_arg(*p_va, va_double));
 
-        case 'y':
-        {
-            PyObject *v;
-            const char *str = va_arg(*p_va, const char *);
-            Py_ssize_t n;
-            if (**p_format == '#') {
-                ++*p_format;
-                n = va_arg(*p_va, Py_ssize_t);
+            case 'D':
+                return PyComplex_FromCComplex(
+                    *((Py_complex *)va_arg(*p_va, Py_complex *))
+                );
+
+            case 'c': {
+                char p[1];
+                p[0] = (char)va_arg(*p_va, int);
+                return PyBytes_FromStringAndSize(p, 1);
             }
-            else
-                n = -1;
-            if (str == NULL) {
-                v = Py_NewRef(Py_None);
+            case 'C': {
+                int i = va_arg(*p_va, int);
+                return PyUnicode_FromOrdinal(i);
             }
-            else {
-                if (n < 0) {
-                    size_t m = strlen(str);
-                    if (m > PY_SSIZE_T_MAX) {
-                        PyErr_SetString(PyExc_OverflowError,
-                            "string too long for Python bytes");
-                        return NULL;
+
+            case 's':
+            case 'z':
+            case 'U': /* XXX deprecated alias */
+            {
+                PyObject *v;
+                const char *str = va_arg(*p_va, const char *);
+                Py_ssize_t n;
+                if (**p_format == '#') {
+                    ++*p_format;
+                    n = va_arg(*p_va, Py_ssize_t);
+                } else
+                    n = -1;
+                if (str == NULL) {
+                    v = Py_NewRef(Py_None);
+                } else {
+                    if (n < 0) {
+                        size_t m = strlen(str);
+                        if (m > PY_SSIZE_T_MAX) {
+                            PyErr_SetString(
+                                PyExc_OverflowError, "string too long for Python string"
+                            );
+                            return NULL;
+                        }
+                        n = (Py_ssize_t)m;
                     }
-                    n = (Py_ssize_t)m;
+                    v = PyUnicode_FromStringAndSize(str, n);
                 }
-                v = PyBytes_FromStringAndSize(str, n);
+                return v;
             }
-            return v;
-        }
 
-        case 'N':
-        case 'S':
-        case 'O':
-        if (**p_format == '&') {
-            typedef PyObject *(*converter)(void *);
-            converter func = va_arg(*p_va, converter);
-            void *arg = va_arg(*p_va, void *);
-            ++*p_format;
-            return (*func)(arg);
-        }
-        else {
-            PyObject *v;
-            v = va_arg(*p_va, PyObject *);
-            if (v != NULL) {
-                if (*(*p_format - 1) != 'N')
-                    Py_INCREF(v);
+            case 'y': {
+                PyObject *v;
+                const char *str = va_arg(*p_va, const char *);
+                Py_ssize_t n;
+                if (**p_format == '#') {
+                    ++*p_format;
+                    n = va_arg(*p_va, Py_ssize_t);
+                } else
+                    n = -1;
+                if (str == NULL) {
+                    v = Py_NewRef(Py_None);
+                } else {
+                    if (n < 0) {
+                        size_t m = strlen(str);
+                        if (m > PY_SSIZE_T_MAX) {
+                            PyErr_SetString(
+                                PyExc_OverflowError, "string too long for Python bytes"
+                            );
+                            return NULL;
+                        }
+                        n = (Py_ssize_t)m;
+                    }
+                    v = PyBytes_FromStringAndSize(str, n);
+                }
+                return v;
             }
-            else if (!PyErr_Occurred())
-                /* If a NULL was passed
-                 * because a call that should
-                 * have constructed a value
-                 * failed, that's OK, and we
-                 * pass the error on; but if
-                 * no error occurred it's not
-                 * clear that the caller knew
-                 * what she was doing. */
-                PyErr_SetString(PyExc_SystemError,
-                    "NULL object passed to Py_BuildValue");
-            return v;
-        }
 
-        case ':':
-        case ',':
-        case ' ':
-        case '\t':
-            break;
+            case 'N':
+            case 'S':
+            case 'O':
+                if (**p_format == '&') {
+                    typedef PyObject *(*converter)(void *);
+                    converter func = va_arg(*p_va, converter);
+                    void *arg = va_arg(*p_va, void *);
+                    ++*p_format;
+                    return (*func)(arg);
+                } else {
+                    PyObject *v;
+                    v = va_arg(*p_va, PyObject *);
+                    if (v != NULL) {
+                        if (*(*p_format - 1) != 'N')
+                            Py_INCREF(v);
+                    } else if (!PyErr_Occurred())
+                        /* If a NULL was passed
+                         * because a call that should
+                         * have constructed a value
+                         * failed, that's OK, and we
+                         * pass the error on; but if
+                         * no error occurred it's not
+                         * clear that the caller knew
+                         * what she was doing. */
+                        PyErr_SetString(
+                            PyExc_SystemError, "NULL object passed to Py_BuildValue"
+                        );
+                    return v;
+                }
 
-        default:
-            PyErr_SetString(PyExc_SystemError,
-                "bad format char passed to Py_BuildValue");
-            return NULL;
+            case ':':
+            case ',':
+            case ' ':
+            case '\t':
+                break;
 
+            default:
+                PyErr_SetString(
+                    PyExc_SystemError, "bad format char passed to Py_BuildValue"
+                );
+                return NULL;
         }
     }
 }
 
-
 PyObject *
-Py_BuildValue(const char *format, ...)
-{
+Py_BuildValue(const char *format, ...) {
     va_list va;
-    PyObject* retval;
+    PyObject *retval;
     va_start(va, format);
     retval = va_build_value(format, va);
     va_end(va);
@@ -484,10 +460,9 @@ Py_BuildValue(const char *format, ...)
 }
 
 PyAPI_FUNC(PyObject *) /* abi only */
-_Py_BuildValue_SizeT(const char *format, ...)
-{
+    _Py_BuildValue_SizeT(const char *format, ...) {
     va_list va;
-    PyObject* retval;
+    PyObject *retval;
     va_start(va, format);
     retval = va_build_value(format, va);
     va_end(va);
@@ -495,20 +470,17 @@ _Py_BuildValue_SizeT(const char *format, ...)
 }
 
 PyObject *
-Py_VaBuildValue(const char *format, va_list va)
-{
+Py_VaBuildValue(const char *format, va_list va) {
     return va_build_value(format, va);
 }
 
 PyAPI_FUNC(PyObject *) /* abi only */
-_Py_VaBuildValue_SizeT(const char *format, va_list va)
-{
+    _Py_VaBuildValue_SizeT(const char *format, va_list va) {
     return va_build_value(format, va);
 }
 
 static PyObject *
-va_build_value(const char *format, va_list va)
-{
+va_build_value(const char *format, va_list va) {
     const char *f = format;
     Py_ssize_t n = countformat(f, '\0');
     va_list lva;
@@ -530,9 +502,13 @@ va_build_value(const char *format, va_list va)
 }
 
 PyObject **
-_Py_VaBuildStack(PyObject **small_stack, Py_ssize_t small_stack_len,
-                const char *format, va_list va, Py_ssize_t *p_nargs)
-{
+_Py_VaBuildStack(
+    PyObject **small_stack,
+    Py_ssize_t small_stack_len,
+    const char *format,
+    va_list va,
+    Py_ssize_t *p_nargs
+) {
     const char *f;
     Py_ssize_t n;
     va_list lva;
@@ -552,8 +528,7 @@ _Py_VaBuildStack(PyObject **small_stack, Py_ssize_t small_stack_len,
 
     if (n <= small_stack_len) {
         stack = small_stack;
-    }
-    else {
+    } else {
         stack = PyMem_Malloc(n * sizeof(stack[0]));
         if (stack == NULL) {
             PyErr_NoMemory();
@@ -577,21 +552,23 @@ _Py_VaBuildStack(PyObject **small_stack, Py_ssize_t small_stack_len,
     return stack;
 }
 
-
 int
-PyModule_AddObjectRef(PyObject *mod, const char *name, PyObject *value)
-{
+PyModule_AddObjectRef(PyObject *mod, const char *name, PyObject *value) {
     if (!PyModule_Check(mod)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "PyModule_AddObjectRef() first argument "
-                        "must be a module");
+        PyErr_SetString(
+            PyExc_TypeError,
+            "PyModule_AddObjectRef() first argument "
+            "must be a module"
+        );
         return -1;
     }
     if (!value) {
         if (!PyErr_Occurred()) {
-            PyErr_SetString(PyExc_SystemError,
-                            "PyModule_AddObjectRef() must be called "
-                            "with an exception raised if value is NULL");
+            PyErr_SetString(
+                PyExc_SystemError,
+                "PyModule_AddObjectRef() must be called "
+                "with an exception raised if value is NULL"
+            );
         }
         return -1;
     }
@@ -599,24 +576,23 @@ PyModule_AddObjectRef(PyObject *mod, const char *name, PyObject *value)
     PyObject *dict = PyModule_GetDict(mod);
     if (dict == NULL) {
         /* Internal error -- modules must have a dict! */
-        PyErr_Format(PyExc_SystemError, "module '%s' has no __dict__",
-                     PyModule_GetName(mod));
+        PyErr_Format(
+            PyExc_SystemError, "module '%s' has no __dict__", PyModule_GetName(mod)
+        );
         return -1;
     }
     return PyDict_SetItemString(dict, name, value);
 }
 
 int
-PyModule_Add(PyObject *mod, const char *name, PyObject *value)
-{
+PyModule_Add(PyObject *mod, const char *name, PyObject *value) {
     int res = PyModule_AddObjectRef(mod, name, value);
     Py_XDECREF(value);
     return res;
 }
 
 int
-PyModule_AddObject(PyObject *mod, const char *name, PyObject *value)
-{
+PyModule_AddObject(PyObject *mod, const char *name, PyObject *value) {
     int res = PyModule_AddObjectRef(mod, name, value);
     if (res == 0) {
         Py_DECREF(value);
@@ -625,20 +601,17 @@ PyModule_AddObject(PyObject *mod, const char *name, PyObject *value)
 }
 
 int
-PyModule_AddIntConstant(PyObject *m, const char *name, long value)
-{
+PyModule_AddIntConstant(PyObject *m, const char *name, long value) {
     return PyModule_Add(m, name, PyLong_FromLong(value));
 }
 
 int
-PyModule_AddStringConstant(PyObject *m, const char *name, const char *value)
-{
+PyModule_AddStringConstant(PyObject *m, const char *name, const char *value) {
     return PyModule_Add(m, name, PyUnicode_FromString(value));
 }
 
 int
-PyModule_AddType(PyObject *module, PyTypeObject *type)
-{
+PyModule_AddType(PyObject *module, PyTypeObject *type) {
     if (!_PyType_IsReady(type) && PyType_Ready(type) < 0) {
         return -1;
     }

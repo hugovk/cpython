@@ -1,28 +1,28 @@
 // Cyclic garbage collector implementation for free-threaded build.
 #include "Python.h"
-#include "pycore_brc.h"           // struct _brc_thread_state
-#include "pycore_ceval.h"         // _Py_set_eval_breaker_bit()
+#include "pycore_brc.h"    // struct _brc_thread_state
+#include "pycore_ceval.h"  // _Py_set_eval_breaker_bit()
 #include "pycore_context.h"
-#include "pycore_dict.h"          // _PyDict_MaybeUntrack()
-#include "pycore_freelist.h"      // _PyObject_ClearFreeLists()
+#include "pycore_dict.h"      // _PyDict_MaybeUntrack()
+#include "pycore_freelist.h"  // _PyObject_ClearFreeLists()
 #include "pycore_initconfig.h"
-#include "pycore_interp.h"        // PyInterpreterState.gc
+#include "pycore_interp.h"  // PyInterpreterState.gc
 #include "pycore_object.h"
 #include "pycore_object_alloc.h"  // _PyObject_MallocWithType()
 #include "pycore_object_stack.h"
 #include "pycore_pyerrors.h"
-#include "pycore_pystate.h"       // _PyThreadState_GET()
-#include "pycore_tstate.h"        // _PyThreadStateImpl
-#include "pycore_weakref.h"       // _PyWeakref_ClearRef()
+#include "pycore_pystate.h"  // _PyThreadState_GET()
+#include "pycore_tstate.h"   // _PyThreadStateImpl
+#include "pycore_weakref.h"  // _PyWeakref_ClearRef()
 #include "pydtrace.h"
-#include "pycore_uniqueid.h"      // _PyObject_MergeThreadLocalRefcounts()
+#include "pycore_uniqueid.h"  // _PyObject_MergeThreadLocalRefcounts()
 
 #ifdef Py_GIL_DISABLED
 
 typedef struct _gc_runtime_state GCState;
 
 #ifdef Py_DEBUG
-#  define GC_DEBUG
+#define GC_DEBUG
 #endif
 
 // Each thread buffers the count of allocated objects in a thread-local
@@ -66,26 +66,26 @@ struct collection_state {
 };
 
 // iterate over a worklist
-#define WORKSTACK_FOR_EACH(stack, op) \
-    for ((op) = (PyObject *)(stack)->head; (op) != NULL; (op) = (PyObject *)(op)->ob_tid)
+#define WORKSTACK_FOR_EACH(stack, op)                    \
+    for ((op) = (PyObject *)(stack)->head; (op) != NULL; \
+         (op) = (PyObject *)(op)->ob_tid)
 
 // iterate over a worklist with support for removing the current object
-#define WORKSTACK_FOR_EACH_ITER(stack, iter, op) \
-    for (worklist_iter_init((iter), &(stack)->head), (op) = (PyObject *)(*(iter)->ptr); \
-         (op) != NULL; \
+#define WORKSTACK_FOR_EACH_ITER(stack, iter, op)     \
+    for (worklist_iter_init((iter), &(stack)->head), \
+         (op) = (PyObject *)(*(iter)->ptr);          \
+         (op) != NULL;                               \
          worklist_iter_init((iter), (iter)->next), (op) = (PyObject *)(*(iter)->ptr))
 
 static void
-worklist_push(struct worklist *worklist, PyObject *op)
-{
+worklist_push(struct worklist *worklist, PyObject *op) {
     assert(op->ob_tid == 0);
     op->ob_tid = worklist->head;
     worklist->head = (uintptr_t)op;
 }
 
 static PyObject *
-worklist_pop(struct worklist *worklist)
-{
+worklist_pop(struct worklist *worklist) {
     PyObject *op = (PyObject *)worklist->head;
     if (op != NULL) {
         worklist->head = op->ob_tid;
@@ -95,8 +95,7 @@ worklist_pop(struct worklist *worklist)
 }
 
 static void
-worklist_iter_init(struct worklist_iter *iter, uintptr_t *next)
-{
+worklist_iter_init(struct worklist_iter *iter, uintptr_t *next) {
     iter->ptr = next;
     PyObject *op = (PyObject *)*(iter->ptr);
     if (op) {
@@ -105,8 +104,7 @@ worklist_iter_init(struct worklist_iter *iter, uintptr_t *next)
 }
 
 static void
-worklist_remove(struct worklist_iter *iter)
-{
+worklist_remove(struct worklist_iter *iter) {
     PyObject *op = (PyObject *)*(iter->ptr);
     *(iter->ptr) = op->ob_tid;
     op->ob_tid = 0;
@@ -114,28 +112,24 @@ worklist_remove(struct worklist_iter *iter)
 }
 
 static inline int
-gc_is_unreachable(PyObject *op)
-{
+gc_is_unreachable(PyObject *op) {
     return (op->ob_gc_bits & _PyGC_BITS_UNREACHABLE) != 0;
 }
 
 static void
-gc_set_unreachable(PyObject *op)
-{
+gc_set_unreachable(PyObject *op) {
     op->ob_gc_bits |= _PyGC_BITS_UNREACHABLE;
 }
 
 static void
-gc_clear_unreachable(PyObject *op)
-{
+gc_clear_unreachable(PyObject *op) {
     op->ob_gc_bits &= ~_PyGC_BITS_UNREACHABLE;
 }
 
 // Initialize the `ob_tid` field to zero if the object is not already
 // initialized as unreachable.
 static void
-gc_maybe_init_refs(PyObject *op)
-{
+gc_maybe_init_refs(PyObject *op) {
     if (!gc_is_unreachable(op)) {
         gc_set_unreachable(op);
         op->ob_tid = 0;
@@ -143,27 +137,23 @@ gc_maybe_init_refs(PyObject *op)
 }
 
 static inline Py_ssize_t
-gc_get_refs(PyObject *op)
-{
+gc_get_refs(PyObject *op) {
     return (Py_ssize_t)op->ob_tid;
 }
 
 static inline void
-gc_add_refs(PyObject *op, Py_ssize_t refs)
-{
+gc_add_refs(PyObject *op, Py_ssize_t refs) {
     assert(_PyObject_GC_IS_TRACKED(op));
     op->ob_tid += refs;
 }
 
 static inline void
-gc_decref(PyObject *op)
-{
+gc_decref(PyObject *op) {
     op->ob_tid -= 1;
 }
 
 static Py_ssize_t
-merge_refcount(PyObject *op, Py_ssize_t extra)
-{
+merge_refcount(PyObject *op, Py_ssize_t extra) {
     assert(_PyInterpreterState_GET()->stoptheworld.world_stopped);
 
     Py_ssize_t refcount = Py_REFCNT(op);
@@ -181,13 +171,14 @@ merge_refcount(PyObject *op, Py_ssize_t extra)
 }
 
 static void
-frame_disable_deferred_refcounting(_PyInterpreterFrame *frame)
-{
+frame_disable_deferred_refcounting(_PyInterpreterFrame *frame) {
     // Convert locals, variables, and the executable object to strong
     // references from (possibly) deferred references.
     assert(frame->stackpointer != NULL);
-    assert(frame->owner == FRAME_OWNED_BY_FRAME_OBJECT ||
-           frame->owner == FRAME_OWNED_BY_GENERATOR);
+    assert(
+        frame->owner == FRAME_OWNED_BY_FRAME_OBJECT ||
+        frame->owner == FRAME_OWNED_BY_GENERATOR
+    );
 
     frame->f_executable = PyStackRef_AsStrongReference(frame->f_executable);
 
@@ -209,8 +200,7 @@ frame_disable_deferred_refcounting(_PyInterpreterFrame *frame)
 }
 
 static void
-disable_deferred_refcounting(PyObject *op)
-{
+disable_deferred_refcounting(PyObject *op) {
     if (_PyObject_HasDeferredRefcount(op)) {
         op->ob_gc_bits &= ~_PyGC_BITS_DEFERRED;
         op->ob_ref_shared -= _Py_REF_SHARED(_Py_REF_DEFERRED, 0);
@@ -228,21 +218,18 @@ disable_deferred_refcounting(PyObject *op)
     // resurrected by a finalizer.
     if (PyGen_CheckExact(op) || PyCoro_CheckExact(op) || PyAsyncGen_CheckExact(op)) {
         frame_disable_deferred_refcounting(&((PyGenObject *)op)->gi_iframe);
-    }
-    else if (PyFrame_Check(op)) {
+    } else if (PyFrame_Check(op)) {
         frame_disable_deferred_refcounting(((PyFrameObject *)op)->f_frame);
     }
 }
 
 static void
-gc_restore_tid(PyObject *op)
-{
+gc_restore_tid(PyObject *op) {
     assert(_PyInterpreterState_GET()->stoptheworld.world_stopped);
     mi_segment_t *segment = _mi_ptr_segment(op);
     if (_Py_REF_IS_MERGED(op->ob_ref_shared)) {
         op->ob_tid = 0;
-    }
-    else {
+    } else {
         // NOTE: may change ob_tid if the object was re-initialized by
         // a different thread or its segment was abandoned and reclaimed.
         // The segment thread id might be zero, in which case we should
@@ -255,8 +242,7 @@ gc_restore_tid(PyObject *op)
 }
 
 static void
-gc_restore_refs(PyObject *op)
-{
+gc_restore_refs(PyObject *op) {
     if (gc_is_unreachable(op)) {
         gc_restore_tid(op);
         gc_clear_unreachable(op);
@@ -266,13 +252,12 @@ gc_restore_refs(PyObject *op)
 // Given a mimalloc memory block return the PyObject stored in it or NULL if
 // the block is not allocated or the object is not tracked or is immortal.
 static PyObject *
-op_from_block(void *block, void *arg, bool include_frozen)
-{
+op_from_block(void *block, void *arg, bool include_frozen) {
     struct visitor_args *a = arg;
     if (block == NULL) {
         return NULL;
     }
-    PyObject *op = (PyObject *)((char*)block + a->offset);
+    PyObject *op = (PyObject *)((char *)block + a->offset);
     assert(PyObject_IS_GC(op));
     if (!_PyObject_GC_IS_TRACKED(op)) {
         return NULL;
@@ -284,9 +269,9 @@ op_from_block(void *block, void *arg, bool include_frozen)
 }
 
 static int
-gc_visit_heaps_lock_held(PyInterpreterState *interp, mi_block_visit_fun *visitor,
-                         struct visitor_args *arg)
-{
+gc_visit_heaps_lock_held(
+    PyInterpreterState *interp, mi_block_visit_fun *visitor, struct visitor_args *arg
+) {
     // Offset of PyObject header from start of memory block.
     Py_ssize_t offset_base = 0;
     if (_PyMem_DebugEnabled()) {
@@ -295,7 +280,7 @@ gc_visit_heaps_lock_held(PyInterpreterState *interp, mi_block_visit_fun *visitor
     }
 
     // Objects with Py_TPFLAGS_PREHEADER have two extra fields
-    Py_ssize_t offset_pre = offset_base + 2 * sizeof(PyObject*);
+    Py_ssize_t offset_pre = offset_base + 2 * sizeof(PyObject *);
 
     // visit each thread's heaps for GC objects
     for (PyThreadState *p = interp->threads.head; p != NULL; p = p->next) {
@@ -306,13 +291,15 @@ gc_visit_heaps_lock_held(PyInterpreterState *interp, mi_block_visit_fun *visitor
         }
 
         arg->offset = offset_base;
-        if (!mi_heap_visit_blocks(&m->heaps[_Py_MIMALLOC_HEAP_GC], true,
-                                  visitor, arg)) {
+        if (!mi_heap_visit_blocks(
+                &m->heaps[_Py_MIMALLOC_HEAP_GC], true, visitor, arg
+            )) {
             return -1;
         }
         arg->offset = offset_pre;
-        if (!mi_heap_visit_blocks(&m->heaps[_Py_MIMALLOC_HEAP_GC_PRE], true,
-                                  visitor, arg)) {
+        if (!mi_heap_visit_blocks(
+                &m->heaps[_Py_MIMALLOC_HEAP_GC_PRE], true, visitor, arg
+            )) {
             return -1;
         }
     }
@@ -320,13 +307,15 @@ gc_visit_heaps_lock_held(PyInterpreterState *interp, mi_block_visit_fun *visitor
     // visit blocks in the per-interpreter abandoned pool (from dead threads)
     mi_abandoned_pool_t *pool = &interp->mimalloc.abandoned_pool;
     arg->offset = offset_base;
-    if (!_mi_abandoned_pool_visit_blocks(pool, _Py_MIMALLOC_HEAP_GC, true,
-                                         visitor, arg)) {
+    if (!_mi_abandoned_pool_visit_blocks(
+            pool, _Py_MIMALLOC_HEAP_GC, true, visitor, arg
+        )) {
         return -1;
     }
     arg->offset = offset_pre;
-    if (!_mi_abandoned_pool_visit_blocks(pool, _Py_MIMALLOC_HEAP_GC_PRE, true,
-                                         visitor, arg)) {
+    if (!_mi_abandoned_pool_visit_blocks(
+            pool, _Py_MIMALLOC_HEAP_GC_PRE, true, visitor, arg
+        )) {
         return -1;
     }
     return 0;
@@ -336,9 +325,9 @@ gc_visit_heaps_lock_held(PyInterpreterState *interp, mi_block_visit_fun *visitor
 // NOTE: It is not safe to allocate or free any mimalloc managed memory while
 // this function is running.
 static int
-gc_visit_heaps(PyInterpreterState *interp, mi_block_visit_fun *visitor,
-               struct visitor_args *arg)
-{
+gc_visit_heaps(
+    PyInterpreterState *interp, mi_block_visit_fun *visitor, struct visitor_args *arg
+) {
     // Other threads in the interpreter must be paused so that we can safely
     // traverse their heaps.
     assert(interp->stoptheworld.world_stopped);
@@ -351,8 +340,7 @@ gc_visit_heaps(PyInterpreterState *interp, mi_block_visit_fun *visitor,
 }
 
 static inline void
-gc_visit_stackref(_PyStackRef stackref)
-{
+gc_visit_stackref(_PyStackRef stackref) {
     // Note: we MUST check that it is deferred before checking the rest.
     // Otherwise we might read into invalid memory due to non-deferred references
     // being dead already.
@@ -366,8 +354,7 @@ gc_visit_stackref(_PyStackRef stackref)
 
 // Add 1 to the gc_refs for every deferred reference on each thread's stack.
 static void
-gc_visit_thread_stacks(PyInterpreterState *interp)
-{
+gc_visit_thread_stacks(PyInterpreterState *interp) {
     HEAD_LOCK(&_PyRuntime);
     for (PyThreadState *p = interp->threads.head; p != NULL; p = p->next) {
         for (_PyInterpreterFrame *f = p->current_frame; f != NULL; f = f->previous) {
@@ -388,8 +375,7 @@ gc_visit_thread_stacks(PyInterpreterState *interp)
 }
 
 static void
-merge_queued_objects(_PyThreadStateImpl *tstate, struct collection_state *state)
-{
+merge_queued_objects(_PyThreadStateImpl *tstate, struct collection_state *state) {
     struct _brc_thread_state *brc = &tstate->brc;
     _PyObjectStack_Merge(&brc->local_objects_to_merge, &brc->objects_to_merge);
 
@@ -413,8 +399,7 @@ merge_queued_objects(_PyThreadStateImpl *tstate, struct collection_state *state)
 }
 
 static void
-process_delayed_frees(PyInterpreterState *interp)
-{
+process_delayed_frees(PyInterpreterState *interp) {
     // While we are in a "stop the world" pause, we can observe the latest
     // write sequence by advancing the write sequence immediately.
     _Py_qsbr_advance(&interp->qsbr);
@@ -437,8 +422,7 @@ process_delayed_frees(PyInterpreterState *interp)
 
 // Subtract an incoming reference from the computed "gc_refs" refcount.
 static int
-visit_decref(PyObject *op, void *arg)
-{
+visit_decref(PyObject *op, void *arg) {
     if (_PyObject_GC_IS_TRACKED(op) && !_Py_IsImmortal(op)) {
         // If update_refs hasn't reached this object yet, mark it
         // as (tentatively) unreachable and initialize ob_tid to zero.
@@ -452,9 +436,13 @@ visit_decref(PyObject *op, void *arg)
 // by subtracting internal references from the refcount. The difference is
 // computed in the ob_tid field (we restore it later).
 static bool
-update_refs(const mi_heap_t *heap, const mi_heap_area_t *area,
-            void *block, size_t block_size, void *args)
-{
+update_refs(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, false);
     if (op == NULL) {
         return true;
@@ -483,8 +471,7 @@ update_refs(const mi_heap_t *heap, const mi_heap_area_t *area,
                 gc_restore_refs(op);
                 return true;
             }
-        }
-        else if (PyDict_CheckExact(op)) {
+        } else if (PyDict_CheckExact(op)) {
             _PyDict_MaybeUntrack(op);
             if (!_PyObject_GC_IS_TRACKED(op)) {
                 gc_restore_refs(op);
@@ -511,8 +498,7 @@ update_refs(const mi_heap_t *heap, const mi_heap_area_t *area,
 }
 
 static int
-visit_clear_unreachable(PyObject *op, _PyObjectStack *stack)
-{
+visit_clear_unreachable(PyObject *op, _PyObjectStack *stack) {
     if (gc_is_unreachable(op)) {
         _PyObject_ASSERT(op, _PyObject_GC_IS_TRACKED(op));
         gc_clear_unreachable(op);
@@ -523,9 +509,8 @@ visit_clear_unreachable(PyObject *op, _PyObjectStack *stack)
 
 // Transitively clear the unreachable bit on all objects reachable from op.
 static int
-mark_reachable(PyObject *op)
-{
-    _PyObjectStack stack = { NULL };
+mark_reachable(PyObject *op) {
+    _PyObjectStack stack = {NULL};
     do {
         traverseproc traverse = Py_TYPE(op)->tp_traverse;
         if (traverse(op, (visitproc)&visit_clear_unreachable, &stack) < 0) {
@@ -539,56 +524,68 @@ mark_reachable(PyObject *op)
 
 #ifdef GC_DEBUG
 static bool
-validate_refcounts(const mi_heap_t *heap, const mi_heap_area_t *area,
-                   void *block, size_t block_size, void *args)
-{
+validate_refcounts(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, false);
     if (op == NULL) {
         return true;
     }
 
-    _PyObject_ASSERT_WITH_MSG(op, !gc_is_unreachable(op),
-                              "object should not be marked as unreachable yet");
+    _PyObject_ASSERT_WITH_MSG(
+        op, !gc_is_unreachable(op), "object should not be marked as unreachable yet"
+    );
 
     if (_Py_REF_IS_MERGED(op->ob_ref_shared)) {
-        _PyObject_ASSERT_WITH_MSG(op, op->ob_tid == 0,
-                                  "merged objects should have ob_tid == 0");
-    }
-    else if (!_Py_IsImmortal(op)) {
-        _PyObject_ASSERT_WITH_MSG(op, op->ob_tid != 0,
-                                  "unmerged objects should have ob_tid != 0");
+        _PyObject_ASSERT_WITH_MSG(
+            op, op->ob_tid == 0, "merged objects should have ob_tid == 0"
+        );
+    } else if (!_Py_IsImmortal(op)) {
+        _PyObject_ASSERT_WITH_MSG(
+            op, op->ob_tid != 0, "unmerged objects should have ob_tid != 0"
+        );
     }
 
     return true;
 }
 
 static bool
-validate_gc_objects(const mi_heap_t *heap, const mi_heap_area_t *area,
-                    void *block, size_t block_size, void *args)
-{
+validate_gc_objects(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, false);
     if (op == NULL) {
         return true;
     }
 
     _PyObject_ASSERT(op, gc_is_unreachable(op));
-    _PyObject_ASSERT_WITH_MSG(op, gc_get_refs(op) >= 0,
-                                  "refcount is too small");
+    _PyObject_ASSERT_WITH_MSG(op, gc_get_refs(op) >= 0, "refcount is too small");
     return true;
 }
 #endif
 
 static bool
-mark_heap_visitor(const mi_heap_t *heap, const mi_heap_area_t *area,
-                  void *block, size_t block_size, void *args)
-{
+mark_heap_visitor(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, false);
     if (op == NULL) {
         return true;
     }
 
-    _PyObject_ASSERT_WITH_MSG(op, gc_get_refs(op) >= 0,
-                                  "refcount is too small");
+    _PyObject_ASSERT_WITH_MSG(op, gc_get_refs(op) >= 0, "refcount is too small");
 
     if (gc_is_unreachable(op) && gc_get_refs(op) != 0) {
         // Object is reachable but currently marked as unreachable.
@@ -606,9 +603,13 @@ mark_heap_visitor(const mi_heap_t *heap, const mi_heap_area_t *area,
 }
 
 static bool
-restore_refs(const mi_heap_t *heap, const mi_heap_area_t *area,
-             void *block, size_t block_size, void *args)
-{
+restore_refs(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, false);
     if (op == NULL) {
         return true;
@@ -620,15 +621,18 @@ restore_refs(const mi_heap_t *heap, const mi_heap_area_t *area,
 
 /* Return true if object has a pre-PEP 442 finalization method. */
 static int
-has_legacy_finalizer(PyObject *op)
-{
+has_legacy_finalizer(PyObject *op) {
     return Py_TYPE(op)->tp_del != NULL;
 }
 
 static bool
-scan_heap_visitor(const mi_heap_t *heap, const mi_heap_area_t *area,
-                  void *block, size_t block_size, void *args)
-{
+scan_heap_visitor(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, false);
     if (op == NULL) {
         return true;
@@ -648,8 +652,7 @@ scan_heap_visitor(const mi_heap_t *heap, const mi_heap_area_t *area,
             // would be unreachable, but has legacy finalizer
             gc_clear_unreachable(op);
             worklist_push(&state->legacy_finalizers, op);
-        }
-        else {
+        } else {
             worklist_push(&state->unreachable, op);
         }
         return true;
@@ -672,10 +675,7 @@ static int
 move_legacy_finalizer_reachable(struct collection_state *state);
 
 static int
-deduce_unreachable_heap(PyInterpreterState *interp,
-                        struct collection_state *state)
-{
-
+deduce_unreachable_heap(PyInterpreterState *interp, struct collection_state *state) {
 #ifdef GC_DEBUG
     // Check that all objects are marked as unreachable and that the computed
     // reference count difference (stored in `ob_tid`) is non-negative.
@@ -720,8 +720,7 @@ deduce_unreachable_heap(PyInterpreterState *interp,
 }
 
 static int
-move_legacy_finalizer_reachable(struct collection_state *state)
-{
+move_legacy_finalizer_reachable(struct collection_state *state) {
     // Clear the reachable bit on all objects transitively reachable
     // from the objects with legacy finalizers.
     PyObject *op;
@@ -747,8 +746,7 @@ move_legacy_finalizer_reachable(struct collection_state *state)
 // Clear all weakrefs to unreachable objects. Weakrefs with callbacks are
 // enqueued in `wrcb_to_call`, but not invoked yet.
 static void
-clear_weakrefs(struct collection_state *state)
-{
+clear_weakrefs(struct collection_state *state) {
     PyObject *op;
     WORKSTACK_FOR_EACH(&state->unreachable, op) {
         if (PyWeakref_Check(op)) {
@@ -799,8 +797,7 @@ clear_weakrefs(struct collection_state *state)
 }
 
 static void
-call_weakref_callbacks(struct collection_state *state)
-{
+call_weakref_callbacks(struct collection_state *state) {
     // Invoke the callbacks we decided to honor.
     PyObject *op;
     while ((op = worklist_pop(&state->wrcb_to_call)) != NULL) {
@@ -814,8 +811,7 @@ call_weakref_callbacks(struct collection_state *state)
         PyObject *temp = PyObject_CallOneArg(callback, (PyObject *)wr);
         if (temp == NULL) {
             PyErr_WriteUnraisable(callback);
-        }
-        else {
+        } else {
             Py_DECREF(temp);
         }
 
@@ -823,26 +819,20 @@ call_weakref_callbacks(struct collection_state *state)
     }
 }
 
-
 static GCState *
-get_gc_state(void)
-{
+get_gc_state(void) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     return &interp->gc;
 }
 
-
 void
-_PyGC_InitState(GCState *gcstate)
-{
+_PyGC_InitState(GCState *gcstate) {
     // TODO: move to pycore_runtime_init.h once the incremental GC lands.
     gcstate->young.threshold = 2000;
 }
 
-
 PyStatus
-_PyGC_Init(PyInterpreterState *interp)
-{
+_PyGC_Init(PyInterpreterState *interp) {
     GCState *gcstate = &interp->gc;
 
     gcstate->garbage = PyList_New(0);
@@ -859,10 +849,8 @@ _PyGC_Init(PyInterpreterState *interp)
 }
 
 static void
-debug_cycle(const char *msg, PyObject *op)
-{
-    PySys_FormatStderr("gc: %s <%s %p>\n",
-                       msg, Py_TYPE(op)->tp_name, op);
+debug_cycle(const char *msg, PyObject *op) {
+    PySys_FormatStderr("gc: %s <%s %p>\n", msg, Py_TYPE(op)->tp_name, op);
 }
 
 /* Run first-time finalizers (if any) on all the objects in collectable.
@@ -870,8 +858,7 @@ debug_cycle(const char *msg, PyObject *op)
  * list, due to refcounts falling to 0.
  */
 static void
-finalize_garbage(struct collection_state *state)
-{
+finalize_garbage(struct collection_state *state) {
     // NOTE: the unreachable worklist holds a strong reference to the object
     // to prevent it from being deallocated while we are holding on to it.
     PyObject *op;
@@ -889,8 +876,7 @@ finalize_garbage(struct collection_state *state)
 
 // Break reference cycles by clearing the containers involved.
 static void
-delete_garbage(struct collection_state *state)
-{
+delete_garbage(struct collection_state *state) {
     PyThreadState *tstate = _PyThreadState_GET();
     GCState *gcstate = state->gcstate;
 
@@ -920,14 +906,14 @@ delete_garbage(struct collection_state *state)
             if (PyList_Append(gcstate->garbage, op) < 0) {
                 _PyErr_Clear(tstate);
             }
-        }
-        else {
+        } else {
             inquiry clear = Py_TYPE(op)->tp_clear;
             if (clear != NULL) {
-                (void) clear(op);
+                (void)clear(op);
                 if (_PyErr_Occurred(tstate)) {
-                    PyErr_FormatUnraisable("Exception ignored in tp_clear of %s",
-                                           Py_TYPE(op)->tp_name);
+                    PyErr_FormatUnraisable(
+                        "Exception ignored in tp_clear of %s", Py_TYPE(op)->tp_name
+                    );
                 }
             }
         }
@@ -937,8 +923,7 @@ delete_garbage(struct collection_state *state)
 }
 
 static void
-handle_legacy_finalizers(struct collection_state *state)
-{
+handle_legacy_finalizers(struct collection_state *state) {
     GCState *gcstate = state->gcstate;
     assert(gcstate->garbage != NULL);
 
@@ -961,15 +946,13 @@ handle_legacy_finalizers(struct collection_state *state)
 
 // Show stats for objects in each generations
 static void
-show_stats_each_generations(GCState *gcstate)
-{
+show_stats_each_generations(GCState *gcstate) {
     // TODO
 }
 
 // Traversal callback for handle_resurrected_objects.
 static int
-visit_decref_unreachable(PyObject *op, void *data)
-{
+visit_decref_unreachable(PyObject *op, void *data) {
     if (gc_is_unreachable(op) && _PyObject_GC_IS_TRACKED(op)) {
         op->ob_ref_local -= 1;
     }
@@ -977,22 +960,19 @@ visit_decref_unreachable(PyObject *op, void *data)
 }
 
 int
-_PyGC_VisitStackRef(_PyStackRef *ref, visitproc visit, void *arg)
-{
+_PyGC_VisitStackRef(_PyStackRef *ref, visitproc visit, void *arg) {
     // This is a bit tricky! We want to ignore deferred references when
     // computing the incoming references, but otherwise treat them like
     // regular references.
     if (!PyStackRef_IsDeferred(*ref) ||
-        (visit != visit_decref && visit != visit_decref_unreachable))
-    {
+        (visit != visit_decref && visit != visit_decref_unreachable)) {
         Py_VISIT(PyStackRef_AsPyObjectBorrow(*ref));
     }
     return 0;
 }
 
 int
-_PyGC_VisitFrameStack(_PyInterpreterFrame *frame, visitproc visit, void *arg)
-{
+_PyGC_VisitFrameStack(_PyInterpreterFrame *frame, visitproc visit, void *arg) {
     _PyStackRef *ref = _PyFrame_GetLocalsArray(frame);
     /* locals and stack */
     for (; ref < frame->stackpointer; ref++) {
@@ -1003,8 +983,7 @@ _PyGC_VisitFrameStack(_PyInterpreterFrame *frame, visitproc visit, void *arg)
 
 // Handle objects that may have resurrected after a call to 'finalize_garbage'.
 static int
-handle_resurrected_objects(struct collection_state *state)
-{
+handle_resurrected_objects(struct collection_state *state) {
     // First, find externally reachable objects by computing the reference
     // count difference in ob_ref_local. We can't use ob_tid here because
     // that's already used to store the unreachable worklist.
@@ -1039,9 +1018,7 @@ handle_resurrected_objects(struct collection_state *state)
         op->ob_ref_local -= 1;
 
         traverseproc traverse = Py_TYPE(op)->tp_traverse;
-        (void) traverse(op,
-            (visitproc)visit_decref_unreachable,
-            NULL);
+        (void)traverse(op, (visitproc)visit_decref_unreachable, NULL);
     }
 
     // Find resurrected objects
@@ -1086,15 +1063,17 @@ handle_resurrected_objects(struct collection_state *state)
     return 0;
 }
 
-
 /* Invoke progress callbacks to notify clients that garbage collection
  * is starting or stopping
  */
 static void
-invoke_gc_callback(PyThreadState *tstate, const char *phase,
-                   int generation, Py_ssize_t collected,
-                   Py_ssize_t uncollectable)
-{
+invoke_gc_callback(
+    PyThreadState *tstate,
+    const char *phase,
+    int generation,
+    Py_ssize_t collected,
+    Py_ssize_t uncollectable
+) {
     assert(!_PyErr_Occurred(tstate));
 
     /* we may get called very early */
@@ -1107,10 +1086,15 @@ invoke_gc_callback(PyThreadState *tstate, const char *phase,
     assert(PyList_CheckExact(gcstate->callbacks));
     PyObject *info = NULL;
     if (PyList_GET_SIZE(gcstate->callbacks) != 0) {
-        info = Py_BuildValue("{sisnsn}",
-            "generation", generation,
-            "collected", collected,
-            "uncollectable", uncollectable);
+        info = Py_BuildValue(
+            "{sisnsn}",
+            "generation",
+            generation,
+            "collected",
+            collected,
+            "uncollectable",
+            uncollectable
+        );
         if (info == NULL) {
             PyErr_FormatUnraisable("Exception ignored on invoking gc callbacks");
             return;
@@ -1125,14 +1109,13 @@ invoke_gc_callback(PyThreadState *tstate, const char *phase,
     }
 
     PyObject *stack[] = {phase_obj, info};
-    for (Py_ssize_t i=0; i<PyList_GET_SIZE(gcstate->callbacks); i++) {
+    for (Py_ssize_t i = 0; i < PyList_GET_SIZE(gcstate->callbacks); i++) {
         PyObject *r, *cb = PyList_GET_ITEM(gcstate->callbacks, i);
         Py_INCREF(cb); /* make sure cb doesn't go away */
         r = PyObject_Vectorcall(cb, stack, 2, NULL);
         if (r == NULL) {
             PyErr_WriteUnraisable(cb);
-        }
-        else {
+        } else {
             Py_DECREF(r);
         }
         Py_DECREF(cb);
@@ -1143,8 +1126,7 @@ invoke_gc_callback(PyThreadState *tstate, const char *phase,
 }
 
 static void
-cleanup_worklist(struct worklist *worklist)
-{
+cleanup_worklist(struct worklist *worklist) {
     PyObject *op;
     while ((op = worklist_pop(worklist)) != NULL) {
         gc_clear_unreachable(op);
@@ -1153,8 +1135,7 @@ cleanup_worklist(struct worklist *worklist)
 }
 
 static bool
-gc_should_collect(GCState *gcstate)
-{
+gc_should_collect(GCState *gcstate) {
     int count = _Py_atomic_load_int_relaxed(&gcstate->young.count);
     int threshold = gcstate->young.threshold;
     if (count <= threshold || threshold == 0 || !gcstate->enabled) {
@@ -1163,13 +1144,11 @@ gc_should_collect(GCState *gcstate)
     // Avoid quadratic behavior by scaling threshold to the number of live
     // objects. A few tests rely on immediate scheduling of the GC so we ignore
     // the scaled threshold if generations[1].threshold is set to zero.
-    return (count > gcstate->long_lived_total / 4 ||
-            gcstate->old[0].threshold == 0);
+    return (count > gcstate->long_lived_total / 4 || gcstate->old[0].threshold == 0);
 }
 
 static void
-record_allocation(PyThreadState *tstate)
-{
+record_allocation(PyThreadState *tstate) {
     struct _gc_thread_state *gc = &((_PyThreadStateImpl *)tstate)->gc;
 
     // We buffer the allocation count to avoid the overhead of atomic
@@ -1182,16 +1161,14 @@ record_allocation(PyThreadState *tstate)
         gc->alloc_count = 0;
 
         if (gc_should_collect(gcstate) &&
-            !_Py_atomic_load_int_relaxed(&gcstate->collecting))
-        {
+            !_Py_atomic_load_int_relaxed(&gcstate->collecting)) {
             _Py_ScheduleGC(tstate);
         }
     }
 }
 
 static void
-record_deallocation(PyThreadState *tstate)
-{
+record_deallocation(PyThreadState *tstate) {
     struct _gc_thread_state *gc = &((_PyThreadStateImpl *)tstate)->gc;
 
     gc->alloc_count--;
@@ -1203,18 +1180,19 @@ record_deallocation(PyThreadState *tstate)
 }
 
 static void
-gc_collect_internal(PyInterpreterState *interp, struct collection_state *state, int generation)
-{
+gc_collect_internal(
+    PyInterpreterState *interp, struct collection_state *state, int generation
+) {
     _PyEval_StopTheWorld(interp);
 
     // update collection and allocation counters
-    if (generation+1 < NUM_GENERATIONS) {
+    if (generation + 1 < NUM_GENERATIONS) {
         state->gcstate->old[generation].count += 1;
     }
 
     state->gcstate->young.count = 0;
     for (int i = 1; i <= generation; ++i) {
-        state->gcstate->old[i-1].count = 0;
+        state->gcstate->old[i - 1].count = 0;
     }
 
     HEAD_LOCK(&_PyRuntime);
@@ -1242,9 +1220,7 @@ gc_collect_internal(PyInterpreterState *interp, struct collection_state *state, 
     // Print debugging information.
     if (interp->gc.debug & _PyGC_DEBUG_COLLECTABLE) {
         PyObject *op;
-        WORKSTACK_FOR_EACH(&state->unreachable, op) {
-            debug_cycle("collectable", op);
-        }
+        WORKSTACK_FOR_EACH(&state->unreachable, op) { debug_cycle("collectable", op); }
     }
 
     // Record the number of live GC objects
@@ -1290,11 +1266,10 @@ gc_collect_internal(PyInterpreterState *interp, struct collection_state *state, 
 /* This is the main function.  Read this to understand how the
  * collection process works. */
 static Py_ssize_t
-gc_collect_main(PyThreadState *tstate, int generation, _PyGC_Reason reason)
-{
+gc_collect_main(PyThreadState *tstate, int generation, _PyGC_Reason reason) {
     Py_ssize_t m = 0; /* # objects collected */
     Py_ssize_t n = 0; /* # unreachable objects that couldn't be collected */
-    PyTime_t t1 = 0;   /* initialize to prevent a compiler warning */
+    PyTime_t t1 = 0;  /* initialize to prevent a compiler warning */
     GCState *gcstate = &tstate->interp->gc;
 
     // gc_collect_main() must not be called before _PyGC_Init
@@ -1356,8 +1331,8 @@ gc_collect_main(PyThreadState *tstate, int generation, _PyGC_Reason reason)
         (void)PyTime_PerfCounterRaw(&t2);
         double d = PyTime_AsSecondsDouble(t2 - t1);
         PySys_WriteStderr(
-            "gc: done, %zd unreachable, %zd uncollectable, %.4fs elapsed\n",
-            n+m, n, d);
+            "gc: done, %zd unreachable, %zd uncollectable, %.4fs elapsed\n", n + m, n, d
+        );
     }
 
     // Clear the current thread's free-list again.
@@ -1367,8 +1342,7 @@ gc_collect_main(PyThreadState *tstate, int generation, _PyGC_Reason reason)
     if (_PyErr_Occurred(tstate)) {
         if (reason == _Py_GC_REASON_SHUTDOWN) {
             _PyErr_Clear(tstate);
-        }
-        else {
+        } else {
             PyErr_FormatUnraisable("Exception ignored in garbage collection");
         }
     }
@@ -1382,8 +1356,7 @@ gc_collect_main(PyThreadState *tstate, int generation, _PyGC_Reason reason)
     GC_STAT_ADD(generation, objects_collected, m);
 #ifdef Py_STATS
     if (_Py_stats) {
-        GC_STAT_ADD(generation, object_visits,
-            _Py_stats->object_stats.object_visits);
+        GC_STAT_ADD(generation, object_visits, _Py_stats->object_stats.object_visits);
         _Py_stats->object_stats.object_visits = 0;
     }
 #endif
@@ -1402,8 +1375,7 @@ gc_collect_main(PyThreadState *tstate, int generation, _PyGC_Reason reason)
 }
 
 static PyObject *
-list_from_object_stack(_PyObjectStack *stack)
-{
+list_from_object_stack(_PyObjectStack *stack) {
     PyObject *list = PyList_New(_PyObjectStack_Size(stack));
     if (list == NULL) {
         PyObject *op;
@@ -1430,8 +1402,7 @@ struct get_referrers_args {
 };
 
 static int
-referrersvisit(PyObject* obj, void *arg)
-{
+referrersvisit(PyObject *obj, void *arg) {
     PyObject *objs = arg;
     Py_ssize_t i;
     for (i = 0; i < PyTuple_GET_SIZE(objs); i++) {
@@ -1443,9 +1414,13 @@ referrersvisit(PyObject* obj, void *arg)
 }
 
 static bool
-visit_get_referrers(const mi_heap_t *heap, const mi_heap_area_t *area,
-                    void *block, size_t block_size, void *args)
-{
+visit_get_referrers(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, true);
     if (op == NULL) {
         return true;
@@ -1471,12 +1446,11 @@ visit_get_referrers(const mi_heap_t *heap, const mi_heap_area_t *area,
 }
 
 PyObject *
-_PyGC_GetReferrers(PyInterpreterState *interp, PyObject *objs)
-{
+_PyGC_GetReferrers(PyInterpreterState *interp, PyObject *objs) {
     // NOTE: We can't append to the PyListObject during gc_visit_heaps()
     // because PyList_Append() may reclaim an abandoned mimalloc segments
     // while we are traversing them.
-    struct get_referrers_args args = { .objs = objs };
+    struct get_referrers_args args = {.objs = objs};
     _PyEval_StopTheWorld(interp);
     int err = gc_visit_heaps(interp, &visit_get_referrers, &args.base);
     _PyEval_StartTheWorld(interp);
@@ -1495,9 +1469,13 @@ struct get_objects_args {
 };
 
 static bool
-visit_get_objects(const mi_heap_t *heap, const mi_heap_area_t *area,
-                  void *block, size_t block_size, void *args)
-{
+visit_get_objects(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, true);
     if (op == NULL) {
         return true;
@@ -1516,12 +1494,11 @@ visit_get_objects(const mi_heap_t *heap, const mi_heap_area_t *area,
 }
 
 PyObject *
-_PyGC_GetObjects(PyInterpreterState *interp, int generation)
-{
+_PyGC_GetObjects(PyInterpreterState *interp, int generation) {
     // NOTE: We can't append to the PyListObject during gc_visit_heaps()
     // because PyList_Append() may reclaim an abandoned mimalloc segments
     // while we are traversing them.
-    struct get_objects_args args = { 0 };
+    struct get_objects_args args = {0};
     _PyEval_StopTheWorld(interp);
     int err = gc_visit_heaps(interp, &visit_get_objects, &args.base);
     _PyEval_StartTheWorld(interp);
@@ -1535,9 +1512,13 @@ _PyGC_GetObjects(PyInterpreterState *interp, int generation)
 }
 
 static bool
-visit_freeze(const mi_heap_t *heap, const mi_heap_area_t *area,
-             void *block, size_t block_size, void *args)
-{
+visit_freeze(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, true);
     if (op != NULL) {
         op->ob_gc_bits |= _PyGC_BITS_FROZEN;
@@ -1546,8 +1527,7 @@ visit_freeze(const mi_heap_t *heap, const mi_heap_area_t *area,
 }
 
 void
-_PyGC_Freeze(PyInterpreterState *interp)
-{
+_PyGC_Freeze(PyInterpreterState *interp) {
     struct visitor_args args;
     _PyEval_StopTheWorld(interp);
     gc_visit_heaps(interp, &visit_freeze, &args);
@@ -1555,9 +1535,13 @@ _PyGC_Freeze(PyInterpreterState *interp)
 }
 
 static bool
-visit_unfreeze(const mi_heap_t *heap, const mi_heap_area_t *area,
-               void *block, size_t block_size, void *args)
-{
+visit_unfreeze(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, true);
     if (op != NULL) {
         op->ob_gc_bits &= ~_PyGC_BITS_FROZEN;
@@ -1566,8 +1550,7 @@ visit_unfreeze(const mi_heap_t *heap, const mi_heap_area_t *area,
 }
 
 void
-_PyGC_Unfreeze(PyInterpreterState *interp)
-{
+_PyGC_Unfreeze(PyInterpreterState *interp) {
     struct visitor_args args;
     _PyEval_StopTheWorld(interp);
     gc_visit_heaps(interp, &visit_unfreeze, &args);
@@ -1580,9 +1563,13 @@ struct count_frozen_args {
 };
 
 static bool
-visit_count_frozen(const mi_heap_t *heap, const mi_heap_area_t *area,
-                   void *block, size_t block_size, void *args)
-{
+visit_count_frozen(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, true);
     if (op != NULL && (op->ob_gc_bits & _PyGC_BITS_FROZEN) != 0) {
         struct count_frozen_args *arg = (struct count_frozen_args *)args;
@@ -1592,9 +1579,8 @@ visit_count_frozen(const mi_heap_t *heap, const mi_heap_area_t *area,
 }
 
 Py_ssize_t
-_PyGC_GetFreezeCount(PyInterpreterState *interp)
-{
-    struct count_frozen_args args = { .count = 0 };
+_PyGC_GetFreezeCount(PyInterpreterState *interp) {
+    struct count_frozen_args args = {.count = 0};
     _PyEval_StopTheWorld(interp);
     gc_visit_heaps(interp, &visit_count_frozen, &args.base);
     _PyEval_StartTheWorld(interp);
@@ -1603,8 +1589,7 @@ _PyGC_GetFreezeCount(PyInterpreterState *interp)
 
 /* C API for controlling the state of the garbage collector */
 int
-PyGC_Enable(void)
-{
+PyGC_Enable(void) {
     GCState *gcstate = get_gc_state();
     int old_state = gcstate->enabled;
     gcstate->enabled = 1;
@@ -1612,8 +1597,7 @@ PyGC_Enable(void)
 }
 
 int
-PyGC_Disable(void)
-{
+PyGC_Disable(void) {
     GCState *gcstate = get_gc_state();
     int old_state = gcstate->enabled;
     gcstate->enabled = 0;
@@ -1621,16 +1605,14 @@ PyGC_Disable(void)
 }
 
 int
-PyGC_IsEnabled(void)
-{
+PyGC_IsEnabled(void) {
     GCState *gcstate = get_gc_state();
     return gcstate->enabled;
 }
 
 /* Public API to invoke gc.collect() from C */
 Py_ssize_t
-PyGC_Collect(void)
-{
+PyGC_Collect(void) {
     PyThreadState *tstate = _PyThreadState_GET();
     GCState *gcstate = &tstate->interp->gc;
 
@@ -1647,14 +1629,12 @@ PyGC_Collect(void)
 }
 
 Py_ssize_t
-_PyGC_Collect(PyThreadState *tstate, int generation, _PyGC_Reason reason)
-{
+_PyGC_Collect(PyThreadState *tstate, int generation, _PyGC_Reason reason) {
     return gc_collect_main(tstate, generation, reason);
 }
 
 void
-_PyGC_CollectNoFail(PyThreadState *tstate)
-{
+_PyGC_CollectNoFail(PyThreadState *tstate) {
     /* Ideally, this function is only called on interpreter shutdown,
        and therefore not recursively.  Unfortunately, when there are daemon
        threads, a daemon thread can start a cyclic garbage collection
@@ -1665,26 +1645,30 @@ _PyGC_CollectNoFail(PyThreadState *tstate)
 }
 
 void
-_PyGC_DumpShutdownStats(PyInterpreterState *interp)
-{
+_PyGC_DumpShutdownStats(PyInterpreterState *interp) {
     GCState *gcstate = &interp->gc;
-    if (!(gcstate->debug & _PyGC_DEBUG_SAVEALL)
-        && gcstate->garbage != NULL && PyList_GET_SIZE(gcstate->garbage) > 0) {
+    if (!(gcstate->debug & _PyGC_DEBUG_SAVEALL) && gcstate->garbage != NULL &&
+        PyList_GET_SIZE(gcstate->garbage) > 0) {
         const char *message;
         if (gcstate->debug & _PyGC_DEBUG_UNCOLLECTABLE) {
             message = "gc: %zd uncollectable objects at shutdown";
-        }
-        else {
-            message = "gc: %zd uncollectable objects at shutdown; " \
+        } else {
+            message =
+                "gc: %zd uncollectable objects at shutdown; "
                 "use gc.set_debug(gc.DEBUG_UNCOLLECTABLE) to list them";
         }
         /* PyErr_WarnFormat does too many things and we are at shutdown,
            the warnings module's dependencies (e.g. linecache) may be gone
            already. */
-        if (PyErr_WarnExplicitFormat(PyExc_ResourceWarning, "gc", 0,
-                                     "gc", NULL, message,
-                                     PyList_GET_SIZE(gcstate->garbage)))
-        {
+        if (PyErr_WarnExplicitFormat(
+                PyExc_ResourceWarning,
+                "gc",
+                0,
+                "gc",
+                NULL,
+                message,
+                PyList_GET_SIZE(gcstate->garbage)
+            )) {
             PyErr_WriteUnraisable(NULL);
         }
         if (gcstate->debug & _PyGC_DEBUG_UNCOLLECTABLE) {
@@ -1692,12 +1676,8 @@ _PyGC_DumpShutdownStats(PyInterpreterState *interp)
             repr = PyObject_Repr(gcstate->garbage);
             if (!repr || !(bytes = PyUnicode_EncodeFSDefault(repr))) {
                 PyErr_WriteUnraisable(gcstate->garbage);
-            }
-            else {
-                PySys_WriteStderr(
-                    "      %s\n",
-                    PyBytes_AS_STRING(bytes)
-                    );
+            } else {
+                PySys_WriteStderr("      %s\n", PyBytes_AS_STRING(bytes));
             }
             Py_XDECREF(repr);
             Py_XDECREF(bytes);
@@ -1705,10 +1685,8 @@ _PyGC_DumpShutdownStats(PyInterpreterState *interp)
     }
 }
 
-
 void
-_PyGC_Fini(PyInterpreterState *interp)
-{
+_PyGC_Fini(PyInterpreterState *interp) {
     GCState *gcstate = &interp->gc;
     Py_CLEAR(gcstate->garbage);
     Py_CLEAR(gcstate->callbacks);
@@ -1722,29 +1700,27 @@ _PyGC_Fini(PyInterpreterState *interp)
 
 #ifdef Py_DEBUG
 static int
-visit_validate(PyObject *op, void *parent_raw)
-{
+visit_validate(PyObject *op, void *parent_raw) {
     PyObject *parent = _PyObject_CAST(parent_raw);
     if (_PyObject_IsFreed(op)) {
-        _PyObject_ASSERT_FAILED_MSG(parent,
-                                    "PyObject_GC_Track() object is not valid");
+        _PyObject_ASSERT_FAILED_MSG(parent, "PyObject_GC_Track() object is not valid");
     }
     return 0;
 }
 #endif
 
-
 /* extension modules might be compiled with GC support so these
    functions must always be available */
 
 void
-PyObject_GC_Track(void *op_raw)
-{
+PyObject_GC_Track(void *op_raw) {
     PyObject *op = _PyObject_CAST(op_raw);
     if (_PyObject_GC_IS_TRACKED(op)) {
-        _PyObject_ASSERT_FAILED_MSG(op,
-                                    "object already tracked "
-                                    "by the garbage collector");
+        _PyObject_ASSERT_FAILED_MSG(
+            op,
+            "object already tracked "
+            "by the garbage collector"
+        );
     }
     _PyObject_GC_TRACK(op);
 
@@ -1757,8 +1733,7 @@ PyObject_GC_Track(void *op_raw)
 }
 
 void
-PyObject_GC_UnTrack(void *op_raw)
-{
+PyObject_GC_UnTrack(void *op_raw) {
     PyObject *op = _PyObject_CAST(op_raw);
     /* Obscure:  the Py_TRASHCAN mechanism requires that we be able to
      * call PyObject_GC_UnTrack twice on an object.
@@ -1769,29 +1744,24 @@ PyObject_GC_UnTrack(void *op_raw)
 }
 
 int
-PyObject_IS_GC(PyObject *obj)
-{
+PyObject_IS_GC(PyObject *obj) {
     return _PyObject_IS_GC(obj);
 }
 
 void
-_Py_ScheduleGC(PyThreadState *tstate)
-{
-    if (!_Py_eval_breaker_bit_is_set(tstate, _PY_GC_SCHEDULED_BIT))
-    {
+_Py_ScheduleGC(PyThreadState *tstate) {
+    if (!_Py_eval_breaker_bit_is_set(tstate, _PY_GC_SCHEDULED_BIT)) {
         _Py_set_eval_breaker_bit(tstate, _PY_GC_SCHEDULED_BIT);
     }
 }
 
 void
-_PyObject_GC_Link(PyObject *op)
-{
+_PyObject_GC_Link(PyObject *op) {
     record_allocation(_PyThreadState_GET());
 }
 
 void
-_Py_RunGC(PyThreadState *tstate)
-{
+_Py_RunGC(PyThreadState *tstate) {
     GCState *gcstate = get_gc_state();
     if (!gcstate->enabled) {
         return;
@@ -1800,8 +1770,7 @@ _Py_RunGC(PyThreadState *tstate)
 }
 
 static PyObject *
-gc_alloc(PyTypeObject *tp, size_t basicsize, size_t presize)
-{
+gc_alloc(PyTypeObject *tp, size_t basicsize, size_t presize) {
     PyThreadState *tstate = _PyThreadState_GET();
     if (basicsize > PY_SSIZE_T_MAX - presize) {
         return _PyErr_NoMemory(tstate);
@@ -1821,8 +1790,7 @@ gc_alloc(PyTypeObject *tp, size_t basicsize, size_t presize)
 }
 
 PyObject *
-_PyObject_GC_New(PyTypeObject *tp)
-{
+_PyObject_GC_New(PyTypeObject *tp) {
     size_t presize = _PyType_PreHeaderSize(tp);
     size_t size = _PyObject_SIZE(tp);
     if (_PyType_HasFeature(tp, Py_TPFLAGS_INLINE_VALUES)) {
@@ -1840,8 +1808,7 @@ _PyObject_GC_New(PyTypeObject *tp)
 }
 
 PyVarObject *
-_PyObject_GC_NewVar(PyTypeObject *tp, Py_ssize_t nitems)
-{
+_PyObject_GC_NewVar(PyTypeObject *tp, Py_ssize_t nitems) {
     PyVarObject *op;
 
     if (nitems < 0) {
@@ -1859,8 +1826,7 @@ _PyObject_GC_NewVar(PyTypeObject *tp, Py_ssize_t nitems)
 }
 
 PyObject *
-PyUnstable_Object_GC_NewWithExtraData(PyTypeObject *tp, size_t extra_size)
-{
+PyUnstable_Object_GC_NewWithExtraData(PyTypeObject *tp, size_t extra_size) {
     size_t presize = _PyType_PreHeaderSize(tp);
     PyObject *op = gc_alloc(tp, _PyObject_SIZE(tp) + extra_size, presize);
     if (op == NULL) {
@@ -1872,8 +1838,7 @@ PyUnstable_Object_GC_NewWithExtraData(PyTypeObject *tp, size_t extra_size)
 }
 
 PyVarObject *
-_PyObject_GC_Resize(PyVarObject *op, Py_ssize_t nitems)
-{
+_PyObject_GC_Resize(PyVarObject *op, Py_ssize_t nitems) {
     const size_t basicsize = _PyObject_VAR_SIZE(Py_TYPE(op), nitems);
     const size_t presize = _PyType_PreHeaderSize(((PyObject *)op)->ob_type);
     _PyObject_ASSERT((PyObject *)op, !_PyObject_GC_IS_TRACKED(op));
@@ -1881,26 +1846,31 @@ _PyObject_GC_Resize(PyVarObject *op, Py_ssize_t nitems)
         return (PyVarObject *)PyErr_NoMemory();
     }
     char *mem = (char *)op - presize;
-    mem = (char *)_PyObject_ReallocWithType(Py_TYPE(op), mem,  presize + basicsize);
+    mem = (char *)_PyObject_ReallocWithType(Py_TYPE(op), mem, presize + basicsize);
     if (mem == NULL) {
         return (PyVarObject *)PyErr_NoMemory();
     }
-    op = (PyVarObject *) (mem + presize);
+    op = (PyVarObject *)(mem + presize);
     Py_SET_SIZE(op, nitems);
     return op;
 }
 
 void
-PyObject_GC_Del(void *op)
-{
+PyObject_GC_Del(void *op) {
     size_t presize = _PyType_PreHeaderSize(((PyObject *)op)->ob_type);
     if (_PyObject_GC_IS_TRACKED(op)) {
         _PyObject_GC_UNTRACK(op);
 #ifdef Py_DEBUG
         PyObject *exc = PyErr_GetRaisedException();
-        if (PyErr_WarnExplicitFormat(PyExc_ResourceWarning, "gc", 0,
-                                     "gc", NULL, "Object of type %s is not untracked before destruction",
-                                     ((PyObject*)op)->ob_type->tp_name)) {
+        if (PyErr_WarnExplicitFormat(
+                PyExc_ResourceWarning,
+                "gc",
+                0,
+                "gc",
+                NULL,
+                "Object of type %s is not untracked before destruction",
+                ((PyObject *)op)->ob_type->tp_name
+            )) {
             PyErr_WriteUnraisable(NULL);
         }
         PyErr_SetRaisedException(exc);
@@ -1910,22 +1880,19 @@ PyObject_GC_Del(void *op)
     record_deallocation(_PyThreadState_GET());
     PyObject *self = (PyObject *)op;
     if (_PyObject_GC_IS_SHARED_INLINE(self)) {
-        _PyObject_FreeDelayed(((char *)op)-presize);
-    }
-    else {
-        PyObject_Free(((char *)op)-presize);
+        _PyObject_FreeDelayed(((char *)op) - presize);
+    } else {
+        PyObject_Free(((char *)op) - presize);
     }
 }
 
 int
-PyObject_GC_IsTracked(PyObject* obj)
-{
+PyObject_GC_IsTracked(PyObject *obj) {
     return _PyObject_GC_IS_TRACKED(obj);
 }
 
 int
-PyObject_GC_IsFinalized(PyObject *obj)
-{
+PyObject_GC_IsFinalized(PyObject *obj) {
     return _PyGC_FINALIZED(obj);
 }
 
@@ -1936,9 +1903,13 @@ struct custom_visitor_args {
 };
 
 static bool
-custom_visitor_wrapper(const mi_heap_t *heap, const mi_heap_area_t *area,
-                       void *block, size_t block_size, void *args)
-{
+custom_visitor_wrapper(
+    const mi_heap_t *heap,
+    const mi_heap_area_t *area,
+    void *block,
+    size_t block_size,
+    void *args
+) {
     PyObject *op = op_from_block(block, args, false);
     if (op == NULL) {
         return true;
@@ -1953,8 +1924,7 @@ custom_visitor_wrapper(const mi_heap_t *heap, const mi_heap_area_t *area,
 }
 
 void
-PyUnstable_GC_VisitObjects(gcvisitobjects_t callback, void *arg)
-{
+PyUnstable_GC_VisitObjects(gcvisitobjects_t callback, void *arg) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     struct custom_visitor_args wrapper = {
         .callback = callback,
@@ -1974,8 +1944,7 @@ PyUnstable_GC_VisitObjects(gcvisitobjects_t callback, void *arg)
  * GC should clear all freelists by traversing all threads.
  */
 void
-_PyGC_ClearAllFreeLists(PyInterpreterState *interp)
-{
+_PyGC_ClearAllFreeLists(PyInterpreterState *interp) {
     HEAD_LOCK(&_PyRuntime);
     _PyThreadStateImpl *tstate = (_PyThreadStateImpl *)interp->threads.head;
     while (tstate != NULL) {

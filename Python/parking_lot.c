@@ -1,15 +1,14 @@
 #include "Python.h"
 
 #include "pycore_llist.h"
-#include "pycore_lock.h"          // _PyRawMutex
+#include "pycore_lock.h"  // _PyRawMutex
 #include "pycore_parking_lot.h"
-#include "pycore_pyerrors.h"      // _Py_FatalErrorFormat
-#include "pycore_pystate.h"       // _PyThreadState_GET
-#include "pycore_semaphore.h"     // _PySemaphore
-#include "pycore_time.h"          // _PyTime_Add()
+#include "pycore_pyerrors.h"   // _Py_FatalErrorFormat
+#include "pycore_pystate.h"    // _PyThreadState_GET
+#include "pycore_semaphore.h"  // _PySemaphore
+#include "pycore_time.h"       // _PyTime_Add()
 
 #include <stdbool.h>
-
 
 typedef struct {
     // The mutex protects the waiter queue and the num_waiters counter.
@@ -34,15 +33,15 @@ struct wait_entry {
 // wasting memory. The exact choice does not matter much.
 #define NUM_BUCKETS 257
 
-#define BUCKET_INIT(b, i) [i] = { .root = LLIST_INIT(b[i].root) }
-#define BUCKET_INIT_2(b, i)   BUCKET_INIT(b, i),     BUCKET_INIT(b, i+1)
-#define BUCKET_INIT_4(b, i)   BUCKET_INIT_2(b, i),   BUCKET_INIT_2(b, i+2)
-#define BUCKET_INIT_8(b, i)   BUCKET_INIT_4(b, i),   BUCKET_INIT_4(b, i+4)
-#define BUCKET_INIT_16(b, i)  BUCKET_INIT_8(b, i),   BUCKET_INIT_8(b, i+8)
-#define BUCKET_INIT_32(b, i)  BUCKET_INIT_16(b, i),  BUCKET_INIT_16(b, i+16)
-#define BUCKET_INIT_64(b, i)  BUCKET_INIT_32(b, i),  BUCKET_INIT_32(b, i+32)
-#define BUCKET_INIT_128(b, i) BUCKET_INIT_64(b, i),  BUCKET_INIT_64(b, i+64)
-#define BUCKET_INIT_256(b, i) BUCKET_INIT_128(b, i), BUCKET_INIT_128(b, i+128)
+#define BUCKET_INIT(b, i) [i] = {.root = LLIST_INIT(b[i].root)}
+#define BUCKET_INIT_2(b, i) BUCKET_INIT(b, i), BUCKET_INIT(b, i + 1)
+#define BUCKET_INIT_4(b, i) BUCKET_INIT_2(b, i), BUCKET_INIT_2(b, i + 2)
+#define BUCKET_INIT_8(b, i) BUCKET_INIT_4(b, i), BUCKET_INIT_4(b, i + 4)
+#define BUCKET_INIT_16(b, i) BUCKET_INIT_8(b, i), BUCKET_INIT_8(b, i + 8)
+#define BUCKET_INIT_32(b, i) BUCKET_INIT_16(b, i), BUCKET_INIT_16(b, i + 16)
+#define BUCKET_INIT_64(b, i) BUCKET_INIT_32(b, i), BUCKET_INIT_32(b, i + 32)
+#define BUCKET_INIT_128(b, i) BUCKET_INIT_64(b, i), BUCKET_INIT_64(b, i + 64)
+#define BUCKET_INIT_256(b, i) BUCKET_INIT_128(b, i), BUCKET_INIT_128(b, i + 128)
 
 // Table of waiters (hashed by address)
 static Bucket buckets[NUM_BUCKETS] = {
@@ -51,14 +50,13 @@ static Bucket buckets[NUM_BUCKETS] = {
 };
 
 void
-_PySemaphore_Init(_PySemaphore *sema)
-{
+_PySemaphore_Init(_PySemaphore *sema) {
 #if defined(MS_WINDOWS)
     sema->platform_sem = CreateSemaphore(
-        NULL,   //  attributes
-        0,      //  initial count
-        10,     //  maximum count
-        NULL    //  unnamed
+        NULL,  //  attributes
+        0,     //  initial count
+        10,    //  maximum count
+        NULL   //  unnamed
     );
     if (!sema->platform_sem) {
         Py_FatalError("parking_lot: CreateSemaphore failed");
@@ -79,8 +77,7 @@ _PySemaphore_Init(_PySemaphore *sema)
 }
 
 void
-_PySemaphore_Destroy(_PySemaphore *sema)
-{
+_PySemaphore_Destroy(_PySemaphore *sema) {
 #if defined(MS_WINDOWS)
     CloseHandle(sema->platform_sem);
 #elif defined(_Py_USE_SEMAPHORES)
@@ -92,23 +89,20 @@ _PySemaphore_Destroy(_PySemaphore *sema)
 }
 
 static int
-_PySemaphore_PlatformWait(_PySemaphore *sema, PyTime_t timeout)
-{
+_PySemaphore_PlatformWait(_PySemaphore *sema, PyTime_t timeout) {
     int res;
 #if defined(MS_WINDOWS)
     DWORD wait;
     DWORD millis = 0;
     if (timeout < 0) {
         millis = INFINITE;
-    }
-    else {
+    } else {
         PyTime_t div = _PyTime_AsMilliseconds(timeout, _PyTime_ROUND_TIMEOUT);
         // Prevent overflow with clamping the result
         if ((PyTime_t)PY_DWORD_MAX < div) {
             millis = PY_DWORD_MAX;
-        }
-        else {
-            millis = (DWORD) div;
+        } else {
+            millis = (DWORD)div;
         }
     }
 
@@ -116,30 +110,31 @@ _PySemaphore_PlatformWait(_PySemaphore *sema, PyTime_t timeout)
     // behavior of the other platforms. Non-main threads will ignore the
     // Py_PARK_INTR result.
     HANDLE sigint_event = _PyOS_SigintEvent();
-    HANDLE handles[2] = { sema->platform_sem, sigint_event };
+    HANDLE handles[2] = {sema->platform_sem, sigint_event};
     DWORD count = sigint_event != NULL ? 2 : 1;
     wait = WaitForMultipleObjects(count, handles, FALSE, millis);
     if (wait == WAIT_OBJECT_0) {
         res = Py_PARK_OK;
-    }
-    else if (wait == WAIT_OBJECT_0 + 1) {
+    } else if (wait == WAIT_OBJECT_0 + 1) {
         ResetEvent(sigint_event);
         res = Py_PARK_INTR;
-    }
-    else if (wait == WAIT_TIMEOUT) {
+    } else if (wait == WAIT_TIMEOUT) {
         res = Py_PARK_TIMEOUT;
-    }
-    else {
-        _Py_FatalErrorFormat(__func__,
+    } else {
+        _Py_FatalErrorFormat(
+            __func__,
             "unexpected error from semaphore: %u (error: %u)",
-            wait, GetLastError());
+            wait,
+            GetLastError()
+        );
     }
 #elif defined(_Py_USE_SEMAPHORES)
     int err;
     if (timeout >= 0) {
         struct timespec ts;
 
-#if defined(CLOCK_MONOTONIC) && defined(HAVE_SEM_CLOCKWAIT) && !defined(_Py_THREAD_SANITIZER)
+#if defined(CLOCK_MONOTONIC) && defined(HAVE_SEM_CLOCKWAIT) && \
+    !defined(_Py_THREAD_SANITIZER)
         PyTime_t now;
         // silently ignore error: cannot report error to the caller
         (void)PyTime_MonotonicRaw(&now);
@@ -157,25 +152,19 @@ _PySemaphore_PlatformWait(_PySemaphore *sema, PyTime_t timeout)
 
         err = sem_timedwait(&sema->platform_sem, &ts);
 #endif
-    }
-    else {
+    } else {
         err = sem_wait(&sema->platform_sem);
     }
     if (err == -1) {
         err = errno;
         if (err == EINTR) {
             res = Py_PARK_INTR;
-        }
-        else if (err == ETIMEDOUT) {
+        } else if (err == ETIMEDOUT) {
             res = Py_PARK_TIMEOUT;
+        } else {
+            _Py_FatalErrorFormat(__func__, "unexpected error from semaphore: %d", err);
         }
-        else {
-            _Py_FatalErrorFormat(__func__,
-                "unexpected error from semaphore: %d",
-                err);
-        }
-    }
-    else {
+    } else {
         res = Py_PARK_OK;
     }
 #else
@@ -194,20 +183,17 @@ _PySemaphore_PlatformWait(_PySemaphore *sema, PyTime_t timeout)
             _PyTime_AsTimespec_clamp(deadline, &ts);
 
             err = pthread_cond_timedwait(&sema->cond, &sema->mutex, &ts);
-#endif // HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP
-        }
-        else {
+#endif  // HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP
+        } else {
             err = pthread_cond_wait(&sema->cond, &sema->mutex);
         }
     }
     if (sema->counter > 0) {
         sema->counter--;
         res = Py_PARK_OK;
-    }
-    else if (err) {
+    } else if (err) {
         res = Py_PARK_TIMEOUT;
-    }
-    else {
+    } else {
         res = Py_PARK_INTR;
     }
     pthread_mutex_unlock(&sema->mutex);
@@ -216,17 +202,15 @@ _PySemaphore_PlatformWait(_PySemaphore *sema, PyTime_t timeout)
 }
 
 int
-_PySemaphore_Wait(_PySemaphore *sema, PyTime_t timeout, int detach)
-{
+_PySemaphore_Wait(_PySemaphore *sema, PyTime_t timeout, int detach) {
     PyThreadState *tstate = NULL;
     if (detach) {
         tstate = _PyThreadState_GET();
-        if (tstate && _Py_atomic_load_int_relaxed(&tstate->state) ==
-                          _Py_THREAD_ATTACHED) {
+        if (tstate &&
+            _Py_atomic_load_int_relaxed(&tstate->state) == _Py_THREAD_ATTACHED) {
             // Only detach if we are attached
             PyEval_ReleaseThread(tstate);
-        }
-        else {
+        } else {
             tstate = NULL;
         }
     }
@@ -238,8 +222,7 @@ _PySemaphore_Wait(_PySemaphore *sema, PyTime_t timeout, int detach)
 }
 
 void
-_PySemaphore_Wakeup(_PySemaphore *sema)
-{
+_PySemaphore_Wakeup(_PySemaphore *sema) {
 #if defined(MS_WINDOWS)
     if (!ReleaseSemaphore(sema->platform_sem, 1, NULL)) {
         Py_FatalError("parking_lot: ReleaseSemaphore failed");
@@ -258,15 +241,13 @@ _PySemaphore_Wakeup(_PySemaphore *sema)
 }
 
 static void
-enqueue(Bucket *bucket, const void *address, struct wait_entry *wait)
-{
+enqueue(Bucket *bucket, const void *address, struct wait_entry *wait) {
     llist_insert_tail(&bucket->root, &wait->node);
     ++bucket->num_waiters;
 }
 
 static struct wait_entry *
-dequeue(Bucket *bucket, const void *address)
-{
+dequeue(Bucket *bucket, const void *address) {
     // find the first waiter that is waiting on `address`
     struct llist_node *root = &bucket->root;
     struct llist_node *node;
@@ -283,8 +264,7 @@ dequeue(Bucket *bucket, const void *address)
 }
 
 static void
-dequeue_all(Bucket *bucket, const void *address, struct llist_node *dst)
-{
+dequeue_all(Bucket *bucket, const void *address, struct llist_node *dst) {
     // remove and append all matching waiters to dst
     struct llist_node *root = &bucket->root;
     struct llist_node *node;
@@ -301,21 +281,30 @@ dequeue_all(Bucket *bucket, const void *address, struct llist_node *dst)
 
 // Checks that `*addr == *expected` (only works for 1, 2, 4, or 8 bytes)
 static int
-atomic_memcmp(const void *addr, const void *expected, size_t addr_size)
-{
+atomic_memcmp(const void *addr, const void *expected, size_t addr_size) {
     switch (addr_size) {
-    case 1: return _Py_atomic_load_uint8(addr) == *(const uint8_t *)expected;
-    case 2: return _Py_atomic_load_uint16(addr) == *(const uint16_t *)expected;
-    case 4: return _Py_atomic_load_uint32(addr) == *(const uint32_t *)expected;
-    case 8: return _Py_atomic_load_uint64(addr) == *(const uint64_t *)expected;
-    default: Py_UNREACHABLE();
+        case 1:
+            return _Py_atomic_load_uint8(addr) == *(const uint8_t *)expected;
+        case 2:
+            return _Py_atomic_load_uint16(addr) == *(const uint16_t *)expected;
+        case 4:
+            return _Py_atomic_load_uint32(addr) == *(const uint32_t *)expected;
+        case 8:
+            return _Py_atomic_load_uint64(addr) == *(const uint64_t *)expected;
+        default:
+            Py_UNREACHABLE();
     }
 }
 
 int
-_PyParkingLot_Park(const void *addr, const void *expected, size_t size,
-                   PyTime_t timeout_ns, void *park_arg, int detach)
-{
+_PyParkingLot_Park(
+    const void *addr,
+    const void *expected,
+    size_t size,
+    PyTime_t timeout_ns,
+    void *park_arg,
+    int detach
+) {
     struct wait_entry wait = {
         .park_arg = park_arg,
         .addr = (uintptr_t)addr,
@@ -348,8 +337,7 @@ _PyParkingLot_Park(const void *addr, const void *expected, size_t size,
             res = _PySemaphore_Wait(&wait.sema, -1, detach);
         } while (res != Py_PARK_OK);
         goto done;
-    }
-    else {
+    } else {
         llist_remove(&wait.node);
         --bucket->num_waiters;
     }
@@ -358,12 +346,10 @@ _PyParkingLot_Park(const void *addr, const void *expected, size_t size,
 done:
     _PySemaphore_Destroy(&wait.sema);
     return res;
-
 }
 
 void
-_PyParkingLot_Unpark(const void *addr, _Py_unpark_fn_t *fn, void *arg)
-{
+_PyParkingLot_Unpark(const void *addr, _Py_unpark_fn_t *fn, void *arg) {
     Bucket *bucket = &buckets[((uintptr_t)addr) % NUM_BUCKETS];
 
     // Find the first waiter that is waiting on `addr`
@@ -372,8 +358,7 @@ _PyParkingLot_Unpark(const void *addr, _Py_unpark_fn_t *fn, void *arg)
     if (waiter) {
         int has_more_waiters = (bucket->num_waiters > 0);
         fn(arg, waiter->park_arg, has_more_waiters);
-    }
-    else {
+    } else {
         fn(arg, NULL, 0);
     }
     _PyRawMutex_Unlock(&bucket->mutex);
@@ -385,8 +370,7 @@ _PyParkingLot_Unpark(const void *addr, _Py_unpark_fn_t *fn, void *arg)
 }
 
 void
-_PyParkingLot_UnparkAll(const void *addr)
-{
+_PyParkingLot_UnparkAll(const void *addr) {
     struct llist_node head = LLIST_INIT(head);
     Bucket *bucket = &buckets[((uintptr_t)addr) % NUM_BUCKETS];
 
@@ -403,8 +387,7 @@ _PyParkingLot_UnparkAll(const void *addr)
 }
 
 void
-_PyParkingLot_AfterFork(void)
-{
+_PyParkingLot_AfterFork(void) {
     // After a fork only one thread remains. That thread cannot be blocked
     // so all entries in the parking lot are for dead threads.
     memset(buckets, 0, sizeof(buckets));

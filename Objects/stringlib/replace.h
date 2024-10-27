@@ -4,10 +4,9 @@
 #error must include "stringlib/fastsearch.h" before including this module
 #endif
 
-Py_LOCAL_INLINE(void)
-STRINGLIB(replace_1char_inplace)(STRINGLIB_CHAR* s, STRINGLIB_CHAR* end,
-                                 Py_UCS4 u1, Py_UCS4 u2, Py_ssize_t maxcount)
-{
+Py_LOCAL_INLINE(void) STRINGLIB(replace_1char_inplace)(
+    STRINGLIB_CHAR *s, STRINGLIB_CHAR *end, Py_UCS4 u1, Py_UCS4 u2, Py_ssize_t maxcount
+) {
     *s = u2;
     while (--maxcount && ++s != end) {
         /* Find the next character to be replaced.
@@ -36,7 +35,7 @@ STRINGLIB(replace_1char_inplace)(STRINGLIB_CHAR* s, STRINGLIB_CHAR* end,
                         return;
 #else
                     Py_ssize_t i;
-                    STRINGLIB_CHAR ch1 = (STRINGLIB_CHAR) u1;
+                    STRINGLIB_CHAR ch1 = (STRINGLIB_CHAR)u1;
                     s++;
                     i = FASTSEARCH(s, end - s, &ch1, 1, 0, FAST_SEARCH);
                     if (i < 0)

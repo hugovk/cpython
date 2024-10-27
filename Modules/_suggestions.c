@@ -16,11 +16,12 @@ Returns the candidate in candidates that's closest to item
 [clinic start generated code]*/
 
 static PyObject *
-_suggestions__generate_suggestions_impl(PyObject *module,
-                                        PyObject *candidates, PyObject *item)
+_suggestions__generate_suggestions_impl(
+    PyObject *module, PyObject *candidates, PyObject *item
+)
 /*[clinic end generated code: output=79be7b653ae5e7ca input=ba2a8dddc654e33a]*/
 {
-   // Check if dir is a list
+    // Check if dir is a list
     if (!PyList_Check(candidates)) {
         PyErr_SetString(PyExc_TypeError, "candidates must be a list");
         return NULL;
@@ -31,22 +32,22 @@ _suggestions__generate_suggestions_impl(PyObject *module,
     for (Py_ssize_t i = 0; i < size; ++i) {
         PyObject *elem = PyList_GetItem(candidates, i);
         if (!PyUnicode_Check(elem)) {
-            PyErr_SetString(PyExc_TypeError, "all elements in 'candidates' must be strings");
+            PyErr_SetString(
+                PyExc_TypeError, "all elements in 'candidates' must be strings"
+            );
             return NULL;
         }
     }
 
-    PyObject* result =  _Py_CalculateSuggestions(candidates, item);
+    PyObject *result = _Py_CalculateSuggestions(candidates, item);
     if (!result && !PyErr_Occurred()) {
         Py_RETURN_NONE;
     }
     return result;
 }
 
-
 static PyMethodDef module_methods[] = {
-    _SUGGESTIONS__GENERATE_SUGGESTIONS_METHODDEF
-    {NULL, NULL, 0, NULL} // Sentinel
+    _SUGGESTIONS__GENERATE_SUGGESTIONS_METHODDEF{NULL, NULL, 0, NULL}  // Sentinel
 };
 
 static PyModuleDef_Slot module_slots[] = {
@@ -64,6 +65,7 @@ static struct PyModuleDef suggestions_module = {
     module_slots,
 };
 
-PyMODINIT_FUNC PyInit__suggestions(void) {
+PyMODINIT_FUNC
+PyInit__suggestions(void) {
     return PyModuleDef_Init(&suggestions_module);
 }

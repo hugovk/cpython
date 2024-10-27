@@ -17,8 +17,7 @@
  * CP932 codec
  */
 
-ENCODER(cp932)
-{
+ENCODER(cp932) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -28,13 +27,11 @@ ENCODER(cp932)
             WRITEBYTE1((unsigned char)c);
             NEXT(1, 1);
             continue;
-        }
-        else if (c >= 0xff61 && c <= 0xff9f) {
+        } else if (c >= 0xff61 && c <= 0xff9f) {
             WRITEBYTE1(c - 0xfec0);
             NEXT(1, 1);
             continue;
-        }
-        else if (c >= 0xf8f0 && c <= 0xf8f3) {
+        } else if (c >= 0xf8f0 && c <= 0xf8f3) {
             /* Windows compatibility */
             REQUIRE_OUTBUF(1);
             if (c == 0xf8f0)
@@ -52,8 +49,7 @@ ENCODER(cp932)
         if (TRYMAP_ENC(cp932ext, code, c)) {
             OUTBYTE1(code >> 8);
             OUTBYTE2(code & 0xff);
-        }
-        else if (TRYMAP_ENC(jisxcommon, code, c)) {
+        } else if (TRYMAP_ENC(jisxcommon, code, c)) {
             if (code & 0x8000) /* MSB set: JIS X 0212 */
                 return 1;
 
@@ -64,15 +60,13 @@ ENCODER(cp932)
             c1 = (c1 - 0x21) >> 1;
             OUTBYTE1(c1 < 0x1f ? c1 + 0x81 : c1 + 0xc1);
             OUTBYTE2(c2 < 0x3f ? c2 + 0x40 : c2 + 0x41);
-        }
-        else if (c >= 0xe000 && c < 0xe758) {
+        } else if (c >= 0xe000 && c < 0xe758) {
             /* User-defined area */
             c1 = (Py_UCS4)(c - 0xe000) / 188;
             c2 = (Py_UCS4)(c - 0xe000) % 188;
             OUTBYTE1(c1 + 0xf0);
             OUTBYTE2(c2 < 0x3f ? c2 + 0x40 : c2 + 0x41);
-        }
-        else
+        } else
             return 1;
 
         NEXT(1, 2);
@@ -81,8 +75,7 @@ ENCODER(cp932)
     return 0;
 }
 
-DECODER(cp932)
-{
+DECODER(cp932) {
     while (inleft > 0) {
         unsigned char c = INBYTE1, c2;
         Py_UCS4 decoded;
@@ -91,16 +84,14 @@ DECODER(cp932)
             OUTCHAR(c);
             NEXT_IN(1);
             continue;
-        }
-        else if (c >= 0xa0 && c <= 0xdf) {
+        } else if (c >= 0xa0 && c <= 0xdf) {
             if (c == 0xa0)
                 OUTCHAR(0xf8f0); /* half-width katakana */
             else
                 OUTCHAR(0xfec0 + c);
             NEXT_IN(1);
             continue;
-        }
-        else if (c >= 0xfd/* && c <= 0xff*/) {
+        } else if (c >= 0xfd /* && c <= 0xff*/) {
             /* Windows compatibility */
             OUTCHAR(0xf8f1 - 0xfd + c);
             NEXT_IN(1);
@@ -112,7 +103,7 @@ DECODER(cp932)
 
         if (TRYMAP_DEC(cp932ext, decoded, c, c2))
             OUTCHAR(decoded);
-        else if ((c >= 0x81 && c <= 0x9f) || (c >= 0xe0 && c <= 0xea)){
+        else if ((c >= 0x81 && c <= 0x9f) || (c >= 0xe0 && c <= 0xea)) {
             if (c2 < 0x40 || (c2 > 0x7e && c2 < 0x80) || c2 > 0xfc)
                 return 1;
 
@@ -125,16 +116,14 @@ DECODER(cp932)
                 OUTCHAR(decoded);
             else
                 return 1;
-        }
-        else if (c >= 0xf0 && c <= 0xf9) {
-            if ((c2 >= 0x40 && c2 <= 0x7e) ||
-                (c2 >= 0x80 && c2 <= 0xfc))
-                OUTCHAR(0xe000 + 188 * (c - 0xf0) +
-                    (c2 < 0x80 ? c2 - 0x40 : c2 - 0x41));
+        } else if (c >= 0xf0 && c <= 0xf9) {
+            if ((c2 >= 0x40 && c2 <= 0x7e) || (c2 >= 0x80 && c2 <= 0xfc))
+                OUTCHAR(
+                    0xe000 + 188 * (c - 0xf0) + (c2 < 0x80 ? c2 - 0x40 : c2 - 0x41)
+                );
             else
                 return 1;
-        }
-        else
+        } else
             return 1;
 
         NEXT_IN(2);
@@ -143,13 +132,11 @@ DECODER(cp932)
     return 0;
 }
 
-
 /*
  * EUC-JIS-2004 codec
  */
 
-ENCODER(euc_jis_2004)
-{
+ENCODER(euc_jis_2004) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -170,26 +157,21 @@ ENCODER(euc_jis_2004)
                     if (inlen - *inpos < 2) {
                         if (flags & MBENC_FLUSH) {
                             code = find_pairencmap(
-                                (ucs2_t)c, 0,
-                              jisx0213_pair_encmap,
-                                JISX0213_ENCPAIRS);
+                                (ucs2_t)c, 0, jisx0213_pair_encmap, JISX0213_ENCPAIRS
+                            );
                             if (code == DBCINV)
                                 return 1;
-                        }
-                        else
+                        } else
                             return MBERR_TOOFEW;
-                    }
-                    else {
+                    } else {
                         Py_UCS4 c2 = INCHAR2;
                         code = find_pairencmap(
-                            (ucs2_t)c, c2,
-                            jisx0213_pair_encmap,
-                            JISX0213_ENCPAIRS);
+                            (ucs2_t)c, c2, jisx0213_pair_encmap, JISX0213_ENCPAIRS
+                        );
                         if (code == DBCINV) {
                             code = find_pairencmap(
-                                (ucs2_t)c, 0,
-                              jisx0213_pair_encmap,
-                                JISX0213_ENCPAIRS);
+                                (ucs2_t)c, 0, jisx0213_pair_encmap, JISX0213_ENCPAIRS
+                            );
                             if (code == DBCINV)
                                 return 1;
                         } else
@@ -197,8 +179,7 @@ ENCODER(euc_jis_2004)
                     }
                 }
             }
-            else if (TRYMAP_ENC(jisxcommon, code, c))
-                ;
+            else if (TRYMAP_ENC(jisxcommon, code, c));
             else if (c >= 0xff61 && c <= 0xff9f) {
                 /* JIS X 0201 half-width katakana */
                 WRITEBYTE2(0x8e, c - 0xfec0);
@@ -211,17 +192,12 @@ ENCODER(euc_jis_2004)
             else if (c == 0xff5e)
                 /* F/W TILDE (see NOTES) */
                 code = 0x2232;
-            else
-                return 1;
-        }
-        else if (c >> 16 == EMPBASE >> 16) {
+            else return 1;
+        } else if (c >> 16 == EMPBASE >> 16) {
             EMULATE_JISX0213_2000_ENCODE_EMP(codec->config, code, c)
-            else if (TRYMAP_ENC(jisx0213_emp, code, c & 0xffff))
-                ;
-            else
-                return insize;
-        }
-        else
+            else if (TRYMAP_ENC(jisx0213_emp, code, c & 0xffff));
+            else return insize;
+        } else
             return insize;
 
         if (code & 0x8000) {
@@ -238,8 +214,7 @@ ENCODER(euc_jis_2004)
     return 0;
 }
 
-DECODER(euc_jis_2004)
-{
+DECODER(euc_jis_2004) {
     while (inleft > 0) {
         unsigned char c = INBYTE1;
         Py_UCS4 code, decoded;
@@ -259,11 +234,9 @@ DECODER(euc_jis_2004)
             if (c2 >= 0xa1 && c2 <= 0xdf) {
                 OUTCHAR(0xfec0 + c2);
                 NEXT_IN(2);
-            }
-            else
+            } else
                 return 1;
-        }
-        else if (c == 0x8f) {
+        } else if (c == 0x8f) {
             unsigned char c2, c3;
 
             REQUIRE_INBUF(3);
@@ -272,20 +245,16 @@ DECODER(euc_jis_2004)
 
             /* JIS X 0213 Plane 2 or JIS X 0212 (see NOTES) */
             EMULATE_JISX0213_2000_DECODE_PLANE2(codec->config, writer, c2, c3)
-            else if (TRYMAP_DEC(jisx0213_2_bmp, decoded, c2, c3))
-                OUTCHAR(decoded);
+            else if (TRYMAP_DEC(jisx0213_2_bmp, decoded, c2, c3)) OUTCHAR(decoded);
             else if (TRYMAP_DEC(jisx0213_2_emp, code, c2, c3)) {
                 OUTCHAR(EMPBASE | code);
                 NEXT_IN(3);
                 continue;
             }
-            else if (TRYMAP_DEC(jisx0212, decoded, c2, c3))
-                OUTCHAR(decoded);
-            else
-                return 1;
+            else if (TRYMAP_DEC(jisx0212, decoded, c2, c3)) OUTCHAR(decoded);
+            else return 1;
             NEXT_IN(3);
-        }
-        else {
+        } else {
             unsigned char c2;
 
             REQUIRE_INBUF(2);
@@ -294,14 +263,10 @@ DECODER(euc_jis_2004)
 
             /* JIS X 0213 Plane 1 */
             EMULATE_JISX0213_2000_DECODE_PLANE1(codec->config, writer, c, c2)
-            else if (c == 0x21 && c2 == 0x40)
-                OUTCHAR(0xff3c);
-            else if (c == 0x22 && c2 == 0x32)
-                OUTCHAR(0xff5e);
-            else if (TRYMAP_DEC(jisx0208, decoded, c, c2))
-                OUTCHAR(decoded);
-            else if (TRYMAP_DEC(jisx0213_1_bmp, decoded, c, c2))
-                OUTCHAR(decoded);
+            else if (c == 0x21 && c2 == 0x40) OUTCHAR(0xff3c);
+            else if (c == 0x22 && c2 == 0x32) OUTCHAR(0xff5e);
+            else if (TRYMAP_DEC(jisx0208, decoded, c, c2)) OUTCHAR(decoded);
+            else if (TRYMAP_DEC(jisx0213_1_bmp, decoded, c, c2)) OUTCHAR(decoded);
             else if (TRYMAP_DEC(jisx0213_1_emp, code, c, c2)) {
                 OUTCHAR(EMPBASE | code);
                 NEXT_IN(2);
@@ -312,8 +277,7 @@ DECODER(euc_jis_2004)
                 NEXT_IN(2);
                 continue;
             }
-            else
-                return 1;
+            else return 1;
             NEXT_IN(2);
         }
     }
@@ -321,13 +285,11 @@ DECODER(euc_jis_2004)
     return 0;
 }
 
-
 /*
  * EUC-JP codec
  */
 
-ENCODER(euc_jp)
-{
+ENCODER(euc_jp) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -379,8 +341,7 @@ ENCODER(euc_jp)
     return 0;
 }
 
-DECODER(euc_jp)
-{
+DECODER(euc_jp) {
     while (inleft > 0) {
         unsigned char c = INBYTE1;
         Py_UCS4 decoded;
@@ -400,11 +361,9 @@ DECODER(euc_jp)
             if (c2 >= 0xa1 && c2 <= 0xdf) {
                 OUTCHAR(0xfec0 + c2);
                 NEXT_IN(2);
-            }
-            else
+            } else
                 return 1;
-        }
-        else if (c == 0x8f) {
+        } else if (c == 0x8f) {
             unsigned char c2, c3;
 
             REQUIRE_INBUF(3);
@@ -414,11 +373,9 @@ DECODER(euc_jp)
             if (TRYMAP_DEC(jisx0212, decoded, c2 ^ 0x80, c3 ^ 0x80)) {
                 OUTCHAR(decoded);
                 NEXT_IN(3);
-            }
-            else
+            } else
                 return 1;
-        }
-        else {
+        } else {
             unsigned char c2;
 
             REQUIRE_INBUF(2);
@@ -430,7 +387,7 @@ DECODER(euc_jp)
                 OUTCHAR(0xff3c);
             else
 #endif
-            if (TRYMAP_DEC(jisx0208, decoded, c ^ 0x80, c2 ^ 0x80))
+                if (TRYMAP_DEC(jisx0208, decoded, c ^ 0x80, c2 ^ 0x80))
                 OUTCHAR(decoded);
             else
                 return 1;
@@ -441,13 +398,11 @@ DECODER(euc_jp)
     return 0;
 }
 
-
 /*
  * SHIFT_JIS codec
  */
 
-ENCODER(shift_jis)
-{
+ENCODER(shift_jis) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code;
@@ -463,11 +418,8 @@ ENCODER(shift_jis)
         else if (c == 0x203e)
             code = 0x7e; /* OVERLINE */
 #endif
-        else JISX0201_K_ENCODE(c, code)
-        else if (c > 0xFFFF)
-            return 1;
-        else
-            code = NOCHAR;
+        else JISX0201_K_ENCODE(c, code) else if (c > 0xFFFF) return 1;
+        else code = NOCHAR;
 
         if (code < 0x80 || (code >= 0xa1 && code <= 0xdf)) {
             REQUIRE_OUTBUF(1);
@@ -505,8 +457,7 @@ ENCODER(shift_jis)
     return 0;
 }
 
-DECODER(shift_jis)
-{
+DECODER(shift_jis) {
     while (inleft > 0) {
         unsigned char c = INBYTE1;
         Py_UCS4 decoded;
@@ -517,8 +468,8 @@ DECODER(shift_jis)
         if (c < 0x80)
             OUTCHAR(c);
 #endif
-        else JISX0201_K_DECODE(c, writer)
-        else if ((c >= 0x81 && c <= 0x9f) || (c >= 0xe0 && c <= 0xea)){
+        else JISX0201_K_DECODE(c, writer) else if ((c >= 0x81 && c <= 0x9f) ||
+                                                   (c >= 0xe0 && c <= 0xea)) {
             unsigned char c1, c2;
 
             REQUIRE_INBUF(2);
@@ -543,12 +494,10 @@ DECODER(shift_jis)
                 OUTCHAR(decoded);
                 NEXT_IN(2);
                 continue;
-            }
-            else
+            } else
                 return 1;
         }
-        else
-            return 1;
+        else return 1;
 
         NEXT_IN(1); /* JIS X 0201 */
     }
@@ -556,13 +505,11 @@ DECODER(shift_jis)
     return 0;
 }
 
-
 /*
  * SHIFT_JIS-2004 codec
  */
 
-ENCODER(shift_jis_2004)
-{
+ENCODER(shift_jis_2004) {
     while (*inpos < inlen) {
         Py_UCS4 c = INCHAR1;
         DBCHAR code = NOCHAR;
@@ -587,31 +534,31 @@ ENCODER(shift_jis_2004)
                     if (code == MULTIC) {
                         if (inlen - *inpos < 2) {
                             if (flags & MBENC_FLUSH) {
-                            code = find_pairencmap
-                                ((ucs2_t)c, 0,
-                              jisx0213_pair_encmap,
-                                JISX0213_ENCPAIRS);
-                            if (code == DBCINV)
-                                return 1;
-                            }
-                            else
+                                code = find_pairencmap(
+                                    (ucs2_t)c,
+                                    0,
+                                    jisx0213_pair_encmap,
+                                    JISX0213_ENCPAIRS
+                                );
+                                if (code == DBCINV)
+                                    return 1;
+                            } else
                                 return MBERR_TOOFEW;
-                        }
-                        else {
+                        } else {
                             Py_UCS4 ch2 = INCHAR2;
                             code = find_pairencmap(
-                                (ucs2_t)c, ch2,
-                              jisx0213_pair_encmap,
-                                JISX0213_ENCPAIRS);
+                                (ucs2_t)c, ch2, jisx0213_pair_encmap, JISX0213_ENCPAIRS
+                            );
                             if (code == DBCINV) {
-                            code = find_pairencmap(
-                                (ucs2_t)c, 0,
-                              jisx0213_pair_encmap,
-                                JISX0213_ENCPAIRS);
-                            if (code == DBCINV)
-                                return 1;
-                            }
-                            else
+                                code = find_pairencmap(
+                                    (ucs2_t)c,
+                                    0,
+                                    jisx0213_pair_encmap,
+                                    JISX0213_ENCPAIRS
+                                );
+                                if (code == DBCINV)
+                                    return 1;
+                            } else
                                 insize = 2;
                         }
                     }
@@ -621,17 +568,12 @@ ENCODER(shift_jis_2004)
                     if (code & 0x8000)
                         return 1;
                 }
-                else
-                    return 1;
-            }
-            else if (c >> 16 == EMPBASE >> 16) {
+                else return 1;
+            } else if (c >> 16 == EMPBASE >> 16) {
                 EMULATE_JISX0213_2000_ENCODE_EMP(codec->config, code, c)
-                else if (TRYMAP_ENC(jisx0213_emp, code, c&0xffff))
-                    ;
-                else
-                    return insize;
-            }
-            else
+                else if (TRYMAP_ENC(jisx0213_emp, code, c & 0xffff));
+                else return insize;
+            } else
                 return insize;
         }
 
@@ -646,8 +588,7 @@ ENCODER(shift_jis_2004)
                 c1 -= 0x49;
             else
                 c1 -= 0x43;
-        }
-        else {
+        } else {
             /* Plane 1 */
             c1 -= 0x21;
         }
@@ -664,13 +605,12 @@ ENCODER(shift_jis_2004)
     return 0;
 }
 
-DECODER(shift_jis_2004)
-{
+DECODER(shift_jis_2004) {
     while (inleft > 0) {
         unsigned char c = INBYTE1;
 
         JISX0201_DECODE(c, writer)
-        else if ((c >= 0x81 && c <= 0x9f) || (c >= 0xe0 && c <= 0xfc)){
+        else if ((c >= 0x81 && c <= 0x9f) || (c >= 0xe0 && c <= 0xfc)) {
             unsigned char c1, c2;
             Py_UCS4 code, decoded;
 
@@ -686,21 +626,16 @@ DECODER(shift_jis_2004)
 
             if (c1 < 0x5e) { /* Plane 1 */
                 c1 += 0x21;
-                EMULATE_JISX0213_2000_DECODE_PLANE1(codec->config, writer,
-                                c1, c2)
-                else if (TRYMAP_DEC(jisx0208, decoded, c1, c2))
-                    OUTCHAR(decoded);
-                else if (TRYMAP_DEC(jisx0213_1_bmp, decoded, c1, c2))
-                    OUTCHAR(decoded);
+                EMULATE_JISX0213_2000_DECODE_PLANE1(codec->config, writer, c1, c2)
+                else if (TRYMAP_DEC(jisx0208, decoded, c1, c2)) OUTCHAR(decoded);
+                else if (TRYMAP_DEC(jisx0213_1_bmp, decoded, c1, c2)) OUTCHAR(decoded);
                 else if (TRYMAP_DEC(jisx0213_1_emp, code, c1, c2))
                     OUTCHAR(EMPBASE | code);
                 else if (TRYMAP_DEC(jisx0213_pair, code, c1, c2))
                     OUTCHAR2(code >> 16, code & 0xffff);
-                else
-                    return 1;
+                else return 1;
                 NEXT_IN(2);
-            }
-            else { /* Plane 2 */
+            } else { /* Plane 2 */
                 if (c1 >= 0x67)
                     c1 += 0x07;
                 else if (c1 >= 0x63 || c1 == 0x5f)
@@ -708,23 +643,19 @@ DECODER(shift_jis_2004)
                 else
                     c1 -= 0x3d;
 
-                EMULATE_JISX0213_2000_DECODE_PLANE2(codec->config, writer,
-                                c1, c2)
-                else if (TRYMAP_DEC(jisx0213_2_bmp, decoded, c1, c2))
-                    OUTCHAR(decoded);
+                EMULATE_JISX0213_2000_DECODE_PLANE2(codec->config, writer, c1, c2)
+                else if (TRYMAP_DEC(jisx0213_2_bmp, decoded, c1, c2)) OUTCHAR(decoded);
                 else if (TRYMAP_DEC(jisx0213_2_emp, code, c1, c2)) {
                     OUTCHAR(EMPBASE | code);
                     NEXT_IN(2);
                     continue;
                 }
-                else
-                    return 1;
+                else return 1;
                 NEXT_IN(2);
             }
             continue;
         }
-        else
-            return 1;
+        else return 1;
 
         NEXT_IN(1); /* JIS X 0201 */
     }
@@ -732,32 +663,31 @@ DECODER(shift_jis_2004)
     return 0;
 }
 
-
 BEGIN_MAPPINGS_LIST(11)
-  MAPPING_DECONLY(jisx0208)
-  MAPPING_DECONLY(jisx0212)
-  MAPPING_ENCONLY(jisxcommon)
-  MAPPING_DECONLY(jisx0213_1_bmp)
-  MAPPING_DECONLY(jisx0213_2_bmp)
-  MAPPING_ENCONLY(jisx0213_bmp)
-  MAPPING_DECONLY(jisx0213_1_emp)
-  MAPPING_DECONLY(jisx0213_2_emp)
-  MAPPING_ENCONLY(jisx0213_emp)
-  MAPPING_ENCDEC(jisx0213_pair)
-  MAPPING_ENCDEC(cp932ext)
+MAPPING_DECONLY(jisx0208)
+MAPPING_DECONLY(jisx0212)
+MAPPING_ENCONLY(jisxcommon)
+MAPPING_DECONLY(jisx0213_1_bmp)
+MAPPING_DECONLY(jisx0213_2_bmp)
+MAPPING_ENCONLY(jisx0213_bmp)
+MAPPING_DECONLY(jisx0213_1_emp)
+MAPPING_DECONLY(jisx0213_2_emp)
+MAPPING_ENCONLY(jisx0213_emp)
+MAPPING_ENCDEC(jisx0213_pair)
+MAPPING_ENCDEC(cp932ext)
 END_MAPPINGS_LIST
 
 #define CODEC_CUSTOM(NAME, N, METH) \
     NEXT_CODEC = (MultibyteCodec){NAME, (void *)N, NULL, _STATELESS_METHODS(METH)};
 
 BEGIN_CODECS_LIST(7)
-  CODEC_STATELESS(shift_jis)
-  CODEC_STATELESS(cp932)
-  CODEC_STATELESS(euc_jp)
-  CODEC_STATELESS(shift_jis_2004)
-  CODEC_STATELESS(euc_jis_2004)
-  CODEC_CUSTOM("euc_jisx0213", 2000, euc_jis_2004)
-  CODEC_CUSTOM("shift_jisx0213", 2000, shift_jis_2004)
+CODEC_STATELESS(shift_jis)
+CODEC_STATELESS(cp932)
+CODEC_STATELESS(euc_jp)
+CODEC_STATELESS(shift_jis_2004)
+CODEC_STATELESS(euc_jis_2004)
+CODEC_CUSTOM("euc_jisx0213", 2000, euc_jis_2004)
+CODEC_CUSTOM("shift_jisx0213", 2000, shift_jis_2004)
 END_CODECS_LIST
 
 #undef CODEC_CUSTOM

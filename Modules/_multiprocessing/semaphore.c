@@ -10,7 +10,7 @@
 #include "multiprocessing.h"
 
 #ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>           // gettimeofday()
+#include <sys/time.h>  // gettimeofday()
 #endif
 
 #ifdef HAVE_MP_SEMAPHORE
@@ -18,8 +18,7 @@
 enum { RECURSIVE_MUTEX, SEMAPHORE };
 
 typedef struct {
-    PyObject_HEAD
-    SEM_HANDLE handle;
+    PyObject_HEAD SEM_HANDLE handle;
     unsigned long last_tid;
     int count;
     int maxvalue;
@@ -45,7 +44,6 @@ class _multiprocessing.SemLock "SemLockObject *" "&_PyMp_SemLockType"
 
 #define ISMINE(o) (o->count > 0 && PyThread_get_thread_ident() == o->last_tid)
 
-
 #ifdef MS_WINDOWS
 
 /*
@@ -62,21 +60,20 @@ class _multiprocessing.SemLock "SemLockObject *" "&_PyMp_SemLockType"
 #define SEM_UNLINK(name) 0
 
 static int
-_GetSemaphoreValue(HANDLE handle, long *value)
-{
+_GetSemaphoreValue(HANDLE handle, long *value) {
     long previous;
 
     switch (WaitForSingleObjectEx(handle, 0, FALSE)) {
-    case WAIT_OBJECT_0:
-        if (!ReleaseSemaphore(handle, 1, &previous))
+        case WAIT_OBJECT_0:
+            if (!ReleaseSemaphore(handle, 1, &previous))
+                return MP_STANDARD_ERROR;
+            *value = previous + 1;
+            return 0;
+        case WAIT_TIMEOUT:
+            *value = 0;
+            return 0;
+        default:
             return MP_STANDARD_ERROR;
-        *value = previous + 1;
-        return 0;
-    case WAIT_TIMEOUT:
-        *value = 0;
-        return 0;
-    default:
-        return MP_STANDARD_ERROR;
     }
 }
 
@@ -91,8 +88,9 @@ Acquire the semaphore/lock.
 [clinic start generated code]*/
 
 static PyObject *
-_multiprocessing_SemLock_acquire_impl(SemLockObject *self, int blocking,
-                                      PyObject *timeout_obj)
+_multiprocessing_SemLock_acquire_impl(
+    SemLockObject *self, int blocking, PyObject *timeout_obj
+)
 /*[clinic end generated code: output=f9998f0b6b0b0872 input=079ca779975f3ad6]*/
 {
     double timeout;
@@ -108,12 +106,11 @@ _multiprocessing_SemLock_acquire_impl(SemLockObject *self, int blocking,
         timeout = PyFloat_AsDouble(timeout_obj);
         if (PyErr_Occurred())
             return NULL;
-        timeout *= 1000.0;      /* convert to millisecs */
+        timeout *= 1000.0; /* convert to millisecs */
         if (timeout < 0.0) {
             timeout = 0.0;
         } else if (timeout >= 0.5 * INFINITE) { /* 25 days */
-            PyErr_SetString(PyExc_OverflowError,
-                            "timeout is too large");
+            PyErr_SetString(PyExc_OverflowError, "timeout is too large");
             return NULL;
         }
         full_msecs = (DWORD)(timeout + 0.5);
@@ -139,36 +136,37 @@ _multiprocessing_SemLock_acquire_impl(SemLockObject *self, int blocking,
         sigint_event = _PyOS_SigintEvent();
         assert(sigint_event != NULL);
         handles[nhandles++] = sigint_event;
-    }
-    else {
+    } else {
         sigint_event = NULL;
     }
 
     /* do the wait */
-    Py_BEGIN_ALLOW_THREADS
-    if (sigint_event != NULL)
-        ResetEvent(sigint_event);
+    Py_BEGIN_ALLOW_THREADS if (sigint_event != NULL) ResetEvent(sigint_event);
     res = WaitForMultipleObjectsEx(nhandles, handles, FALSE, full_msecs, FALSE);
     Py_END_ALLOW_THREADS
 
-    /* handle result */
-    switch (res) {
-    case WAIT_TIMEOUT:
-        Py_RETURN_FALSE;
-    case WAIT_OBJECT_0 + 0:
-        self->last_tid = GetCurrentThreadId();
-        ++self->count;
-        Py_RETURN_TRUE;
-    case WAIT_OBJECT_0 + 1:
-        errno = EINTR;
-        return PyErr_SetFromErrno(PyExc_OSError);
-    case WAIT_FAILED:
-        return PyErr_SetFromWindowsErr(0);
-    default:
-        PyErr_Format(PyExc_RuntimeError, "WaitForSingleObject() or "
-                     "WaitForMultipleObjects() gave unrecognized "
-                     "value %u", res);
-        return NULL;
+        /* handle result */
+        switch (res) {
+        case WAIT_TIMEOUT:
+            Py_RETURN_FALSE;
+        case WAIT_OBJECT_0 + 0:
+            self->last_tid = GetCurrentThreadId();
+            ++self->count;
+            Py_RETURN_TRUE;
+        case WAIT_OBJECT_0 + 1:
+            errno = EINTR;
+            return PyErr_SetFromErrno(PyExc_OSError);
+        case WAIT_FAILED:
+            return PyErr_SetFromWindowsErr(0);
+        default:
+            PyErr_Format(
+                PyExc_RuntimeError,
+                "WaitForSingleObject() or "
+                "WaitForMultipleObjects() gave unrecognized "
+                "value %u",
+                res
+            );
+            return NULL;
     }
 }
 
@@ -185,9 +183,12 @@ _multiprocessing_SemLock_release_impl(SemLockObject *self)
 {
     if (self->kind == RECURSIVE_MUTEX) {
         if (!ISMINE(self)) {
-            PyErr_SetString(PyExc_AssertionError, "attempt to "
-                            "release recursive lock not owned "
-                            "by thread");
+            PyErr_SetString(
+                PyExc_AssertionError,
+                "attempt to "
+                "release recursive lock not owned "
+                "by thread"
+            );
             return NULL;
         }
         if (self->count > 1) {
@@ -199,8 +200,11 @@ _multiprocessing_SemLock_release_impl(SemLockObject *self)
 
     if (!ReleaseSemaphore(self->handle, 1, NULL)) {
         if (GetLastError() == ERROR_TOO_MANY_POSTS) {
-            PyErr_SetString(PyExc_ValueError, "semaphore or lock "
-                            "released too many times");
+            PyErr_SetString(
+                PyExc_ValueError,
+                "semaphore or lock "
+                "released too many times"
+            );
             return NULL;
         } else {
             return PyErr_SetFromWindowsErr(0);
@@ -227,20 +231,19 @@ _multiprocessing_SemLock_release_impl(SemLockObject *self)
 /* OS X 10.4 defines SEM_FAILED as -1 instead of (sem_t *)-1;  this gives
    compiler warnings, and (potentially) undefined behaviour. */
 #ifdef __APPLE__
-#  undef SEM_FAILED
-#  define SEM_FAILED ((sem_t *)-1)
+#undef SEM_FAILED
+#define SEM_FAILED ((sem_t *)-1)
 #endif
 
 #ifndef HAVE_SEM_UNLINK
-#  define sem_unlink(name) 0
+#define sem_unlink(name) 0
 #endif
 
 #ifndef HAVE_SEM_TIMEDWAIT
-#  define sem_timedwait(sem,deadline) sem_timedwait_save(sem,deadline,_save)
+#define sem_timedwait(sem, deadline) sem_timedwait_save(sem, deadline, _save)
 
 static int
-sem_timedwait_save(sem_t *sem, struct timespec *deadline, PyThreadState *_save)
-{
+sem_timedwait_save(sem_t *sem, struct timespec *deadline, PyThreadState *_save) {
     int res;
     unsigned long delay, difference;
     struct timeval now, tvdeadline, tvdelay;
@@ -249,7 +252,7 @@ sem_timedwait_save(sem_t *sem, struct timespec *deadline, PyThreadState *_save)
     tvdeadline.tv_sec = deadline->tv_sec;
     tvdeadline.tv_usec = deadline->tv_nsec / 1000;
 
-    for (delay = 0 ; ; delay += 1000) {
+    for (delay = 0;; delay += 1000) {
         /* poll */
         if (sem_trywait(sem) == 0)
             return 0;
@@ -262,15 +265,14 @@ sem_timedwait_save(sem_t *sem, struct timespec *deadline, PyThreadState *_save)
 
         /* check for timeout */
         if (tvdeadline.tv_sec < now.tv_sec ||
-            (tvdeadline.tv_sec == now.tv_sec &&
-             tvdeadline.tv_usec <= now.tv_usec)) {
+            (tvdeadline.tv_sec == now.tv_sec && tvdeadline.tv_usec <= now.tv_usec)) {
             errno = ETIMEDOUT;
             return MP_STANDARD_ERROR;
         }
 
         /* calculate how much time is left */
         difference = (tvdeadline.tv_sec - now.tv_sec) * 1000000 +
-            (tvdeadline.tv_usec - now.tv_usec);
+                     (tvdeadline.tv_usec - now.tv_usec);
 
         /* check delay not too long -- maximum is 20 msecs */
         if (delay > 20000)
@@ -285,11 +287,10 @@ sem_timedwait_save(sem_t *sem, struct timespec *deadline, PyThreadState *_save)
             return MP_STANDARD_ERROR;
 
         /* check for signals */
-        Py_BLOCK_THREADS
-        res = PyErr_CheckSignals();
+        Py_BLOCK_THREADS res = PyErr_CheckSignals();
         Py_UNBLOCK_THREADS
 
-        if (res) {
+            if (res) {
             errno = EINTR;
             return MP_EXCEPTION_HAS_BEEN_SET;
         }
@@ -309,8 +310,9 @@ Acquire the semaphore/lock.
 [clinic start generated code]*/
 
 static PyObject *
-_multiprocessing_SemLock_acquire_impl(SemLockObject *self, int blocking,
-                                      PyObject *timeout_obj)
+_multiprocessing_SemLock_acquire_impl(
+    SemLockObject *self, int blocking, PyObject *timeout_obj
+)
 /*[clinic end generated code: output=f9998f0b6b0b0872 input=079ca779975f3ad6]*/
 {
     int res, err = 0;
@@ -336,8 +338,8 @@ _multiprocessing_SemLock_acquire_impl(SemLockObject *self, int blocking,
             PyErr_SetFromErrno(PyExc_OSError);
             return NULL;
         }
-        long sec = (long) timeout;
-        long nsec = (long) (1e9 * (timeout - sec) + 0.5);
+        long sec = (long)timeout;
+        long nsec = (long)(1e9 * (timeout - sec) + 0.5);
         deadline.tv_sec = now.tv_sec + sec;
         deadline.tv_nsec = now.tv_usec * 1000 + nsec;
         deadline.tv_sec += (deadline.tv_nsec / 1000000000);
@@ -354,15 +356,11 @@ _multiprocessing_SemLock_acquire_impl(SemLockObject *self, int blocking,
     if (res < 0 && errno == EAGAIN && blocking) {
         /* Couldn't acquire immediately, need to block */
         do {
-            Py_BEGIN_ALLOW_THREADS
-            if (!use_deadline) {
-                res = sem_wait(self->handle);
-            }
+            Py_BEGIN_ALLOW_THREADS if (!use_deadline) { res = sem_wait(self->handle); }
             else {
                 res = sem_timedwait(self->handle, &deadline);
             }
-            Py_END_ALLOW_THREADS
-            err = errno;
+            Py_END_ALLOW_THREADS err = errno;
             if (res == MP_EXCEPTION_HAS_BEEN_SET)
                 break;
         } while (res < 0 && errno == EINTR && !PyErr_CheckSignals());
@@ -397,9 +395,12 @@ _multiprocessing_SemLock_release_impl(SemLockObject *self)
 {
     if (self->kind == RECURSIVE_MUTEX) {
         if (!ISMINE(self)) {
-            PyErr_SetString(PyExc_AssertionError, "attempt to "
-                            "release recursive lock not owned "
-                            "by thread");
+            PyErr_SetString(
+                PyExc_AssertionError,
+                "attempt to "
+                "release recursive lock not owned "
+                "by thread"
+            );
             return NULL;
         }
         if (self->count > 1) {
@@ -424,9 +425,12 @@ _multiprocessing_SemLock_release_impl(SemLockObject *self)
                     PyErr_SetFromErrno(PyExc_OSError);
                     return NULL;
                 }
-                PyErr_SetString(PyExc_ValueError, "semaphore "
-                                "or lock released too many "
-                                "times");
+                PyErr_SetString(
+                    PyExc_ValueError,
+                    "semaphore "
+                    "or lock released too many "
+                    "times"
+                );
                 return NULL;
             }
         }
@@ -438,8 +442,11 @@ _multiprocessing_SemLock_release_impl(SemLockObject *self)
         if (sem_getvalue(self->handle, &sval) < 0) {
             return PyErr_SetFromErrno(PyExc_OSError);
         } else if (sval >= self->maxvalue) {
-            PyErr_SetString(PyExc_ValueError, "semaphore or lock "
-                            "released too many times");
+            PyErr_SetString(
+                PyExc_ValueError,
+                "semaphore or lock "
+                "released too many times"
+            );
             return NULL;
         }
 #endif
@@ -459,9 +466,9 @@ _multiprocessing_SemLock_release_impl(SemLockObject *self)
  */
 
 static PyObject *
-newsemlockobject(PyTypeObject *type, SEM_HANDLE handle, int kind, int maxvalue,
-                 char *name)
-{
+newsemlockobject(
+    PyTypeObject *type, SEM_HANDLE handle, int kind, int maxvalue, char *name
+) {
     SemLockObject *self = (SemLockObject *)type->tp_alloc(type, 0);
     if (!self)
         return NULL;
@@ -471,7 +478,7 @@ newsemlockobject(PyTypeObject *type, SEM_HANDLE handle, int kind, int maxvalue,
     self->last_tid = 0;
     self->maxvalue = maxvalue;
     self->name = name;
-    return (PyObject*)self;
+    return (PyObject *)self;
 }
 
 /*[clinic input]
@@ -487,8 +494,9 @@ _multiprocessing.SemLock.__new__
 [clinic start generated code]*/
 
 static PyObject *
-_multiprocessing_SemLock_impl(PyTypeObject *type, int kind, int value,
-                              int maxvalue, const char *name, int unlink)
+_multiprocessing_SemLock_impl(
+    PyTypeObject *type, int kind, int value, int maxvalue, const char *name, int unlink
+)
 /*[clinic end generated code: output=30727e38f5f7577a input=fdaeb69814471c5b]*/
 {
     SEM_HANDLE handle = SEM_FAILED;
@@ -523,7 +531,7 @@ _multiprocessing_SemLock_impl(PyTypeObject *type, int kind, int value,
 
     return result;
 
-  failure:
+failure:
     if (!PyErr_Occurred()) {
         _PyMp_SetError(NULL, MP_STANDARD_ERROR);
     }
@@ -546,9 +554,9 @@ _multiprocessing.SemLock._rebuild
 [clinic start generated code]*/
 
 static PyObject *
-_multiprocessing_SemLock__rebuild_impl(PyTypeObject *type, SEM_HANDLE handle,
-                                       int kind, int maxvalue,
-                                       const char *name)
+_multiprocessing_SemLock__rebuild_impl(
+    PyTypeObject *type, SEM_HANDLE handle, int kind, int maxvalue, const char *name
+)
 /*[clinic end generated code: output=2aaee14f063f3bd9 input=f7040492ac6d9962]*/
 {
     char *name_copy = NULL;
@@ -575,8 +583,7 @@ _multiprocessing_SemLock__rebuild_impl(PyTypeObject *type, SEM_HANDLE handle,
 }
 
 static void
-semlock_dealloc(SemLockObject* self)
-{
+semlock_dealloc(SemLockObject *self) {
     PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack(self);
     if (self->handle != SEM_FAILED)
@@ -708,17 +715,16 @@ Exit the semaphore/lock.
 [clinic start generated code]*/
 
 static PyObject *
-_multiprocessing_SemLock___exit___impl(SemLockObject *self,
-                                       PyObject *exc_type,
-                                       PyObject *exc_value, PyObject *exc_tb)
+_multiprocessing_SemLock___exit___impl(
+    SemLockObject *self, PyObject *exc_type, PyObject *exc_value, PyObject *exc_tb
+)
 /*[clinic end generated code: output=3b37c1a9f8b91a03 input=1610c8cc3e0e337e]*/
 {
     return _multiprocessing_SemLock_release_impl(self);
 }
 
 static int
-semlock_traverse(SemLockObject *s, visitproc visit, void *arg)
-{
+semlock_traverse(SemLockObject *s, visitproc visit, void *arg) {
     Py_VISIT(Py_TYPE(s));
     return 0;
 }
@@ -729,16 +735,17 @@ semlock_traverse(SemLockObject *s, visitproc visit, void *arg)
 
 static PyMethodDef semlock_methods[] = {
     _MULTIPROCESSING_SEMLOCK_ACQUIRE_METHODDEF
-    _MULTIPROCESSING_SEMLOCK_RELEASE_METHODDEF
-    _MULTIPROCESSING_SEMLOCK___ENTER___METHODDEF
-    _MULTIPROCESSING_SEMLOCK___EXIT___METHODDEF
-    _MULTIPROCESSING_SEMLOCK__COUNT_METHODDEF
-    _MULTIPROCESSING_SEMLOCK__IS_MINE_METHODDEF
-    _MULTIPROCESSING_SEMLOCK__GET_VALUE_METHODDEF
-    _MULTIPROCESSING_SEMLOCK__IS_ZERO_METHODDEF
-    _MULTIPROCESSING_SEMLOCK__REBUILD_METHODDEF
-    _MULTIPROCESSING_SEMLOCK__AFTER_FORK_METHODDEF
-    {NULL}
+        _MULTIPROCESSING_SEMLOCK_RELEASE_METHODDEF
+            _MULTIPROCESSING_SEMLOCK___ENTER___METHODDEF
+                _MULTIPROCESSING_SEMLOCK___EXIT___METHODDEF
+                    _MULTIPROCESSING_SEMLOCK__COUNT_METHODDEF
+                        _MULTIPROCESSING_SEMLOCK__IS_MINE_METHODDEF
+                            _MULTIPROCESSING_SEMLOCK__GET_VALUE_METHODDEF
+                                _MULTIPROCESSING_SEMLOCK__IS_ZERO_METHODDEF
+                                    _MULTIPROCESSING_SEMLOCK__REBUILD_METHODDEF
+                                        _MULTIPROCESSING_SEMLOCK__AFTER_FORK_METHODDEF{
+                                            NULL
+                                        }
 };
 
 /*
@@ -746,14 +753,10 @@ static PyMethodDef semlock_methods[] = {
  */
 
 static PyMemberDef semlock_members[] = {
-    {"handle", T_SEM_HANDLE, offsetof(SemLockObject, handle), Py_READONLY,
-     ""},
-    {"kind", Py_T_INT, offsetof(SemLockObject, kind), Py_READONLY,
-     ""},
-    {"maxvalue", Py_T_INT, offsetof(SemLockObject, maxvalue), Py_READONLY,
-     ""},
-    {"name", Py_T_STRING, offsetof(SemLockObject, name), Py_READONLY,
-     ""},
+    {"handle", T_SEM_HANDLE, offsetof(SemLockObject, handle), Py_READONLY, ""},
+    {"kind", Py_T_INT, offsetof(SemLockObject, kind), Py_READONLY, ""},
+    {"maxvalue", Py_T_INT, offsetof(SemLockObject, maxvalue), Py_READONLY, ""},
+    {"name", Py_T_STRING, offsetof(SemLockObject, name), Py_READONLY, ""},
     {NULL}
 };
 
@@ -778,8 +781,9 @@ static PyType_Slot _PyMp_SemLockType_slots[] = {
 PyType_Spec _PyMp_SemLockType_spec = {
     .name = "_multiprocessing.SemLock",
     .basicsize = sizeof(SemLockObject),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-              Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC |
+         Py_TPFLAGS_IMMUTABLETYPE),
     .slots = _PyMp_SemLockType_slots,
 };
 
@@ -788,8 +792,7 @@ PyType_Spec _PyMp_SemLockType_spec = {
  */
 
 PyObject *
-_PyMp_sem_unlink(const char *name)
-{
+_PyMp_sem_unlink(const char *name) {
     if (SEM_UNLINK(name) < 0) {
         _PyMp_SetError(NULL, MP_STANDARD_ERROR);
         return NULL;
@@ -798,4 +801,4 @@ _PyMp_sem_unlink(const char *name)
     Py_RETURN_NONE;
 }
 
-#endif // HAVE_MP_SEMAPHORE
+#endif  // HAVE_MP_SEMAPHORE

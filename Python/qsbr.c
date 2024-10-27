@@ -32,11 +32,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "Python.h"
-#include "pycore_initconfig.h"      // _PyStatus_NO_MEMORY()
-#include "pycore_lock.h"            // PyMutex_Lock()
+#include "pycore_initconfig.h"  // _PyStatus_NO_MEMORY()
+#include "pycore_lock.h"        // PyMutex_Lock()
 #include "pycore_qsbr.h"
-#include "pycore_pystate.h"         // _PyThreadState_GET()
-
+#include "pycore_pystate.h"  // _PyThreadState_GET()
 
 // Starting size of the array of qsbr thread states
 #define MIN_ARRAY_SIZE 8
@@ -47,8 +46,7 @@
 
 // Allocate a QSBR thread state from the freelist
 static struct _qsbr_thread_state *
-qsbr_allocate(struct _qsbr_shared *shared)
-{
+qsbr_allocate(struct _qsbr_shared *shared) {
     struct _qsbr_thread_state *qsbr = shared->freelist;
     if (qsbr == NULL) {
         return NULL;
@@ -62,8 +60,7 @@ qsbr_allocate(struct _qsbr_shared *shared)
 
 // Initialize (or reintialize) the freelist of QSBR thread states
 static void
-initialize_new_array(struct _qsbr_shared *shared)
-{
+initialize_new_array(struct _qsbr_shared *shared) {
     for (Py_ssize_t i = 0; i != shared->size; i++) {
         struct _qsbr_thread_state *qsbr = &shared->array[i].qsbr;
         if (qsbr->tstate != NULL) {
@@ -81,8 +78,7 @@ initialize_new_array(struct _qsbr_shared *shared)
 
 // Grow the array of QSBR thread states. Returns 0 on success, -1 on failure.
 static int
-grow_thread_array(struct _qsbr_shared *shared)
-{
+grow_thread_array(struct _qsbr_shared *shared) {
     Py_ssize_t new_size = shared->size * 2;
     if (new_size < MIN_ARRAY_SIZE) {
         new_size = MIN_ARRAY_SIZE;
@@ -108,8 +104,7 @@ grow_thread_array(struct _qsbr_shared *shared)
 }
 
 uint64_t
-_Py_qsbr_advance(struct _qsbr_shared *shared)
-{
+_Py_qsbr_advance(struct _qsbr_shared *shared) {
     // NOTE: with 64-bit sequence numbers, we don't have to worry too much
     // about the wr_seq getting too far ahead of rd_seq, but if we ever use
     // 32-bit sequence numbers, we'll need to be more careful.
@@ -117,8 +112,7 @@ _Py_qsbr_advance(struct _qsbr_shared *shared)
 }
 
 uint64_t
-_Py_qsbr_deferred_advance(struct _qsbr_thread_state *qsbr)
-{
+_Py_qsbr_deferred_advance(struct _qsbr_thread_state *qsbr) {
     if (++qsbr->deferrals < QSBR_DEFERRED_LIMIT) {
         return _Py_qsbr_shared_current(qsbr->shared) + QSBR_INCR;
     }
@@ -127,8 +121,7 @@ _Py_qsbr_deferred_advance(struct _qsbr_thread_state *qsbr)
 }
 
 static uint64_t
-qsbr_poll_scan(struct _qsbr_shared *shared)
-{
+qsbr_poll_scan(struct _qsbr_shared *shared) {
     // Synchronize with store in _Py_qsbr_attach(). We need to ensure that
     // the reads from each thread's sequence number are not reordered to see
     // earlier "offline" states.
@@ -158,9 +151,10 @@ qsbr_poll_scan(struct _qsbr_shared *shared)
 }
 
 bool
-_Py_qsbr_poll(struct _qsbr_thread_state *qsbr, uint64_t goal)
-{
-    assert(_Py_atomic_load_int_relaxed(&_PyThreadState_GET()->state) == _Py_THREAD_ATTACHED);
+_Py_qsbr_poll(struct _qsbr_thread_state *qsbr, uint64_t goal) {
+    assert(
+        _Py_atomic_load_int_relaxed(&_PyThreadState_GET()->state) == _Py_THREAD_ATTACHED
+    );
 
     if (_Py_qbsr_goal_reached(qsbr, goal)) {
         return true;
@@ -171,8 +165,7 @@ _Py_qsbr_poll(struct _qsbr_thread_state *qsbr, uint64_t goal)
 }
 
 void
-_Py_qsbr_attach(struct _qsbr_thread_state *qsbr)
-{
+_Py_qsbr_attach(struct _qsbr_thread_state *qsbr) {
     assert(qsbr->seq == 0 && "already attached");
 
     uint64_t seq = _Py_qsbr_shared_current(qsbr->shared);
@@ -180,16 +173,14 @@ _Py_qsbr_attach(struct _qsbr_thread_state *qsbr)
 }
 
 void
-_Py_qsbr_detach(struct _qsbr_thread_state *qsbr)
-{
+_Py_qsbr_detach(struct _qsbr_thread_state *qsbr) {
     assert(qsbr->seq != 0 && "already detached");
 
     _Py_atomic_store_uint64_release(&qsbr->seq, QSBR_OFFLINE);
 }
 
 Py_ssize_t
-_Py_qsbr_reserve(PyInterpreterState *interp)
-{
+_Py_qsbr_reserve(PyInterpreterState *interp) {
     struct _qsbr_shared *shared = &interp->qsbr;
 
     PyMutex_Lock(&shared->mutex);
@@ -217,9 +208,9 @@ _Py_qsbr_reserve(PyInterpreterState *interp)
 }
 
 void
-_Py_qsbr_register(_PyThreadStateImpl *tstate, PyInterpreterState *interp,
-                  Py_ssize_t index)
-{
+_Py_qsbr_register(
+    _PyThreadStateImpl *tstate, PyInterpreterState *interp, Py_ssize_t index
+) {
     // Associate the QSBR state with the thread state
     struct _qsbr_shared *shared = &interp->qsbr;
 
@@ -232,10 +223,9 @@ _Py_qsbr_register(_PyThreadStateImpl *tstate, PyInterpreterState *interp,
 }
 
 void
-_Py_qsbr_unregister(PyThreadState *tstate)
-{
+_Py_qsbr_unregister(PyThreadState *tstate) {
     struct _qsbr_shared *shared = &tstate->interp->qsbr;
-    struct _PyThreadStateImpl *tstate_imp = (_PyThreadStateImpl*) tstate;
+    struct _PyThreadStateImpl *tstate_imp = (_PyThreadStateImpl *)tstate;
 
     // gh-119369: GIL must be released (if held) to prevent deadlocks, because
     // we might not have an active tstate, which means that blocking on PyMutex
@@ -260,8 +250,7 @@ _Py_qsbr_unregister(PyThreadState *tstate)
 }
 
 void
-_Py_qsbr_fini(PyInterpreterState *interp)
-{
+_Py_qsbr_fini(PyInterpreterState *interp) {
     struct _qsbr_shared *shared = &interp->qsbr;
     PyMem_RawFree(shared->array);
     shared->array = NULL;
@@ -270,8 +259,7 @@ _Py_qsbr_fini(PyInterpreterState *interp)
 }
 
 void
-_Py_qsbr_after_fork(_PyThreadStateImpl *tstate)
-{
+_Py_qsbr_after_fork(_PyThreadStateImpl *tstate) {
     struct _qsbr_thread_state *this_qsbr = tstate->qsbr;
     struct _qsbr_shared *shared = this_qsbr->shared;
 

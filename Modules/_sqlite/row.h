@@ -25,13 +25,12 @@
 #define PYSQLITE_ROW_H
 #include "Python.h"
 
-typedef struct _Row
-{
-    PyObject_HEAD
-    PyObject* data;
-    PyObject* description;
+typedef struct _Row {
+    PyObject_HEAD PyObject *data;
+    PyObject *description;
 } pysqlite_Row;
 
-int pysqlite_row_setup_types(PyObject *module);
+int
+pysqlite_row_setup_types(PyObject *module);
 
 #endif

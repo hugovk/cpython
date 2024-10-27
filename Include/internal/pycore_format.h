@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 /* Format codes
@@ -15,11 +15,11 @@ extern "C" {
  * F_ALT        '#'
  * F_ZERO       '0'
  */
-#define F_LJUST (1<<0)
-#define F_SIGN  (1<<1)
-#define F_BLANK (1<<2)
-#define F_ALT   (1<<3)
-#define F_ZERO  (1<<4)
+#define F_LJUST (1 << 0)
+#define F_SIGN (1 << 1)
+#define F_BLANK (1 << 2)
+#define F_ALT (1 << 3)
+#define F_ZERO (1 << 4)
 
 #ifdef __cplusplus
 }

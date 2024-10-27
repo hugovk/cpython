@@ -29,8 +29,7 @@
 #include <stdlib.h>
 #include <mach-o/dyld.h>
 
-
-extern char** environ;
+extern char **environ;
 
 /*
  * Locate the python framework by looking for the
@@ -54,12 +53,12 @@ extern char** environ;
  * feature, support for that structure is provided as
  * a convenience.
  */
-static char* get_python_path(void)
-{
+static char *
+get_python_path(void) {
     size_t len;
     Dl_info info;
-    char* end;
-    char* g_path;
+    char *end;
+    char *g_path;
 
     if (dladdr(Py_Initialize, &info) == 0) {
         return NULL;
@@ -67,7 +66,7 @@ static char* get_python_path(void)
 
     len = strlen(info.dli_fname);
 
-    g_path = malloc(len+60);
+    g_path = malloc(len + 60);
     if (g_path == NULL) {
         return NULL;
     }
@@ -75,7 +74,7 @@ static char* get_python_path(void)
     strcpy(g_path, info.dli_fname);
     end = g_path + len - 1;
     while (end != g_path && *end != '/') {
-        end --;
+        end--;
     }
     end++;
     if (*end == '.') {
@@ -88,8 +87,7 @@ static char* get_python_path(void)
 
 #ifdef HAVE_SPAWN_H
 static void
-setup_spawnattr(posix_spawnattr_t* spawnattr)
-{
+setup_spawnattr(posix_spawnattr_t *spawnattr) {
     size_t ocount;
     size_t count;
     cpu_type_t cpu_types[1];
@@ -123,12 +121,11 @@ setup_spawnattr(posix_spawnattr_t* spawnattr)
     cpu_types[0] = CPU_TYPE_ARM64;
 
 #else
-#       error "Unknown CPU"
+#error "Unknown CPU"
 
 #endif
 
-    if (posix_spawnattr_setbinpref_np(spawnattr, count,
-                            cpu_types, &ocount) == -1) {
+    if (posix_spawnattr_setbinpref_np(spawnattr, count, cpu_types, &ocount) == -1) {
         err(1, "posix_spawnattr_setbinpref");
         /* NOTREACHTED */
     }
@@ -137,7 +134,6 @@ setup_spawnattr(posix_spawnattr_t* spawnattr)
         exit(1);
         /* NOTREACHTED */
     }
-
 
     /*
      * Set flag that causes posix_spawn to behave like execv
@@ -152,7 +148,7 @@ setup_spawnattr(posix_spawnattr_t* spawnattr)
 
 int
 main(int argc, char **argv) {
-    char* exec_path = get_python_path();
+    char *exec_path = get_python_path();
     static char path[PATH_MAX * 2];
     static char real_path[PATH_MAX * 2];
     int status;
@@ -170,9 +166,9 @@ main(int argc, char **argv) {
          * as a cleaned up absolute path though,
          * therefore call realpath on dirname(path)
          */
-        char* slash = strrchr(path, '/');
+        char *slash = strrchr(path, '/');
         if (slash) {
-            char  replaced;
+            char replaced;
             replaced = slash[1];
             slash[1] = 0;
             if (realpath(path, real_path) == NULL) {
@@ -227,8 +223,7 @@ main(int argc, char **argv) {
         posix_spawnattr_t spawnattr = NULL;
 
         setup_spawnattr(&spawnattr);
-        posix_spawn(NULL, exec_path, NULL,
-            &spawnattr, argv, environ);
+        posix_spawn(NULL, exec_path, NULL, &spawnattr, argv, environ);
         err(1, "posix_spawn: %s", exec_path);
     }
 #endif

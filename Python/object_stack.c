@@ -5,12 +5,13 @@
 #include "pycore_pystate.h"
 #include "pycore_object_stack.h"
 
-extern _PyObjectStackChunk *_PyObjectStackChunk_New(void);
-extern void _PyObjectStackChunk_Free(_PyObjectStackChunk *);
+extern _PyObjectStackChunk *
+_PyObjectStackChunk_New(void);
+extern void
+_PyObjectStackChunk_Free(_PyObjectStackChunk *);
 
 _PyObjectStackChunk *
-_PyObjectStackChunk_New(void)
-{
+_PyObjectStackChunk_New(void) {
     _PyObjectStackChunk *buf = _Py_FREELIST_POP_MEM(object_stack_chunks);
     if (buf == NULL) {
         // NOTE: we use PyMem_RawMalloc() here because this is used by the GC
@@ -27,15 +28,13 @@ _PyObjectStackChunk_New(void)
 }
 
 void
-_PyObjectStackChunk_Free(_PyObjectStackChunk *buf)
-{
+_PyObjectStackChunk_Free(_PyObjectStackChunk *buf) {
     assert(buf->n == 0);
     _Py_FREELIST_FREE(object_stack_chunks, buf, PyMem_RawFree);
 }
 
 void
-_PyObjectStack_Clear(_PyObjectStack *queue)
-{
+_PyObjectStack_Clear(_PyObjectStack *queue) {
     while (queue->head != NULL) {
         _PyObjectStackChunk *buf = queue->head;
         buf->n = 0;
@@ -45,8 +44,7 @@ _PyObjectStack_Clear(_PyObjectStack *queue)
 }
 
 void
-_PyObjectStack_Merge(_PyObjectStack *dst, _PyObjectStack *src)
-{
+_PyObjectStack_Merge(_PyObjectStack *dst, _PyObjectStack *src) {
     if (src->head == NULL) {
         return;
     }

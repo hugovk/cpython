@@ -3,48 +3,61 @@ preserve
 [clinic start generated code]*/
 
 #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
-#  include "pycore_gc.h"          // PyGC_Head
-#  include "pycore_runtime.h"     // _Py_ID()
+#include "pycore_gc.h"       // PyGC_Head
+#include "pycore_runtime.h"  // _Py_ID()
 #endif
-#include "pycore_abstract.h"      // _PyNumber_Index()
-#include "pycore_modsupport.h"    // _PyArg_UnpackKeywords()
+#include "pycore_abstract.h"    // _PyNumber_Index()
+#include "pycore_modsupport.h"  // _PyArg_UnpackKeywords()
 
 static PyObject *
-PyCField_new_impl(PyTypeObject *type, PyObject *name, PyObject *proto,
-                  Py_ssize_t size, Py_ssize_t offset, Py_ssize_t index,
-                  PyObject *bit_size_obj);
+PyCField_new_impl(
+    PyTypeObject *type,
+    PyObject *name,
+    PyObject *proto,
+    Py_ssize_t size,
+    Py_ssize_t offset,
+    Py_ssize_t index,
+    PyObject *bit_size_obj
+);
 
 static PyObject *
-PyCField_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+PyCField_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     PyObject *return_value = NULL;
-    #if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
+#if defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_MODULE)
 
-    #define NUM_KEYWORDS 6
+#define NUM_KEYWORDS 6
     static struct {
         PyGC_Head _this_is_not_used;
-        PyObject_VAR_HEAD
-        PyObject *ob_item[NUM_KEYWORDS];
+        PyObject_VAR_HEAD PyObject *ob_item[NUM_KEYWORDS];
     } _kwtuple = {
-        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS)
-        .ob_item = { &_Py_ID(name), &_Py_ID(type), &_Py_ID(size), &_Py_ID(offset), &_Py_ID(index), &_Py_ID(bit_size), },
+        .ob_base = PyVarObject_HEAD_INIT(&PyTuple_Type, NUM_KEYWORDS).ob_item =
+            {
+                &_Py_ID(name),
+                &_Py_ID(type),
+                &_Py_ID(size),
+                &_Py_ID(offset),
+                &_Py_ID(index),
+                &_Py_ID(bit_size),
+            },
     };
-    #undef NUM_KEYWORDS
-    #define KWTUPLE (&_kwtuple.ob_base.ob_base)
+#undef NUM_KEYWORDS
+#define KWTUPLE (&_kwtuple.ob_base.ob_base)
 
-    #else  // !Py_BUILD_CORE
-    #  define KWTUPLE NULL
-    #endif  // !Py_BUILD_CORE
+#else  // !Py_BUILD_CORE
+#define KWTUPLE NULL
+#endif  // !Py_BUILD_CORE
 
-    static const char * const _keywords[] = {"name", "type", "size", "offset", "index", "bit_size", NULL};
+    static const char *const _keywords[] = {
+        "name", "type", "size", "offset", "index", "bit_size", NULL
+    };
     static _PyArg_Parser _parser = {
         .keywords = _keywords,
         .fname = "CField",
         .kwtuple = KWTUPLE,
     };
-    #undef KWTUPLE
+#undef KWTUPLE
     PyObject *argsbuf[6];
-    PyObject * const *fastargs;
+    PyObject *const *fastargs;
     Py_ssize_t nargs = PyTuple_GET_SIZE(args);
     Py_ssize_t noptargs = nargs + (kwargs ? PyDict_GET_SIZE(kwargs) : 0) - 5;
     PyObject *name;
@@ -54,7 +67,9 @@ PyCField_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     Py_ssize_t index;
     PyObject *bit_size_obj = Py_None;
 
-    fastargs = _PyArg_UnpackKeywords(_PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 5, 6, 0, argsbuf);
+    fastargs = _PyArg_UnpackKeywords(
+        _PyTuple_CAST(args)->ob_item, nargs, kwargs, NULL, &_parser, 5, 6, 0, argsbuf
+    );
     if (!fastargs) {
         goto exit;
     }
@@ -105,7 +120,8 @@ PyCField_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     }
     bit_size_obj = fastargs[5];
 skip_optional_pos:
-    return_value = PyCField_new_impl(type, name, proto, size, offset, index, bit_size_obj);
+    return_value =
+        PyCField_new_impl(type, name, proto, size, offset, index, bit_size_obj);
 
 exit:
     return return_value;

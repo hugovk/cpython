@@ -1,5 +1,5 @@
 #if STRINGLIB_IS_UNICODE
-# error "transmogrify.h only compatible with byte-wise strings"
+#error "transmogrify.h only compatible with byte-wise strings"
 #endif
 
 /* the more complicated methods.  parts of these should be pulled out into the
@@ -13,8 +13,7 @@ class B "PyObject *" "&PyType_Type"
 #include "clinic/transmogrify.h.h"
 
 static inline PyObject *
-return_self(PyObject *self)
-{
+return_self(PyObject *self) {
 #if !STRINGLIB_MUTABLE
     if (STRINGLIB_CHECK_EXACT(self)) {
         return Py_NewRef(self);
@@ -53,8 +52,7 @@ stringlib_expandtabs_impl(PyObject *self, int tabsize)
                     goto overflow;
                 j += incr;
             }
-        }
-        else {
+        } else {
             if (j > PY_SSIZE_T_MAX - 1)
                 goto overflow;
             j++;
@@ -83,11 +81,9 @@ stringlib_expandtabs_impl(PyObject *self, int tabsize)
             if (tabsize > 0) {
                 i = tabsize - (j % tabsize);
                 j += i;
-                while (i--)
-                    *q++ = ' ';
+                while (i--) *q++ = ' ';
             }
-        }
-        else {
+        } else {
             j++;
             *q++ = *p;
             if (*p == '\n' || *p == '\r')
@@ -96,14 +92,13 @@ stringlib_expandtabs_impl(PyObject *self, int tabsize)
     }
 
     return u;
-  overflow:
+overflow:
     PyErr_SetString(PyExc_OverflowError, "result too long");
     return NULL;
 }
 
 static inline PyObject *
-pad(PyObject *self, Py_ssize_t left, Py_ssize_t right, char fill)
-{
+pad(PyObject *self, Py_ssize_t left, Py_ssize_t right, char fill) {
     PyObject *u;
 
     if (left < 0)
@@ -119,12 +114,9 @@ pad(PyObject *self, Py_ssize_t left, Py_ssize_t right, char fill)
     if (u) {
         if (left)
             memset(STRINGLIB_STR(u), fill, left);
-        memcpy(STRINGLIB_STR(u) + left,
-               STRINGLIB_STR(self),
-               STRINGLIB_LEN(self));
+        memcpy(STRINGLIB_STR(u) + left, STRINGLIB_STR(self), STRINGLIB_LEN(self));
         if (right)
-            memset(STRINGLIB_STR(u) + left + STRINGLIB_LEN(self),
-                   fill, right);
+            memset(STRINGLIB_STR(u) + left + STRINGLIB_LEN(self), fill, right);
     }
 
     return u;
@@ -153,7 +145,6 @@ stringlib_ljust_impl(PyObject *self, Py_ssize_t width, char fillchar)
     return pad(self, 0, width - STRINGLIB_LEN(self), fillchar);
 }
 
-
 /*[clinic input]
 B.rjust as stringlib_rjust
 
@@ -176,7 +167,6 @@ stringlib_rjust_impl(PyObject *self, Py_ssize_t width, char fillchar)
 
     return pad(self, width - STRINGLIB_LEN(self), 0, fillchar);
 }
-
 
 /*[clinic input]
 B.center as stringlib_center
@@ -246,17 +236,13 @@ stringlib_zfill_impl(PyObject *self, Py_ssize_t width)
     return s;
 }
 
-
 /* find and count characters and substrings */
 
-#define findchar(target, target_len, c)                         \
-  ((char *)memchr((const void *)(target), c, target_len))
-
+#define findchar(target, target_len, c) \
+    ((char *)memchr((const void *)(target), c, target_len))
 
 static Py_ssize_t
-countchar(const char *target, Py_ssize_t target_len, char c,
-          Py_ssize_t maxcount)
-{
+countchar(const char *target, Py_ssize_t target_len, char c, Py_ssize_t maxcount) {
     Py_ssize_t count = 0;
     const char *start = target;
     const char *end = target + target_len;
@@ -270,15 +256,13 @@ countchar(const char *target, Py_ssize_t target_len, char c,
     return count;
 }
 
-
 /* Algorithms for different cases of string replacement */
 
 /* len(self)>=1, from="", len(to)>=1, maxcount>=1 */
 static PyObject *
-stringlib_replace_interleave(PyObject *self,
-                             const char *to_s, Py_ssize_t to_len,
-                             Py_ssize_t maxcount)
-{
+stringlib_replace_interleave(
+    PyObject *self, const char *to_s, Py_ssize_t to_len, Py_ssize_t maxcount
+) {
     const char *self_s;
     char *result_s;
     Py_ssize_t self_len, result_len;
@@ -291,8 +275,7 @@ stringlib_replace_interleave(PyObject *self,
        count = min(maxcount, self_len + 1) */
     if (maxcount <= self_len) {
         count = maxcount;
-    }
-    else {
+    } else {
         /* Can't overflow: self_len + 1 <= maxcount <= PY_SSIZE_T_MAX. */
         count = self_len + 1;
     }
@@ -301,8 +284,7 @@ stringlib_replace_interleave(PyObject *self,
     /*   result_len = count * to_len + self_len; */
     assert(count > 0);
     if (to_len > (PY_SSIZE_T_MAX - self_len) / count) {
-        PyErr_SetString(PyExc_OverflowError,
-                        "replace bytes is too long");
+        PyErr_SetString(PyExc_OverflowError, "replace bytes is too long");
         return NULL;
     }
     result_len = count * to_len + self_len;
@@ -325,8 +307,7 @@ stringlib_replace_interleave(PyObject *self,
             memcpy(result_s, to_s, to_len);
             result_s += to_len;
         }
-    }
-    else {
+    } else {
         result_s[0] = to_s[0];
         result_s += to_len;
         count -= 1;
@@ -346,9 +327,9 @@ stringlib_replace_interleave(PyObject *self,
 /* Special case for deleting a single character */
 /* len(self)>=1, len(from)==1, to="", maxcount>=1 */
 static PyObject *
-stringlib_replace_delete_single_character(PyObject *self,
-                                          char from_c, Py_ssize_t maxcount)
-{
+stringlib_replace_delete_single_character(
+    PyObject *self, char from_c, Py_ssize_t maxcount
+) {
     const char *self_s, *start, *next, *end;
     char *result_s;
     Py_ssize_t self_len, result_len;
@@ -363,8 +344,8 @@ stringlib_replace_delete_single_character(PyObject *self,
         return return_self(self);
     }
 
-    result_len = self_len - count;  /* from_len == 1 */
-    assert(result_len>=0);
+    result_len = self_len - count; /* from_len == 1 */
+    assert(result_len >= 0);
 
     result = STRINGLIB_NEW(NULL, result_len);
     if (result == NULL) {
@@ -390,10 +371,9 @@ stringlib_replace_delete_single_character(PyObject *self,
 /* len(self)>=1, len(from)>=2, to="", maxcount>=1 */
 
 static PyObject *
-stringlib_replace_delete_substring(PyObject *self,
-                                   const char *from_s, Py_ssize_t from_len,
-                                   Py_ssize_t maxcount)
-{
+stringlib_replace_delete_substring(
+    PyObject *self, const char *from_s, Py_ssize_t from_len, Py_ssize_t maxcount
+) {
     const char *self_s, *start, *next, *end;
     char *result_s;
     Py_ssize_t self_len, result_len;
@@ -403,9 +383,7 @@ stringlib_replace_delete_substring(PyObject *self,
     self_len = STRINGLIB_LEN(self);
     self_s = STRINGLIB_STR(self);
 
-    count = stringlib_count(self_s, self_len,
-                            from_s, from_len,
-                            maxcount);
+    count = stringlib_count(self_s, self_len, from_s, from_len, maxcount);
 
     if (count == 0) {
         /* no matches */
@@ -413,7 +391,7 @@ stringlib_replace_delete_substring(PyObject *self,
     }
 
     result_len = self_len - (count * from_len);
-    assert (result_len>=0);
+    assert(result_len >= 0);
 
     result = STRINGLIB_NEW(NULL, result_len);
     if (result == NULL) {
@@ -424,9 +402,7 @@ stringlib_replace_delete_substring(PyObject *self,
     start = self_s;
     end = self_s + self_len;
     while (count-- > 0) {
-        offset = stringlib_find(start, end - start,
-                                from_s, from_len,
-                                0);
+        offset = stringlib_find(start, end - start, from_s, from_len, 0);
         if (offset == -1)
             break;
         next = start + offset;
@@ -442,10 +418,9 @@ stringlib_replace_delete_substring(PyObject *self,
 
 /* len(self)>=1, len(from)==len(to)==1, maxcount>=1 */
 static PyObject *
-stringlib_replace_single_character_in_place(PyObject *self,
-                                            char from_c, char to_c,
-                                            Py_ssize_t maxcount)
-{
+stringlib_replace_single_character_in_place(
+    PyObject *self, char from_c, char to_c, Py_ssize_t maxcount
+) {
     const char *self_s, *end;
     char *result_s, *start, *next;
     Py_ssize_t self_len;
@@ -471,7 +446,7 @@ stringlib_replace_single_character_in_place(PyObject *self,
     memcpy(result_s, self_s, self_len);
 
     /* change everything in-place, starting with this one */
-    start =  result_s + (next - self_s);
+    start = result_s + (next - self_s);
     *start = to_c;
     start++;
     end = result_s + self_len;
@@ -489,11 +464,14 @@ stringlib_replace_single_character_in_place(PyObject *self,
 
 /* len(self)>=1, len(from)==len(to)>=2, maxcount>=1 */
 static PyObject *
-stringlib_replace_substring_in_place(PyObject *self,
-                                     const char *from_s, Py_ssize_t from_len,
-                                     const char *to_s, Py_ssize_t to_len,
-                                     Py_ssize_t maxcount)
-{
+stringlib_replace_substring_in_place(
+    PyObject *self,
+    const char *from_s,
+    Py_ssize_t from_len,
+    const char *to_s,
+    Py_ssize_t to_len,
+    Py_ssize_t maxcount
+) {
     const char *self_s, *end;
     char *result_s, *start;
     Py_ssize_t self_len, offset;
@@ -504,9 +482,7 @@ stringlib_replace_substring_in_place(PyObject *self,
     self_s = STRINGLIB_STR(self);
     self_len = STRINGLIB_LEN(self);
 
-    offset = stringlib_find(self_s, self_len,
-                            from_s, from_len,
-                            0);
+    offset = stringlib_find(self_s, self_len, from_s, from_len, 0);
     if (offset == -1) {
         /* No matches; return the original bytes */
         return return_self(self);
@@ -521,15 +497,13 @@ stringlib_replace_substring_in_place(PyObject *self,
     memcpy(result_s, self_s, self_len);
 
     /* change everything in-place, starting with this one */
-    start =  result_s + offset;
+    start = result_s + offset;
     memcpy(start, to_s, from_len);
     start += from_len;
     end = result_s + self_len;
 
-    while ( --maxcount > 0) {
-        offset = stringlib_find(start, end - start,
-                                from_s, from_len,
-                                0);
+    while (--maxcount > 0) {
+        offset = stringlib_find(start, end - start, from_s, from_len, 0);
         if (offset == -1)
             break;
         memcpy(start + offset, to_s, from_len);
@@ -541,11 +515,13 @@ stringlib_replace_substring_in_place(PyObject *self,
 
 /* len(self)>=1, len(from)==1, len(to)>=2, maxcount>=1 */
 static PyObject *
-stringlib_replace_single_character(PyObject *self,
-                                   char from_c,
-                                   const char *to_s, Py_ssize_t to_len,
-                                   Py_ssize_t maxcount)
-{
+stringlib_replace_single_character(
+    PyObject *self,
+    char from_c,
+    const char *to_s,
+    Py_ssize_t to_len,
+    Py_ssize_t maxcount
+) {
     const char *self_s, *start, *next, *end;
     char *result_s;
     Py_ssize_t self_len, result_len;
@@ -605,11 +581,14 @@ stringlib_replace_single_character(PyObject *self,
 
 /* len(self)>=1, len(from)>=2, len(to)>=2, maxcount>=1 */
 static PyObject *
-stringlib_replace_substring(PyObject *self,
-                            const char *from_s, Py_ssize_t from_len,
-                            const char *to_s, Py_ssize_t to_len,
-                            Py_ssize_t maxcount)
-{
+stringlib_replace_substring(
+    PyObject *self,
+    const char *from_s,
+    Py_ssize_t from_len,
+    const char *to_s,
+    Py_ssize_t to_len,
+    Py_ssize_t maxcount
+) {
     const char *self_s, *start, *next, *end;
     char *result_s;
     Py_ssize_t self_len, result_len;
@@ -619,9 +598,7 @@ stringlib_replace_substring(PyObject *self,
     self_s = STRINGLIB_STR(self);
     self_len = STRINGLIB_LEN(self);
 
-    count = stringlib_count(self_s, self_len,
-                            from_s, from_len,
-                            maxcount);
+    count = stringlib_count(self_s, self_len, from_s, from_len, maxcount);
 
     if (count == 0) {
         /* no matches, return unchanged */
@@ -646,9 +623,7 @@ stringlib_replace_substring(PyObject *self,
     start = self_s;
     end = self_s + self_len;
     while (count-- > 0) {
-        offset = stringlib_find(start, end - start,
-                                from_s, from_len,
-                                0);
+        offset = stringlib_find(start, end - start, from_s, from_len, 0);
         if (offset == -1)
             break;
         next = start + offset;
@@ -672,13 +647,15 @@ stringlib_replace_substring(PyObject *self,
     return result;
 }
 
-
 static PyObject *
-stringlib_replace(PyObject *self,
-                  const char *from_s, Py_ssize_t from_len,
-                  const char *to_s, Py_ssize_t to_len,
-                  Py_ssize_t maxcount)
-{
+stringlib_replace(
+    PyObject *self,
+    const char *from_s,
+    Py_ssize_t from_len,
+    const char *to_s,
+    Py_ssize_t to_len,
+    Py_ssize_t maxcount
+) {
     if (STRINGLIB_LEN(self) < from_len) {
         /* nothing to do; return the original bytes */
         return return_self(self);
@@ -705,11 +682,9 @@ stringlib_replace(PyObject *self,
     if (to_len == 0) {
         /* delete all occurrences of 'from' bytes */
         if (from_len == 1) {
-            return stringlib_replace_delete_single_character(
-                self, from_s[0], maxcount);
+            return stringlib_replace_delete_single_character(self, from_s[0], maxcount);
         } else {
-            return stringlib_replace_delete_substring(
-                self, from_s, from_len, maxcount);
+            return stringlib_replace_delete_substring(self, from_s, from_len, maxcount);
         }
     }
 
@@ -718,21 +693,25 @@ stringlib_replace(PyObject *self,
     if (from_len == to_len) {
         if (from_len == 1) {
             return stringlib_replace_single_character_in_place(
-                self, from_s[0], to_s[0], maxcount);
+                self, from_s[0], to_s[0], maxcount
+            );
         } else {
             return stringlib_replace_substring_in_place(
-                self, from_s, from_len, to_s, to_len, maxcount);
+                self, from_s, from_len, to_s, to_len, maxcount
+            );
         }
     }
 
     /* Otherwise use the more generic algorithms */
     if (from_len == 1) {
         return stringlib_replace_single_character(
-            self, from_s[0], to_s, to_len, maxcount);
+            self, from_s[0], to_s, to_len, maxcount
+        );
     } else {
         /* len('from')>=2, len('to')>=1 */
         return stringlib_replace_substring(
-            self, from_s, from_len, to_s, to_len, maxcount);
+            self, from_s, from_len, to_s, to_len, maxcount
+        );
     }
 }
 

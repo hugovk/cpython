@@ -9,8 +9,7 @@
 extern "C" {
 #endif
 
-PyAPI_FUNC(PyObject *) PyMarshal_ReadObjectFromString(const char *,
-                                                      Py_ssize_t);
+PyAPI_FUNC(PyObject *) PyMarshal_ReadObjectFromString(const char *, Py_ssize_t);
 PyAPI_FUNC(PyObject *) PyMarshal_WriteObjectToString(PyObject *, int);
 
 #define Py_MARSHAL_VERSION 4

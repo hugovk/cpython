@@ -10,13 +10,13 @@
  */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "pyconfig.h"
 #include "Python.h"
 #include "hashlib.h"
-#include "pycore_strhex.h"       // _Py_strhex()
+#include "pycore_strhex.h"  // _Py_strhex()
 #include "pycore_typeobject.h"
 #include "pycore_moduleobject.h"
 
@@ -47,8 +47,8 @@
 // compiled on x86_64. If we're on macOS ARM64, disable these preprocessor
 // symbols.
 #if defined(__APPLE__) && defined(__arm64__)
-#  undef HACL_CAN_COMPILE_SIMD128
-#  undef HACL_CAN_COMPILE_SIMD256
+#undef HACL_CAN_COMPILE_SIMD128
+#undef HACL_CAN_COMPILE_SIMD256
 #endif
 
 // ECX
@@ -72,59 +72,69 @@ typedef struct {
     bool done;
 } cpu_flags;
 
-void detect_cpu_features(cpu_flags *flags) {
-  if (!flags->done) {
-    int eax1 = 0, ebx1 = 0, ecx1 = 0, edx1 = 0;
-    int eax7 = 0, ebx7 = 0, ecx7 = 0, edx7 = 0;
+void
+detect_cpu_features(cpu_flags *flags) {
+    if (!flags->done) {
+        int eax1 = 0, ebx1 = 0, ecx1 = 0, edx1 = 0;
+        int eax7 = 0, ebx7 = 0, ecx7 = 0, edx7 = 0;
 #if defined(__x86_64__) && defined(__GNUC__)
-    __cpuid_count(1, 0, eax1, ebx1, ecx1, edx1);
-    __cpuid_count(7, 0, eax7, ebx7, ecx7, edx7);
+        __cpuid_count(1, 0, eax1, ebx1, ecx1, edx1);
+        __cpuid_count(7, 0, eax7, ebx7, ecx7, edx7);
 #elif defined(_M_X64)
-    int info1[4] = { 0 };
-    int info7[4] = { 0 };
-    __cpuidex(info1, 1, 0);
-    __cpuidex(info7, 7, 0);
-    eax1 = info1[0];
-    ebx1 = info1[1];
-    ecx1 = info1[2];
-    edx1 = info1[3];
-    eax7 = info7[0];
-    ebx7 = info7[1];
-    ecx7 = info7[2];
-    edx7 = info7[3];
+        int info1[4] = {0};
+        int info7[4] = {0};
+        __cpuidex(info1, 1, 0);
+        __cpuidex(info7, 7, 0);
+        eax1 = info1[0];
+        ebx1 = info1[1];
+        ecx1 = info1[2];
+        edx1 = info1[3];
+        eax7 = info7[0];
+        ebx7 = info7[1];
+        ecx7 = info7[2];
+        edx7 = info7[3];
 #else
-    (void) eax1; (void) ebx1; (void) ecx1; (void) edx1;
-    (void) eax7; (void) ebx7; (void) ecx7; (void) edx7;
+        (void)eax1;
+        (void)ebx1;
+        (void)ecx1;
+        (void)edx1;
+        (void)eax7;
+        (void)ebx7;
+        (void)ecx7;
+        (void)edx7;
 #endif
 
-    flags->avx = (ecx1 & ECX_AVX) != 0;
+        flags->avx = (ecx1 & ECX_AVX) != 0;
 
-    flags->avx2 = (ebx7 & EBX_AVX2) != 0;
+        flags->avx2 = (ebx7 & EBX_AVX2) != 0;
 
-    flags->sse = (edx1 & EDX_SSE) != 0;
-    flags->sse2 = (edx1 & EDX_SSE2) != 0;
-    flags->cmov = (edx1 & EDX_CMOV) != 0;
+        flags->sse = (edx1 & EDX_SSE) != 0;
+        flags->sse2 = (edx1 & EDX_SSE2) != 0;
+        flags->cmov = (edx1 & EDX_CMOV) != 0;
 
-    flags->sse3 = (ecx1 & ECX_SSE3) != 0;
-    /* ssse3 = (ecx1 & ECX_SSSE3) != 0; */
-    flags->sse41 = (ecx1 & ECX_SSE4_1) != 0;
-    flags->sse42 = (ecx1 & ECX_SSE4_2) != 0;
+        flags->sse3 = (ecx1 & ECX_SSE3) != 0;
+        /* ssse3 = (ecx1 & ECX_SSSE3) != 0; */
+        flags->sse41 = (ecx1 & ECX_SSE4_1) != 0;
+        flags->sse42 = (ecx1 & ECX_SSE4_2) != 0;
 
-    flags->done = true;
-  }
+        flags->done = true;
+    }
 }
 
 #ifdef HACL_CAN_COMPILE_SIMD128
-static inline bool has_simd128(cpu_flags *flags) {
-  // For now this is Intel-only, could conceivably be #ifdef'd to something
-  // else.
-  return flags->sse && flags->sse2 && flags->sse3 && flags->sse41 && flags->sse42 && flags->cmov;
+static inline bool
+has_simd128(cpu_flags *flags) {
+    // For now this is Intel-only, could conceivably be #ifdef'd to something
+    // else.
+    return flags->sse && flags->sse2 && flags->sse3 && flags->sse41 && flags->sse42 &&
+           flags->cmov;
 }
 #endif
 
 #ifdef HACL_CAN_COMPILE_SIMD256
-static inline bool has_simd256(cpu_flags *flags) {
-  return flags->avx && flags->avx2;
+static inline bool
+has_simd256(cpu_flags *flags) {
+    return flags->avx && flags->avx2;
 }
 #endif
 
@@ -147,41 +157,34 @@ static inline bool has_simd256(cpu_flags *flags) {
 static PyType_Spec blake2b_type_spec;
 static PyType_Spec blake2s_type_spec;
 
-PyDoc_STRVAR(blake2mod__doc__,
-"_blake2b provides BLAKE2b for hashlib\n"
-);
+PyDoc_STRVAR(blake2mod__doc__, "_blake2b provides BLAKE2b for hashlib\n");
 
 typedef struct {
-    PyTypeObject* blake2b_type;
-    PyTypeObject* blake2s_type;
+    PyTypeObject *blake2b_type;
+    PyTypeObject *blake2s_type;
     cpu_flags flags;
 } Blake2State;
 
-static inline Blake2State*
-blake2_get_state(PyObject *module)
-{
+static inline Blake2State *
+blake2_get_state(PyObject *module) {
     void *state = _PyModule_GetState(module);
     assert(state != NULL);
     return (Blake2State *)state;
 }
 
 #if defined(HACL_CAN_COMPILE_SIMD128) || defined(HACL_CAN_COMPILE_SIMD256)
-static inline Blake2State*
-blake2_get_state_from_type(PyTypeObject *module)
-{
+static inline Blake2State *
+blake2_get_state_from_type(PyTypeObject *module) {
     void *state = _PyType_GetModuleState(module);
     assert(state != NULL);
     return (Blake2State *)state;
 }
 #endif
 
-static struct PyMethodDef blake2mod_functions[] = {
-    {NULL, NULL}
-};
+static struct PyMethodDef blake2mod_functions[] = {{NULL, NULL}};
 
 static int
-_blake2_traverse(PyObject *module, visitproc visit, void *arg)
-{
+_blake2_traverse(PyObject *module, visitproc visit, void *arg) {
     Blake2State *state = blake2_get_state(module);
     Py_VISIT(state->blake2b_type);
     Py_VISIT(state->blake2s_type);
@@ -189,8 +192,7 @@ _blake2_traverse(PyObject *module, visitproc visit, void *arg)
 }
 
 static int
-_blake2_clear(PyObject *module)
-{
+_blake2_clear(PyObject *module) {
     Blake2State *state = blake2_get_state(module);
     Py_CLEAR(state->blake2b_type);
     Py_CLEAR(state->blake2s_type);
@@ -198,39 +200,39 @@ _blake2_clear(PyObject *module)
 }
 
 static void
-_blake2_free(void *module)
-{
+_blake2_free(void *module) {
     (void)_blake2_clear((PyObject *)module);
 }
 
-#define ADD_INT(d, name, value) do { \
-    PyObject *x = PyLong_FromLong(value); \
-    if (!x) \
-        return -1; \
-    if (PyDict_SetItemString(d, name, x) < 0) { \
-        Py_DECREF(x); \
-        return -1; \
-    } \
-    Py_DECREF(x); \
-} while(0)
+#define ADD_INT(d, name, value)                     \
+    do {                                            \
+        PyObject *x = PyLong_FromLong(value);       \
+        if (!x)                                     \
+            return -1;                              \
+        if (PyDict_SetItemString(d, name, x) < 0) { \
+            Py_DECREF(x);                           \
+            return -1;                              \
+        }                                           \
+        Py_DECREF(x);                               \
+    } while (0)
 
-#define ADD_INT_CONST(NAME, VALUE) do { \
-    if (PyModule_AddIntConstant(m, NAME, VALUE) < 0) { \
-        return -1; \
-    } \
-} while (0)
+#define ADD_INT_CONST(NAME, VALUE)                         \
+    do {                                                   \
+        if (PyModule_AddIntConstant(m, NAME, VALUE) < 0) { \
+            return -1;                                     \
+        }                                                  \
+    } while (0)
 
 static int
-blake2_exec(PyObject *m)
-{
-    Blake2State* st = blake2_get_state(m);
+blake2_exec(PyObject *m) {
+    Blake2State *st = blake2_get_state(m);
 
     // This is called at module initialization-time, and so appears to be as
     // good a place as any to probe the CPU flags.
     detect_cpu_features(&st->flags);
 
-    st->blake2b_type = (PyTypeObject *)PyType_FromModuleAndSpec(
-        m, &blake2b_type_spec, NULL);
+    st->blake2b_type =
+        (PyTypeObject *)PyType_FromModuleAndSpec(m, &blake2b_type_spec, NULL);
 
     if (st->blake2b_type == NULL) {
         return -1;
@@ -252,8 +254,8 @@ blake2_exec(PyObject *m)
     ADD_INT_CONST("BLAKE2B_MAX_DIGEST_SIZE", HACL_HASH_BLAKE2B_OUT_BYTES);
 
     /* BLAKE2s */
-    st->blake2s_type = (PyTypeObject *)PyType_FromModuleAndSpec(
-        m, &blake2s_type_spec, NULL);
+    st->blake2s_type =
+        (PyTypeObject *)PyType_FromModuleAndSpec(m, &blake2s_type_spec, NULL);
 
     if (NULL == st->blake2s_type)
         return -1;
@@ -299,8 +301,7 @@ static struct PyModuleDef blake2_module = {
 };
 
 PyMODINIT_FUNC
-PyInit__blake2(void)
-{
+PyInit__blake2(void) {
     return PyModuleDef_Init(&blake2_module);
 }
 
@@ -318,40 +319,42 @@ PyInit__blake2(void)
 // set.
 typedef enum { Blake2s, Blake2b, Blake2s_128, Blake2b_256 } blake2_impl;
 
-static inline bool is_blake2b(blake2_impl impl) {
-  return impl == Blake2b || impl == Blake2b_256;
+static inline bool
+is_blake2b(blake2_impl impl) {
+    return impl == Blake2b || impl == Blake2b_256;
 }
 
-static inline bool is_blake2s(blake2_impl impl) {
-  return !is_blake2b(impl);
+static inline bool
+is_blake2s(blake2_impl impl) {
+    return !is_blake2b(impl);
 }
 
-static inline blake2_impl type_to_impl(PyTypeObject *type) {
+static inline blake2_impl
+type_to_impl(PyTypeObject *type) {
 #if defined(HACL_CAN_COMPILE_SIMD128) || defined(HACL_CAN_COMPILE_SIMD256)
-    Blake2State* st = blake2_get_state_from_type(type);
+    Blake2State *st = blake2_get_state_from_type(type);
 #endif
     if (!strcmp(type->tp_name, blake2b_type_spec.name)) {
 #ifdef HACL_CAN_COMPILE_SIMD256
-      if (has_simd256(&st->flags))
-        return Blake2b_256;
-      else
+        if (has_simd256(&st->flags))
+            return Blake2b_256;
+        else
 #endif
-        return Blake2b;
+            return Blake2b;
     } else if (!strcmp(type->tp_name, blake2s_type_spec.name)) {
 #ifdef HACL_CAN_COMPILE_SIMD128
-      if (has_simd128(&st->flags))
-        return Blake2s_128;
-      else
+        if (has_simd128(&st->flags))
+            return Blake2s_128;
+        else
 #endif
-        return Blake2s;
+            return Blake2s;
     } else {
-      Py_UNREACHABLE();
+        Py_UNREACHABLE();
     }
 }
 
 typedef struct {
-    PyObject_HEAD
-    union {
+    PyObject_HEAD union {
         Hacl_Hash_Blake2s_state_t *blake2s_state;
         Hacl_Hash_Blake2b_state_t *blake2b_state;
 #ifdef HACL_CAN_COMPILE_SIMD128
@@ -375,10 +378,8 @@ class _blake2.blake2s "Blake2Object *" "&PyBlake2_BLAKE2sType"
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=b7526666bd18af83]*/
 
-
 static Blake2Object *
-new_Blake2Object(PyTypeObject *type)
-{
+new_Blake2Object(PyTypeObject *type) {
     Blake2Object *self;
     self = (Blake2Object *)type->tp_alloc(type, 0);
     if (self == NULL) {
@@ -393,44 +394,50 @@ new_Blake2Object(PyTypeObject *type)
  * 64 bits so we loop in <4gig chunks when needed. */
 
 #if PY_SSIZE_T_MAX > UINT32_MAX
-#define HACL_UPDATE_LOOP(update,state,buf,len) \
-  while (len > UINT32_MAX) { \
-    update(state, buf, UINT32_MAX); \
-    len -= UINT32_MAX; \
-    buf += UINT32_MAX; \
-  }
+#define HACL_UPDATE_LOOP(update, state, buf, len) \
+    while (len > UINT32_MAX) {                    \
+        update(state, buf, UINT32_MAX);           \
+        len -= UINT32_MAX;                        \
+        buf += UINT32_MAX;                        \
+    }
 #else
-#define HACL_UPDATE_LOOP(update,state,buf,len)
+#define HACL_UPDATE_LOOP(update, state, buf, len)
 #endif
 
-#define HACL_UPDATE(update,state,buf,len) do { \
-  /* Note: we explicitly ignore the error code on the basis that it would take >
-   * 1 billion years to overflow the maximum admissible length for SHA2-256
-   * (namely, 2^61-1 bytes). */ \
-  HACL_UPDATE_LOOP(update,state,buf,len) \
-  /* Cast to uint32_t is safe: len <= UINT32_MAX at this point. */ \
-  update(state, buf, (uint32_t) len); \
-} while (0)
+#define HACL_UPDATE(update, state, buf, len)                                           \
+    do {                                                                               \
+        /* Note: we explicitly ignore the error code on the basis that it would take > \
+         * 1 billion years to overflow the maximum admissible length for SHA2-256      \
+         * (namely, 2^61-1 bytes). */                                                  \
+        HACL_UPDATE_LOOP(update, state, buf, len)                                      \
+        /* Cast to uint32_t is safe: len <= UINT32_MAX at this point. */               \
+        update(state, buf, (uint32_t)len);                                             \
+    } while (0)
 
-static void update(Blake2Object *self, uint8_t *buf, Py_ssize_t len) {
+static void
+update(Blake2Object *self, uint8_t *buf, Py_ssize_t len) {
     switch (self->impl) {
-      // These need to be ifdef'd out otherwise it's an unresolved symbol at
-      // link-time.
+        // These need to be ifdef'd out otherwise it's an unresolved symbol at
+        // link-time.
 #ifdef HACL_CAN_COMPILE_SIMD256
         case Blake2b_256:
-            HACL_UPDATE(Hacl_Hash_Blake2b_Simd256_update,self->blake2b_256_state, buf, len);
+            HACL_UPDATE(
+                Hacl_Hash_Blake2b_Simd256_update, self->blake2b_256_state, buf, len
+            );
             return;
 #endif
 #ifdef HACL_CAN_COMPILE_SIMD128
         case Blake2s_128:
-            HACL_UPDATE(Hacl_Hash_Blake2s_Simd128_update,self->blake2s_128_state, buf, len);
+            HACL_UPDATE(
+                Hacl_Hash_Blake2s_Simd128_update, self->blake2s_128_state, buf, len
+            );
             return;
 #endif
         case Blake2b:
-            HACL_UPDATE(Hacl_Hash_Blake2b_update,self->blake2b_state, buf, len);
+            HACL_UPDATE(Hacl_Hash_Blake2b_update, self->blake2b_state, buf, len);
             return;
         case Blake2s:
-            HACL_UPDATE(Hacl_Hash_Blake2s_update,self->blake2s_state, buf, len);
+            HACL_UPDATE(Hacl_Hash_Blake2s_update, self->blake2s_state, buf, len);
             return;
         default:
             Py_UNREACHABLE();
@@ -438,11 +445,22 @@ static void update(Blake2Object *self, uint8_t *buf, Py_ssize_t len) {
 }
 
 static PyObject *
-py_blake2b_or_s_new(PyTypeObject *type, PyObject *data, int digest_size,
-                    Py_buffer *key, Py_buffer *salt, Py_buffer *person,
-                    int fanout, int depth, unsigned long leaf_size,
-                    unsigned long long node_offset, int node_depth,
-                    int inner_size, int last_node, int usedforsecurity)
+py_blake2b_or_s_new(
+    PyTypeObject *type,
+    PyObject *data,
+    int digest_size,
+    Py_buffer *key,
+    Py_buffer *salt,
+    Py_buffer *person,
+    int fanout,
+    int depth,
+    unsigned long leaf_size,
+    unsigned long long node_offset,
+    int node_depth,
+    int inner_size,
+    int last_node,
+    int usedforsecurity
+)
 
 {
     Blake2Object *self = NULL;
@@ -457,27 +475,35 @@ py_blake2b_or_s_new(PyTypeObject *type, PyObject *data, int digest_size,
 
     // Using Blake2b because we statically know that these are greater than the
     // Blake2s sizes -- this avoids a VLA.
-    uint8_t salt_[HACL_HASH_BLAKE2B_SALT_BYTES] = { 0 };
-    uint8_t personal_[HACL_HASH_BLAKE2B_PERSONAL_BYTES] = { 0 };
+    uint8_t salt_[HACL_HASH_BLAKE2B_SALT_BYTES] = {0};
+    uint8_t personal_[HACL_HASH_BLAKE2B_PERSONAL_BYTES] = {0};
 
     /* Validate digest size. */
     if (digest_size <= 0 ||
-        (unsigned) digest_size > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_OUT_BYTES : HACL_HASH_BLAKE2S_OUT_BYTES))
-    {
-        PyErr_Format(PyExc_ValueError,
-                "digest_size for %s must be between 1 and %d bytes, here it is %d",
-                is_blake2b(self->impl) ? "Blake2b" : "Blake2s",
-                is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_OUT_BYTES : HACL_HASH_BLAKE2S_OUT_BYTES,
-                digest_size);
+        (unsigned)digest_size > (is_blake2b(self->impl)
+                                     ? HACL_HASH_BLAKE2B_OUT_BYTES
+                                     : HACL_HASH_BLAKE2S_OUT_BYTES)) {
+        PyErr_Format(
+            PyExc_ValueError,
+            "digest_size for %s must be between 1 and %d bytes, here it is %d",
+            is_blake2b(self->impl) ? "Blake2b" : "Blake2s",
+            is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_OUT_BYTES
+                                   : HACL_HASH_BLAKE2S_OUT_BYTES,
+            digest_size
+        );
         goto error;
     }
 
     /* Validate salt parameter. */
     if ((salt->obj != NULL) && salt->len) {
-        if (salt->len > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_SALT_BYTES : HACL_HASH_BLAKE2S_SALT_BYTES)) {
-            PyErr_Format(PyExc_ValueError,
+        if (salt->len > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_SALT_BYTES
+                                                : HACL_HASH_BLAKE2S_SALT_BYTES)) {
+            PyErr_Format(
+                PyExc_ValueError,
                 "maximum salt length is %d bytes",
-                (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_SALT_BYTES : HACL_HASH_BLAKE2S_SALT_BYTES));
+                (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_SALT_BYTES
+                                        : HACL_HASH_BLAKE2S_SALT_BYTES)
+            );
             goto error;
         }
         memcpy(salt_, salt->buf, salt->len);
@@ -485,10 +511,14 @@ py_blake2b_or_s_new(PyTypeObject *type, PyObject *data, int digest_size,
 
     /* Validate personalization parameter. */
     if ((person->obj != NULL) && person->len) {
-        if (person->len > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_PERSONAL_BYTES : HACL_HASH_BLAKE2S_PERSONAL_BYTES)) {
-            PyErr_Format(PyExc_ValueError,
+        if (person->len > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_PERSONAL_BYTES
+                                                  : HACL_HASH_BLAKE2S_PERSONAL_BYTES)) {
+            PyErr_Format(
+                PyExc_ValueError,
                 "maximum person length is %d bytes",
-                (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_PERSONAL_BYTES : HACL_HASH_BLAKE2S_PERSONAL_BYTES));
+                (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_PERSONAL_BYTES
+                                        : HACL_HASH_BLAKE2S_PERSONAL_BYTES)
+            );
             goto error;
         }
         memcpy(personal_, person->buf, person->len);
@@ -496,14 +526,12 @@ py_blake2b_or_s_new(PyTypeObject *type, PyObject *data, int digest_size,
 
     /* Validate tree parameters. */
     if (fanout < 0 || fanout > 255) {
-        PyErr_SetString(PyExc_ValueError,
-                "fanout must be between 0 and 255");
+        PyErr_SetString(PyExc_ValueError, "fanout must be between 0 and 255");
         goto error;
     }
 
     if (depth <= 0 || depth > 255) {
-        PyErr_SetString(PyExc_ValueError,
-                "depth must be between 1 and 255");
+        PyErr_SetString(PyExc_ValueError, "depth must be between 1 and 255");
         goto error;
     }
 
@@ -514,30 +542,37 @@ py_blake2b_or_s_new(PyTypeObject *type, PyObject *data, int digest_size,
 
     if (is_blake2s(self->impl) && node_offset > 0xFFFFFFFFFFFFULL) {
         /* maximum 2**48 - 1 */
-         PyErr_SetString(PyExc_OverflowError, "node_offset is too large");
-         goto error;
-     }
+        PyErr_SetString(PyExc_OverflowError, "node_offset is too large");
+        goto error;
+    }
 
     if (node_depth < 0 || node_depth > 255) {
-        PyErr_SetString(PyExc_ValueError,
-                "node_depth must be between 0 and 255");
+        PyErr_SetString(PyExc_ValueError, "node_depth must be between 0 and 255");
         goto error;
     }
 
     if (inner_size < 0 ||
-        (unsigned) inner_size > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_OUT_BYTES : HACL_HASH_BLAKE2S_OUT_BYTES)) {
-        PyErr_Format(PyExc_ValueError,
-                "inner_size must be between 0 and is %d",
-                (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_OUT_BYTES : HACL_HASH_BLAKE2S_OUT_BYTES));
+        (unsigned)inner_size > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_OUT_BYTES
+                                                       : HACL_HASH_BLAKE2S_OUT_BYTES)) {
+        PyErr_Format(
+            PyExc_ValueError,
+            "inner_size must be between 0 and is %d",
+            (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_OUT_BYTES
+                                    : HACL_HASH_BLAKE2S_OUT_BYTES)
+        );
         goto error;
     }
 
     /* Set key length. */
     if ((key->obj != NULL) && key->len) {
-        if (key->len > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_KEY_BYTES : HACL_HASH_BLAKE2S_KEY_BYTES)) {
-            PyErr_Format(PyExc_ValueError,
+        if (key->len > (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_KEY_BYTES
+                                               : HACL_HASH_BLAKE2S_KEY_BYTES)) {
+            PyErr_Format(
+                PyExc_ValueError,
                 "maximum key length is %d bytes",
-                (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_KEY_BYTES : HACL_HASH_BLAKE2S_KEY_BYTES));
+                (is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_KEY_BYTES
+                                        : HACL_HASH_BLAKE2S_KEY_BYTES)
+            );
             goto error;
         }
     }
@@ -561,19 +596,29 @@ py_blake2b_or_s_new(PyTypeObject *type, PyObject *data, int digest_size,
     switch (self->impl) {
 #if HACL_CAN_COMPILE_SIMD256
         case Blake2b_256:
-            self->blake2b_256_state = Hacl_Hash_Blake2b_Simd256_malloc_with_params_and_key(&params, last_node, key->buf);
+            self->blake2b_256_state =
+                Hacl_Hash_Blake2b_Simd256_malloc_with_params_and_key(
+                    &params, last_node, key->buf
+                );
             break;
 #endif
 #if HACL_CAN_COMPILE_SIMD128
         case Blake2s_128:
-            self->blake2s_128_state = Hacl_Hash_Blake2s_Simd128_malloc_with_params_and_key(&params, last_node, key->buf);
+            self->blake2s_128_state =
+                Hacl_Hash_Blake2s_Simd128_malloc_with_params_and_key(
+                    &params, last_node, key->buf
+                );
             break;
 #endif
         case Blake2b:
-            self->blake2b_state = Hacl_Hash_Blake2b_malloc_with_params_and_key(&params, last_node, key->buf);
+            self->blake2b_state = Hacl_Hash_Blake2b_malloc_with_params_and_key(
+                &params, last_node, key->buf
+            );
             break;
         case Blake2s:
-            self->blake2s_state = Hacl_Hash_Blake2s_malloc_with_params_and_key(&params, last_node, key->buf);
+            self->blake2s_state = Hacl_Hash_Blake2s_malloc_with_params_and_key(
+                &params, last_node, key->buf
+            );
             break;
         default:
             Py_UNREACHABLE();
@@ -584,8 +629,7 @@ py_blake2b_or_s_new(PyTypeObject *type, PyObject *data, int digest_size,
         GET_BUFFER_VIEW_OR_ERROR(data, &buf, goto error);
 
         if (buf.len >= HASHLIB_GIL_MINSIZE) {
-            Py_BEGIN_ALLOW_THREADS
-            update(self, buf.buf, buf.len);
+            Py_BEGIN_ALLOW_THREADS update(self, buf.buf, buf.len);
             Py_END_ALLOW_THREADS
         } else {
             update(self, buf.buf, buf.len);
@@ -595,7 +639,7 @@ py_blake2b_or_s_new(PyTypeObject *type, PyObject *data, int digest_size,
 
     return (PyObject *)self;
 error:
-	Py_XDECREF(self);
+    Py_XDECREF(self);
     return NULL;
 }
 
@@ -605,12 +649,10 @@ _blake2.blake2b.__new__ as py_blake2b_new
     data: object(c_default="NULL") = b''
     /
     *
-    digest_size: int(c_default="HACL_HASH_BLAKE2B_OUT_BYTES") = _blake2.blake2b.MAX_DIGEST_SIZE
-    key: Py_buffer(c_default="NULL", py_default="b''") = None
-    salt: Py_buffer(c_default="NULL", py_default="b''") = None
-    person: Py_buffer(c_default="NULL", py_default="b''") = None
-    fanout: int = 1
-    depth: int = 1
+    digest_size: int(c_default="HACL_HASH_BLAKE2B_OUT_BYTES") =
+_blake2.blake2b.MAX_DIGEST_SIZE key: Py_buffer(c_default="NULL", py_default="b''") =
+None salt: Py_buffer(c_default="NULL", py_default="b''") = None person:
+Py_buffer(c_default="NULL", py_default="b''") = None fanout: int = 1 depth: int = 1
     leaf_size: unsigned_long = 0
     node_offset: unsigned_long_long = 0
     node_depth: int = 0
@@ -622,14 +664,40 @@ Return a new BLAKE2b hash object.
 [clinic start generated code]*/
 
 static PyObject *
-py_blake2b_new_impl(PyTypeObject *type, PyObject *data, int digest_size,
-                    Py_buffer *key, Py_buffer *salt, Py_buffer *person,
-                    int fanout, int depth, unsigned long leaf_size,
-                    unsigned long long node_offset, int node_depth,
-                    int inner_size, int last_node, int usedforsecurity)
+py_blake2b_new_impl(
+    PyTypeObject *type,
+    PyObject *data,
+    int digest_size,
+    Py_buffer *key,
+    Py_buffer *salt,
+    Py_buffer *person,
+    int fanout,
+    int depth,
+    unsigned long leaf_size,
+    unsigned long long node_offset,
+    int node_depth,
+    int inner_size,
+    int last_node,
+    int usedforsecurity
+)
 /*[clinic end generated code: output=32bfd8f043c6896f input=8fee2b7b11428b2d]*/
 {
-    return py_blake2b_or_s_new(type, data, digest_size, key, salt, person, fanout, depth, leaf_size, node_offset, node_depth, inner_size, last_node, usedforsecurity);
+    return py_blake2b_or_s_new(
+        type,
+        data,
+        digest_size,
+        key,
+        salt,
+        person,
+        fanout,
+        depth,
+        leaf_size,
+        node_offset,
+        node_depth,
+        inner_size,
+        last_node,
+        usedforsecurity
+    );
 }
 
 /*[clinic input]
@@ -638,12 +706,10 @@ _blake2.blake2s.__new__ as py_blake2s_new
     data: object(c_default="NULL") = b''
     /
     *
-    digest_size: int(c_default="HACL_HASH_BLAKE2S_OUT_BYTES") = _blake2.blake2s.MAX_DIGEST_SIZE
-    key: Py_buffer(c_default="NULL", py_default="b''") = None
-    salt: Py_buffer(c_default="NULL", py_default="b''") = None
-    person: Py_buffer(c_default="NULL", py_default="b''") = None
-    fanout: int = 1
-    depth: int = 1
+    digest_size: int(c_default="HACL_HASH_BLAKE2S_OUT_BYTES") =
+_blake2.blake2s.MAX_DIGEST_SIZE key: Py_buffer(c_default="NULL", py_default="b''") =
+None salt: Py_buffer(c_default="NULL", py_default="b''") = None person:
+Py_buffer(c_default="NULL", py_default="b''") = None fanout: int = 1 depth: int = 1
     leaf_size: unsigned_long = 0
     node_offset: unsigned_long_long = 0
     node_depth: int = 0
@@ -655,14 +721,40 @@ Return a new BLAKE2s hash object.
 [clinic start generated code]*/
 
 static PyObject *
-py_blake2s_new_impl(PyTypeObject *type, PyObject *data, int digest_size,
-                    Py_buffer *key, Py_buffer *salt, Py_buffer *person,
-                    int fanout, int depth, unsigned long leaf_size,
-                    unsigned long long node_offset, int node_depth,
-                    int inner_size, int last_node, int usedforsecurity)
+py_blake2s_new_impl(
+    PyTypeObject *type,
+    PyObject *data,
+    int digest_size,
+    Py_buffer *key,
+    Py_buffer *salt,
+    Py_buffer *person,
+    int fanout,
+    int depth,
+    unsigned long leaf_size,
+    unsigned long long node_offset,
+    int node_depth,
+    int inner_size,
+    int last_node,
+    int usedforsecurity
+)
 /*[clinic end generated code: output=556181f73905c686 input=8165a11980eac7f3]*/
 {
-    return py_blake2b_or_s_new(type, data, digest_size, key, salt, person, fanout, depth, leaf_size, node_offset, node_depth, inner_size, last_node, usedforsecurity);
+    return py_blake2b_or_s_new(
+        type,
+        data,
+        digest_size,
+        key,
+        salt,
+        person,
+        fanout,
+        depth,
+        leaf_size,
+        node_offset,
+        node_depth,
+        inner_size,
+        last_node,
+        usedforsecurity
+    );
 }
 
 /*[clinic input]
@@ -684,12 +776,14 @@ _blake2_blake2b_copy_impl(Blake2Object *self)
     switch (self->impl) {
 #if HACL_CAN_COMPILE_SIMD256
         case Blake2b_256:
-            cpy->blake2b_256_state = Hacl_Hash_Blake2b_Simd256_copy(self->blake2b_256_state);
+            cpy->blake2b_256_state =
+                Hacl_Hash_Blake2b_Simd256_copy(self->blake2b_256_state);
             break;
 #endif
 #if HACL_CAN_COMPILE_SIMD128
         case Blake2s_128:
-            cpy->blake2s_128_state = Hacl_Hash_Blake2s_Simd128_copy(self->blake2s_128_state);
+            cpy->blake2s_128_state =
+                Hacl_Hash_Blake2s_Simd128_copy(self->blake2s_128_state);
             break;
 #endif
         case Blake2b:
@@ -727,8 +821,7 @@ _blake2_blake2b_update(Blake2Object *self, PyObject *data)
         self->use_mutex = true;
     }
     if (self->use_mutex) {
-        Py_BEGIN_ALLOW_THREADS
-        PyMutex_Lock(&self->mutex);
+        Py_BEGIN_ALLOW_THREADS PyMutex_Lock(&self->mutex);
         update(self, buf.buf, buf.len);
         PyMutex_Unlock(&self->mutex);
         Py_END_ALLOW_THREADS
@@ -758,12 +851,14 @@ _blake2_blake2b_digest_impl(Blake2Object *self)
     switch (self->impl) {
 #if HACL_CAN_COMPILE_SIMD256
         case Blake2b_256:
-            digest_length = Hacl_Hash_Blake2b_Simd256_digest(self->blake2b_256_state, digest);
+            digest_length =
+                Hacl_Hash_Blake2b_Simd256_digest(self->blake2b_256_state, digest);
             break;
 #endif
 #if HACL_CAN_COMPILE_SIMD128
         case Blake2s_128:
-            digest_length = Hacl_Hash_Blake2s_Simd128_digest(self->blake2s_128_state, digest);
+            digest_length =
+                Hacl_Hash_Blake2s_Simd128_digest(self->blake2s_128_state, digest);
             break;
 #endif
         case Blake2b:
@@ -796,12 +891,14 @@ _blake2_blake2b_hexdigest_impl(Blake2Object *self)
     switch (self->impl) {
 #if HACL_CAN_COMPILE_SIMD256
         case Blake2b_256:
-            digest_length = Hacl_Hash_Blake2b_Simd256_digest(self->blake2b_256_state, digest);
+            digest_length =
+                Hacl_Hash_Blake2b_Simd256_digest(self->blake2b_256_state, digest);
             break;
 #endif
 #if HACL_CAN_COMPILE_SIMD128
         case Blake2s_128:
-            digest_length = Hacl_Hash_Blake2s_Simd128_digest(self->blake2s_128_state, digest);
+            digest_length =
+                Hacl_Hash_Blake2s_Simd128_digest(self->blake2s_128_state, digest);
             break;
 #endif
         case Blake2b:
@@ -817,68 +914,61 @@ _blake2_blake2b_hexdigest_impl(Blake2Object *self)
     return _Py_strhex((const char *)digest, digest_length);
 }
 
-
 static PyMethodDef py_blake2b_methods[] = {
-    _BLAKE2_BLAKE2B_COPY_METHODDEF
-    _BLAKE2_BLAKE2B_DIGEST_METHODDEF
-    _BLAKE2_BLAKE2B_HEXDIGEST_METHODDEF
-    _BLAKE2_BLAKE2B_UPDATE_METHODDEF
-    {NULL, NULL}
+    _BLAKE2_BLAKE2B_COPY_METHODDEF _BLAKE2_BLAKE2B_DIGEST_METHODDEF
+        _BLAKE2_BLAKE2B_HEXDIGEST_METHODDEF _BLAKE2_BLAKE2B_UPDATE_METHODDEF{NULL, NULL}
 };
 
-
 static PyObject *
-py_blake2b_get_name(Blake2Object *self, void *closure)
-{
+py_blake2b_get_name(Blake2Object *self, void *closure) {
     return PyUnicode_FromString(is_blake2b(self->impl) ? "blake2b" : "blake2s");
 }
 
-
-
 static PyObject *
-py_blake2b_get_block_size(Blake2Object *self, void *closure)
-{
-    return PyLong_FromLong(is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_BLOCK_BYTES : HACL_HASH_BLAKE2S_BLOCK_BYTES);
+py_blake2b_get_block_size(Blake2Object *self, void *closure) {
+    return PyLong_FromLong(
+        is_blake2b(self->impl) ? HACL_HASH_BLAKE2B_BLOCK_BYTES
+                               : HACL_HASH_BLAKE2S_BLOCK_BYTES
+    );
 }
 
-
-
 static PyObject *
-py_blake2b_get_digest_size(Blake2Object *self, void *closure)
-{
+py_blake2b_get_digest_size(Blake2Object *self, void *closure) {
     switch (self->impl) {
 #if HACL_CAN_COMPILE_SIMD256
         case Blake2b_256:
-            return PyLong_FromLong(Hacl_Hash_Blake2b_Simd256_info(self->blake2b_256_state).digest_length);
+            return PyLong_FromLong(
+                Hacl_Hash_Blake2b_Simd256_info(self->blake2b_256_state).digest_length
+            );
 #endif
 #if HACL_CAN_COMPILE_SIMD128
         case Blake2s_128:
-            return PyLong_FromLong(Hacl_Hash_Blake2s_Simd128_info(self->blake2s_128_state).digest_length);
+            return PyLong_FromLong(
+                Hacl_Hash_Blake2s_Simd128_info(self->blake2s_128_state).digest_length
+            );
 #endif
         case Blake2b:
-            return PyLong_FromLong(Hacl_Hash_Blake2b_info(self->blake2b_state).digest_length);
+            return PyLong_FromLong(
+                Hacl_Hash_Blake2b_info(self->blake2b_state).digest_length
+            );
         case Blake2s:
-            return PyLong_FromLong(Hacl_Hash_Blake2s_info(self->blake2s_state).digest_length);
+            return PyLong_FromLong(
+                Hacl_Hash_Blake2s_info(self->blake2s_state).digest_length
+            );
         default:
             Py_UNREACHABLE();
     }
 }
 
-
 static PyGetSetDef py_blake2b_getsetters[] = {
-    {"name", (getter)py_blake2b_get_name,
-        NULL, NULL, NULL},
-    {"block_size", (getter)py_blake2b_get_block_size,
-        NULL, NULL, NULL},
-    {"digest_size", (getter)py_blake2b_get_digest_size,
-        NULL, NULL, NULL},
+    {"name", (getter)py_blake2b_get_name, NULL, NULL, NULL},
+    {"block_size", (getter)py_blake2b_get_block_size, NULL, NULL, NULL},
+    {"digest_size", (getter)py_blake2b_get_digest_size, NULL, NULL, NULL},
     {NULL}
 };
 
-
 static void
-py_blake2b_dealloc(Blake2Object *self)
-{
+py_blake2b_dealloc(Blake2Object *self) {
     switch (self->impl) {
 #if HACL_CAN_COMPILE_SIMD256
         case Blake2b_256:
@@ -919,7 +1009,7 @@ static PyType_Slot blake2b_type_slots[] = {
     {Py_tp_methods, py_blake2b_methods},
     {Py_tp_getset, py_blake2b_getsetters},
     {Py_tp_new, py_blake2b_new},
-    {0,0}
+    {0, 0}
 };
 
 static PyType_Slot blake2s_type_slots[] = {
@@ -930,19 +1020,19 @@ static PyType_Slot blake2s_type_slots[] = {
     // only the constructor differs, so that it can receive a clinic-generated
     // default digest length suitable for blake2s
     {Py_tp_new, py_blake2s_new},
-    {0,0}
+    {0, 0}
 };
 
 static PyType_Spec blake2b_type_spec = {
     .name = "_blake2.blake2b",
-    .basicsize =  sizeof(Blake2Object),
+    .basicsize = sizeof(Blake2Object),
     .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
     .slots = blake2b_type_slots
 };
 
 static PyType_Spec blake2s_type_spec = {
     .name = "_blake2.blake2s",
-    .basicsize =  sizeof(Blake2Object),
+    .basicsize = sizeof(Blake2Object),
     .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
     .slots = blake2s_type_slots
 };

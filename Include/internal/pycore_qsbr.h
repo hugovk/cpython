@@ -11,14 +11,14 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "pycore_lock.h"        // PyMutex
+#include "pycore_lock.h"  // PyMutex
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 // The shared write sequence is always odd and incremented by two. Detached
@@ -27,13 +27,13 @@ extern "C" {
 // sequences numbers wrap around.
 #define QSBR_OFFLINE 0
 #define QSBR_INITIAL 1
-#define QSBR_INCR    2
+#define QSBR_INCR 2
 
 // Wrap-around safe comparison. This is a holdover from the FreeBSD
 // implementation, which uses 32-bit sequence numbers. We currently use 64-bit
 // sequence numbers, so wrap-around is unlikely.
-#define QSBR_LT(a, b) ((int64_t)((a)-(b)) < 0)
-#define QSBR_LEQ(a, b) ((int64_t)((a)-(b)) <= 0)
+#define QSBR_LT(a, b) ((int64_t)((a) - (b)) < 0)
+#define QSBR_LEQ(a, b) ((int64_t)((a) - (b)) <= 0)
 
 struct _qsbr_shared;
 struct _PyThreadStateImpl;  // forward declare to avoid circular dependency
@@ -81,16 +81,14 @@ struct _qsbr_shared {
 };
 
 static inline uint64_t
-_Py_qsbr_shared_current(struct _qsbr_shared *shared)
-{
+_Py_qsbr_shared_current(struct _qsbr_shared *shared) {
     return _Py_atomic_load_uint64_acquire(&shared->wr_seq);
 }
 
 // Reports a quiescent state: the caller no longer holds any pointer to shared
 // data not protected by locks or reference counts.
 static inline void
-_Py_qsbr_quiescent_state(struct _qsbr_thread_state *qsbr)
-{
+_Py_qsbr_quiescent_state(struct _qsbr_thread_state *qsbr) {
     uint64_t seq = _Py_qsbr_shared_current(qsbr->shared);
     _Py_atomic_store_uint64_release(&qsbr->seq, seq);
 }
@@ -98,8 +96,7 @@ _Py_qsbr_quiescent_state(struct _qsbr_thread_state *qsbr)
 // Have the read sequences advanced to the given goal? Like `_Py_qsbr_poll()`,
 // but does not perform a scan of threads.
 static inline bool
-_Py_qbsr_goal_reached(struct _qsbr_thread_state *qsbr, uint64_t goal)
-{
+_Py_qbsr_goal_reached(struct _qsbr_thread_state *qsbr, uint64_t goal) {
     uint64_t rd_seq = _Py_atomic_load_uint64(&qsbr->shared->rd_seq);
     return QSBR_LEQ(goal, rd_seq);
 }
@@ -135,8 +132,9 @@ _Py_qsbr_reserve(PyInterpreterState *interp);
 
 // Associates a PyThreadState with the QSBR state at the given index
 extern void
-_Py_qsbr_register(struct _PyThreadStateImpl *tstate,
-                  PyInterpreterState *interp, Py_ssize_t index);
+_Py_qsbr_register(
+    struct _PyThreadStateImpl *tstate, PyInterpreterState *interp, Py_ssize_t index
+);
 
 // Disassociates a PyThreadState from the QSBR state and frees the QSBR state.
 extern void
@@ -151,4 +149,4 @@ _Py_qsbr_after_fork(struct _PyThreadStateImpl *tstate);
 #ifdef __cplusplus
 }
 #endif
-#endif   /* !Py_INTERNAL_QSBR_H */
+#endif /* !Py_INTERNAL_QSBR_H */

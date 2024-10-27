@@ -2,8 +2,7 @@
 #include "util.h"
 
 static PyObject *
-set_get_size(PyObject *self, PyObject *obj)
-{
+set_get_size(PyObject *self, PyObject *obj) {
     NULLABLE(obj);
     RETURN_SIZE(PySet_GET_SIZE(obj));
 }
@@ -15,8 +14,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestCapi_Init_Set(PyObject *m)
-{
+_PyTestCapi_Init_Set(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }

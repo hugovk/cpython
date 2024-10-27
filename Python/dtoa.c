@@ -118,9 +118,9 @@
 /* Linking of Python's #defines to Gay's #defines starts here. */
 
 #include "Python.h"
-#include "pycore_dtoa.h"          // _PY_SHORT_FLOAT_REPR
-#include "pycore_pystate.h"       // _PyInterpreterState_GET()
-#include <stdlib.h>               // exit()
+#include "pycore_dtoa.h"     // _PY_SHORT_FLOAT_REPR
+#include "pycore_pystate.h"  // _PyInterpreterState_GET()
+#include <stdlib.h>          // exit()
 
 /* if _PY_SHORT_FLOAT_REPR == 0, then don't even try to compile
    the following code */
@@ -135,11 +135,10 @@
    machines, where doubles have byte order 45670123 (in increasing address
    order, 0 being the least significant byte). */
 #ifdef DOUBLE_IS_LITTLE_ENDIAN_IEEE754
-#  define IEEE_8087
+#define IEEE_8087
 #endif
-#if defined(DOUBLE_IS_BIG_ENDIAN_IEEE754) ||  \
-  defined(DOUBLE_IS_ARM_MIXED_ENDIAN_IEEE754)
-#  define IEEE_MC68k
+#if defined(DOUBLE_IS_BIG_ENDIAN_IEEE754) || defined(DOUBLE_IS_ARM_MIXED_ENDIAN_IEEE754)
+#define IEEE_MC68k
 #endif
 #if defined(IEEE_8087) + defined(IEEE_MC68k) != 1
 #error "Exactly one of IEEE_8087 or IEEE_MC68k should be defined."
@@ -156,7 +155,6 @@
 #error "doubles and ints have incompatible endianness"
 #endif
 
-
 // ULong is defined in pycore_dtoa.h.
 typedef int32_t Long;
 typedef uint64_t ULLong;
@@ -169,10 +167,17 @@ typedef uint64_t ULLong;
 /* End Python #define linking */
 
 #ifdef DEBUG
-#define Bug(x) {fprintf(stderr, "%s\n", x); exit(1);}
+#define Bug(x)                      \
+    {                               \
+        fprintf(stderr, "%s\n", x); \
+        exit(1);                    \
+    }
 #endif
 
-typedef union { double d; ULong L[2]; } U;
+typedef union {
+    double d;
+    ULong L[2];
+} U;
 
 #ifdef IEEE_8087
 #define word0(x) (x)->L[1]
@@ -216,11 +221,15 @@ typedef union { double d; ULong L[2]; } U;
  * #define Storeinc(a,b,c) (*a++ = b << 16 | c & 0xffff)
  */
 #if defined(IEEE_8087)
-#define Storeinc(a,b,c) (((unsigned short *)a)[1] = (unsigned short)b,  \
-                         ((unsigned short *)a)[0] = (unsigned short)c, a++)
+#define Storeinc(a, b, c)                          \
+    (((unsigned short *)a)[1] = (unsigned short)b, \
+     ((unsigned short *)a)[0] = (unsigned short)c, \
+     a++)
 #else
-#define Storeinc(a,b,c) (((unsigned short *)a)[0] = (unsigned short)b,  \
-                         ((unsigned short *)a)[1] = (unsigned short)c, a++)
+#define Storeinc(a, b, c)                          \
+    (((unsigned short *)a)[0] = (unsigned short)b, \
+     ((unsigned short *)a)[1] = (unsigned short)c, \
+     a++)
 #endif
 
 /* #define P DBL_MANT_DIG */
@@ -229,25 +238,25 @@ typedef union { double d; ULong L[2]; } U;
 /* Quick_max = floor((P-1)*log(FLT_RADIX)/log(10) - 1) */
 /* Int_max = floor(P*log(FLT_RADIX)/log(10) - 1) */
 
-#define Exp_shift  20
+#define Exp_shift 20
 #define Exp_shift1 20
-#define Exp_msk1    0x100000
-#define Exp_msk11   0x100000
-#define Exp_mask  0x7ff00000
+#define Exp_msk1 0x100000
+#define Exp_msk11 0x100000
+#define Exp_mask 0x7ff00000
 #define P 53
 #define Nbits 53
 #define Bias 1023
 #define Emax 1023
 #define Emin (-1022)
-#define Etiny (-1074)  /* smallest denormal is 2**Etiny */
-#define Exp_1  0x3ff00000
+#define Etiny (-1074) /* smallest denormal is 2**Etiny */
+#define Exp_1 0x3ff00000
 #define Exp_11 0x3ff00000
 #define Ebits 11
-#define Frac_mask  0xfffff
+#define Frac_mask 0xfffff
 #define Frac_mask1 0xfffff
 #define Ten_pmax 22
 #define Bletch 0x10
-#define Bndry_mask  0xfffff
+#define Bndry_mask 0xfffff
 #define Bndry_mask1 0xfffff
 #define Sign_bit 0x80000000
 #define Log2P 1
@@ -266,7 +275,7 @@ typedef union { double d; ULong L[2]; } U;
 
 #define Rounding Flt_Rounds
 
-#define Big0 (Frac_mask1 | Exp_msk1*(DBL_MAX_EXP+Bias-1))
+#define Big0 (Frac_mask1 | Exp_msk1 * (DBL_MAX_EXP + Bias - 1))
 #define Big1 0xffffffff
 
 /* Bits of the representation of positive infinity. */
@@ -277,8 +286,7 @@ typedef union { double d; ULong L[2]; } U;
 /* struct BCinfo is used to pass information from _Py_dg_strtod to bigcomp */
 
 typedef struct BCinfo BCinfo;
-struct
-BCinfo {
+struct BCinfo {
     int e0, nd, nd0, scale;
 };
 
@@ -337,8 +345,7 @@ typedef struct Bigint Bigint;
 /* Allocate space for a Bigint with up to 1<<k digits */
 
 static Bigint *
-Balloc(int k)
-{
+Balloc(int k) {
     int x;
     Bigint *rv;
     unsigned int len;
@@ -348,16 +355,14 @@ Balloc(int k)
         freelist[k] = rv->next;
     else {
         x = 1 << k;
-        len = (sizeof(Bigint) + (x-1)*sizeof(ULong) + sizeof(double) - 1)
-            /sizeof(double);
+        len = (sizeof(Bigint) + (x - 1) * sizeof(ULong) + sizeof(double) - 1) /
+              sizeof(double);
         if (k <= Bigint_Kmax &&
-            pmem_next - private_mem + len <= (Py_ssize_t)Bigint_PREALLOC_SIZE
-        ) {
-            rv = (Bigint*)pmem_next;
+            pmem_next - private_mem + len <= (Py_ssize_t)Bigint_PREALLOC_SIZE) {
+            rv = (Bigint *)pmem_next;
             pmem_next += len;
-        }
-        else {
-            rv = (Bigint*)MALLOC(len*sizeof(double));
+        } else {
+            rv = (Bigint *)MALLOC(len * sizeof(double));
             if (rv == NULL)
                 return NULL;
         }
@@ -371,11 +376,10 @@ Balloc(int k)
 /* Free a Bigint allocated with Balloc */
 
 static void
-Bfree(Bigint *v)
-{
+Bfree(Bigint *v) {
     if (v) {
         if (v->k > Bigint_Kmax)
-            FREE((void*)v);
+            FREE((void *)v);
         else {
             PyInterpreterState *interp = _PyInterpreterState_GET();
             v->next = freelist[v->k];
@@ -398,17 +402,16 @@ Bfree(Bigint *v)
 /* Allocate space for a Bigint with up to 1<<k digits */
 
 static Bigint *
-Balloc(int k)
-{
+Balloc(int k) {
     int x;
     Bigint *rv;
     unsigned int len;
 
     x = 1 << k;
-    len = (sizeof(Bigint) + (x-1)*sizeof(ULong) + sizeof(double) - 1)
-        /sizeof(double);
+    len = (sizeof(Bigint) + (x - 1) * sizeof(ULong) + sizeof(double) - 1) /
+          sizeof(double);
 
-    rv = (Bigint*)MALLOC(len*sizeof(double));
+    rv = (Bigint *)MALLOC(len * sizeof(double));
     if (rv == NULL)
         return NULL;
 
@@ -421,24 +424,23 @@ Balloc(int k)
 /* Free a Bigint allocated with Balloc */
 
 static void
-Bfree(Bigint *v)
-{
+Bfree(Bigint *v) {
     if (v) {
-        FREE((void*)v);
+        FREE((void *)v);
     }
 }
 
 #endif /* !defined(Py_GIL_DISABLED) && !defined(Py_USING_MEMORY_DEBUGGER) */
 
-#define Bcopy(x,y) memcpy((char *)&x->sign, (char *)&y->sign,   \
-                          y->wds*sizeof(Long) + 2*sizeof(int))
+#define Bcopy(x, y) \
+    memcpy((char *)&x->sign, (char *)&y->sign, y->wds * sizeof(Long) + 2 * sizeof(int))
 
 /* Multiply a Bigint b by m and add a.  Either modifies b in place and returns
    a pointer to the modified b, or Bfrees b and returns a pointer to a copy.
    On failure, return NULL.  In this case, b will have been already freed. */
 
 static Bigint *
-multadd(Bigint *b, int m, int a)       /* multiply by m and add a */
+multadd(Bigint *b, int m, int a) /* multiply by m and add a */
 {
     int i, wds;
     ULong *x;
@@ -453,12 +455,11 @@ multadd(Bigint *b, int m, int a)       /* multiply by m and add a */
         y = *x * (ULLong)m + carry;
         carry = y >> 32;
         *x++ = (ULong)(y & FFFFFFFF);
-    }
-    while(++i < wds);
+    } while (++i < wds);
     if (carry) {
         if (wds >= b->maxwds) {
-            b1 = Balloc(b->k+1);
-            if (b1 == NULL){
+            b1 = Balloc(b->k + 1);
+            if (b1 == NULL) {
                 Bfree(b);
                 return NULL;
             }
@@ -479,14 +480,13 @@ multadd(Bigint *b, int m, int a)       /* multiply by m and add a */
    NULL on failure. */
 
 static Bigint *
-s2b(const char *s, int nd0, int nd, ULong y9)
-{
+s2b(const char *s, int nd0, int nd, ULong y9) {
     Bigint *b;
     int i, k;
     Long x, y;
 
     x = (nd + 8) / 9;
-    for(k = 0, y = 1; x > y; y <<= 1, k++) ;
+    for (k = 0, y = 1; x > y; y <<= 1, k++);
     b = Balloc(k);
     if (b == NULL)
         return NULL;
@@ -494,7 +494,7 @@ s2b(const char *s, int nd0, int nd, ULong y9)
     b->wds = 1;
 
     if (nd <= 9)
-      return b;
+        return b;
 
     s += 9;
     for (i = 9; i < nd0; i++) {
@@ -503,7 +503,7 @@ s2b(const char *s, int nd0, int nd, ULong y9)
             return NULL;
     }
     s++;
-    for(; i < nd; i++) {
+    for (; i < nd; i++) {
         b = multadd(b, 10, *s++ - '0');
         if (b == NULL)
             return NULL;
@@ -514,8 +514,7 @@ s2b(const char *s, int nd0, int nd, ULong y9)
 /* count leading 0 bits in the 32-bit integer x. */
 
 static int
-hi0bits(ULong x)
-{
+hi0bits(ULong x) {
     int k = 0;
 
     if (!(x & 0xffff0000)) {
@@ -546,8 +545,7 @@ hi0bits(ULong x)
    number of bits. */
 
 static int
-lo0bits(ULong *y)
-{
+lo0bits(ULong *y) {
     int k;
     ULong x = *y;
 
@@ -591,8 +589,7 @@ lo0bits(ULong *y)
 /* convert a small nonnegative integer to a Bigint */
 
 static Bigint *
-i2b(int i)
-{
+i2b(int i) {
     Bigint *b;
 
     b = Balloc(1);
@@ -607,8 +604,7 @@ i2b(int i)
    the signs of a and b. */
 
 static Bigint *
-mult(Bigint *a, Bigint *b)
-{
+mult(Bigint *a, Bigint *b) {
     Bigint *c;
     int k, wa, wb, wc;
     ULong *x, *xa, *xae, *xb, *xbe, *xc, *xc0;
@@ -638,14 +634,13 @@ mult(Bigint *a, Bigint *b)
     c = Balloc(k);
     if (c == NULL)
         return NULL;
-    for(x = c->x, xa = x + wc; x < xa; x++)
-        *x = 0;
+    for (x = c->x, xa = x + wc; x < xa; x++) *x = 0;
     xa = a->x;
     xae = xa + wa;
     xb = b->x;
     xbe = xb + wb;
     xc0 = c->x;
-    for(; xb < xbe; xc0++) {
+    for (; xb < xbe; xc0++) {
         if ((y = *xb++)) {
             x = xa;
             xc = xc0;
@@ -654,12 +649,11 @@ mult(Bigint *a, Bigint *b)
                 z = *x++ * (ULLong)y + *xc + carry;
                 carry = z >> 32;
                 *xc++ = (ULong)(z & FFFFFFFF);
-            }
-            while(x < xae);
+            } while (x < xae);
             *xc = (ULong)carry;
         }
     }
-    for(xc0 = c->x, xc = xc0 + wc; wc > 0 && !*--xc; --wc) ;
+    for (xc0 = c->x, xc = xc0 + wc; wc > 0 && !*--xc; --wc);
     c->wds = wc;
     return c;
 }
@@ -671,11 +665,10 @@ mult(Bigint *a, Bigint *b)
    Bigint b will have been Bfree'd.   Ignores the sign of b. */
 
 static Bigint *
-pow5mult(Bigint *b, int k)
-{
+pow5mult(Bigint *b, int k) {
     Bigint *b1, *p5, **p5s;
     int i;
-    static const int p05[3] = { 5, 25, 125 };
+    static const int p05[3] = {5, 25, 125};
 
     // For double-to-string conversion, the maximum value of k is limited by
     // DBL_MAX_10_EXP (308), the maximum decimal base-10 exponent for binary64.
@@ -685,7 +678,7 @@ pow5mult(Bigint *b, int k)
     assert(0 <= k && k < 1024);
 
     if ((i = k & 3)) {
-        b = multadd(b, p05[i-1], 0);
+        b = multadd(b, p05[i - 1], 0);
         if (b == NULL)
             return NULL;
     }
@@ -694,7 +687,7 @@ pow5mult(Bigint *b, int k)
         return b;
     PyInterpreterState *interp = _PyInterpreterState_GET();
     p5s = interp->dtoa.p5s;
-    for(;;) {
+    for (;;) {
         assert(p5s != interp->dtoa.p5s + Bigint_Pow5size);
         p5 = *p5s;
         p5s++;
@@ -717,14 +710,13 @@ pow5mult(Bigint *b, int k)
    the benefit of memory debugging tools like Valgrind. */
 
 static Bigint *
-pow5mult(Bigint *b, int k)
-{
+pow5mult(Bigint *b, int k) {
     Bigint *b1, *p5, *p51;
     int i;
-    static const int p05[3] = { 5, 25, 125 };
+    static const int p05[3] = {5, 25, 125};
 
     if ((i = k & 3)) {
-        b = multadd(b, p05[i-1], 0);
+        b = multadd(b, p05[i - 1], 0);
         if (b == NULL)
             return NULL;
     }
@@ -737,7 +729,7 @@ pow5mult(Bigint *b, int k)
         return NULL;
     }
 
-    for(;;) {
+    for (;;) {
         if (k & 1) {
             b1 = mult(b, p5);
             Bfree(b);
@@ -768,8 +760,7 @@ pow5mult(Bigint *b, int k)
    original b will have been Bfree'd.   Ignores the sign of b. */
 
 static Bigint *
-lshift(Bigint *b, int k)
-{
+lshift(Bigint *b, int k) {
     int i, k1, n, n1;
     Bigint *b1;
     ULong *x, *x1, *xe, z;
@@ -780,16 +771,14 @@ lshift(Bigint *b, int k)
     n = k >> 5;
     k1 = b->k;
     n1 = n + b->wds + 1;
-    for(i = b->maxwds; n1 > i; i <<= 1)
-        k1++;
+    for (i = b->maxwds; n1 > i; i <<= 1) k1++;
     b1 = Balloc(k1);
     if (b1 == NULL) {
         Bfree(b);
         return NULL;
     }
     x1 = b1->x;
-    for(i = 0; i < n; i++)
-        *x1++ = 0;
+    for (i = 0; i < n; i++) *x1++ = 0;
     x = b->x;
     xe = x + b->wds;
     if (k &= 0x1f) {
@@ -798,14 +787,12 @@ lshift(Bigint *b, int k)
         do {
             *x1++ = *x << k | z;
             z = *x++ >> k1;
-        }
-        while(x < xe);
+        } while (x < xe);
         if ((*x1 = z))
             ++n1;
-    }
-    else do
-             *x1++ = *x++;
-        while(x < xe);
+    } else
+        do *x1++ = *x++;
+        while (x < xe);
     b1->wds = n1 - 1;
     Bfree(b);
     return b1;
@@ -815,17 +802,16 @@ lshift(Bigint *b, int k)
    1 if a > b.  Ignores signs of a and b. */
 
 static int
-cmp(Bigint *a, Bigint *b)
-{
+cmp(Bigint *a, Bigint *b) {
     ULong *xa, *xa0, *xb, *xb0;
     int i, j;
 
     i = a->wds;
     j = b->wds;
 #ifdef DEBUG
-    if (i > 1 && !a->x[i-1])
+    if (i > 1 && !a->x[i - 1])
         Bug("cmp called with a->x[a->wds-1] == 0");
-    if (j > 1 && !b->x[j-1])
+    if (j > 1 && !b->x[j - 1])
         Bug("cmp called with b->x[b->wds-1] == 0");
 #endif
     if (i -= j)
@@ -834,7 +820,7 @@ cmp(Bigint *a, Bigint *b)
     xa = xa0 + j;
     xb0 = b->x;
     xb = xb0 + j;
-    for(;;) {
+    for (;;) {
         if (*--xa != *--xb)
             return *xa < *xb ? -1 : 1;
         if (xa <= xa0)
@@ -848,14 +834,13 @@ cmp(Bigint *a, Bigint *b)
    result is set appropriately. */
 
 static Bigint *
-diff(Bigint *a, Bigint *b)
-{
+diff(Bigint *a, Bigint *b) {
     Bigint *c;
     int i, wa, wb;
     ULong *xa, *xae, *xb, *xbe, *xc;
     ULLong borrow, y;
 
-    i = cmp(a,b);
+    i = cmp(a, b);
     if (!i) {
         c = Balloc(0);
         if (c == NULL)
@@ -869,8 +854,7 @@ diff(Bigint *a, Bigint *b)
         a = b;
         b = c;
         i = 1;
-    }
-    else
+    } else
         i = 0;
     c = Balloc(a->k);
     if (c == NULL)
@@ -888,15 +872,13 @@ diff(Bigint *a, Bigint *b)
         y = (ULLong)*xa++ - *xb++ - borrow;
         borrow = y >> 32 & (ULong)1;
         *xc++ = (ULong)(y & FFFFFFFF);
-    }
-    while(xb < xbe);
-    while(xa < xae) {
+    } while (xb < xbe);
+    while (xa < xae) {
         y = *xa++ - borrow;
         borrow = y >> 32 & (ULong)1;
         *xc++ = (ULong)(y & FFFFFFFF);
     }
-    while(!*--xc)
-        wa--;
+    while (!*--xc) wa--;
     c->wds = wa;
     return c;
 }
@@ -905,12 +887,11 @@ diff(Bigint *a, Bigint *b)
    next double up.  Doesn't give correct results for subnormals. */
 
 static double
-ulp(U *x)
-{
+ulp(U *x) {
     Long L;
     U u;
 
-    L = (word0(x) & Exp_mask) - (P-1)*Exp_msk1;
+    L = (word0(x) & Exp_mask) - (P - 1) * Exp_msk1;
     word0(&u) = L;
     word1(&u) = 0;
     return dval(&u);
@@ -919,8 +900,7 @@ ulp(U *x)
 /* Convert a Bigint to a double plus an exponent */
 
 static double
-b2d(Bigint *a, int *e)
-{
+b2d(Bigint *a, int *e) {
     ULong *xa, *xa0, w, y, z;
     int k;
     U d;
@@ -929,14 +909,15 @@ b2d(Bigint *a, int *e)
     xa = xa0 + a->wds;
     y = *--xa;
 #ifdef DEBUG
-    if (!y) Bug("zero y in b2d");
+    if (!y)
+        Bug("zero y in b2d");
 #endif
     k = hi0bits(y);
     *e = 32 - k;
     if (k < Ebits) {
         word0(&d) = Exp_1 | y >> (Ebits - k);
         w = xa > xa0 ? *--xa : 0;
-        word1(&d) = y << ((32-Ebits) + k) | w >> (Ebits - k);
+        word1(&d) = y << ((32 - Ebits) + k) | w >> (Ebits - k);
         goto ret_d;
     }
     z = xa > xa0 ? *--xa : 0;
@@ -944,12 +925,11 @@ b2d(Bigint *a, int *e)
         word0(&d) = Exp_1 | y << k | z >> (32 - k);
         y = xa > xa0 ? *--xa : 0;
         word1(&d) = z << k | y >> (32 - k);
-    }
-    else {
+    } else {
         word0(&d) = Exp_1 | y;
         word1(&d) = z;
     }
-  ret_d:
+ret_d:
     return dval(&d);
 }
 
@@ -975,8 +955,7 @@ b2d(Bigint *a, int *e)
 */
 
 static Bigint *
-sd2b(U *d, int scale, int *e)
-{
+sd2b(U *d, int scale, int *e) {
     Bigint *b;
 
     b = Balloc(1);
@@ -1033,8 +1012,7 @@ sd2b(U *d, int scale, int *e)
  */
 
 static Bigint *
-d2b(U *d, int *e, int *bits)
-{
+d2b(U *d, int *e, int *bits) {
     Bigint *b;
     int de, k;
     ULong *x, y, z;
@@ -1046,33 +1024,28 @@ d2b(U *d, int *e, int *bits)
     x = b->x;
 
     z = word0(d) & Frac_mask;
-    word0(d) &= 0x7fffffff;   /* clear sign bit, which we ignore */
+    word0(d) &= 0x7fffffff; /* clear sign bit, which we ignore */
     if ((de = (int)(word0(d) >> Exp_shift)))
         z |= Exp_msk1;
     if ((y = word1(d))) {
         if ((k = lo0bits(&y))) {
             x[0] = y | z << (32 - k);
             z >>= k;
-        }
-        else
+        } else
             x[0] = y;
-        i =
-            b->wds = (x[1] = z) ? 2 : 1;
-    }
-    else {
+        i = b->wds = (x[1] = z) ? 2 : 1;
+    } else {
         k = lo0bits(&z);
         x[0] = z;
-        i =
-            b->wds = 1;
+        i = b->wds = 1;
         k += 32;
     }
     if (de) {
-        *e = de - Bias - (P-1) + k;
+        *e = de - Bias - (P - 1) + k;
         *bits = P - k;
-    }
-    else {
-        *e = de - Bias - (P-1) + 1 + k;
-        *bits = 32*i - hi0bits(x[i-1]);
+    } else {
+        *e = de - Bias - (P - 1) + 1 + k;
+        *bits = 32 * i - hi0bits(x[i - 1]);
     }
     return b;
 }
@@ -1081,35 +1054,30 @@ d2b(U *d, int *e, int *bits)
    error of up to 2.5 ulps. */
 
 static double
-ratio(Bigint *a, Bigint *b)
-{
+ratio(Bigint *a, Bigint *b) {
     U da, db;
     int k, ka, kb;
 
     dval(&da) = b2d(a, &ka);
     dval(&db) = b2d(b, &kb);
-    k = ka - kb + 32*(a->wds - b->wds);
+    k = ka - kb + 32 * (a->wds - b->wds);
     if (k > 0)
-        word0(&da) += k*Exp_msk1;
+        word0(&da) += k * Exp_msk1;
     else {
         k = -k;
-        word0(&db) += k*Exp_msk1;
+        word0(&db) += k * Exp_msk1;
     }
     return dval(&da) / dval(&db);
 }
 
-static const double
-tens[] = {
-    1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
-    1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19,
-    1e20, 1e21, 1e22
-};
+static const double tens[] = {1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,
+                              1e8,  1e9,  1e10, 1e11, 1e12, 1e13, 1e14, 1e15,
+                              1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
 
-static const double
-bigtens[] = { 1e16, 1e32, 1e64, 1e128, 1e256 };
-static const double tinytens[] = { 1e-16, 1e-32, 1e-64, 1e-128,
-                                   9007199254740992.*9007199254740992.e-256
-                                   /* = 2^106 * 1e-256 */
+static const double bigtens[] = {1e16, 1e32, 1e64, 1e128, 1e256};
+static const double tinytens[] = {
+    1e-16, 1e-32, 1e-64, 1e-128, 9007199254740992. * 9007199254740992.e-256
+    /* = 2^106 * 1e-256 */
 };
 /* The factor of 2^53 in tinytens[4] helps us avoid setting the underflow */
 /* flag unnecessarily.  It leads to a song and dance at the end of strtod. */
@@ -1120,11 +1088,9 @@ static const double tinytens[] = { 1e-16, 1e-32, 1e-64, 1e-128,
 #define kshift 5
 #define kmask 31
 
-
 static int
-dshift(Bigint *b, int p2)
-{
-    int rv = hi0bits(b->x[b->wds-1]) - 4;
+dshift(Bigint *b, int p2) {
+    int rv = hi0bits(b->x[b->wds - 1]) - 4;
     if (p2 > 0)
         rv -= p2;
     return rv & kmask;
@@ -1135,8 +1101,7 @@ dshift(Bigint *b, int p2)
    bits (28--31) are zero and bit 27 is set. */
 
 static int
-quorem(Bigint *b, Bigint *S)
-{
+quorem(Bigint *b, Bigint *S) {
     int n;
     ULong *bx, *bxe, q, *sx, *sxe;
     ULLong borrow, carry, y, ys;
@@ -1144,7 +1109,7 @@ quorem(Bigint *b, Bigint *S)
     n = S->wds;
 #ifdef DEBUG
     /*debug*/ if (b->wds > n)
-        /*debug*/       Bug("oversize b in quorem");
+        /*debug*/ Bug("oversize b in quorem");
 #endif
     if (b->wds < n)
         return 0;
@@ -1152,10 +1117,10 @@ quorem(Bigint *b, Bigint *S)
     sxe = sx + --n;
     bx = b->x;
     bxe = bx + n;
-    q = *bxe / (*sxe + 1);      /* ensure q <= true quotient */
+    q = *bxe / (*sxe + 1); /* ensure q <= true quotient */
 #ifdef DEBUG
     /*debug*/ if (q > 9)
-        /*debug*/       Bug("oversized quotient in quorem");
+        /*debug*/ Bug("oversized quotient in quorem");
 #endif
     if (q) {
         borrow = 0;
@@ -1166,12 +1131,10 @@ quorem(Bigint *b, Bigint *S)
             y = *bx - (ys & FFFFFFFF) - borrow;
             borrow = y >> 32 & (ULong)1;
             *bx++ = (ULong)(y & FFFFFFFF);
-        }
-        while(sx <= sxe);
+        } while (sx <= sxe);
         if (!*bxe) {
             bx = b->x;
-            while(--bxe > bx && !*bxe)
-                --n;
+            while (--bxe > bx && !*bxe) --n;
             b->wds = n;
         }
     }
@@ -1187,13 +1150,11 @@ quorem(Bigint *b, Bigint *S)
             y = *bx - (ys & FFFFFFFF) - borrow;
             borrow = y >> 32 & (ULong)1;
             *bx++ = (ULong)(y & FFFFFFFF);
-        }
-        while(sx <= sxe);
+        } while (sx <= sxe);
         bx = b->x;
         bxe = bx + n;
         if (!*bxe) {
-            while(--bxe > bx && !*bxe)
-                --n;
+            while (--bxe > bx && !*bxe) --n;
             b->wds = n;
         }
     }
@@ -1207,17 +1168,15 @@ quorem(Bigint *b, Bigint *S)
    sulp(x) is equivalent to 2^bc.scale * ulp(x / 2^bc.scale). */
 
 static double
-sulp(U *x, BCinfo *bc)
-{
+sulp(U *x, BCinfo *bc) {
     U u;
 
-    if (bc->scale && 2*P + 1 > (int)((word0(x) & Exp_mask) >> Exp_shift)) {
+    if (bc->scale && 2 * P + 1 > (int)((word0(x) & Exp_mask) >> Exp_shift)) {
         /* rv/2^bc->scale is subnormal */
-        word0(&u) = (P+2)*Exp_msk1;
+        word0(&u) = (P + 2) * Exp_msk1;
         word1(&u) = 0;
         return u.d;
-    }
-    else {
+    } else {
         assert(word0(x) || word1(x)); /* x != 0.0 */
         return ulp(x);
     }
@@ -1270,8 +1229,7 @@ sulp(U *x, BCinfo *bc)
      Returns 0 on success, -1 on failure (e.g., due to a failed malloc call). */
 
 static int
-bigcomp(U *rv, const char *s0, BCinfo *bc)
-{
+bigcomp(U *rv, const char *s0, BCinfo *bc) {
     Bigint *b, *d;
     int b2, d2, dd, i, nd, nd0, odd, p2, p5;
 
@@ -1309,8 +1267,7 @@ bigcomp(U *rv, const char *s0, BCinfo *bc)
             Bfree(b);
             return -1;
         }
-    }
-    else if (p5 < 0) {
+    } else if (p5 < 0) {
         b = pow5mult(b, -p5);
         if (b == NULL) {
             Bfree(d);
@@ -1320,8 +1277,7 @@ bigcomp(U *rv, const char *s0, BCinfo *bc)
     if (p2 > 0) {
         b2 = p2;
         d2 = 0;
-    }
-    else {
+    } else {
         b2 = 0;
         d2 = -p2;
     }
@@ -1349,13 +1305,13 @@ bigcomp(U *rv, const char *s0, BCinfo *bc)
         dd = -1;
     else {
         i = 0;
-        for(;;) {
+        for (;;) {
             b = multadd(b, 10, 0);
             if (b == NULL) {
                 Bfree(d);
                 return -1;
             }
-            dd = s0[i < nd0 ? i : i+1] - '0' - quorem(b, d);
+            dd = s0[i < nd0 ? i : i + 1] - '0' - quorem(b, d);
             i++;
 
             if (dd)
@@ -1379,10 +1335,8 @@ bigcomp(U *rv, const char *s0, BCinfo *bc)
     return 0;
 }
 
-
 double
-_Py_dg_strtod(const char *s00, char **se)
-{
+_Py_dg_strtod(const char *s00, char **se) {
     int bb2, bb5, bbe, bd2, bd5, bs2, c, dsign, e, e1, error;
     int esign, i, j, k, lz, nd, nd0, odd, sign;
     const char *s, *s0, *s1;
@@ -1403,17 +1357,16 @@ _Py_dg_strtod(const char *s00, char **se)
     /* Parse optional sign, if present. */
     sign = 0;
     switch (c) {
-    case '-':
-        sign = 1;
-        _Py_FALLTHROUGH;
-    case '+':
-        c = *++s;
+        case '-':
+            sign = 1;
+            _Py_FALLTHROUGH;
+        case '+':
+            c = *++s;
     }
 
     /* Skip leading zeros: lz is true iff there were leading zeros. */
     s1 = s;
-    while (c == '0')
-        c = *++s;
+    while (c == '0') c = *++s;
     lz = s != s1;
 
     /* Point s0 at the first nonzero digit (if any).  fraclen will be the
@@ -1421,8 +1374,7 @@ _Py_dg_strtod(const char *s00, char **se)
        digit string.  ndigits will be the total number of digits ignoring
        leading zeros. */
     s0 = s1 = s;
-    while ('0' <= c && c <= '9')
-        c = *++s;
+    while ('0' <= c && c <= '9') c = *++s;
     ndigits = s - s1;
     fraclen = 0;
 
@@ -1431,15 +1383,13 @@ _Py_dg_strtod(const char *s00, char **se)
         c = *++s;
         if (!ndigits) {
             s1 = s;
-            while (c == '0')
-                c = *++s;
+            while (c == '0') c = *++s;
             lz = lz || s != s1;
             fraclen += (s - s1);
             s0 = s;
         }
         s1 = s;
-        while ('0' <= c && c <= '9')
-            c = *++s;
+        while ('0' <= c && c <= '9') c = *++s;
         ndigits += s - s1;
         fraclen += s - s1;
     }
@@ -1472,24 +1422,23 @@ _Py_dg_strtod(const char *s00, char **se)
         /* Exponent sign. */
         esign = 0;
         switch (c) {
-        case '-':
-            esign = 1;
-            _Py_FALLTHROUGH;
-        case '+':
-            c = *++s;
+            case '-':
+                esign = 1;
+                _Py_FALLTHROUGH;
+            case '+':
+                c = *++s;
         }
 
         /* Skip zeros.  lz is true iff there are leading zeros. */
         s1 = s;
-        while (c == '0')
-            c = *++s;
+        while (c == '0') c = *++s;
         lz = s != s1;
 
         /* Get absolute value of the exponent. */
         s1 = s;
         abs_exp = 0;
         while ('0' <= c && c <= '9') {
-            abs_exp = 10*abs_exp + (c - '0');
+            abs_exp = 10 * abs_exp + (c - '0');
             c = *++s;
         }
 
@@ -1521,9 +1470,9 @@ _Py_dg_strtod(const char *s00, char **se)
        strip trailing zeros: scan back until we hit a nonzero digit. */
     if (!nd)
         goto ret;
-    for (i = nd; i > 0; ) {
+    for (i = nd; i > 0;) {
         --i;
-        if (s0[i < nd0 ? i : i+1] != '0') {
+        if (s0[i < nd0 ? i : i + 1] != '0') {
             ++i;
             break;
         }
@@ -1573,9 +1522,9 @@ _Py_dg_strtod(const char *s00, char **se)
     y = z = 0;
     for (i = 0; i < nd; i++) {
         if (i < 9)
-            y = 10*y + s0[i < nd0 ? i : i+1] - '0';
-        else if (i < DBL_DIG+1)
-            z = 10*z + s0[i < nd0 ? i : i+1] - '0';
+            y = 10 * y + s0[i < nd0 ? i : i + 1] - '0';
+        else if (i < DBL_DIG + 1)
+            z = 10 * z + s0[i < nd0 ? i : i + 1] - '0';
         else
             break;
     }
@@ -1585,9 +1534,7 @@ _Py_dg_strtod(const char *s00, char **se)
     if (k > 9) {
         dval(&rv) = tens[k - 9] * dval(&rv) + z;
     }
-    if (nd <= DBL_DIG
-        && Flt_Rounds == 1
-        ) {
+    if (nd <= DBL_DIG && Flt_Rounds == 1) {
         if (!e)
             goto ret;
         if (e > 0) {
@@ -1605,8 +1552,7 @@ _Py_dg_strtod(const char *s00, char **se)
                 dval(&rv) *= tens[e];
                 goto ret;
             }
-        }
-        else if (e >= -Ten_pmax) {
+        } else if (e >= -Ten_pmax) {
             dval(&rv) /= tens[-e];
             goto ret;
         }
@@ -1624,26 +1570,23 @@ _Py_dg_strtod(const char *s00, char **se)
             if (e1 > DBL_MAX_10_EXP)
                 goto ovfl;
             e1 >>= 4;
-            for(j = 0; e1 > 1; j++, e1 >>= 1)
+            for (j = 0; e1 > 1; j++, e1 >>= 1)
                 if (e1 & 1)
                     dval(&rv) *= bigtens[j];
             /* The last multiplication could overflow. */
-            word0(&rv) -= P*Exp_msk1;
+            word0(&rv) -= P * Exp_msk1;
             dval(&rv) *= bigtens[j];
-            if ((z = word0(&rv) & Exp_mask)
-                > Exp_msk1*(DBL_MAX_EXP+Bias-P))
+            if ((z = word0(&rv) & Exp_mask) > Exp_msk1 * (DBL_MAX_EXP + Bias - P))
                 goto ovfl;
-            if (z > Exp_msk1*(DBL_MAX_EXP+Bias-1-P)) {
+            if (z > Exp_msk1 * (DBL_MAX_EXP + Bias - 1 - P)) {
                 /* set to largest number */
                 /* (Can't trust DBL_MAX) */
                 word0(&rv) = Big0;
                 word1(&rv) = Big1;
-            }
-            else
-                word0(&rv) += P*Exp_msk1;
+            } else
+                word0(&rv) += P * Exp_msk1;
         }
-    }
-    else if (e1 < 0) {
+    } else if (e1 < 0) {
         /* The input decimal value lies in [10**e1, 10**(e1+16)).
 
            If e1 <= -512, underflow immediately.
@@ -1661,21 +1604,20 @@ _Py_dg_strtod(const char *s00, char **se)
             if (e1 >= 1 << n_bigtens)
                 goto undfl;
             if (e1 & Scale_Bit)
-                bc.scale = 2*P;
-            for(j = 0; e1 > 0; j++, e1 >>= 1)
+                bc.scale = 2 * P;
+            for (j = 0; e1 > 0; j++, e1 >>= 1)
                 if (e1 & 1)
                     dval(&rv) *= tinytens[j];
-            if (bc.scale && (j = 2*P + 1 - ((word0(&rv) & Exp_mask)
-                                            >> Exp_shift)) > 0) {
+            if (bc.scale &&
+                (j = 2 * P + 1 - ((word0(&rv) & Exp_mask) >> Exp_shift)) > 0) {
                 /* scaled rv is denormal; clear j low bits */
                 if (j >= 32) {
                     word1(&rv) = 0;
                     if (j >= 53)
-                        word0(&rv) = (P+2)*Exp_msk1;
+                        word0(&rv) = (P + 2) * Exp_msk1;
                     else
-                        word0(&rv) &= 0xffffffff << (j-32);
-                }
-                else
+                        word0(&rv) &= 0xffffffff << (j - 32);
+                } else
                     word1(&rv) &= 0xffffffff << j;
             }
             if (!dval(&rv))
@@ -1688,9 +1630,9 @@ _Py_dg_strtod(const char *s00, char **se)
     /* Put digits into bd: true value = bd * 10^e */
 
     bc.nd = nd;
-    bc.nd0 = nd0;       /* Only needed if nd > STRTOD_DIGLIM, but done here */
-                        /* to silence an erroneous warning about bc.nd0 */
-                        /* possibly not being initialized. */
+    bc.nd0 = nd0; /* Only needed if nd > STRTOD_DIGLIM, but done here */
+                  /* to silence an erroneous warning about bc.nd0 */
+                  /* possibly not being initialized. */
     if (nd > STRTOD_DIGLIM) {
         /* ASSERT(STRTOD_DIGLIM >= 18); 18 == one more than the */
         /* minimum number of decimal digits to distinguish double values */
@@ -1699,11 +1641,11 @@ _Py_dg_strtod(const char *s00, char **se)
         /* Truncate input to 18 significant digits, then discard any trailing
            zeros on the result by updating nd, nd0, e and y suitably. (There's
            no need to update z; it's not reused beyond this point.) */
-        for (i = 18; i > 0; ) {
+        for (i = 18; i > 0;) {
             /* scan back until we hit a nonzero digit.  significant digit 'i'
             is s0[i] if i < nd0, s0[i+1] if i >= nd0. */
             --i;
-            if (s0[i < nd0 ? i : i+1] != '0') {
+            if (s0[i < nd0 ? i : i + 1] != '0') {
                 ++i;
                 break;
             }
@@ -1714,10 +1656,8 @@ _Py_dg_strtod(const char *s00, char **se)
             nd0 = nd;
         if (nd < 9) { /* must recompute y */
             y = 0;
-            for(i = 0; i < nd0; ++i)
-                y = 10*y + s0[i] - '0';
-            for(; i < nd; ++i)
-                y = 10*y + s0[i+1] - '0';
+            for (i = 0; i < nd0; ++i) y = 10 * y + s0[i] - '0';
+            for (; i < nd; ++i) y = 10 * y + s0[i + 1] - '0';
         }
     }
     bd0 = s2b(s0, nd0, nd, y);
@@ -1737,8 +1677,7 @@ _Py_dg_strtod(const char *s00, char **se)
            in an IEEE 754 double.
     */
 
-    for(;;) {
-
+    for (;;) {
         /* This is the main correction loop for _Py_dg_strtod.
 
            We've got a decimal value tdv, and a floating-point approximation
@@ -1757,7 +1696,7 @@ _Py_dg_strtod(const char *s00, char **se)
             goto failed_malloc;
         }
         Bcopy(bd, bd0);
-        bb = sd2b(&rv, bc.scale, &bbe);   /* srv = bb * 2^bbe */
+        bb = sd2b(&rv, bc.scale, &bbe); /* srv = bb * 2^bbe */
         if (bb == NULL) {
             goto failed_malloc;
         }
@@ -1774,8 +1713,7 @@ _Py_dg_strtod(const char *s00, char **se)
         if (e >= 0) {
             bb2 = bb5 = 0;
             bd2 = bd5 = e;
-        }
-        else {
+        } else {
             bb2 = bb5 = -e;
             bd2 = bd5 = 0;
         }
@@ -1865,7 +1803,7 @@ _Py_dg_strtod(const char *s00, char **se)
         i = cmp(delta, bs);
         if (bc.nd > nd && i <= 0) {
             if (dsign)
-                break;  /* Must use bigcomp(). */
+                break; /* Must use bigcomp(). */
 
             /* Here rv overestimates the truncated decimal value by at most
                0.5 ulp(rv).  Hence rv either overestimates the true decimal
@@ -1900,16 +1838,15 @@ _Py_dg_strtod(const char *s00, char **se)
             /* Error is less than half an ulp -- check for
              * special case of mantissa a power of two.
              */
-            if (dsign || word1(&rv) || word0(&rv) & Bndry_mask
-                || (word0(&rv) & Exp_mask) <= (2*P+1)*Exp_msk1
-                ) {
+            if (dsign || word1(&rv) || word0(&rv) & Bndry_mask ||
+                (word0(&rv) & Exp_mask) <= (2 * P + 1) * Exp_msk1) {
                 break;
             }
             if (!delta->x[0] && delta->wds <= 1) {
                 /* exact result */
                 break;
             }
-            delta = lshift(delta,Log2P);
+            delta = lshift(delta, Log2P);
             if (delta == NULL) {
                 goto failed_malloc;
             }
@@ -1920,28 +1857,25 @@ _Py_dg_strtod(const char *s00, char **se)
         if (i == 0) {
             /* exactly half-way between */
             if (dsign) {
-                if ((word0(&rv) & Bndry_mask1) == Bndry_mask1
-                    &&  word1(&rv) == (
-                        (bc.scale &&
-                         (y = word0(&rv) & Exp_mask) <= 2*P*Exp_msk1) ?
-                        (0xffffffff & (0xffffffff << (2*P+1-(y>>Exp_shift)))) :
-                        0xffffffff)) {
+                if ((word0(&rv) & Bndry_mask1) == Bndry_mask1 &&
+                    word1(&rv) ==
+                        ((bc.scale && (y = word0(&rv) & Exp_mask) <= 2 * P * Exp_msk1)
+                             ? (0xffffffff &
+                                (0xffffffff << (2 * P + 1 - (y >> Exp_shift))))
+                             : 0xffffffff)) {
                     /*boundary case -- increment exponent*/
-                    word0(&rv) = (word0(&rv) & Exp_mask)
-                        + Exp_msk1
-                        ;
+                    word0(&rv) = (word0(&rv) & Exp_mask) + Exp_msk1;
                     word1(&rv) = 0;
                     /* dsign = 0; */
                     break;
                 }
-            }
-            else if (!(word0(&rv) & Bndry_mask) && !word1(&rv)) {
-              drop_down:
+            } else if (!(word0(&rv) & Bndry_mask) && !word1(&rv)) {
+drop_down:
                 /* boundary case -- decrement exponent */
                 if (bc.scale) {
                     L = word0(&rv) & Exp_mask;
-                    if (L <= (2*P+1)*Exp_msk1) {
-                        if (L > (P+2)*Exp_msk1)
+                    if (L <= (2 * P + 1) * Exp_msk1) {
+                        if (L > (P + 2) * Exp_msk1)
                             /* round even ==> */
                             /* accept rv */
                             break;
@@ -1963,7 +1897,7 @@ _Py_dg_strtod(const char *s00, char **se)
             else {
                 dval(&rv) -= sulp(&rv, &bc);
                 if (!dval(&rv)) {
-                    if (bc.nd >nd)
+                    if (bc.nd > nd)
                         break;
                     goto undfl;
                 }
@@ -1976,25 +1910,23 @@ _Py_dg_strtod(const char *s00, char **se)
                 aadj = aadj1 = 1.;
             else if (word1(&rv) || word0(&rv) & Bndry_mask) {
                 if (word1(&rv) == Tiny1 && !word0(&rv)) {
-                    if (bc.nd >nd)
+                    if (bc.nd > nd)
                         break;
                     goto undfl;
                 }
                 aadj = 1.;
                 aadj1 = -1.;
-            }
-            else {
+            } else {
                 /* special case -- power of FLT_RADIX to be */
                 /* rounded down... */
 
-                if (aadj < 2./FLT_RADIX)
-                    aadj = 1./FLT_RADIX;
+                if (aadj < 2. / FLT_RADIX)
+                    aadj = 1. / FLT_RADIX;
                 else
                     aadj *= 0.5;
                 aadj1 = -aadj;
             }
-        }
-        else {
+        } else {
             aadj *= 0.5;
             aadj1 = dsign ? aadj : -aadj;
             if (Flt_Rounds == 0)
@@ -2004,25 +1936,22 @@ _Py_dg_strtod(const char *s00, char **se)
 
         /* Check for overflow */
 
-        if (y == Exp_msk1*(DBL_MAX_EXP+Bias-1)) {
+        if (y == Exp_msk1 * (DBL_MAX_EXP + Bias - 1)) {
             dval(&rv0) = dval(&rv);
-            word0(&rv) -= P*Exp_msk1;
+            word0(&rv) -= P * Exp_msk1;
             adj.d = aadj1 * ulp(&rv);
             dval(&rv) += adj.d;
-            if ((word0(&rv) & Exp_mask) >=
-                Exp_msk1*(DBL_MAX_EXP+Bias-P)) {
+            if ((word0(&rv) & Exp_mask) >= Exp_msk1 * (DBL_MAX_EXP + Bias - P)) {
                 if (word0(&rv0) == Big0 && word1(&rv0) == Big1) {
                     goto ovfl;
                 }
                 word0(&rv) = Big0;
                 word1(&rv) = Big1;
                 goto cont;
-            }
-            else
-                word0(&rv) += P*Exp_msk1;
-        }
-        else {
-            if (bc.scale && y <= 2*P*Exp_msk1) {
+            } else
+                word0(&rv) += P * Exp_msk1;
+        } else {
+            if (bc.scale && y <= 2 * P * Exp_msk1) {
                 if (aadj <= 0x7fffffff) {
                     if ((z = (ULong)aadj) <= 0)
                         z = 1;
@@ -2030,7 +1959,7 @@ _Py_dg_strtod(const char *s00, char **se)
                     aadj1 = dsign ? aadj : -aadj;
                 }
                 dval(&aadj2) = aadj1;
-                word0(&aadj2) += (2*P+1)*Exp_msk1 - y;
+                word0(&aadj2) += (2 * P + 1) * Exp_msk1 - y;
                 aadj1 = dval(&aadj2);
             }
             adj.d = aadj1 * ulp(&rv);
@@ -2047,16 +1976,19 @@ _Py_dg_strtod(const char *s00, char **se)
                     if (dsign || word1(&rv) || word0(&rv) & Bndry_mask) {
                         if (aadj < .4999999 || aadj > .5000001)
                             break;
-                    }
-                    else if (aadj < .4999999/FLT_RADIX)
+                    } else if (aadj < .4999999 / FLT_RADIX)
                         break;
                 }
         }
-      cont:
-        Bfree(bb); bb = NULL;
-        Bfree(bd); bd = NULL;
-        Bfree(bs); bs = NULL;
-        Bfree(delta); delta = NULL;
+cont:
+        Bfree(bb);
+        bb = NULL;
+        Bfree(bd);
+        bd = NULL;
+        Bfree(bs);
+        bs = NULL;
+        Bfree(delta);
+        delta = NULL;
     }
     if (bc.nd > nd) {
         error = bigcomp(&rv, s0, &bc);
@@ -2065,29 +1997,29 @@ _Py_dg_strtod(const char *s00, char **se)
     }
 
     if (bc.scale) {
-        word0(&rv0) = Exp_1 - 2*P*Exp_msk1;
+        word0(&rv0) = Exp_1 - 2 * P * Exp_msk1;
         word1(&rv0) = 0;
         dval(&rv) *= dval(&rv0);
     }
 
-  ret:
+ret:
     result = sign ? -dval(&rv) : dval(&rv);
     goto done;
 
-  parse_error:
+parse_error:
     result = 0.0;
     goto done;
 
-  failed_malloc:
+failed_malloc:
     errno = ENOMEM;
     result = -1.0;
     goto done;
 
-  undfl:
+undfl:
     result = sign ? -0.0 : 0.0;
     goto done;
 
-  ovfl:
+ovfl:
     errno = ERANGE;
     /* Can't trust HUGE_VAL */
     word0(&rv) = Exp_mask;
@@ -2095,43 +2027,39 @@ _Py_dg_strtod(const char *s00, char **se)
     result = sign ? -dval(&rv) : dval(&rv);
     goto done;
 
-  done:
+done:
     Bfree(bb);
     Bfree(bd);
     Bfree(bs);
     Bfree(bd0);
     Bfree(delta);
     return result;
-
 }
 
 static char *
-rv_alloc(int i)
-{
+rv_alloc(int i) {
     int j, k, *r;
 
     j = sizeof(ULong);
-    for(k = 0;
-        sizeof(Bigint) - sizeof(ULong) - sizeof(int) + j <= (unsigned)i;
-        j <<= 1)
+    for (k = 0; sizeof(Bigint) - sizeof(ULong) - sizeof(int) + j <= (unsigned)i;
+         j <<= 1)
         k++;
-    r = (int*)Balloc(k);
+    r = (int *)Balloc(k);
     if (r == NULL)
         return NULL;
     *r = k;
-    return (char *)(r+1);
+    return (char *)(r + 1);
 }
 
 static char *
-nrv_alloc(const char *s, char **rve, int n)
-{
+nrv_alloc(const char *s, char **rve, int n) {
     char *rv, *t;
 
     rv = rv_alloc(n);
     if (rv == NULL)
         return NULL;
     t = rv;
-    while((*t = *s++)) t++;
+    while ((*t = *s++)) t++;
     if (rve)
         *rve = t;
     return rv;
@@ -2144,10 +2072,9 @@ nrv_alloc(const char *s, char **rve, int n)
  */
 
 void
-_Py_dg_freedtoa(char *s)
-{
+_Py_dg_freedtoa(char *s) {
     Bigint *b = (Bigint *)((int *)s - 1);
-    b->maxwds = 1 << (b->k = *(int*)b);
+    b->maxwds = 1 << (b->k = *(int *)b);
     Bfree(b);
 }
 
@@ -2190,9 +2117,7 @@ _Py_dg_freedtoa(char *s)
    call to _Py_dg_freedtoa. */
 
 char *
-_Py_dg_dtoa(double dd, int mode, int ndigits,
-            int *decpt, int *sign, char **rve)
-{
+_Py_dg_dtoa(double dd, int mode, int ndigits, int *decpt, int *sign, char **rve) {
     /*  Arguments ndigits, decpt, sign are similar to those
         of ecvt and fcvt; trailing zeros are suppressed from
         the returned string.  If not null, *rve is set to point
@@ -2227,9 +2152,8 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
         to hold the suppressed trailing zeros.
     */
 
-    int bbits, b2, b5, be, dig, i, ieps, ilim, ilim0, ilim1,
-        j, j1, k, k0, k_check, leftright, m2, m5, s2, s5,
-        spec_case, try_quick;
+    int bbits, b2, b5, be, dig, i, ieps, ilim, ilim0, ilim1, j, j1, k, k0, k_check,
+        leftright, m2, m5, s2, s5, spec_case, try_quick;
     Long L;
     int denorm;
     ULong x;
@@ -2248,13 +2172,11 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
         /* set sign for everything, including 0's and NaNs */
         *sign = 1;
         word0(&u) &= ~Sign_bit; /* clear sign bit */
-    }
-    else
+    } else
         *sign = 0;
 
     /* quick return for Infinities, NaNs and zeros */
-    if ((word0(&u) & Exp_mask) == Exp_mask)
-    {
+    if ((word0(&u) & Exp_mask) == Exp_mask) {
         /* Infinity or NaN */
         *decpt = 9999;
         if (!word1(&u) && !(word0(&u) & 0xfffff))
@@ -2271,7 +2193,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
     b = d2b(&u, &be, &bbits);
     if (b == NULL)
         goto failed_malloc;
-    if ((i = (int)(word0(&u) >> Exp_shift1 & (Exp_mask>>Exp_shift1)))) {
+    if ((i = (int)(word0(&u) >> Exp_shift1 & (Exp_mask >> Exp_shift1)))) {
         dval(&d2) = dval(&u);
         word0(&d2) &= Frac_mask1;
         word0(&d2) |= Exp_11;
@@ -2300,23 +2222,22 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
 
         i -= Bias;
         denorm = 0;
-    }
-    else {
+    } else {
         /* d is denormalized */
 
-        i = bbits + be + (Bias + (P-1) - 1);
-        x = i > 32  ? word0(&u) << (64 - i) | word1(&u) >> (i - 32)
-            : word1(&u) << (32 - i);
+        i = bbits + be + (Bias + (P - 1) - 1);
+        x = i > 32 ? word0(&u) << (64 - i) | word1(&u) >> (i - 32)
+                   : word1(&u) << (32 - i);
         dval(&d2) = x;
-        word0(&d2) -= 31*Exp_msk1; /* adjust exponent */
-        i -= (Bias + (P-1) - 1) + 1;
+        word0(&d2) -= 31 * Exp_msk1; /* adjust exponent */
+        i -= (Bias + (P - 1) - 1) + 1;
         denorm = 1;
     }
-    ds = (dval(&d2)-1.5)*0.289529654602168 + 0.1760912590558 +
-        i*0.301029995663981;
+    ds =
+        (dval(&d2) - 1.5) * 0.289529654602168 + 0.1760912590558 + i * 0.301029995663981;
     k = (int)ds;
     if (ds < 0. && ds != k)
-        k--;    /* want k = floor(ds) */
+        k--; /* want k = floor(ds) */
     k_check = 1;
     if (k >= 0 && k <= Ten_pmax) {
         if (dval(&u) < tens[k])
@@ -2327,8 +2248,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
     if (j >= 0) {
         b2 = 0;
         s2 = j;
-    }
-    else {
+    } else {
         b2 = -j;
         s2 = 0;
     }
@@ -2336,8 +2256,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
         b5 = 0;
         s5 = k;
         s2 += k;
-    }
-    else {
+    } else {
         b2 -= k;
         b5 = -k;
         s5 = 0;
@@ -2352,40 +2271,38 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
         try_quick = 0;
     }
     leftright = 1;
-    ilim = ilim1 = -1;  /* Values for cases 0 and 1; done here to */
+    ilim = ilim1 = -1; /* Values for cases 0 and 1; done here to */
     /* silence erroneous "gcc -Wall" warning. */
-    switch(mode) {
-    case 0:
-    case 1:
-        i = 18;
-        ndigits = 0;
-        break;
-    case 2:
-        leftright = 0;
-        _Py_FALLTHROUGH;
-    case 4:
-        if (ndigits <= 0)
-            ndigits = 1;
-        ilim = ilim1 = i = ndigits;
-        break;
-    case 3:
-        leftright = 0;
-        _Py_FALLTHROUGH;
-    case 5:
-        i = ndigits + k + 1;
-        ilim = i;
-        ilim1 = i - 1;
-        if (i <= 0)
-            i = 1;
+    switch (mode) {
+        case 0:
+        case 1:
+            i = 18;
+            ndigits = 0;
+            break;
+        case 2:
+            leftright = 0;
+            _Py_FALLTHROUGH;
+        case 4:
+            if (ndigits <= 0)
+                ndigits = 1;
+            ilim = ilim1 = i = ndigits;
+            break;
+        case 3:
+            leftright = 0;
+            _Py_FALLTHROUGH;
+        case 5:
+            i = ndigits + k + 1;
+            ilim = i;
+            ilim1 = i - 1;
+            if (i <= 0)
+                i = 1;
     }
     s0 = rv_alloc(i);
     if (s0 == NULL)
         goto failed_malloc;
     s = s0;
 
-
     if (ilim >= 0 && ilim <= Quick_max && try_quick) {
-
         /* Try to get by with floating-point arithmetic. */
 
         i = 0;
@@ -2394,24 +2311,23 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
         ilim0 = ilim;
         ieps = 2; /* conservative */
         if (k > 0) {
-            ds = tens[k&0xf];
+            ds = tens[k & 0xf];
             j = k >> 4;
             if (j & Bletch) {
                 /* prevent overflows */
                 j &= Bletch - 1;
-                dval(&u) /= bigtens[n_bigtens-1];
+                dval(&u) /= bigtens[n_bigtens - 1];
                 ieps++;
             }
-            for(; j; j >>= 1, i++)
+            for (; j; j >>= 1, i++)
                 if (j & 1) {
                     ieps++;
                     ds *= bigtens[i];
                 }
             dval(&u) /= ds;
-        }
-        else if ((j1 = -k)) {
+        } else if ((j1 = -k)) {
             dval(&u) *= tens[j1 & 0xf];
-            for(j = j1 >> 4; j; j >>= 1, i++)
+            for (j = j1 >> 4; j; j >>= 1, i++)
                 if (j & 1) {
                     ieps++;
                     dval(&u) *= bigtens[i];
@@ -2425,8 +2341,8 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
             dval(&u) *= 10.;
             ieps++;
         }
-        dval(&eps) = ieps*dval(&u) + 7.;
-        word0(&eps) -= (P-1)*Exp_msk1;
+        dval(&eps) = ieps * dval(&u) + 7.;
+        word0(&eps) -= (P - 1) * Exp_msk1;
         if (ilim == 0) {
             S = mhi = 0;
             dval(&u) -= 5.;
@@ -2440,8 +2356,8 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
             /* Use Steele & White method of only
              * generating digits needed.
              */
-            dval(&eps) = 0.5/tens[ilim-1] - dval(&eps);
-            for(i = 0;;) {
+            dval(&eps) = 0.5 / tens[ilim - 1] - dval(&eps);
+            for (i = 0;;) {
                 L = (Long)dval(&u);
                 dval(&u) -= L;
                 *s++ = '0' + (int)L;
@@ -2454,11 +2370,10 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                 dval(&eps) *= 10.;
                 dval(&u) *= 10.;
             }
-        }
-        else {
+        } else {
             /* Generate ilim digits, then fix them up. */
-            dval(&eps) *= tens[ilim-1];
-            for(i = 1;; i++, dval(&u) *= 10.) {
+            dval(&eps) *= tens[ilim - 1];
+            for (i = 1;; i++, dval(&u) *= 10.) {
                 L = (Long)(dval(&u));
                 if (!(dval(&u) -= L))
                     ilim = i;
@@ -2467,7 +2382,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                     if (dval(&u) > 0.5 + dval(&eps))
                         goto bump_up;
                     else if (dval(&u) < 0.5 - dval(&eps)) {
-                        while(*--s == '0');
+                        while (*--s == '0');
                         s++;
                         goto ret1;
                     }
@@ -2475,7 +2390,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                 }
             }
         }
-      fast_failed:
+fast_failed:
         s = s0;
         dval(&u) = dval(&d2);
         k = k0;
@@ -2489,13 +2404,13 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
         ds = tens[k];
         if (ndigits < 0 && ilim <= 0) {
             S = mhi = 0;
-            if (ilim < 0 || dval(&u) <= 5*ds)
+            if (ilim < 0 || dval(&u) <= 5 * ds)
                 goto no_digits;
             goto one_digit;
         }
-        for(i = 1;; i++, dval(&u) *= 10.) {
+        for (i = 1;; i++, dval(&u) *= 10.) {
             L = (Long)(dval(&u) / ds);
-            dval(&u) -= L*ds;
+            dval(&u) -= L * ds;
             *s++ = '0' + (int)L;
             if (!dval(&u)) {
                 break;
@@ -2503,16 +2418,15 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
             if (i == ilim) {
                 dval(&u) += dval(&u);
                 if (dval(&u) > ds || (dval(&u) == ds && L & 1)) {
-                  bump_up:
-                    while(*--s == '9')
+bump_up:
+                    while (*--s == '9')
                         if (s == s0) {
                             k++;
                             *s = '0';
                             break;
                         }
                     ++*s++;
-                }
-                else {
+                } else {
                     /* Strip trailing zeros. This branch was missing from the
                        original dtoa.c, leading to surplus trailing zeros in
                        some cases. See bugs.python.org/issue40780. */
@@ -2529,9 +2443,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
     m2 = b2;
     m5 = b5;
     if (leftright) {
-        i =
-            denorm ? be + (Bias + (P-1) - 1 + 1) :
-            1 + P - bbits;
+        i = denorm ? be + (Bias + (P - 1) - 1 + 1) : 1 + P - bbits;
         b2 += i;
         s2 += i;
         mhi = i2b(1);
@@ -2561,8 +2473,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                 if (b == NULL)
                     goto failed_malloc;
             }
-        }
-        else {
+        } else {
             b = pow5mult(b, b5);
             if (b == NULL)
                 goto failed_malloc;
@@ -2580,11 +2491,9 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
     /* Check for special case that d is a normalized power of 2. */
 
     spec_case = 0;
-    if ((mode < 2 || leftright)
-        ) {
-        if (!word1(&u) && !(word0(&u) & Bndry_mask)
-            && word0(&u) & (Exp_mask & ~Exp_msk1)
-            ) {
+    if ((mode < 2 || leftright)) {
+        if (!word1(&u) && !(word0(&u) & Bndry_mask) &&
+            word0(&u) & (Exp_mask & ~Exp_msk1)) {
             /* The special case */
             b2 += Log2P;
             s2 += Log2P;
@@ -2615,9 +2524,9 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
             goto failed_malloc;
     }
     if (k_check) {
-        if (cmp(b,S) < 0) {
+        if (cmp(b, S) < 0) {
             k--;
-            b = multadd(b, 10, 0);      /* we botched the k estimate */
+            b = multadd(b, 10, 0); /* we botched the k estimate */
             if (b == NULL)
                 goto failed_malloc;
             if (leftright) {
@@ -2631,18 +2540,17 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
     if (ilim <= 0 && (mode == 3 || mode == 5)) {
         if (ilim < 0) {
             /* no digits, fcvt style */
-          no_digits:
+no_digits:
             k = -1 - ndigits;
             goto ret;
-        }
-        else {
+        } else {
             S = multadd(S, 5, 0);
             if (S == NULL)
                 goto failed_malloc;
             if (cmp(b, S) <= 0)
                 goto no_digits;
         }
-      one_digit:
+one_digit:
         *s++ = '1';
         k++;
         goto ret;
@@ -2669,8 +2577,8 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                 goto failed_malloc;
         }
 
-        for(i = 1;;i++) {
-            dig = quorem(b,S) + '0';
+        for (i = 1;; i++) {
+            dig = quorem(b, S) + '0';
             /* Do we yet have the shortest decimal string
              * that will round to d?
              */
@@ -2680,8 +2588,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                 goto failed_malloc;
             j1 = delta->sign ? 1 : cmp(b, delta);
             Bfree(delta);
-            if (j1 == 0 && mode != 1 && !(word1(&u) & 1)
-                ) {
+            if (j1 == 0 && mode != 1 && !(word1(&u) & 1)) {
                 if (dig == '9')
                     goto round_9_up;
                 if (j > 0)
@@ -2689,9 +2596,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                 *s++ = dig;
                 goto ret;
             }
-            if (j < 0 || (j == 0 && mode != 1
-                          && !(word1(&u) & 1)
-                    )) {
+            if (j < 0 || (j == 0 && mode != 1 && !(word1(&u) & 1))) {
                 if (!b->x[0] && b->wds <= 1) {
                     goto accept_dig;
                 }
@@ -2700,17 +2605,16 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                     if (b == NULL)
                         goto failed_malloc;
                     j1 = cmp(b, S);
-                    if ((j1 > 0 || (j1 == 0 && dig & 1))
-                        && dig++ == '9')
+                    if ((j1 > 0 || (j1 == 0 && dig & 1)) && dig++ == '9')
                         goto round_9_up;
                 }
-              accept_dig:
+accept_dig:
                 *s++ = dig;
                 goto ret;
             }
             if (j1 > 0) {
                 if (dig == '9') { /* possible if i == 1 */
-                  round_9_up:
+round_9_up:
                     *s++ = '9';
                     goto roundoff;
                 }
@@ -2727,8 +2631,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                 mlo = mhi = multadd(mhi, 10, 0);
                 if (mlo == NULL)
                     goto failed_malloc;
-            }
-            else {
+            } else {
                 mlo = multadd(mlo, 10, 0);
                 if (mlo == NULL)
                     goto failed_malloc;
@@ -2737,10 +2640,9 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
                     goto failed_malloc;
             }
         }
-    }
-    else
-        for(i = 1;; i++) {
-            *s++ = dig = quorem(b,S) + '0';
+    } else
+        for (i = 1;; i++) {
+            *s++ = dig = quorem(b, S) + '0';
             if (!b->x[0] && b->wds <= 1) {
                 goto ret;
             }
@@ -2758,34 +2660,33 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
         goto failed_malloc;
     j = cmp(b, S);
     if (j > 0 || (j == 0 && dig & 1)) {
-      roundoff:
-        while(*--s == '9')
+roundoff:
+        while (*--s == '9')
             if (s == s0) {
                 k++;
                 *s++ = '1';
                 goto ret;
             }
         ++*s++;
-    }
-    else {
-        while(*--s == '0');
+    } else {
+        while (*--s == '0');
         s++;
     }
-  ret:
+ret:
     Bfree(S);
     if (mhi) {
         if (mlo && mlo != mhi)
             Bfree(mlo);
         Bfree(mhi);
     }
-  ret1:
+ret1:
     Bfree(b);
     *s = 0;
     *decpt = k + 1;
     if (rve)
         *rve = s;
     return s0;
-  failed_malloc:
+failed_malloc:
     if (S)
         Bfree(S);
     if (mlo && mlo != mhi)
@@ -2802,8 +2703,7 @@ _Py_dg_dtoa(double dd, int mode, int ndigits,
 #endif  // _PY_SHORT_FLOAT_REPR == 1
 
 PyStatus
-_PyDtoa_Init(PyInterpreterState *interp)
-{
+_PyDtoa_Init(PyInterpreterState *interp) {
 #if _PY_SHORT_FLOAT_REPR == 1 && !defined(Py_USING_MEMORY_DEBUGGER)
     Bigint **p5s = interp->dtoa.p5s;
 
@@ -2828,8 +2728,7 @@ _PyDtoa_Init(PyInterpreterState *interp)
 }
 
 void
-_PyDtoa_Fini(PyInterpreterState *interp)
-{
+_PyDtoa_Fini(PyInterpreterState *interp) {
 #if _PY_SHORT_FLOAT_REPR == 1 && !defined(Py_USING_MEMORY_DEBUGGER)
     Bigint **p5s = interp->dtoa.p5s;
     for (Py_ssize_t i = 0; i < Bigint_Pow5size; i++) {

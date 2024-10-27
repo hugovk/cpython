@@ -13,56 +13,47 @@
 #include "pycore_pyerrors.h"      // _PyErr_FormatFromCause()
 #include "pycore_pystate.h"       // _PyInterpreterState_GET()
 
-#include "osdefs.h"               // MAXPATHLEN
-
+#include "osdefs.h"  // MAXPATHLEN
 
 #define _PyModule_CAST(op) \
-    (assert(PyModule_Check(op)), _Py_CAST(PyModuleObject*, (op)))
-
+    (assert(PyModule_Check(op)), _Py_CAST(PyModuleObject *, (op)))
 
 static PyMemberDef module_members[] = {
-    {"__dict__", _Py_T_OBJECT, offsetof(PyModuleObject, md_dict), Py_READONLY},
-    {0}
+    {"__dict__", _Py_T_OBJECT, offsetof(PyModuleObject, md_dict), Py_READONLY}, {0}
 };
-
 
 PyTypeObject PyModuleDef_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "moduledef",                                /* tp_name */
-    sizeof(PyModuleDef),                        /* tp_basicsize */
-    0,                                          /* tp_itemsize */
+    PyVarObject_HEAD_INIT(&PyType_Type, 0) "moduledef", /* tp_name */
+    sizeof(PyModuleDef),                                /* tp_basicsize */
+    0,                                                  /* tp_itemsize */
 };
 
-
 int
-_PyModule_IsExtension(PyObject *obj)
-{
+_PyModule_IsExtension(PyObject *obj) {
     if (!PyModule_Check(obj)) {
         return 0;
     }
-    PyModuleObject *module = (PyModuleObject*)obj;
+    PyModuleObject *module = (PyModuleObject *)obj;
 
     PyModuleDef *def = module->md_def;
     return (def != NULL && def->m_methods != NULL);
 }
 
-
-PyObject*
-PyModuleDef_Init(PyModuleDef* def)
-{
+PyObject *
+PyModuleDef_Init(PyModuleDef *def) {
     assert(PyModuleDef_Type.tp_flags & Py_TPFLAGS_READY);
     if (def->m_base.m_index == 0) {
         Py_SET_REFCNT(def, 1);
         Py_SET_TYPE(def, &PyModuleDef_Type);
         def->m_base.m_index = _PyImport_GetNextModuleIndex();
     }
-    return (PyObject*)def;
+    return (PyObject *)def;
 }
 
 static int
-module_init_dict(PyModuleObject *mod, PyObject *md_dict,
-                 PyObject *name, PyObject *doc)
-{
+module_init_dict(
+    PyModuleObject *mod, PyObject *md_dict, PyObject *name, PyObject *doc
+) {
     assert(md_dict != NULL);
     if (doc == NULL)
         doc = Py_None;
@@ -85,8 +76,7 @@ module_init_dict(PyModuleObject *mod, PyObject *md_dict,
 }
 
 static PyModuleObject *
-new_module_notrack(PyTypeObject *mt)
-{
+new_module_notrack(PyTypeObject *mt) {
     PyModuleObject *m;
     m = (PyModuleObject *)_PyType_AllocNoTrack(mt, 0);
     if (m == NULL)
@@ -104,8 +94,7 @@ new_module_notrack(PyTypeObject *mt)
 }
 
 static void
-track_module(PyModuleObject *m)
-{
+track_module(PyModuleObject *m) {
     _PyDict_EnablePerThreadRefcounting(m->md_dict);
     PyObject_GC_Track(m->md_dict);
 
@@ -114,8 +103,7 @@ track_module(PyModuleObject *m)
 }
 
 static PyObject *
-new_module(PyTypeObject *mt, PyObject *args, PyObject *kws)
-{
+new_module(PyTypeObject *mt, PyObject *args, PyObject *kws) {
     PyModuleObject *m = new_module_notrack(mt);
     if (m != NULL) {
         track_module(m);
@@ -124,8 +112,7 @@ new_module(PyTypeObject *mt, PyObject *args, PyObject *kws)
 }
 
 PyObject *
-PyModule_NewObject(PyObject *name)
-{
+PyModule_NewObject(PyObject *name) {
     PyModuleObject *m = new_module_notrack(&PyModule_Type);
     if (m == NULL)
         return NULL;
@@ -134,14 +121,13 @@ PyModule_NewObject(PyObject *name)
     track_module(m);
     return (PyObject *)m;
 
- fail:
+fail:
     Py_DECREF(m);
     return NULL;
 }
 
 PyObject *
-PyModule_New(const char *name)
-{
+PyModule_New(const char *name) {
     PyObject *nameobj, *module;
     nameobj = PyUnicode_FromString(name);
     if (nameobj == NULL)
@@ -156,15 +142,20 @@ PyModule_New(const char *name)
  * Returns 0 if an exception is raised.
  */
 static int
-check_api_version(const char *name, int module_api_version)
-{
-    if (module_api_version != PYTHON_API_VERSION && module_api_version != PYTHON_ABI_VERSION) {
+check_api_version(const char *name, int module_api_version) {
+    if (module_api_version != PYTHON_API_VERSION &&
+        module_api_version != PYTHON_ABI_VERSION) {
         int err;
-        err = PyErr_WarnFormat(PyExc_RuntimeWarning, 1,
+        err = PyErr_WarnFormat(
+            PyExc_RuntimeWarning,
+            1,
             "Python C API version mismatch for module %.100s: "
             "This Python has API version %d, module %.100s has version %d.",
-             name,
-             PYTHON_API_VERSION, name, module_api_version);
+            name,
+            PYTHON_API_VERSION,
+            name,
+            module_api_version
+        );
         if (err)
             return 0;
     }
@@ -172,20 +163,20 @@ check_api_version(const char *name, int module_api_version)
 }
 
 static int
-_add_methods_to_object(PyObject *module, PyObject *name, PyMethodDef *functions)
-{
+_add_methods_to_object(PyObject *module, PyObject *name, PyMethodDef *functions) {
     PyObject *func;
     PyMethodDef *fdef;
 
     for (fdef = functions; fdef->ml_name != NULL; fdef++) {
-        if ((fdef->ml_flags & METH_CLASS) ||
-            (fdef->ml_flags & METH_STATIC)) {
-            PyErr_SetString(PyExc_ValueError,
-                            "module functions cannot set"
-                            " METH_CLASS or METH_STATIC");
+        if ((fdef->ml_flags & METH_CLASS) || (fdef->ml_flags & METH_STATIC)) {
+            PyErr_SetString(
+                PyExc_ValueError,
+                "module functions cannot set"
+                " METH_CLASS or METH_STATIC"
+            );
             return -1;
         }
-        func = PyCFunction_NewEx(fdef, (PyObject*)module, name);
+        func = PyCFunction_NewEx(fdef, (PyObject *)module, name);
         if (func == NULL) {
             return -1;
         }
@@ -201,20 +192,17 @@ _add_methods_to_object(PyObject *module, PyObject *name, PyMethodDef *functions)
 }
 
 PyObject *
-PyModule_Create2(PyModuleDef* module, int module_api_version)
-{
+PyModule_Create2(PyModuleDef *module, int module_api_version) {
     if (!_PyImport_IsInitialized(_PyInterpreterState_GET())) {
-        PyErr_SetString(PyExc_SystemError,
-                        "Python import machinery not initialized");
+        PyErr_SetString(PyExc_SystemError, "Python import machinery not initialized");
         return NULL;
     }
     return _PyModule_CreateInitialized(module, module_api_version);
 }
 
 PyObject *
-_PyModule_CreateInitialized(PyModuleDef* module, int module_api_version)
-{
-    const char* name;
+_PyModule_CreateInitialized(PyModuleDef *module, int module_api_version) {
+    const char *name;
     PyModuleObject *m;
 
     if (!PyModuleDef_Init(module))
@@ -226,12 +214,14 @@ _PyModule_CreateInitialized(PyModuleDef* module, int module_api_version)
     if (module->m_slots) {
         PyErr_Format(
             PyExc_SystemError,
-            "module %s: PyModule_Create is incompatible with m_slots", name);
+            "module %s: PyModule_Create is incompatible with m_slots",
+            name
+        );
         return NULL;
     }
     name = _PyImport_ResolveNameWithPackageContext(name);
 
-    m = (PyModuleObject*)PyModule_New(name);
+    m = (PyModuleObject *)PyModule_New(name);
     if (m == NULL)
         return NULL;
 
@@ -246,13 +236,13 @@ _PyModule_CreateInitialized(PyModuleDef* module, int module_api_version)
     }
 
     if (module->m_methods != NULL) {
-        if (PyModule_AddFunctions((PyObject *) m, module->m_methods) != 0) {
+        if (PyModule_AddFunctions((PyObject *)m, module->m_methods) != 0) {
             Py_DECREF(m);
             return NULL;
         }
     }
     if (module->m_doc != NULL) {
-        if (PyModule_SetDocString((PyObject *) m, module->m_doc) != 0) {
+        if (PyModule_SetDocString((PyObject *)m, module->m_doc) != 0) {
             Py_DECREF(m);
             return NULL;
         }
@@ -261,14 +251,13 @@ _PyModule_CreateInitialized(PyModuleDef* module, int module_api_version)
 #ifdef Py_GIL_DISABLED
     m->md_gil = Py_MOD_GIL_USED;
 #endif
-    return (PyObject*)m;
+    return (PyObject *)m;
 }
 
 PyObject *
-PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_version)
-{
-    PyModuleDef_Slot* cur_slot;
-    PyObject *(*create)(PyObject *, PyModuleDef*) = NULL;
+PyModule_FromDefAndSpec2(PyModuleDef *def, PyObject *spec, int module_api_version) {
+    PyModuleDef_Slot *cur_slot;
+    PyObject *(*create)(PyObject *, PyModuleDef *) = NULL;
     PyObject *nameobj;
     PyObject *m = NULL;
     int has_multiple_interpreters_slot = 0;
@@ -299,7 +288,8 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
         PyErr_Format(
             PyExc_SystemError,
             "module %s: m_size may not be negative for multi-phase initialization",
-            name);
+            name
+        );
         goto error;
     }
 
@@ -308,9 +298,8 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
             case Py_mod_create:
                 if (create) {
                     PyErr_Format(
-                        PyExc_SystemError,
-                        "module %s has multiple create slots",
-                        name);
+                        PyExc_SystemError, "module %s has multiple create slots", name
+                    );
                     goto error;
                 }
                 create = cur_slot->value;
@@ -323,7 +312,8 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
                     PyErr_Format(
                         PyExc_SystemError,
                         "module %s has more than one 'multiple interpreters' slots",
-                        name);
+                        name
+                    );
                     goto error;
                 }
                 multiple_interpreters = cur_slot->value;
@@ -332,9 +322,10 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
             case Py_mod_gil:
                 if (has_gil_slot) {
                     PyErr_Format(
-                       PyExc_SystemError,
-                       "module %s has more than one 'gil' slot",
-                       name);
+                        PyExc_SystemError,
+                        "module %s has more than one 'gil' slot",
+                        name
+                    );
                     goto error;
                 }
                 gil_slot = cur_slot->value;
@@ -345,7 +336,9 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
                 PyErr_Format(
                     PyExc_SystemError,
                     "module %s uses unknown slot ID %i",
-                    name, cur_slot->slot);
+                    name,
+                    cur_slot->slot
+                );
                 goto error;
         }
     }
@@ -356,17 +349,13 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
         multiple_interpreters = Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED;
     }
     if (multiple_interpreters == Py_MOD_MULTIPLE_INTERPRETERS_NOT_SUPPORTED) {
-        if (!_Py_IsMainInterpreter(interp)
-            && _PyImport_CheckSubinterpIncompatibleExtensionAllowed(name) < 0)
-        {
+        if (!_Py_IsMainInterpreter(interp) &&
+            _PyImport_CheckSubinterpIncompatibleExtensionAllowed(name) < 0) {
             goto error;
         }
-    }
-    else if (multiple_interpreters != Py_MOD_PER_INTERPRETER_GIL_SUPPORTED
-             && interp->ceval.own_gil
-             && !_Py_IsMainInterpreter(interp)
-             && _PyImport_CheckSubinterpIncompatibleExtensionAllowed(name) < 0)
-    {
+    } else if (multiple_interpreters != Py_MOD_PER_INTERPRETER_GIL_SUPPORTED &&
+               interp->ceval.own_gil && !_Py_IsMainInterpreter(interp) &&
+               _PyImport_CheckSubinterpIncompatibleExtensionAllowed(name) < 0) {
         goto error;
     }
 
@@ -377,7 +366,8 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
                 PyErr_Format(
                     PyExc_SystemError,
                     "creation of module %s failed without setting an exception",
-                    name);
+                    name
+                );
             }
             goto error;
         } else {
@@ -385,7 +375,8 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
                 _PyErr_FormatFromCause(
                     PyExc_SystemError,
                     "creation of module %s raised unreported exception",
-                    name);
+                    name
+                );
                 goto error;
             }
         }
@@ -397,10 +388,10 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
     }
 
     if (PyModule_Check(m)) {
-        ((PyModuleObject*)m)->md_state = NULL;
-        ((PyModuleObject*)m)->md_def = def;
+        ((PyModuleObject *)m)->md_state = NULL;
+        ((PyModuleObject *)m)->md_def = def;
 #ifdef Py_GIL_DISABLED
-        ((PyModuleObject*)m)->md_gil = gil_slot;
+        ((PyModuleObject *)m)->md_gil = gil_slot;
 #else
         (void)gil_slot;
 #endif
@@ -409,15 +400,17 @@ PyModule_FromDefAndSpec2(PyModuleDef* def, PyObject *spec, int module_api_versio
             PyErr_Format(
                 PyExc_SystemError,
                 "module %s is not a module object, but requests module state",
-                name);
+                name
+            );
             goto error;
         }
         if (has_execution_slots) {
             PyErr_Format(
                 PyExc_SystemError,
                 "module %s specifies execution slots, but did not create "
-                    "a ModuleType instance",
-                name);
+                "a ModuleType instance",
+                name
+            );
             goto error;
         }
     }
@@ -447,8 +440,7 @@ error:
 
 #ifdef Py_GIL_DISABLED
 int
-PyUnstable_Module_SetGIL(PyObject *module, void *gil)
-{
+PyUnstable_Module_SetGIL(PyObject *module, void *gil) {
     if (!PyModule_Check(module)) {
         PyErr_BadInternalCall();
         return -1;
@@ -459,8 +451,7 @@ PyUnstable_Module_SetGIL(PyObject *module, void *gil)
 #endif
 
 int
-PyModule_ExecDef(PyObject *module, PyModuleDef *def)
-{
+PyModule_ExecDef(PyObject *module, PyModuleDef *def) {
     PyModuleDef_Slot *cur_slot;
     const char *name;
     int ret;
@@ -471,7 +462,7 @@ PyModule_ExecDef(PyObject *module, PyModuleDef *def)
     }
 
     if (def->m_size >= 0) {
-        PyModuleObject *md = (PyModuleObject*)module;
+        PyModuleObject *md = (PyModuleObject *)module;
         if (md->md_state == NULL) {
             /* Always set a state pointer; this serves as a marker to skip
              * multiple initialization (importlib.reload() is no-op) */
@@ -499,8 +490,10 @@ PyModule_ExecDef(PyObject *module, PyModuleDef *def)
                     if (!PyErr_Occurred()) {
                         PyErr_Format(
                             PyExc_SystemError,
-                            "execution of module %s failed without setting an exception",
-                            name);
+                            "execution of module %s failed without setting an "
+                            "exception",
+                            name
+                        );
                     }
                     return -1;
                 }
@@ -508,7 +501,8 @@ PyModule_ExecDef(PyObject *module, PyModuleDef *def)
                     _PyErr_FormatFromCause(
                         PyExc_SystemError,
                         "execution of module %s raised unreported exception",
-                        name);
+                        name
+                    );
                     return -1;
                 }
                 break;
@@ -520,7 +514,9 @@ PyModule_ExecDef(PyObject *module, PyModuleDef *def)
                 PyErr_Format(
                     PyExc_SystemError,
                     "module %s initialized with unknown slot %i",
-                    name, cur_slot->slot);
+                    name,
+                    cur_slot->slot
+                );
                 return -1;
         }
     }
@@ -528,8 +524,7 @@ PyModule_ExecDef(PyObject *module, PyModuleDef *def)
 }
 
 int
-PyModule_AddFunctions(PyObject *m, PyMethodDef *functions)
-{
+PyModule_AddFunctions(PyObject *m, PyMethodDef *functions) {
     int res;
     PyObject *name = PyModule_GetNameObject(m);
     if (name == NULL) {
@@ -542,8 +537,7 @@ PyModule_AddFunctions(PyObject *m, PyMethodDef *functions)
 }
 
 int
-PyModule_SetDocString(PyObject *m, const char *doc)
-{
+PyModule_SetDocString(PyObject *m, const char *doc) {
     PyObject *v;
 
     v = PyUnicode_FromString(doc);
@@ -556,8 +550,7 @@ PyModule_SetDocString(PyObject *m, const char *doc)
 }
 
 PyObject *
-PyModule_GetDict(PyObject *m)
-{
+PyModule_GetDict(PyObject *m) {
     if (!PyModule_Check(m)) {
         PyErr_BadInternalCall();
         return NULL;
@@ -565,9 +558,8 @@ PyModule_GetDict(PyObject *m)
     return _PyModule_GetDict(m);  // borrowed reference
 }
 
-PyObject*
-PyModule_GetNameObject(PyObject *mod)
-{
+PyObject *
+PyModule_GetNameObject(PyObject *mod) {
     if (!PyModule_Check(mod)) {
         PyErr_BadArgument();
         return NULL;
@@ -595,20 +587,18 @@ error:
 }
 
 const char *
-PyModule_GetName(PyObject *m)
-{
+PyModule_GetName(PyObject *m) {
     PyObject *name = PyModule_GetNameObject(m);
     if (name == NULL) {
         return NULL;
     }
     assert(Py_REFCNT(name) >= 2);
-    Py_DECREF(name);   /* module dict has still a reference */
+    Py_DECREF(name); /* module dict has still a reference */
     return PyUnicode_AsUTF8(name);
 }
 
-PyObject*
-PyModule_GetFilenameObject(PyObject *mod)
-{
+PyObject *
+PyModule_GetFilenameObject(PyObject *mod) {
     if (!PyModule_Check(mod)) {
         PyErr_BadArgument();
         return NULL;
@@ -636,21 +626,19 @@ error:
 }
 
 const char *
-PyModule_GetFilename(PyObject *m)
-{
+PyModule_GetFilename(PyObject *m) {
     PyObject *fileobj;
     const char *utf8;
     fileobj = PyModule_GetFilenameObject(m);
     if (fileobj == NULL)
         return NULL;
     utf8 = PyUnicode_AsUTF8(fileobj);
-    Py_DECREF(fileobj);   /* module dict has still a reference */
+    Py_DECREF(fileobj); /* module dict has still a reference */
     return utf8;
 }
 
-PyModuleDef*
-PyModule_GetDef(PyObject* m)
-{
+PyModuleDef *
+PyModule_GetDef(PyObject *m) {
     if (!PyModule_Check(m)) {
         PyErr_BadArgument();
         return NULL;
@@ -658,9 +646,8 @@ PyModule_GetDef(PyObject* m)
     return _PyModule_GetDef(m);
 }
 
-void*
-PyModule_GetState(PyObject* m)
-{
+void *
+PyModule_GetState(PyObject *m) {
     if (!PyModule_Check(m)) {
         PyErr_BadArgument();
         return NULL;
@@ -669,16 +656,14 @@ PyModule_GetState(PyObject* m)
 }
 
 void
-_PyModule_Clear(PyObject *m)
-{
+_PyModule_Clear(PyObject *m) {
     PyObject *d = ((PyModuleObject *)m)->md_dict;
     if (d != NULL)
         _PyModule_ClearDict(d);
 }
 
 void
-_PyModule_ClearDict(PyObject *d)
-{
+_PyModule_ClearDict(PyObject *d) {
     /* To make the execution order of destructors for global
        objects a bit more predictable, we first zap all objects
        whose name starts with a single underscore, before we clear
@@ -716,8 +701,7 @@ _PyModule_ClearDict(PyObject *d)
     while (PyDict_Next(d, &pos, &key, &value)) {
         if (value != Py_None && PyUnicode_Check(key)) {
             if (PyUnicode_READ_CHAR(key, 0) != '_' ||
-                !_PyUnicode_EqualToASCIIString(key, "__builtins__"))
-            {
+                !_PyUnicode_EqualToASCIIString(key, "__builtins__")) {
                 if (verbose > 1) {
                     const char *s = PyUnicode_AsUTF8(key);
                     if (s != NULL)
@@ -735,7 +719,6 @@ _PyModule_ClearDict(PyObject *d)
     /* Note: we leave __builtins__ in place, so that destructors
        of non-global objects defined in this module can still use
        builtins, in particularly 'None'. */
-
 }
 
 /*[clinic input]
@@ -765,8 +748,7 @@ module___init___impl(PyModuleObject *self, PyObject *name, PyObject *doc)
 }
 
 static void
-module_dealloc(PyObject *self)
-{
+module_dealloc(PyObject *self) {
     PyModuleObject *m = _PyModule_CAST(self);
 
     PyObject_GC_UnTrack(m);
@@ -776,12 +758,11 @@ module_dealloc(PyObject *self)
         PySys_FormatStderr("# destroy %U\n", m->md_name);
     }
     if (m->md_weaklist != NULL)
-        PyObject_ClearWeakRefs((PyObject *) m);
+        PyObject_ClearWeakRefs((PyObject *)m);
 
     /* bpo-39824: Don't call m_free() if m_size > 0 and md_state=NULL */
-    if (m->md_def && m->md_def->m_free
-        && (m->md_def->m_size <= 0 || m->md_state != NULL))
-    {
+    if (m->md_def && m->md_def->m_free &&
+        (m->md_def->m_size <= 0 || m->md_state != NULL)) {
         m->md_def->m_free(m);
     }
 
@@ -793,8 +774,7 @@ module_dealloc(PyObject *self)
 }
 
 static PyObject *
-module_repr(PyObject *self)
-{
+module_repr(PyObject *self) {
     PyModuleObject *m = _PyModule_CAST(self);
     PyInterpreterState *interp = _PyInterpreterState_GET();
     return _PyImport_ImportlibModuleRepr(interp, (PyObject *)m);
@@ -803,8 +783,7 @@ module_repr(PyObject *self)
 /* Check if the "_initializing" attribute of the module spec is set to true.
  */
 int
-_PyModuleSpec_IsInitializing(PyObject *spec)
-{
+_PyModuleSpec_IsInitializing(PyObject *spec) {
     if (spec == NULL) {
         return 0;
     }
@@ -821,10 +800,9 @@ _PyModuleSpec_IsInitializing(PyObject *spec)
    of the module spec.
  */
 int
-_PyModuleSpec_IsUninitializedSubmodule(PyObject *spec, PyObject *name)
-{
+_PyModuleSpec_IsUninitializedSubmodule(PyObject *spec, PyObject *name) {
     if (spec == NULL) {
-         return 0;
+        return 0;
     }
 
     PyObject *value;
@@ -837,16 +815,15 @@ _PyModuleSpec_IsUninitializedSubmodule(PyObject *spec, PyObject *name)
 }
 
 int
-_PyModuleSpec_GetFileOrigin(PyObject *spec, PyObject **p_origin)
-{
+_PyModuleSpec_GetFileOrigin(PyObject *spec, PyObject **p_origin) {
     PyObject *has_location = NULL;
     int rc = PyObject_GetOptionalAttr(spec, &_Py_ID(has_location), &has_location);
     if (rc <= 0) {
         return rc;
     }
-    // If origin is not a location, or doesn't exist, or is not a str, we could consider falling
-    // back to module.__file__. But the cases in which module.__file__ is not __spec__.origin
-    // are cases in which we probably shouldn't be guessing.
+    // If origin is not a location, or doesn't exist, or is not a str, we could consider
+    // falling back to module.__file__. But the cases in which module.__file__ is not
+    // __spec__.origin are cases in which we probably shouldn't be guessing.
     rc = PyObject_IsTrue(has_location);
     Py_DECREF(has_location);
     if (rc <= 0) {
@@ -868,8 +845,7 @@ _PyModuleSpec_GetFileOrigin(PyObject *spec, PyObject **p_origin)
 }
 
 int
-_PyModule_IsPossiblyShadowing(PyObject *origin)
-{
+_PyModule_IsPossiblyShadowing(PyObject *origin) {
     // origin must be a unicode subtype
     // Returns 1 if the module at origin could be shadowing a module of the
     // same name later in the module search path. The condition we check is basically:
@@ -929,9 +905,8 @@ _PyModule_IsPossiblyShadowing(PyObject *origin)
     return result;
 }
 
-PyObject*
-_Py_module_getattro_impl(PyModuleObject *m, PyObject *name, int suppress)
-{
+PyObject *
+_Py_module_getattro_impl(PyModuleObject *m, PyObject *name, int suppress) {
     // When suppress=1, this function suppresses AttributeError.
     PyObject *attr, *mod_name, *getattr;
     attr = _PyObject_GenericGetAttrWithDict((PyObject *)m, name, NULL, suppress);
@@ -943,8 +918,7 @@ _Py_module_getattro_impl(PyModuleObject *m, PyObject *name, int suppress)
             // pass up non-AttributeError exception
             return NULL;
         }
-    }
-    else {
+    } else {
         if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
             // pass up non-AttributeError exception
             return NULL;
@@ -957,7 +931,8 @@ _Py_module_getattro_impl(PyModuleObject *m, PyObject *name, int suppress)
     }
     if (getattr) {
         PyObject *result = PyObject_CallOneArg(getattr, name);
-        if (result == NULL && suppress == 1 && PyErr_ExceptionMatches(PyExc_AttributeError)) {
+        if (result == NULL && suppress == 1 &&
+            PyErr_ExceptionMatches(PyExc_AttributeError)) {
             // suppress AttributeError
             PyErr_Clear();
         }
@@ -965,8 +940,8 @@ _Py_module_getattro_impl(PyModuleObject *m, PyObject *name, int suppress)
         return result;
     }
 
-    // The attribute was not found.  We make a best effort attempt at a useful error message,
-    // but only if we're not suppressing AttributeError.
+    // The attribute was not found.  We make a best effort attempt at a useful error
+    // message, but only if we're not suppressing AttributeError.
     if (suppress == 1) {
         return NULL;
     }
@@ -975,8 +950,7 @@ _Py_module_getattro_impl(PyModuleObject *m, PyObject *name, int suppress)
     }
     if (!mod_name || !PyUnicode_Check(mod_name)) {
         Py_XDECREF(mod_name);
-        PyErr_Format(PyExc_AttributeError,
-                    "module has no attribute '%U'", name);
+        PyErr_Format(PyExc_AttributeError, "module has no attribute '%U'", name);
         return NULL;
     }
     PyObject *spec;
@@ -985,9 +959,9 @@ _Py_module_getattro_impl(PyModuleObject *m, PyObject *name, int suppress)
         return NULL;
     }
     if (spec == NULL) {
-        PyErr_Format(PyExc_AttributeError,
-                     "module '%U' has no attribute '%U'",
-                     mod_name, name);
+        PyErr_Format(
+            PyExc_AttributeError, "module '%U' has no attribute '%U'", mod_name, name
+        );
         Py_DECREF(mod_name);
         return NULL;
     }
@@ -1014,57 +988,73 @@ _Py_module_getattro_impl(PyModuleObject *m, PyObject *name, int suppress)
 
     if (is_possibly_shadowing_stdlib) {
         assert(origin);
-        PyErr_Format(PyExc_AttributeError,
-                    "module '%U' has no attribute '%U' "
-                    "(consider renaming '%U' since it has the same "
-                    "name as the standard library module named '%U' "
-                    "and prevents importing that standard library module)",
-                    mod_name, name, origin, mod_name);
-    }
-    else {
+        PyErr_Format(
+            PyExc_AttributeError,
+            "module '%U' has no attribute '%U' "
+            "(consider renaming '%U' since it has the same "
+            "name as the standard library module named '%U' "
+            "and prevents importing that standard library module)",
+            mod_name,
+            name,
+            origin,
+            mod_name
+        );
+    } else {
         int rc = _PyModuleSpec_IsInitializing(spec);
         if (rc < 0) {
             goto done;
-        }
-        else if (rc > 0) {
+        } else if (rc > 0) {
             if (is_possibly_shadowing) {
                 assert(origin);
                 // For non-stdlib modules, only mention the possibility of
                 // shadowing if the module is being initialized.
-                PyErr_Format(PyExc_AttributeError,
-                            "module '%U' has no attribute '%U' "
-                            "(consider renaming '%U' if it has the same name "
-                            "as a library you intended to import)",
-                            mod_name, name, origin);
+                PyErr_Format(
+                    PyExc_AttributeError,
+                    "module '%U' has no attribute '%U' "
+                    "(consider renaming '%U' if it has the same name "
+                    "as a library you intended to import)",
+                    mod_name,
+                    name,
+                    origin
+                );
+            } else if (origin) {
+                PyErr_Format(
+                    PyExc_AttributeError,
+                    "partially initialized "
+                    "module '%U' from '%U' has no attribute '%U' "
+                    "(most likely due to a circular import)",
+                    mod_name,
+                    origin,
+                    name
+                );
+            } else {
+                PyErr_Format(
+                    PyExc_AttributeError,
+                    "partially initialized "
+                    "module '%U' has no attribute '%U' "
+                    "(most likely due to a circular import)",
+                    mod_name,
+                    name
+                );
             }
-            else if (origin) {
-                PyErr_Format(PyExc_AttributeError,
-                            "partially initialized "
-                            "module '%U' from '%U' has no attribute '%U' "
-                            "(most likely due to a circular import)",
-                            mod_name, origin, name);
-            }
-            else {
-                PyErr_Format(PyExc_AttributeError,
-                            "partially initialized "
-                            "module '%U' has no attribute '%U' "
-                            "(most likely due to a circular import)",
-                            mod_name, name);
-            }
-        }
-        else {
+        } else {
             assert(rc == 0);
             rc = _PyModuleSpec_IsUninitializedSubmodule(spec, name);
             if (rc > 0) {
-                PyErr_Format(PyExc_AttributeError,
-                            "cannot access submodule '%U' of module '%U' "
-                            "(most likely due to a circular import)",
-                            name, mod_name);
-            }
-            else if (rc == 0) {
-                PyErr_Format(PyExc_AttributeError,
-                            "module '%U' has no attribute '%U'",
-                            mod_name, name);
+                PyErr_Format(
+                    PyExc_AttributeError,
+                    "cannot access submodule '%U' of module '%U' "
+                    "(most likely due to a circular import)",
+                    name,
+                    mod_name
+                );
+            } else if (rc == 0) {
+                PyErr_Format(
+                    PyExc_AttributeError,
+                    "module '%U' has no attribute '%U'",
+                    mod_name,
+                    name
+                );
             }
         }
     }
@@ -1076,24 +1066,20 @@ done:
     return NULL;
 }
 
-
-PyObject*
-_Py_module_getattro(PyObject *self, PyObject *name)
-{
+PyObject *
+_Py_module_getattro(PyObject *self, PyObject *name) {
     PyModuleObject *m = _PyModule_CAST(self);
     return _Py_module_getattro_impl(m, name, 0);
 }
 
 static int
-module_traverse(PyObject *self, visitproc visit, void *arg)
-{
+module_traverse(PyObject *self, visitproc visit, void *arg) {
     PyModuleObject *m = _PyModule_CAST(self);
 
     /* bpo-39824: Don't call m_traverse() if m_size > 0 and md_state=NULL */
-    if (m->md_def && m->md_def->m_traverse
-        && (m->md_def->m_size <= 0 || m->md_state != NULL))
-    {
-        int res = m->md_def->m_traverse((PyObject*)m, visit, arg);
+    if (m->md_def && m->md_def->m_traverse &&
+        (m->md_def->m_size <= 0 || m->md_state != NULL)) {
+        int res = m->md_def->m_traverse((PyObject *)m, visit, arg);
         if (res)
             return res;
     }
@@ -1103,19 +1089,20 @@ module_traverse(PyObject *self, visitproc visit, void *arg)
 }
 
 static int
-module_clear(PyObject *self)
-{
+module_clear(PyObject *self) {
     PyModuleObject *m = _PyModule_CAST(self);
 
     /* bpo-39824: Don't call m_clear() if m_size > 0 and md_state=NULL */
-    if (m->md_def && m->md_def->m_clear
-        && (m->md_def->m_size <= 0 || m->md_state != NULL))
-    {
-        int res = m->md_def->m_clear((PyObject*)m);
+    if (m->md_def && m->md_def->m_clear &&
+        (m->md_def->m_size <= 0 || m->md_state != NULL)) {
+        int res = m->md_def->m_clear((PyObject *)m);
         if (PyErr_Occurred()) {
-            PyErr_FormatUnraisable("Exception ignored in m_clear of module%s%V",
-                                   m->md_name ? " " : "",
-                                   m->md_name, "");
+            PyErr_FormatUnraisable(
+                "Exception ignored in m_clear of module%s%V",
+                m->md_name ? " " : "",
+                m->md_name,
+                ""
+            );
         }
         if (res)
             return res;
@@ -1125,8 +1112,7 @@ module_clear(PyObject *self)
 }
 
 static PyObject *
-module_dir(PyObject *self, PyObject *args)
-{
+module_dir(PyObject *self, PyObject *args) {
     PyObject *result = NULL;
     PyObject *dict = PyObject_GetAttr(self, &_Py_ID(__dict__));
 
@@ -1135,12 +1121,10 @@ module_dir(PyObject *self, PyObject *args)
             PyObject *dirfunc = PyDict_GetItemWithError(dict, &_Py_ID(__dir__));
             if (dirfunc) {
                 result = _PyObject_CallNoArgs(dirfunc);
-            }
-            else if (!PyErr_Occurred()) {
+            } else if (!PyErr_Occurred()) {
                 result = PyDict_Keys(dict);
             }
-        }
-        else {
+        } else {
             PyErr_Format(PyExc_TypeError, "<module>.__dict__ is not a dictionary");
         }
     }
@@ -1150,14 +1134,15 @@ module_dir(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef module_methods[] = {
-    {"__dir__", module_dir, METH_NOARGS,
+    {"__dir__",
+     module_dir,
+     METH_NOARGS,
      PyDoc_STR("__dir__() -> list\nspecialized dir() implementation")},
     {0}
 };
 
 static PyObject *
-module_get_dict(PyModuleObject *m)
-{
+module_get_dict(PyModuleObject *m) {
     PyObject *dict = PyObject_GetAttr((PyObject *)m, &_Py_ID(__dict__));
     if (dict == NULL) {
         return NULL;
@@ -1171,8 +1156,7 @@ module_get_dict(PyModuleObject *m)
 }
 
 static PyObject *
-module_get_annotate(PyObject *self, void *Py_UNUSED(ignored))
-{
+module_get_annotate(PyObject *self, void *Py_UNUSED(ignored)) {
     PyModuleObject *m = _PyModule_CAST(self);
 
     PyObject *dict = module_get_dict(m);
@@ -1192,8 +1176,7 @@ module_get_annotate(PyObject *self, void *Py_UNUSED(ignored))
 }
 
 static int
-module_set_annotate(PyObject *self, PyObject *value, void *Py_UNUSED(ignored))
-{
+module_set_annotate(PyObject *self, PyObject *value, void *Py_UNUSED(ignored)) {
     PyModuleObject *m = _PyModule_CAST(self);
     if (value == NULL) {
         PyErr_SetString(PyExc_TypeError, "cannot delete __annotate__ attribute");
@@ -1226,8 +1209,7 @@ module_set_annotate(PyObject *self, PyObject *value, void *Py_UNUSED(ignored))
 }
 
 static PyObject *
-module_get_annotations(PyObject *self, void *Py_UNUSED(ignored))
-{
+module_get_annotations(PyObject *self, void *Py_UNUSED(ignored)) {
     PyModuleObject *m = _PyModule_CAST(self);
 
     PyObject *dict = module_get_dict(m);
@@ -1252,21 +1234,22 @@ module_get_annotations(PyObject *self, void *Py_UNUSED(ignored))
                 return NULL;
             }
             if (!PyDict_Check(annotations)) {
-                PyErr_Format(PyExc_TypeError, "__annotate__ returned non-dict of type '%.100s'",
-                             Py_TYPE(annotations)->tp_name);
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "__annotate__ returned non-dict of type '%.100s'",
+                    Py_TYPE(annotations)->tp_name
+                );
                 Py_DECREF(annotate);
                 Py_DECREF(annotations);
                 Py_DECREF(dict);
                 return NULL;
             }
-        }
-        else {
+        } else {
             annotations = PyDict_New();
         }
         Py_XDECREF(annotate);
         if (annotations) {
-            int result = PyDict_SetItem(
-                    dict, &_Py_ID(__annotations__), annotations);
+            int result = PyDict_SetItem(dict, &_Py_ID(__annotations__), annotations);
             if (result) {
                 Py_CLEAR(annotations);
             }
@@ -1277,8 +1260,7 @@ module_get_annotations(PyObject *self, void *Py_UNUSED(ignored))
 }
 
 static int
-module_set_annotations(PyObject *self, PyObject *value, void *Py_UNUSED(ignored))
-{
+module_set_annotations(PyObject *self, PyObject *value, void *Py_UNUSED(ignored)) {
     PyModuleObject *m = _PyModule_CAST(self);
 
     PyObject *dict = module_get_dict(m);
@@ -1290,15 +1272,13 @@ module_set_annotations(PyObject *self, PyObject *value, void *Py_UNUSED(ignored)
     if (value != NULL) {
         /* set */
         ret = PyDict_SetItem(dict, &_Py_ID(__annotations__), value);
-    }
-    else {
+    } else {
         /* delete */
         ret = PyDict_Pop(dict, &_Py_ID(__annotations__), NULL);
         if (ret == 0) {
             PyErr_SetObject(PyExc_AttributeError, &_Py_ID(__annotations__));
             ret = -1;
-        }
-        else if (ret > 0) {
+        } else if (ret > 0) {
             ret = 0;
         }
     }
@@ -1310,7 +1290,6 @@ module_set_annotations(PyObject *self, PyObject *value, void *Py_UNUSED(ignored)
     return ret;
 }
 
-
 static PyGetSetDef module_getsets[] = {
     {"__annotations__", module_get_annotations, module_set_annotations},
     {"__annotate__", module_get_annotate, module_set_annotate},
@@ -1318,44 +1297,42 @@ static PyGetSetDef module_getsets[] = {
 };
 
 PyTypeObject PyModule_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "module",                                   /* tp_name */
-    sizeof(PyModuleObject),                     /* tp_basicsize */
-    0,                                          /* tp_itemsize */
-    module_dealloc,                             /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
-    0,                                          /* tp_getattr */
-    0,                                          /* tp_setattr */
-    0,                                          /* tp_as_async */
-    module_repr,                                /* tp_repr */
-    0,                                          /* tp_as_number */
-    0,                                          /* tp_as_sequence */
-    0,                                          /* tp_as_mapping */
-    0,                                          /* tp_hash */
-    0,                                          /* tp_call */
-    0,                                          /* tp_str */
-    _Py_module_getattro,                        /* tp_getattro */
-    PyObject_GenericSetAttr,                    /* tp_setattro */
-    0,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
-        Py_TPFLAGS_BASETYPE,                    /* tp_flags */
-    module___init____doc__,                     /* tp_doc */
-    module_traverse,                            /* tp_traverse */
-    module_clear,                               /* tp_clear */
-    0,                                          /* tp_richcompare */
-    offsetof(PyModuleObject, md_weaklist),      /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    module_methods,                             /* tp_methods */
-    module_members,                             /* tp_members */
-    module_getsets,                             /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    offsetof(PyModuleObject, md_dict),          /* tp_dictoffset */
-    module___init__,                            /* tp_init */
-    0,                                          /* tp_alloc */
-    new_module,                                 /* tp_new */
-    PyObject_GC_Del,                            /* tp_free */
+    PyVarObject_HEAD_INIT(&PyType_Type, 0) "module", /* tp_name */
+    sizeof(PyModuleObject),                          /* tp_basicsize */
+    0,                                               /* tp_itemsize */
+    module_dealloc,                                  /* tp_dealloc */
+    0,                                               /* tp_vectorcall_offset */
+    0,                                               /* tp_getattr */
+    0,                                               /* tp_setattr */
+    0,                                               /* tp_as_async */
+    module_repr,                                     /* tp_repr */
+    0,                                               /* tp_as_number */
+    0,                                               /* tp_as_sequence */
+    0,                                               /* tp_as_mapping */
+    0,                                               /* tp_hash */
+    0,                                               /* tp_call */
+    0,                                               /* tp_str */
+    _Py_module_getattro,                             /* tp_getattro */
+    PyObject_GenericSetAttr,                         /* tp_setattro */
+    0,                                               /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    module___init____doc__,                                        /* tp_doc */
+    module_traverse,                                               /* tp_traverse */
+    module_clear,                                                  /* tp_clear */
+    0,                                                             /* tp_richcompare */
+    offsetof(PyModuleObject, md_weaklist), /* tp_weaklistoffset */
+    0,                                     /* tp_iter */
+    0,                                     /* tp_iternext */
+    module_methods,                        /* tp_methods */
+    module_members,                        /* tp_members */
+    module_getsets,                        /* tp_getset */
+    0,                                     /* tp_base */
+    0,                                     /* tp_dict */
+    0,                                     /* tp_descr_get */
+    0,                                     /* tp_descr_set */
+    offsetof(PyModuleObject, md_dict),     /* tp_dictoffset */
+    module___init__,                       /* tp_init */
+    0,                                     /* tp_alloc */
+    new_module,                            /* tp_new */
+    PyObject_GC_Del,                       /* tp_free */
 };

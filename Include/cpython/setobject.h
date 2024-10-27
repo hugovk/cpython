@@ -1,5 +1,5 @@
 #ifndef Py_CPYTHON_SETOBJECT_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 /* There are three kinds of entries in the table:
@@ -19,7 +19,7 @@ either entry->key==dummy or by entry->hash==-1.
 
 typedef struct {
     PyObject *key;
-    Py_hash_t hash;             /* Cached hash code of the key */
+    Py_hash_t hash; /* Cached hash code of the key */
 } setentry;
 
 /* The SetObject data structure is shared by set and frozenset objects.
@@ -36,8 +36,8 @@ Invariants for frozensets:
 typedef struct {
     PyObject_HEAD
 
-    Py_ssize_t fill;            /* Number active and dummy entries*/
-    Py_ssize_t used;            /* Number active entries */
+        Py_ssize_t fill; /* Number active and dummy entries*/
+    Py_ssize_t used;     /* Number active entries */
 
     /* The table contains mask + 1 slots, and that's a power of 2.
      * We store the mask instead of the size because the mask is more
@@ -51,17 +51,17 @@ typedef struct {
      * runtime null-tests.
      */
     setentry *table;
-    Py_hash_t hash;             /* Only used by frozenset objects */
-    Py_ssize_t finger;          /* Search finger for pop() */
+    Py_hash_t hash;    /* Only used by frozenset objects */
+    Py_ssize_t finger; /* Search finger for pop() */
 
     setentry smalltable[PySet_MINSIZE];
-    PyObject *weakreflist;      /* List of weak references */
+    PyObject *weakreflist; /* List of weak references */
 } PySetObject;
 
-#define _PySet_CAST(so) \
-    (assert(PyAnySet_Check(so)), _Py_CAST(PySetObject*, so))
+#define _PySet_CAST(so) (assert(PyAnySet_Check(so)), _Py_CAST(PySetObject *, so))
 
-static inline Py_ssize_t PySet_GET_SIZE(PyObject *so) {
+static inline Py_ssize_t
+PySet_GET_SIZE(PyObject *so) {
 #ifdef Py_GIL_DISABLED
     return _Py_atomic_load_ssize_relaxed(&(_PySet_CAST(so)->used));
 #else

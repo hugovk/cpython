@@ -1,7 +1,7 @@
 /* Workarounds for buggy complex number arithmetic implementations. */
 
 #ifndef Py_HAVE_C_COMPLEX
-#  error "this header file should only be included if Py_HAVE_C_COMPLEX is defined"
+#error "this header file should only be included if Py_HAVE_C_COMPLEX is defined"
 #endif
 
 #include <complex.h>
@@ -19,14 +19,13 @@
    to the imaginary part, of the complex number.
  */
 #if !defined(CMPLX)
-#  if defined(__clang__) && __has_builtin(__builtin_complex)
-#    define CMPLX(x, y) __builtin_complex ((double) (x), (double) (y))
-#    define CMPLXF(x, y) __builtin_complex ((float) (x), (float) (y))
-#    define CMPLXL(x, y) __builtin_complex ((long double) (x), (long double) (y))
-#  else
+#if defined(__clang__) && __has_builtin(__builtin_complex)
+#define CMPLX(x, y) __builtin_complex((double)(x), (double)(y))
+#define CMPLXF(x, y) __builtin_complex((float)(x), (float)(y))
+#define CMPLXL(x, y) __builtin_complex((long double)(x), (long double)(y))
+#else
 static inline double complex
-CMPLX(double real, double imag)
-{
+CMPLX(double real, double imag) {
     double complex z;
     ((double *)(&z))[0] = real;
     ((double *)(&z))[1] = imag;
@@ -34,8 +33,7 @@ CMPLX(double real, double imag)
 }
 
 static inline float complex
-CMPLXF(float real, float imag)
-{
+CMPLXF(float real, float imag) {
     float complex z;
     ((float *)(&z))[0] = real;
     ((float *)(&z))[1] = imag;
@@ -43,12 +41,11 @@ CMPLXF(float real, float imag)
 }
 
 static inline long double complex
-CMPLXL(long double real, long double imag)
-{
+CMPLXL(long double real, long double imag) {
     long double complex z;
     ((long double *)(&z))[0] = real;
     ((long double *)(&z))[1] = imag;
     return z;
 }
-#  endif
+#endif
 #endif

@@ -1,12 +1,12 @@
 /* Test Vectorcall in the limited API */
 
 // Need limited C API version 3.12 for PyObject_Vectorcall()
-#include "pyconfig.h"   // Py_GIL_DISABLED
+#include "pyconfig.h"  // Py_GIL_DISABLED
 #if !defined(Py_GIL_DISABLED) && !defined(Py_LIMITED_API)
-#  define Py_LIMITED_API 0x030c0000
+#define Py_LIMITED_API 0x030c0000
 #endif
 
-#include <stddef.h>                         // offsetof
+#include <stddef.h>  // offsetof
 
 #include "parts.h"
 #include "clinic/vectorcall_limited.c.h"
@@ -22,22 +22,20 @@ LimitedVectorCallClass_tpcall(PyObject *self, PyObject *args, PyObject *kwargs) 
 }
 
 static PyObject *
-LimitedVectorCallClass_vectorcall(PyObject *callable,
-                            PyObject *const *args,
-                            size_t nargsf,
-                            PyObject *kwnames) {
+LimitedVectorCallClass_vectorcall(
+    PyObject *callable, PyObject *const *args, size_t nargsf, PyObject *kwnames
+) {
     return PyUnicode_FromString("vectorcall called");
 }
 
 static PyObject *
-LimitedVectorCallClass_new(PyTypeObject *tp, PyTypeObject *a, PyTypeObject *kw)
-{
+LimitedVectorCallClass_new(PyTypeObject *tp, PyTypeObject *a, PyTypeObject *kw) {
     PyObject *self = ((allocfunc)PyType_GetSlot(tp, Py_tp_alloc))(tp, 0);
     if (!self) {
         return NULL;
     }
-    *(vectorcallfunc*)((char*)self + sizeof(PyObject)) = (
-        LimitedVectorCallClass_vectorcall);
+    *(vectorcallfunc *)((char *)self + sizeof(PyObject)) =
+        (LimitedVectorCallClass_vectorcall);
     return self;
 }
 
@@ -52,7 +50,7 @@ static PyObject *
 _testlimitedcapi_call_vectorcall(PyObject *module, PyObject *callable)
 /*[clinic end generated code: output=9cbb7832263a8eef input=0743636c12dccb28]*/
 {
-    PyObject *args[3] = { NULL, NULL, NULL };
+    PyObject *args[3] = {NULL, NULL, NULL};
     PyObject *kwname = NULL, *kwnames = NULL, *result = NULL;
 
     args[1] = PyUnicode_FromString("foo");
@@ -80,10 +78,7 @@ _testlimitedcapi_call_vectorcall(PyObject *module, PyObject *callable)
     }
 
     result = PyObject_Vectorcall(
-        callable,
-        args + 1,
-        1 | PY_VECTORCALL_ARGUMENTS_OFFSET,
-        kwnames
+        callable, args + 1, 1 | PY_VECTORCALL_ARGUMENTS_OFFSET, kwnames
     );
 
 leave:
@@ -105,9 +100,8 @@ static PyObject *
 _testlimitedcapi_call_vectorcall_method(PyObject *module, PyObject *callable)
 /*[clinic end generated code: output=4558323a46cc09eb input=a736f7dbf15f1be5]*/
 {
-    PyObject *args[3] = { NULL, NULL, NULL };
-    PyObject *name = NULL, *kwname = NULL,
-             *kwnames = NULL, *result = NULL;
+    PyObject *args[3] = {NULL, NULL, NULL};
+    PyObject *name = NULL, *kwname = NULL, *kwnames = NULL, *result = NULL;
 
     name = PyUnicode_FromString("f");
     if (!name) {
@@ -139,12 +133,8 @@ _testlimitedcapi_call_vectorcall_method(PyObject *module, PyObject *callable)
         goto leave;
     }
 
-
     result = PyObject_VectorcallMethod(
-        name,
-        args,
-        2 | PY_VECTORCALL_ARGUMENTS_OFFSET,
-        kwnames
+        name, args, 2 | PY_VECTORCALL_ARGUMENTS_OFFSET, kwnames
     );
 
 leave:
@@ -157,8 +147,7 @@ leave:
 }
 
 static PyMemberDef LimitedVectorCallClass_members[] = {
-    {"__vectorcalloffset__", Py_T_PYSSIZET, sizeof(PyObject), Py_READONLY},
-    {NULL}
+    {"__vectorcalloffset__", Py_T_PYSSIZET, sizeof(PyObject), Py_READONLY}, {NULL}
 };
 
 static PyType_Slot LimitedVectorallClass_slots[] = {
@@ -171,9 +160,7 @@ static PyType_Slot LimitedVectorallClass_slots[] = {
 static PyType_Spec LimitedVectorCallClass_spec = {
     .name = "_testlimitedcapi.LimitedVectorCallClass",
     .basicsize = (int)(sizeof(PyObject) + sizeof(vectorcallfunc)),
-    .flags = Py_TPFLAGS_DEFAULT
-        | Py_TPFLAGS_HAVE_VECTORCALL
-        | Py_TPFLAGS_BASETYPE,
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL | Py_TPFLAGS_BASETYPE,
     .slots = LimitedVectorallClass_slots,
 };
 
@@ -182,8 +169,9 @@ typedef struct {
 } LimitedRelativeVectorCallStruct;
 
 static PyObject *
-LimitedRelativeVectorCallClass_new(PyTypeObject *tp, PyTypeObject *a, PyTypeObject *kw)
-{
+LimitedRelativeVectorCallClass_new(
+    PyTypeObject *tp, PyTypeObject *a, PyTypeObject *kw
+) {
     PyObject *self = ((allocfunc)PyType_GetSlot(tp, Py_tp_alloc))(tp, 0);
     if (!self) {
         return NULL;
@@ -193,40 +181,35 @@ LimitedRelativeVectorCallClass_new(PyTypeObject *tp, PyTypeObject *a, PyTypeObje
     return self;
 }
 
-
 static PyType_Spec LimitedRelativeVectorCallClass_spec = {
     .name = "_testlimitedcapi.LimitedRelativeVectorCallClass",
     .basicsize = -(int)sizeof(LimitedRelativeVectorCallStruct),
-    .flags = Py_TPFLAGS_DEFAULT
-        | Py_TPFLAGS_HAVE_VECTORCALL,
-    .slots = (PyType_Slot[]) {
-        {Py_tp_new, LimitedRelativeVectorCallClass_new},
-        {Py_tp_call, LimitedVectorCallClass_tpcall},
-        {Py_tp_members, (PyMemberDef[]){
-            {"__vectorcalloffset__", Py_T_PYSSIZET,
-             offsetof(LimitedRelativeVectorCallStruct, vfunc),
-             Py_READONLY | Py_RELATIVE_OFFSET},
-            {NULL}
-        }},
-        {0}
-    },
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL,
+    .slots = (PyType_Slot[]
+    ){{Py_tp_new, LimitedRelativeVectorCallClass_new},
+      {Py_tp_call, LimitedVectorCallClass_tpcall},
+      {Py_tp_members,
+       (PyMemberDef[]){{"__vectorcalloffset__",
+                        Py_T_PYSSIZET,
+                        offsetof(LimitedRelativeVectorCallStruct, vfunc),
+                        Py_READONLY | Py_RELATIVE_OFFSET},
+                       {NULL}}},
+      {0}},
 };
 
 static PyMethodDef TestMethods[] = {
     _TESTLIMITEDCAPI_CALL_VECTORCALL_METHODDEF
-    _TESTLIMITEDCAPI_CALL_VECTORCALL_METHOD_METHODDEF
-    {NULL},
+        _TESTLIMITEDCAPI_CALL_VECTORCALL_METHOD_METHODDEF{NULL},
 };
 
 int
-_PyTestLimitedCAPI_Init_VectorcallLimited(PyObject *m)
-{
+_PyTestLimitedCAPI_Init_VectorcallLimited(PyObject *m) {
     if (PyModule_AddFunctions(m, TestMethods) < 0) {
         return -1;
     }
 
-    PyObject *LimitedVectorCallClass = PyType_FromModuleAndSpec(
-        m, &LimitedVectorCallClass_spec, NULL);
+    PyObject *LimitedVectorCallClass =
+        PyType_FromModuleAndSpec(m, &LimitedVectorCallClass_spec, NULL);
     if (!LimitedVectorCallClass) {
         return -1;
     }
@@ -235,8 +218,8 @@ _PyTestLimitedCAPI_Init_VectorcallLimited(PyObject *m)
     }
     Py_DECREF(LimitedVectorCallClass);
 
-    PyObject *LimitedRelativeVectorCallClass = PyType_FromModuleAndSpec(
-        m, &LimitedRelativeVectorCallClass_spec, NULL);
+    PyObject *LimitedRelativeVectorCallClass =
+        PyType_FromModuleAndSpec(m, &LimitedRelativeVectorCallClass_spec, NULL);
     if (!LimitedRelativeVectorCallClass) {
         return -1;
     }

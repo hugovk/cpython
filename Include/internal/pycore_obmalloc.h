@@ -5,15 +5,13 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
+typedef unsigned int pymem_uint; /* assuming >= 16 bits */
 
-typedef unsigned int pymem_uint;  /* assuming >= 16 bits */
-
-#undef  uint
+#undef uint
 #define uint pymem_uint
-
 
 /* An object allocator for Python.
 
@@ -65,7 +63,7 @@ typedef unsigned int pymem_uint;  /* assuming >= 16 bits */
  *    in Proc. 1995 Int'l. Workshop on Memory Management, September 1995.
  */
 
-/* #undef WITH_MEMORY_LIMITS */         /* disable mem limit checks  */
+/* #undef WITH_MEMORY_LIMITS */ /* disable mem limit checks  */
 
 /*==========================================================================*/
 
@@ -129,11 +127,11 @@ typedef unsigned int pymem_uint;  /* assuming >= 16 bits */
  */
 
 #if SIZEOF_VOID_P > 4
-#define ALIGNMENT              16               /* must be 2^N */
-#define ALIGNMENT_SHIFT         4
+#define ALIGNMENT 16 /* must be 2^N */
+#define ALIGNMENT_SHIFT 4
 #else
-#define ALIGNMENT               8               /* must be 2^N */
-#define ALIGNMENT_SHIFT         3
+#define ALIGNMENT 8 /* must be 2^N */
+#define ALIGNMENT_SHIFT 3
 #endif
 
 /* Return the number of bytes in size class I, as a uint. */
@@ -155,7 +153,7 @@ typedef unsigned int pymem_uint;  /* assuming >= 16 bits */
  * it is recommended that SMALL_REQUEST_THRESHOLD is set to a power of 2.
  */
 #define SMALL_REQUEST_THRESHOLD 512
-#define NB_SMALL_SIZE_CLASSES   (SMALL_REQUEST_THRESHOLD / ALIGNMENT)
+#define NB_SMALL_SIZE_CLASSES (SMALL_REQUEST_THRESHOLD / ALIGNMENT)
 
 /*
  * The system's VMM page size can be obtained on most unices with a
@@ -167,14 +165,14 @@ typedef unsigned int pymem_uint;  /* assuming >= 16 bits */
  * violation fault.  4K is apparently OK for all the platforms that python
  * currently targets.
  */
-#define SYSTEM_PAGE_SIZE        (4 * 1024)
+#define SYSTEM_PAGE_SIZE (4 * 1024)
 
 /*
  * Maximum amount of memory managed by the allocator for small requests.
  */
 #ifdef WITH_MEMORY_LIMITS
 #ifndef SMALL_MEMORY_LIMIT
-#define SMALL_MEMORY_LIMIT      (64 * 1024 * 1024)      /* 64 MB -- more? */
+#define SMALL_MEMORY_LIMIT (64 * 1024 * 1024) /* 64 MB -- more? */
 #endif
 #endif
 
@@ -208,37 +206,37 @@ typedef unsigned int pymem_uint;  /* assuming >= 16 bits */
  * mappings to reduce heap fragmentation.
  */
 #ifdef USE_LARGE_ARENAS
-#define ARENA_BITS              20                    /* 1 MiB */
+#define ARENA_BITS 20 /* 1 MiB */
 #else
-#define ARENA_BITS              18                    /* 256 KiB */
+#define ARENA_BITS 18 /* 256 KiB */
 #endif
-#define ARENA_SIZE              (1 << ARENA_BITS)
-#define ARENA_SIZE_MASK         (ARENA_SIZE - 1)
+#define ARENA_SIZE (1 << ARENA_BITS)
+#define ARENA_SIZE_MASK (ARENA_SIZE - 1)
 
 #ifdef WITH_MEMORY_LIMITS
-#define MAX_ARENAS              (SMALL_MEMORY_LIMIT / ARENA_SIZE)
+#define MAX_ARENAS (SMALL_MEMORY_LIMIT / ARENA_SIZE)
 #endif
 
 /*
  * Size of the pools used for small blocks.  Must be a power of 2.
  */
 #ifdef USE_LARGE_POOLS
-#define POOL_BITS               14                  /* 16 KiB */
+#define POOL_BITS 14 /* 16 KiB */
 #else
-#define POOL_BITS               12                  /* 4 KiB */
+#define POOL_BITS 12 /* 4 KiB */
 #endif
-#define POOL_SIZE               (1 << POOL_BITS)
-#define POOL_SIZE_MASK          (POOL_SIZE - 1)
+#define POOL_SIZE (1 << POOL_BITS)
+#define POOL_SIZE_MASK (POOL_SIZE - 1)
 
 #if !WITH_PYMALLOC_RADIX_TREE
 #if POOL_SIZE != SYSTEM_PAGE_SIZE
-#   error "pool size must be equal to system page size"
+#error "pool size must be equal to system page size"
 #endif
 #endif
 
-#define MAX_POOLS_IN_ARENA  (ARENA_SIZE / POOL_SIZE)
+#define MAX_POOLS_IN_ARENA (ARENA_SIZE / POOL_SIZE)
 #if MAX_POOLS_IN_ARENA * POOL_SIZE != ARENA_SIZE
-#   error "arena size not an exact multiple of pool size"
+#error "arena size not an exact multiple of pool size"
 #endif
 
 /*
@@ -252,15 +250,17 @@ typedef uint8_t pymem_block;
 
 /* Pool for small blocks. */
 struct pool_header {
-    union { pymem_block *_padding;
-            uint count; } ref;          /* number of allocated blocks    */
-    pymem_block *freeblock;             /* pool's free list head         */
-    struct pool_header *nextpool;       /* see "Pool table" for meaning  */
-    struct pool_header *prevpool;       /* "                             */
-    uint arenaindex;                    /* index into arenas of base adr */
-    uint szidx;                         /* block size class index        */
-    uint nextoffset;                    /* bytes to virgin block         */
-    uint maxnextoffset;                 /* largest valid nextoffset      */
+    union {
+        pymem_block *_padding;
+        uint count;
+    } ref;                        /* number of allocated blocks    */
+    pymem_block *freeblock;       /* pool's free list head         */
+    struct pool_header *nextpool; /* see "Pool table" for meaning  */
+    struct pool_header *prevpool; /* "                             */
+    uint arenaindex;              /* index into arenas of base adr */
+    uint szidx;                   /* block size class index        */
+    uint nextoffset;              /* bytes to virgin block         */
+    uint maxnextoffset;           /* largest valid nextoffset      */
 };
 
 typedef struct pool_header *poolp;
@@ -275,7 +275,7 @@ struct arena_object {
     uintptr_t address;
 
     /* Pool-aligned pointer to the next pool to be carved off. */
-    pymem_block* pool_address;
+    pymem_block *pool_address;
 
     /* The number of available pools in the arena:  free pools + never-
      * allocated pools.
@@ -286,7 +286,7 @@ struct arena_object {
     uint ntotalpools;
 
     /* Singly-linked list of available pools. */
-    struct pool_header* freepools;
+    struct pool_header *freepools;
 
     /* Whenever this arena_object is not associated with an allocated
      * arena, the nextarena member is used to link all unassociated
@@ -302,13 +302,13 @@ struct arena_object {
      * all of whose pools are in use.  `nextarena` and `prevarena`
      * are both meaningless in this case.
      */
-    struct arena_object* nextarena;
-    struct arena_object* prevarena;
+    struct arena_object *nextarena;
+    struct arena_object *prevarena;
 };
 
-#define POOL_OVERHEAD   _Py_SIZE_ROUND_UP(sizeof(struct pool_header), ALIGNMENT)
+#define POOL_OVERHEAD _Py_SIZE_ROUND_UP(sizeof(struct pool_header), ALIGNMENT)
 
-#define DUMMY_SIZE_IDX          0xffff  /* size class of newly cached pools */
+#define DUMMY_SIZE_IDX 0xffff /* size class of newly cached pools */
 
 /* Round pointer P down to the closest pool-aligned address <= P, as a poolp */
 #define POOL_ADDR(P) ((poolp)_Py_ALIGN_DOWN((P), POOL_SIZE))
@@ -420,7 +420,6 @@ struct _obmalloc_pools {
     poolp used[OBMALLOC_USED_POOLS_SIZE];
 };
 
-
 /*==========================================================================
 Arena management.
 
@@ -476,22 +475,22 @@ nfp free pools in usable_arenas.
 
 struct _obmalloc_mgmt {
     /* Array of objects used to track chunks of memory (arenas). */
-    struct arena_object* arenas;
+    struct arena_object *arenas;
     /* Number of slots currently allocated in the `arenas` vector. */
     uint maxarenas;
 
     /* The head of the singly-linked, NULL-terminated list of available
      * arena_objects.
      */
-    struct arena_object* unused_arena_objects;
+    struct arena_object *unused_arena_objects;
 
     /* The head of the doubly-linked, NULL-terminated at each end, list of
      * arena_objects associated with arenas that have pools available.
      */
-    struct arena_object* usable_arenas;
+    struct arena_object *usable_arenas;
 
     /* nfp2lasta[nfp] is the last arena in usable_arenas with nfp free pools */
-    struct arena_object* nfp2lasta[MAX_POOLS_IN_ARENA + 1];
+    struct arena_object *nfp2lasta[MAX_POOLS_IN_ARENA + 1];
 
     /* Number of arenas allocated that haven't been free()'d. */
     size_t narenas_currently_allocated;
@@ -503,7 +502,6 @@ struct _obmalloc_mgmt {
 
     Py_ssize_t raw_allocated_blocks;
 };
-
 
 #if WITH_PYMALLOC_RADIX_TREE
 /*==========================================================================*/
@@ -563,14 +561,14 @@ struct _obmalloc_mgmt {
 
 #else
 
- /* Currently this code works for 64-bit or 32-bit pointers only.  */
+/* Currently this code works for 64-bit or 32-bit pointers only.  */
 #error "obmalloc radix tree requires 64-bit or 32-bit pointers."
 
 #endif /* SIZEOF_VOID_P */
 
 /* arena_coverage_t members require this to be true  */
 #if ARENA_BITS >= 32
-#   error "arena size must be < 2^32"
+#error "arena size must be < 2^32"
 #endif
 
 /* the lower bits of the address that are not ignored */
@@ -591,7 +589,7 @@ struct _obmalloc_mgmt {
 #define MAP_MID_LENGTH (1 << MAP_MID_BITS)
 #define MAP_MID_MASK (MAP_MID_LENGTH - 1)
 
-#define MAP_BOT_BITS (ADDRESS_BITS - ARENA_BITS - 2*INTERIOR_BITS)
+#define MAP_BOT_BITS (ADDRESS_BITS - ARENA_BITS - 2 * INTERIOR_BITS)
 #define MAP_BOT_LENGTH (1 << MAP_BOT_BITS)
 #define MAP_BOT_MASK (MAP_BOT_LENGTH - 1)
 
@@ -612,7 +610,6 @@ struct _obmalloc_mgmt {
 #else
 #define HIGH_BITS(p) 0
 #endif
-
 
 /* This is the leaf of the radix tree.  See arena_map_mark_used() for the
  * meaning of these members. */
@@ -656,7 +653,6 @@ struct _obmalloc_usage {
 
 #endif /* WITH_PYMALLOC_RADIX_TREE */
 
-
 struct _obmalloc_global_state {
     int dump_debug_stats;
     Py_ssize_t interpreter_leaks;
@@ -670,31 +666,32 @@ struct _obmalloc_state {
 #endif
 };
 
-
-#undef  uint
-
+#undef uint
 
 /* Allocate memory directly from the O/S virtual memory system,
  * where supported. Otherwise fallback on malloc */
-void *_PyObject_VirtualAlloc(size_t size);
-void _PyObject_VirtualFree(void *, size_t size);
-
+void *
+_PyObject_VirtualAlloc(size_t size);
+void
+_PyObject_VirtualFree(void *, size_t size);
 
 /* This function returns the number of allocated memory blocks, regardless of size */
-extern Py_ssize_t _Py_GetGlobalAllocatedBlocks(void);
-#define _Py_GetAllocatedBlocks() \
-    _Py_GetGlobalAllocatedBlocks()
-extern Py_ssize_t _PyInterpreterState_GetAllocatedBlocks(PyInterpreterState *);
-extern void _PyInterpreterState_FinalizeAllocatedBlocks(PyInterpreterState *);
-extern int _PyMem_init_obmalloc(PyInterpreterState *interp);
-extern bool _PyMem_obmalloc_state_on_heap(PyInterpreterState *interp);
-
+extern Py_ssize_t
+_Py_GetGlobalAllocatedBlocks(void);
+#define _Py_GetAllocatedBlocks() _Py_GetGlobalAllocatedBlocks()
+extern Py_ssize_t
+_PyInterpreterState_GetAllocatedBlocks(PyInterpreterState *);
+extern void
+_PyInterpreterState_FinalizeAllocatedBlocks(PyInterpreterState *);
+extern int
+_PyMem_init_obmalloc(PyInterpreterState *interp);
+extern bool
+_PyMem_obmalloc_state_on_heap(PyInterpreterState *interp);
 
 #ifdef WITH_PYMALLOC
 // Export the symbol for the 3rd party 'guppy3' project
 PyAPI_FUNC(int) _PyObject_DebugMallocStats(FILE *out);
 #endif
-
 
 #ifdef __cplusplus
 }

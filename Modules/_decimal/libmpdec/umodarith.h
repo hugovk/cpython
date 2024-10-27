@@ -25,33 +25,27 @@
  * SUCH DAMAGE.
  */
 
-
 #ifndef LIBMPDEC_UMODARITH_H_
 #define LIBMPDEC_UMODARITH_H_
-
 
 #include "mpdecimal.h"
 
 #include "constants.h"
 #include "typearith.h"
 
-
 /* Bignum: Low level routines for unsigned modular arithmetic. These are
    used in the fast convolution functions for very large coefficients. */
-
 
 /**************************************************************************/
 /*                        ANSI modular arithmetic                         */
 /**************************************************************************/
-
 
 /*
  * Restrictions: a < m and b < m
  * ACL2 proof: umodarith.lisp: addmod-correct
  */
 static inline mpd_uint_t
-addmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
-{
+addmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m) {
     mpd_uint_t s;
 
     s = a + b;
@@ -66,8 +60,7 @@ addmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
  * ACL2 proof: umodarith.lisp: submod-2-correct
  */
 static inline mpd_uint_t
-submod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
-{
+submod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m) {
     mpd_uint_t d;
 
     d = a - b;
@@ -81,8 +74,7 @@ submod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
  * ACL2 proof: umodarith.lisp: section ext-submod
  */
 static inline mpd_uint_t
-ext_submod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
-{
+ext_submod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m) {
     mpd_uint_t d;
 
     a = (a >= m) ? a - m : a;
@@ -100,8 +92,7 @@ ext_submod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
  * ACL2 proof: umodarith.lisp: section dw-reduce
  */
 static inline mpd_uint_t
-dw_reduce(mpd_uint_t hi, mpd_uint_t lo, mpd_uint_t m)
-{
+dw_reduce(mpd_uint_t hi, mpd_uint_t lo, mpd_uint_t m) {
     mpd_uint_t r1, r2, w;
 
     _mpd_div_word(&w, &r1, hi, m);
@@ -116,8 +107,7 @@ dw_reduce(mpd_uint_t hi, mpd_uint_t lo, mpd_uint_t m)
  * ACL2 proof: umodarith.lisp: section dw-submod
  */
 static inline mpd_uint_t
-dw_submod(mpd_uint_t a, mpd_uint_t hi, mpd_uint_t lo, mpd_uint_t m)
-{
+dw_submod(mpd_uint_t a, mpd_uint_t hi, mpd_uint_t lo, mpd_uint_t m) {
     mpd_uint_t d, r;
 
     r = dw_reduce(hi, lo, m);
@@ -149,133 +139,143 @@ dw_submod(mpd_uint_t a, mpd_uint_t hi, mpd_uint_t lo, mpd_uint_t m)
  */
 
 static inline mpd_uint_t
-x64_mulmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
-{
+x64_mulmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m) {
     mpd_uint_t hi, lo, x, y;
-
 
     _mpd_mul_words(&hi, &lo, a, b);
 
-    if (m & (1ULL<<32)) { /* P1 */
+    if (m & (1ULL << 32)) { /* P1 */
 
         /* first reduction */
         x = y = hi;
         hi >>= 32;
 
         x = lo - x;
-        if (x > lo) hi--;
+        if (x > lo)
+            hi--;
 
         y <<= 32;
         lo = y + x;
-        if (lo < y) hi++;
+        if (lo < y)
+            hi++;
 
         /* second reduction */
         x = y = hi;
         hi >>= 32;
 
         x = lo - x;
-        if (x > lo) hi--;
+        if (x > lo)
+            hi--;
 
         y <<= 32;
         lo = y + x;
-        if (lo < y) hi++;
+        if (lo < y)
+            hi++;
 
         return (hi || lo >= m ? lo - m : lo);
-    }
-    else if (m & (1ULL<<34)) { /* P2 */
+    } else if (m & (1ULL << 34)) { /* P2 */
 
         /* first reduction */
         x = y = hi;
         hi >>= 30;
 
         x = lo - x;
-        if (x > lo) hi--;
+        if (x > lo)
+            hi--;
 
         y <<= 34;
         lo = y + x;
-        if (lo < y) hi++;
+        if (lo < y)
+            hi++;
 
         /* second reduction */
         x = y = hi;
         hi >>= 30;
 
         x = lo - x;
-        if (x > lo) hi--;
+        if (x > lo)
+            hi--;
 
         y <<= 34;
         lo = y + x;
-        if (lo < y) hi++;
+        if (lo < y)
+            hi++;
 
         /* third reduction */
         x = y = hi;
         hi >>= 30;
 
         x = lo - x;
-        if (x > lo) hi--;
+        if (x > lo)
+            hi--;
 
         y <<= 34;
         lo = y + x;
-        if (lo < y) hi++;
+        if (lo < y)
+            hi++;
 
         return (hi || lo >= m ? lo - m : lo);
-    }
-    else { /* P3 */
+    } else { /* P3 */
 
         /* first reduction */
         x = y = hi;
         hi >>= 24;
 
         x = lo - x;
-        if (x > lo) hi--;
+        if (x > lo)
+            hi--;
 
         y <<= 40;
         lo = y + x;
-        if (lo < y) hi++;
+        if (lo < y)
+            hi++;
 
         /* second reduction */
         x = y = hi;
         hi >>= 24;
 
         x = lo - x;
-        if (x > lo) hi--;
+        if (x > lo)
+            hi--;
 
         y <<= 40;
         lo = y + x;
-        if (lo < y) hi++;
+        if (lo < y)
+            hi++;
 
         /* third reduction */
         x = y = hi;
         hi >>= 24;
 
         x = lo - x;
-        if (x > lo) hi--;
+        if (x > lo)
+            hi--;
 
         y <<= 40;
         lo = y + x;
-        if (lo < y) hi++;
+        if (lo < y)
+            hi++;
 
         return (hi || lo >= m ? lo - m : lo);
     }
 }
 
 static inline void
-x64_mulmod2c(mpd_uint_t *a, mpd_uint_t *b, mpd_uint_t w, mpd_uint_t m)
-{
+x64_mulmod2c(mpd_uint_t *a, mpd_uint_t *b, mpd_uint_t w, mpd_uint_t m) {
     *a = x64_mulmod(*a, w, m);
     *b = x64_mulmod(*b, w, m);
 }
 
 static inline void
-x64_mulmod2(mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1,
-            mpd_uint_t m)
-{
+x64_mulmod2(
+    mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1, mpd_uint_t m
+) {
     *a0 = x64_mulmod(*a0, b0, m);
     *a1 = x64_mulmod(*a1, b1, m);
 }
 
 static inline mpd_uint_t
-x64_powmod(mpd_uint_t base, mpd_uint_t exp, mpd_uint_t umod)
-{
+x64_powmod(mpd_uint_t base, mpd_uint_t exp, mpd_uint_t umod) {
     mpd_uint_t r = 1;
 
     while (exp > 0) {
@@ -291,7 +291,6 @@ x64_powmod(mpd_uint_t base, mpd_uint_t exp, mpd_uint_t umod)
 /* END CONFIG_64 */
 #else /* CONFIG_32 */
 
-
 /**************************************************************************/
 /*                        32-bit modular arithmetic                       */
 /**************************************************************************/
@@ -300,31 +299,28 @@ x64_powmod(mpd_uint_t base, mpd_uint_t exp, mpd_uint_t umod)
 #if !defined(LEGACY_COMPILER)
 /* HAVE_UINT64_T */
 static inline mpd_uint_t
-std_mulmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
-{
-    return ((mpd_uuint_t) a * b) % m;
+std_mulmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m) {
+    return ((mpd_uuint_t)a * b) % m;
 }
 
 static inline void
-std_mulmod2c(mpd_uint_t *a, mpd_uint_t *b, mpd_uint_t w, mpd_uint_t m)
-{
-    *a = ((mpd_uuint_t) *a * w) % m;
-    *b = ((mpd_uuint_t) *b * w) % m;
+std_mulmod2c(mpd_uint_t *a, mpd_uint_t *b, mpd_uint_t w, mpd_uint_t m) {
+    *a = ((mpd_uuint_t)*a * w) % m;
+    *b = ((mpd_uuint_t)*b * w) % m;
 }
 
 static inline void
-std_mulmod2(mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1,
-            mpd_uint_t m)
-{
-    *a0 = ((mpd_uuint_t) *a0 * b0) % m;
-    *a1 = ((mpd_uuint_t) *a1 * b1) % m;
+std_mulmod2(
+    mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1, mpd_uint_t m
+) {
+    *a0 = ((mpd_uuint_t)*a0 * b0) % m;
+    *a1 = ((mpd_uuint_t)*a1 * b1) % m;
 }
 /* END HAVE_UINT64_T */
 #else
 /* LEGACY_COMPILER */
 static inline mpd_uint_t
-std_mulmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
-{
+std_mulmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m) {
     mpd_uint_t hi, lo, q, r;
     _mpd_mul_words(&hi, &lo, a, b);
     _mpd_div_words(&q, &r, hi, lo, m);
@@ -332,16 +328,15 @@ std_mulmod(mpd_uint_t a, mpd_uint_t b, mpd_uint_t m)
 }
 
 static inline void
-std_mulmod2c(mpd_uint_t *a, mpd_uint_t *b, mpd_uint_t w, mpd_uint_t m)
-{
+std_mulmod2c(mpd_uint_t *a, mpd_uint_t *b, mpd_uint_t w, mpd_uint_t m) {
     *a = std_mulmod(*a, w, m);
     *b = std_mulmod(*b, w, m);
 }
 
 static inline void
-std_mulmod2(mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1,
-            mpd_uint_t m)
-{
+std_mulmod2(
+    mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1, mpd_uint_t m
+) {
     *a0 = std_mulmod(*a0, b0, m);
     *a1 = std_mulmod(*a1, b1, m);
 }
@@ -349,8 +344,7 @@ std_mulmod2(mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1,
 #endif
 
 static inline mpd_uint_t
-std_powmod(mpd_uint_t base, mpd_uint_t exp, mpd_uint_t umod)
-{
+std_powmod(mpd_uint_t base, mpd_uint_t exp, mpd_uint_t umod) {
     mpd_uint_t r = 1;
 
     while (exp > 0) {
@@ -363,7 +357,6 @@ std_powmod(mpd_uint_t base, mpd_uint_t exp, mpd_uint_t umod)
     return r;
 }
 #endif /* ANSI CONFIG_32 */
-
 
 /**************************************************************************/
 /*                    Pentium Pro modular arithmetic                      */
@@ -399,26 +392,25 @@ std_powmod(mpd_uint_t base, mpd_uint_t exp, mpd_uint_t umod)
 
 /* Return (a * b) % dmod */
 static inline mpd_uint_t
-ppro_mulmod(mpd_uint_t a, mpd_uint_t b, double *dmod, uint32_t *dinvmod)
-{
+ppro_mulmod(mpd_uint_t a, mpd_uint_t b, double *dmod, uint32_t *dinvmod) {
     mpd_uint_t retval;
 
-    __asm__ (
-            "fildl  %2\n\t"
-            "fildl  %1\n\t"
-            "fmulp  %%st, %%st(1)\n\t"
-            "fldt   (%4)\n\t"
-            "fmul   %%st(1), %%st\n\t"
-            "flds   %5\n\t"
-            "fadd   %%st, %%st(1)\n\t"
-            "fsubrp %%st, %%st(1)\n\t"
-            "fldl   (%3)\n\t"
-            "fmulp  %%st, %%st(1)\n\t"
-            "fsubrp %%st, %%st(1)\n\t"
-            "fistpl %0\n\t"
-            : "=m" (retval)
-            : "m" (a), "m" (b), "r" (dmod), "r" (dinvmod), "m" (MPD_TWO63)
-            : "st", "memory"
+    __asm__(
+        "fildl  %2\n\t"
+        "fildl  %1\n\t"
+        "fmulp  %%st, %%st(1)\n\t"
+        "fldt   (%4)\n\t"
+        "fmul   %%st(1), %%st\n\t"
+        "flds   %5\n\t"
+        "fadd   %%st, %%st(1)\n\t"
+        "fsubrp %%st, %%st(1)\n\t"
+        "fldl   (%3)\n\t"
+        "fmulp  %%st, %%st(1)\n\t"
+        "fsubrp %%st, %%st(1)\n\t"
+        "fistpl %0\n\t"
+        : "=m"(retval)
+        : "m"(a), "m"(b), "r"(dmod), "r"(dinvmod), "m"(MPD_TWO63)
+        : "st", "memory"
     );
 
     return retval;
@@ -430,36 +422,35 @@ ppro_mulmod(mpd_uint_t a, mpd_uint_t b, double *dmod, uint32_t *dinvmod)
  *      *a1 = (*a1 * w) % dmod
  */
 static inline void
-ppro_mulmod2c(mpd_uint_t *a0, mpd_uint_t *a1, mpd_uint_t w,
-              double *dmod, uint32_t *dinvmod)
-{
-    __asm__ (
-            "fildl  %2\n\t"
-            "fildl  (%1)\n\t"
-            "fmul   %%st(1), %%st\n\t"
-            "fxch   %%st(1)\n\t"
-            "fildl  (%0)\n\t"
-            "fmulp  %%st, %%st(1) \n\t"
-            "fldt   (%4)\n\t"
-            "flds   %5\n\t"
-            "fld    %%st(2)\n\t"
-            "fmul   %%st(2)\n\t"
-            "fadd   %%st(1)\n\t"
-            "fsub   %%st(1)\n\t"
-            "fmull  (%3)\n\t"
-            "fsubrp %%st, %%st(3)\n\t"
-            "fxch   %%st(2)\n\t"
-            "fistpl (%0)\n\t"
-            "fmul   %%st(2)\n\t"
-            "fadd   %%st(1)\n\t"
-            "fsubp  %%st, %%st(1)\n\t"
-            "fmull  (%3)\n\t"
-            "fsubrp %%st, %%st(1)\n\t"
-            "fistpl (%1)\n\t"
-            : : "r" (a0), "r" (a1), "m" (w),
-                "r" (dmod), "r" (dinvmod),
-                "m" (MPD_TWO63)
-            : "st", "memory"
+ppro_mulmod2c(
+    mpd_uint_t *a0, mpd_uint_t *a1, mpd_uint_t w, double *dmod, uint32_t *dinvmod
+) {
+    __asm__(
+        "fildl  %2\n\t"
+        "fildl  (%1)\n\t"
+        "fmul   %%st(1), %%st\n\t"
+        "fxch   %%st(1)\n\t"
+        "fildl  (%0)\n\t"
+        "fmulp  %%st, %%st(1) \n\t"
+        "fldt   (%4)\n\t"
+        "flds   %5\n\t"
+        "fld    %%st(2)\n\t"
+        "fmul   %%st(2)\n\t"
+        "fadd   %%st(1)\n\t"
+        "fsub   %%st(1)\n\t"
+        "fmull  (%3)\n\t"
+        "fsubrp %%st, %%st(3)\n\t"
+        "fxch   %%st(2)\n\t"
+        "fistpl (%0)\n\t"
+        "fmul   %%st(2)\n\t"
+        "fadd   %%st(1)\n\t"
+        "fsubp  %%st, %%st(1)\n\t"
+        "fmull  (%3)\n\t"
+        "fsubrp %%st, %%st(1)\n\t"
+        "fistpl (%1)\n\t"
+        :
+        : "r"(a0), "r"(a1), "m"(w), "r"(dmod), "r"(dinvmod), "m"(MPD_TWO63)
+        : "st", "memory"
     );
 }
 
@@ -469,53 +460,57 @@ ppro_mulmod2c(mpd_uint_t *a0, mpd_uint_t *a1, mpd_uint_t w,
  *      *a1 = (*a1 * b1) % dmod
  */
 static inline void
-ppro_mulmod2(mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1,
-             double *dmod, uint32_t *dinvmod)
-{
-    __asm__ (
-            "fildl  %3\n\t"
-            "fildl  (%2)\n\t"
-            "fmulp  %%st, %%st(1)\n\t"
-            "fildl  %1\n\t"
-            "fildl  (%0)\n\t"
-            "fmulp  %%st, %%st(1)\n\t"
-            "fldt   (%5)\n\t"
-            "fld    %%st(2)\n\t"
-            "fmul   %%st(1), %%st\n\t"
-            "fxch   %%st(1)\n\t"
-            "fmul   %%st(2), %%st\n\t"
-            "flds   %6\n\t"
-            "fldl   (%4)\n\t"
-            "fxch   %%st(3)\n\t"
-            "fadd   %%st(1), %%st\n\t"
-            "fxch   %%st(2)\n\t"
-            "fadd   %%st(1), %%st\n\t"
-            "fxch   %%st(2)\n\t"
-            "fsub   %%st(1), %%st\n\t"
-            "fxch   %%st(2)\n\t"
-            "fsubp  %%st, %%st(1)\n\t"
-            "fxch   %%st(1)\n\t"
-            "fmul   %%st(2), %%st\n\t"
-            "fxch   %%st(1)\n\t"
-            "fmulp  %%st, %%st(2)\n\t"
-            "fsubrp %%st, %%st(3)\n\t"
-            "fsubrp %%st, %%st(1)\n\t"
-            "fxch   %%st(1)\n\t"
-            "fistpl (%2)\n\t"
-            "fistpl (%0)\n\t"
-            : : "r" (a0), "m" (b0), "r" (a1), "m" (b1),
-                "r" (dmod), "r" (dinvmod),
-                "m" (MPD_TWO63)
-            : "st", "memory"
+ppro_mulmod2(
+    mpd_uint_t *a0,
+    mpd_uint_t b0,
+    mpd_uint_t *a1,
+    mpd_uint_t b1,
+    double *dmod,
+    uint32_t *dinvmod
+) {
+    __asm__(
+        "fildl  %3\n\t"
+        "fildl  (%2)\n\t"
+        "fmulp  %%st, %%st(1)\n\t"
+        "fildl  %1\n\t"
+        "fildl  (%0)\n\t"
+        "fmulp  %%st, %%st(1)\n\t"
+        "fldt   (%5)\n\t"
+        "fld    %%st(2)\n\t"
+        "fmul   %%st(1), %%st\n\t"
+        "fxch   %%st(1)\n\t"
+        "fmul   %%st(2), %%st\n\t"
+        "flds   %6\n\t"
+        "fldl   (%4)\n\t"
+        "fxch   %%st(3)\n\t"
+        "fadd   %%st(1), %%st\n\t"
+        "fxch   %%st(2)\n\t"
+        "fadd   %%st(1), %%st\n\t"
+        "fxch   %%st(2)\n\t"
+        "fsub   %%st(1), %%st\n\t"
+        "fxch   %%st(2)\n\t"
+        "fsubp  %%st, %%st(1)\n\t"
+        "fxch   %%st(1)\n\t"
+        "fmul   %%st(2), %%st\n\t"
+        "fxch   %%st(1)\n\t"
+        "fmulp  %%st, %%st(2)\n\t"
+        "fsubrp %%st, %%st(3)\n\t"
+        "fsubrp %%st, %%st(1)\n\t"
+        "fxch   %%st(1)\n\t"
+        "fistpl (%2)\n\t"
+        "fistpl (%0)\n\t"
+        :
+        : "r"(a0), "m"(b0), "r"(a1), "m"(b1), "r"(dmod), "r"(dinvmod), "m"(MPD_TWO63)
+        : "st", "memory"
     );
 }
 /* END PPRO GCC ASM */
 #elif defined(MASM)
 
 /* Return (a * b) % dmod */
-static inline mpd_uint_t __cdecl
-ppro_mulmod(mpd_uint_t a, mpd_uint_t b, double *dmod, uint32_t *dinvmod)
-{
+static inline mpd_uint_t __cdecl ppro_mulmod(
+    mpd_uint_t a, mpd_uint_t b, double *dmod, uint32_t *dinvmod
+) {
     mpd_uint_t retval;
 
     __asm {
@@ -543,10 +538,9 @@ ppro_mulmod(mpd_uint_t a, mpd_uint_t b, double *dmod, uint32_t *dinvmod)
  *      *a0 = (*a0 * w) % dmod
  *      *a1 = (*a1 * w) % dmod
  */
-static inline mpd_uint_t __cdecl
-ppro_mulmod2c(mpd_uint_t *a0, mpd_uint_t *a1, mpd_uint_t w,
-              double *dmod, uint32_t *dinvmod)
-{
+static inline mpd_uint_t __cdecl ppro_mulmod2c(
+    mpd_uint_t *a0, mpd_uint_t *a1, mpd_uint_t w, double *dmod, uint32_t *dinvmod
+) {
     __asm {
         mov     ecx, dmod
         mov     edx, a1
@@ -582,10 +576,14 @@ ppro_mulmod2c(mpd_uint_t *a0, mpd_uint_t *a1, mpd_uint_t w,
  *      *a0 = (*a0 * b0) % dmod
  *      *a1 = (*a1 * b1) % dmod
  */
-static inline void __cdecl
-ppro_mulmod2(mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1,
-             double *dmod, uint32_t *dinvmod)
-{
+static inline void __cdecl ppro_mulmod2(
+    mpd_uint_t *a0,
+    mpd_uint_t b0,
+    mpd_uint_t *a1,
+    mpd_uint_t b1,
+    double *dmod,
+    uint32_t *dinvmod
+) {
     __asm {
         mov     ecx, dmod
         mov     edx, a1
@@ -625,11 +623,9 @@ ppro_mulmod2(mpd_uint_t *a0, mpd_uint_t b0, mpd_uint_t *a1, mpd_uint_t b1,
 }
 #endif /* PPRO MASM (_MSC_VER) */
 
-
 /* Return (base ** exp) % dmod */
 static inline mpd_uint_t
-ppro_powmod(mpd_uint_t base, mpd_uint_t exp, double *dmod, uint32_t *dinvmod)
-{
+ppro_powmod(mpd_uint_t base, mpd_uint_t exp, double *dmod, uint32_t *dinvmod) {
     mpd_uint_t r = 1;
 
     while (exp > 0) {
@@ -643,6 +639,5 @@ ppro_powmod(mpd_uint_t base, mpd_uint_t exp, double *dmod, uint32_t *dinvmod)
 }
 #endif /* PPRO */
 #endif /* CONFIG_32 */
-
 
 #endif /* LIBMPDEC_UMODARITH_H_ */

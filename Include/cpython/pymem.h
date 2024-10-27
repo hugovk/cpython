@@ -1,5 +1,5 @@
 #ifndef Py_CPYTHON_PYMEM_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 typedef enum {
@@ -29,27 +29,26 @@ typedef enum {
 #endif
 } PyMemAllocatorName;
 
-
 typedef struct {
     /* user context passed as the first argument to the 4 functions */
     void *ctx;
 
     /* allocate a memory block */
-    void* (*malloc) (void *ctx, size_t size);
+    void *(*malloc)(void *ctx, size_t size);
 
     /* allocate a memory block initialized by zeros */
-    void* (*calloc) (void *ctx, size_t nelem, size_t elsize);
+    void *(*calloc)(void *ctx, size_t nelem, size_t elsize);
 
     /* allocate or resize a memory block */
-    void* (*realloc) (void *ctx, void *ptr, size_t new_size);
+    void *(*realloc)(void *ctx, void *ptr, size_t new_size);
 
     /* release a memory block */
-    void (*free) (void *ctx, void *ptr);
+    void (*free)(void *ctx, void *ptr);
 } PyMemAllocatorEx;
 
 /* Get the memory block allocator of the specified domain. */
-PyAPI_FUNC(void) PyMem_GetAllocator(PyMemAllocatorDomain domain,
-                                    PyMemAllocatorEx *allocator);
+PyAPI_FUNC(void)
+    PyMem_GetAllocator(PyMemAllocatorDomain domain, PyMemAllocatorEx *allocator);
 
 /* Set the memory block allocator of the specified domain.
 
@@ -62,8 +61,8 @@ PyAPI_FUNC(void) PyMem_GetAllocator(PyMemAllocatorDomain domain,
    If the new allocator is not a hook (don't call the previous allocator), the
    PyMem_SetupDebugHooks() function must be called to reinstall the debug hooks
    on top on the new allocator. */
-PyAPI_FUNC(void) PyMem_SetAllocator(PyMemAllocatorDomain domain,
-                                    PyMemAllocatorEx *allocator);
+PyAPI_FUNC(void)
+    PyMem_SetAllocator(PyMemAllocatorDomain domain, PyMemAllocatorEx *allocator);
 
 /* Setup hooks to detect bugs in the following Python memory allocator
    functions:

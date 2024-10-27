@@ -2,19 +2,19 @@
 /* low-level access to interpreter primitives */
 
 #ifndef Py_BUILD_CORE_BUILTIN
-#  define Py_BUILD_CORE_MODULE 1
+#define Py_BUILD_CORE_MODULE 1
 #endif
 
 #include "Python.h"
-#include "pycore_crossinterp.h"   // struct _xid
-#include "pycore_interp.h"        // _PyInterpreterState_LookUpID()
-#include "pycore_pystate.h"       // _PyInterpreterState_GetIDObject()
+#include "pycore_crossinterp.h"  // struct _xid
+#include "pycore_interp.h"       // _PyInterpreterState_LookUpID()
+#include "pycore_pystate.h"      // _PyInterpreterState_GetIDObject()
 
 #ifdef MS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>        // SwitchToThread()
+#include <windows.h>  // SwitchToThread()
 #elif defined(HAVE_SCHED_H)
-#include <sched.h>          // sched_yield()
+#include <sched.h>  // sched_yield()
 #endif
 
 #define REGISTERS_HEAP_TYPES
@@ -22,7 +22,6 @@
 #include "_interpreters_common.h"
 #undef HAS_UNBOUND_ITEMS
 #undef REGISTERS_HEAP_TYPES
-
 
 /*
 This module has the following process-global state:
@@ -91,19 +90,14 @@ API..  The module does not create any objects that are shared globally.
 #define MODULE_NAME_STR Py_STRINGIFY(MODULE_NAME)
 #define MODINIT_FUNC_NAME RESOLVE_MODINIT_FUNC_NAME(MODULE_NAME)
 
-
-#define GLOBAL_MALLOC(TYPE) \
-    PyMem_RawMalloc(sizeof(TYPE))
-#define GLOBAL_FREE(VAR) \
-    PyMem_RawFree(VAR)
-
+#define GLOBAL_MALLOC(TYPE) PyMem_RawMalloc(sizeof(TYPE))
+#define GLOBAL_FREE(VAR) PyMem_RawFree(VAR)
 
 #define XID_IGNORE_EXC 1
 #define XID_FREE 2
 
 static int
-_release_xid_data(_PyCrossInterpreterData *data, int flags)
-{
+_release_xid_data(_PyCrossInterpreterData *data, int flags) {
     int ignoreexc = flags & XID_IGNORE_EXC;
     PyObject *exc;
     if (ignoreexc) {
@@ -112,8 +106,7 @@ _release_xid_data(_PyCrossInterpreterData *data, int flags)
     int res;
     if (flags & XID_FREE) {
         res = _PyCrossInterpreterData_ReleaseAndRawFree(data);
-    }
-    else {
+    } else {
         res = _PyCrossInterpreterData_Release(data);
     }
     if (res < 0) {
@@ -132,18 +125,15 @@ _release_xid_data(_PyCrossInterpreterData *data, int flags)
     return res;
 }
 
-
 static PyInterpreterState *
-_get_current_interp(void)
-{
+_get_current_interp(void) {
     // PyInterpreterState_Get() aborts if lookup fails, so don't need
     // to check the result for NULL.
     return PyInterpreterState_Get();
 }
 
 static PyObject *
-_get_current_module(void)
-{
+_get_current_module(void) {
     PyObject *name = PyUnicode_FromString(MODULE_NAME_STR);
     if (name == NULL) {
         return NULL;
@@ -158,28 +148,25 @@ _get_current_module(void)
 }
 
 static PyObject *
-get_module_from_owned_type(PyTypeObject *cls)
-{
+get_module_from_owned_type(PyTypeObject *cls) {
     assert(cls != NULL);
     return _get_current_module();
     // XXX Use the more efficient API now that we use heap types:
-    //return PyType_GetModule(cls);
+    // return PyType_GetModule(cls);
 }
 
 static struct PyModuleDef moduledef;
 
 static PyObject *
-get_module_from_type(PyTypeObject *cls)
-{
+get_module_from_type(PyTypeObject *cls) {
     assert(cls != NULL);
     return _get_current_module();
     // XXX Use the more efficient API now that we use heap types:
-    //return PyType_GetModuleByDef(cls, &moduledef);
+    // return PyType_GetModuleByDef(cls, &moduledef);
 }
 
 static PyObject *
-add_new_exception(PyObject *mod, const char *name, PyObject *base)
-{
+add_new_exception(PyObject *mod, const char *name, PyObject *base) {
     assert(!PyObject_HasAttrStringWithError(mod, name));
     PyObject *exctype = PyErr_NewException(name, base, NULL);
     if (exctype == NULL) {
@@ -197,15 +184,13 @@ add_new_exception(PyObject *mod, const char *name, PyObject *base)
     add_new_exception(MOD, MODULE_NAME_STR "." Py_STRINGIFY(NAME), BASE)
 
 static int
-wait_for_lock(PyThread_type_lock mutex, PY_TIMEOUT_T timeout)
-{
+wait_for_lock(PyThread_type_lock mutex, PY_TIMEOUT_T timeout) {
     PyLockStatus res = PyThread_acquire_lock_timed_with_retries(mutex, timeout);
     if (res == PY_LOCK_INTR) {
         /* KeyboardInterrupt, etc. */
         assert(PyErr_Occurred());
         return -1;
-    }
-    else if (res == PY_LOCK_FAILURE) {
+    } else if (res == PY_LOCK_FAILURE) {
         assert(!PyErr_Occurred());
         assert(timeout > 0);
         PyErr_SetString(PyExc_TimeoutError, "timed out");
@@ -215,7 +200,6 @@ wait_for_lock(PyThread_type_lock mutex, PY_TIMEOUT_T timeout)
     PyThread_release_lock(mutex);
     return 0;
 }
-
 
 /* module state *************************************************************/
 
@@ -237,8 +221,7 @@ typedef struct {
 } module_state;
 
 static inline module_state *
-get_module_state(PyObject *mod)
-{
+get_module_state(PyObject *mod) {
     assert(mod != NULL);
     module_state *state = PyModule_GetState(mod);
     assert(state != NULL);
@@ -246,13 +229,11 @@ get_module_state(PyObject *mod)
 }
 
 static module_state *
-_get_current_module_state(void)
-{
+_get_current_module_state(void) {
     PyObject *mod = _get_current_module();
     if (mod == NULL) {
         // XXX import it?
-        PyErr_SetString(PyExc_RuntimeError,
-                        MODULE_NAME_STR " module not imported yet");
+        PyErr_SetString(PyExc_RuntimeError, MODULE_NAME_STR " module not imported yet");
         return NULL;
     }
     module_state *state = get_module_state(mod);
@@ -261,8 +242,7 @@ _get_current_module_state(void)
 }
 
 static int
-traverse_module_state(module_state *state, visitproc visit, void *arg)
-{
+traverse_module_state(module_state *state, visitproc visit, void *arg) {
     /* external types */
     Py_VISIT(state->send_channel_type);
     Py_VISIT(state->recv_channel_type);
@@ -282,8 +262,7 @@ traverse_module_state(module_state *state, visitproc visit, void *arg)
 }
 
 static void
-clear_xid_types(module_state *state)
-{
+clear_xid_types(module_state *state) {
     /* external types */
     if (state->send_channel_type != NULL) {
         (void)clear_xid_class(state->send_channel_type);
@@ -302,8 +281,7 @@ clear_xid_types(module_state *state)
 }
 
 static int
-clear_module_state(module_state *state)
-{
+clear_module_state(module_state *state) {
     clear_xid_types(state);
 
     /* heap types */
@@ -319,13 +297,11 @@ clear_module_state(module_state *state)
     return 0;
 }
 
-
 /* channel-specific code ****************************************************/
 
 #define CHANNEL_SEND 1
 #define CHANNEL_BOTH 0
 #define CHANNEL_RECV -1
-
 
 /* channel errors */
 
@@ -340,20 +316,19 @@ clear_module_state(module_state *state)
 #define ERR_CHANNEL_CLOSED_WAITING -10
 
 static int
-exceptions_init(PyObject *mod)
-{
+exceptions_init(PyObject *mod) {
     module_state *state = get_module_state(mod);
     if (state == NULL) {
         return -1;
     }
 
-#define ADD(NAME, BASE) \
-    do { \
-        assert(state->NAME == NULL); \
+#define ADD(NAME, BASE)                                   \
+    do {                                                  \
+        assert(state->NAME == NULL);                      \
         state->NAME = ADD_NEW_EXCEPTION(mod, NAME, BASE); \
-        if (state->NAME == NULL) { \
-            return -1; \
-        } \
+        if (state->NAME == NULL) {                        \
+            return -1;                                    \
+        }                                                 \
     } while (0)
 
     // A channel-related operation failed.
@@ -372,8 +347,7 @@ exceptions_init(PyObject *mod)
 }
 
 static int
-handle_channel_error(int err, PyObject *mod, int64_t cid)
-{
+handle_channel_error(int err, PyObject *mod, int64_t cid) {
     if (err == 0) {
         assert(!PyErr_Occurred());
         return 0;
@@ -382,49 +356,38 @@ handle_channel_error(int err, PyObject *mod, int64_t cid)
     module_state *state = get_module_state(mod);
     assert(state != NULL);
     if (err == ERR_CHANNEL_NOT_FOUND) {
-        PyErr_Format(state->ChannelNotFoundError,
-                     "channel %" PRId64 " not found", cid);
-    }
-    else if (err == ERR_CHANNEL_CLOSED) {
-        PyErr_Format(state->ChannelClosedError,
-                     "channel %" PRId64 " is closed", cid);
-    }
-    else if (err == ERR_CHANNEL_CLOSED_WAITING) {
-        PyErr_Format(state->ChannelClosedError,
-                     "channel %" PRId64 " has closed", cid);
-    }
-    else if (err == ERR_CHANNEL_INTERP_CLOSED) {
-        PyErr_Format(state->ChannelClosedError,
-                     "channel %" PRId64 " is already closed", cid);
-    }
-    else if (err == ERR_CHANNEL_EMPTY) {
-        PyErr_Format(state->ChannelEmptyError,
-                     "channel %" PRId64 " is empty", cid);
-    }
-    else if (err == ERR_CHANNEL_NOT_EMPTY) {
-        PyErr_Format(state->ChannelNotEmptyError,
-                     "channel %" PRId64 " may not be closed "
-                     "if not empty (try force=True)",
-                     cid);
-    }
-    else if (err == ERR_CHANNEL_MUTEX_INIT) {
-        PyErr_SetString(state->ChannelError,
-                        "can't initialize mutex for new channel");
-    }
-    else if (err == ERR_CHANNELS_MUTEX_INIT) {
-        PyErr_SetString(state->ChannelError,
-                        "can't initialize mutex for channel management");
-    }
-    else if (err == ERR_NO_NEXT_CHANNEL_ID) {
-        PyErr_SetString(state->ChannelError,
-                        "failed to get a channel ID");
-    }
-    else {
+        PyErr_Format(state->ChannelNotFoundError, "channel %" PRId64 " not found", cid);
+    } else if (err == ERR_CHANNEL_CLOSED) {
+        PyErr_Format(state->ChannelClosedError, "channel %" PRId64 " is closed", cid);
+    } else if (err == ERR_CHANNEL_CLOSED_WAITING) {
+        PyErr_Format(state->ChannelClosedError, "channel %" PRId64 " has closed", cid);
+    } else if (err == ERR_CHANNEL_INTERP_CLOSED) {
+        PyErr_Format(
+            state->ChannelClosedError, "channel %" PRId64 " is already closed", cid
+        );
+    } else if (err == ERR_CHANNEL_EMPTY) {
+        PyErr_Format(state->ChannelEmptyError, "channel %" PRId64 " is empty", cid);
+    } else if (err == ERR_CHANNEL_NOT_EMPTY) {
+        PyErr_Format(
+            state->ChannelNotEmptyError,
+            "channel %" PRId64
+            " may not be closed "
+            "if not empty (try force=True)",
+            cid
+        );
+    } else if (err == ERR_CHANNEL_MUTEX_INIT) {
+        PyErr_SetString(state->ChannelError, "can't initialize mutex for new channel");
+    } else if (err == ERR_CHANNELS_MUTEX_INIT) {
+        PyErr_SetString(
+            state->ChannelError, "can't initialize mutex for channel management"
+        );
+    } else if (err == ERR_NO_NEXT_CHANNEL_ID) {
+        PyErr_SetString(state->ChannelError, "failed to get a channel ID");
+    } else {
         assert(PyErr_Occurred());
     }
     return 1;
 }
-
 
 /* the channel queue */
 
@@ -443,8 +406,7 @@ typedef struct wait_info {
 } _waiting_t;
 
 static int
-_waiting_init(_waiting_t *waiting)
-{
+_waiting_init(_waiting_t *waiting) {
     PyThread_type_lock mutex = PyThread_allocate_lock();
     if (mutex == NULL) {
         PyErr_NoMemory();
@@ -459,10 +421,8 @@ _waiting_init(_waiting_t *waiting)
 }
 
 static void
-_waiting_clear(_waiting_t *waiting)
-{
-    assert(waiting->status != WAITING_ACQUIRED
-           && waiting->status != WAITING_RELEASING);
+_waiting_clear(_waiting_t *waiting) {
+    assert(waiting->status != WAITING_ACQUIRED && waiting->status != WAITING_RELEASING);
     if (waiting->mutex != NULL) {
         PyThread_free_lock(waiting->mutex);
         waiting->mutex = NULL;
@@ -470,22 +430,19 @@ _waiting_clear(_waiting_t *waiting)
 }
 
 static _channelitem_id_t
-_waiting_get_itemid(_waiting_t *waiting)
-{
+_waiting_get_itemid(_waiting_t *waiting) {
     return waiting->itemid;
 }
 
 static void
-_waiting_acquire(_waiting_t *waiting)
-{
+_waiting_acquire(_waiting_t *waiting) {
     assert(waiting->status == WAITING_NO_STATUS);
     PyThread_acquire_lock(waiting->mutex, NOWAIT_LOCK);
     waiting->status = WAITING_ACQUIRED;
 }
 
 static void
-_waiting_release(_waiting_t *waiting, int received)
-{
+_waiting_release(_waiting_t *waiting, int received) {
     assert(waiting->mutex != NULL);
     assert(waiting->status == WAITING_ACQUIRED);
     assert(!waiting->received);
@@ -500,8 +457,7 @@ _waiting_release(_waiting_t *waiting, int received)
 }
 
 static void
-_waiting_finish_releasing(_waiting_t *waiting)
-{
+_waiting_finish_releasing(_waiting_t *waiting) {
     while (waiting->status == WAITING_RELEASING) {
 #ifdef MS_WINDOWS
         SwitchToThread();
@@ -526,23 +482,25 @@ typedef struct _channelitem {
 } _channelitem;
 
 static inline _channelitem_id_t
-_channelitem_ID(_channelitem *item)
-{
+_channelitem_ID(_channelitem *item) {
     return (_channelitem_id_t)item;
 }
 
 static void
-_channelitem_init(_channelitem *item,
-                  int64_t interpid, _PyCrossInterpreterData *data,
-                  _waiting_t *waiting, int unboundop)
-{
+_channelitem_init(
+    _channelitem *item,
+    int64_t interpid,
+    _PyCrossInterpreterData *data,
+    _waiting_t *waiting,
+    int unboundop
+) {
     if (interpid < 0) {
         interpid = _get_interpid(data);
-    }
-    else {
-        assert(data == NULL
-               || _PyCrossInterpreterData_INTERPID(data) < 0
-               || interpid == _PyCrossInterpreterData_INTERPID(data));
+    } else {
+        assert(
+            data == NULL || _PyCrossInterpreterData_INTERPID(data) < 0 ||
+            interpid == _PyCrossInterpreterData_INTERPID(data)
+        );
     }
     *item = (_channelitem){
         .interpid = interpid,
@@ -556,8 +514,7 @@ _channelitem_init(_channelitem *item,
 }
 
 static void
-_channelitem_clear_data(_channelitem *item, int removed)
-{
+_channelitem_clear_data(_channelitem *item, int removed) {
     if (item->data != NULL) {
         // It was allocated in channel_send().
         (void)_release_xid_data(item->data, XID_IGNORE_EXC & XID_FREE);
@@ -573,16 +530,15 @@ _channelitem_clear_data(_channelitem *item, int removed)
 }
 
 static void
-_channelitem_clear(_channelitem *item)
-{
+_channelitem_clear(_channelitem *item) {
     item->next = NULL;
     _channelitem_clear_data(item, 1);
 }
 
 static _channelitem *
-_channelitem_new(int64_t interpid, _PyCrossInterpreterData *data,
-                 _waiting_t *waiting, int unboundop)
-{
+_channelitem_new(
+    int64_t interpid, _PyCrossInterpreterData *data, _waiting_t *waiting, int unboundop
+) {
     _channelitem *item = GLOBAL_MALLOC(_channelitem);
     if (item == NULL) {
         PyErr_NoMemory();
@@ -593,15 +549,13 @@ _channelitem_new(int64_t interpid, _PyCrossInterpreterData *data,
 }
 
 static void
-_channelitem_free(_channelitem *item)
-{
+_channelitem_free(_channelitem *item) {
     _channelitem_clear(item);
     GLOBAL_FREE(item);
 }
 
 static void
-_channelitem_free_all(_channelitem *item)
-{
+_channelitem_free_all(_channelitem *item) {
     while (item != NULL) {
         _channelitem *last = item;
         item = item->next;
@@ -610,10 +564,12 @@ _channelitem_free_all(_channelitem *item)
 }
 
 static void
-_channelitem_popped(_channelitem *item,
-                    _PyCrossInterpreterData **p_data, _waiting_t **p_waiting,
-                    int *p_unboundop)
-{
+_channelitem_popped(
+    _channelitem *item,
+    _PyCrossInterpreterData **p_data,
+    _waiting_t **p_waiting,
+    int *p_unboundop
+) {
     assert(item->waiting == NULL || item->waiting->status == WAITING_ACQUIRED);
     *p_data = item->data;
     *p_waiting = item->waiting;
@@ -625,8 +581,7 @@ _channelitem_popped(_channelitem *item,
 }
 
 static int
-_channelitem_clear_interpreter(_channelitem *item)
-{
+_channelitem_clear_interpreter(_channelitem *item) {
     assert(item->interpid >= 0);
     if (item->data == NULL) {
         // Its interpreter was already cleared (or it was never bound).
@@ -637,21 +592,20 @@ _channelitem_clear_interpreter(_channelitem *item)
     assert(_PyCrossInterpreterData_INTERPID(item->data) == item->interpid);
 
     switch (item->unboundop) {
-    case UNBOUND_REMOVE:
-        // The caller must free/clear it.
-        return 1;
-    case UNBOUND_ERROR:
-    case UNBOUND_REPLACE:
-        // We won't need the cross-interpreter data later
-        // so we completely throw it away.
-        _channelitem_clear_data(item, 0);
-        return 0;
-    default:
-        Py_FatalError("not reachable");
-        return -1;
+        case UNBOUND_REMOVE:
+            // The caller must free/clear it.
+            return 1;
+        case UNBOUND_ERROR:
+        case UNBOUND_REPLACE:
+            // We won't need the cross-interpreter data later
+            // so we completely throw it away.
+            _channelitem_clear_data(item, 0);
+            return 0;
+        default:
+            Py_FatalError("not reachable");
+            return -1;
     }
 }
-
 
 typedef struct _channelqueue {
     int64_t count;
@@ -660,8 +614,7 @@ typedef struct _channelqueue {
 } _channelqueue;
 
 static _channelqueue *
-_channelqueue_new(void)
-{
+_channelqueue_new(void) {
     _channelqueue *queue = GLOBAL_MALLOC(_channelqueue);
     if (queue == NULL) {
         PyErr_NoMemory();
@@ -674,8 +627,7 @@ _channelqueue_new(void)
 }
 
 static void
-_channelqueue_clear(_channelqueue *queue)
-{
+_channelqueue_clear(_channelqueue *queue) {
     _channelitem_free_all(queue->first);
     queue->count = 0;
     queue->first = NULL;
@@ -683,17 +635,19 @@ _channelqueue_clear(_channelqueue *queue)
 }
 
 static void
-_channelqueue_free(_channelqueue *queue)
-{
+_channelqueue_free(_channelqueue *queue) {
     _channelqueue_clear(queue);
     GLOBAL_FREE(queue);
 }
 
 static int
-_channelqueue_put(_channelqueue *queue,
-                  int64_t interpid, _PyCrossInterpreterData *data,
-                  _waiting_t *waiting, int unboundop)
-{
+_channelqueue_put(
+    _channelqueue *queue,
+    int64_t interpid,
+    _PyCrossInterpreterData *data,
+    _waiting_t *waiting,
+    int unboundop
+) {
     _channelitem *item = _channelitem_new(interpid, data, waiting, unboundop);
     if (item == NULL) {
         return -1;
@@ -702,8 +656,7 @@ _channelqueue_put(_channelqueue *queue,
     queue->count += 1;
     if (queue->first == NULL) {
         queue->first = item;
-    }
-    else {
+    } else {
         queue->last->next = item;
     }
     queue->last = item;
@@ -716,10 +669,12 @@ _channelqueue_put(_channelqueue *queue,
 }
 
 static int
-_channelqueue_get(_channelqueue *queue,
-                  _PyCrossInterpreterData **p_data, _waiting_t **p_waiting,
-                  int *p_unboundop)
-{
+_channelqueue_get(
+    _channelqueue *queue,
+    _PyCrossInterpreterData **p_data,
+    _waiting_t **p_waiting,
+    int *p_unboundop
+) {
     _channelitem *item = queue->first;
     if (item == NULL) {
         return ERR_CHANNEL_EMPTY;
@@ -735,16 +690,18 @@ _channelqueue_get(_channelqueue *queue,
 }
 
 static int
-_channelqueue_find(_channelqueue *queue, _channelitem_id_t itemid,
-                   _channelitem **p_item, _channelitem **p_prev)
-{
+_channelqueue_find(
+    _channelqueue *queue,
+    _channelitem_id_t itemid,
+    _channelitem **p_item,
+    _channelitem **p_prev
+) {
     _channelitem *prev = NULL;
     _channelitem *item = NULL;
     if (queue->first != NULL) {
         if (_channelitem_ID(queue->first) == itemid) {
             item = queue->first;
-        }
-        else {
+        } else {
             prev = queue->first;
             while (prev->next != NULL) {
                 if (_channelitem_ID(prev->next) == itemid) {
@@ -768,9 +725,12 @@ _channelqueue_find(_channelqueue *queue, _channelitem_id_t itemid,
 }
 
 static void
-_channelqueue_remove(_channelqueue *queue, _channelitem_id_t itemid,
-                     _PyCrossInterpreterData **p_data, _waiting_t **p_waiting)
-{
+_channelqueue_remove(
+    _channelqueue *queue,
+    _channelitem_id_t itemid,
+    _PyCrossInterpreterData **p_data,
+    _waiting_t **p_waiting
+) {
     _channelitem *prev = NULL;
     _channelitem *item = NULL;
     int found = _channelqueue_find(queue, itemid, &item, &prev);
@@ -783,8 +743,7 @@ _channelqueue_remove(_channelqueue *queue, _channelitem_id_t itemid,
     if (prev == NULL) {
         assert(queue->first == item);
         queue->first = item->next;
-    }
-    else {
+    } else {
         assert(queue->first != item);
         assert(prev->next == item);
         prev->next = item->next;
@@ -801,32 +760,27 @@ _channelqueue_remove(_channelqueue *queue, _channelitem_id_t itemid,
 }
 
 static void
-_channelqueue_clear_interpreter(_channelqueue *queue, int64_t interpid)
-{
+_channelqueue_clear_interpreter(_channelqueue *queue, int64_t interpid) {
     _channelitem *prev = NULL;
     _channelitem *next = queue->first;
     while (next != NULL) {
         _channelitem *item = next;
         next = item->next;
-        int remove = (item->interpid == interpid)
-            ? _channelitem_clear_interpreter(item)
-            : 0;
+        int remove =
+            (item->interpid == interpid) ? _channelitem_clear_interpreter(item) : 0;
         if (remove) {
             _channelitem_free(item);
             if (prev == NULL) {
                 queue->first = next;
-            }
-            else {
+            } else {
                 prev->next = next;
             }
             queue->count -= 1;
-        }
-        else {
+        } else {
             prev = item;
         }
     }
 }
-
 
 /* channel-interpreter associations */
 
@@ -839,8 +793,7 @@ typedef struct _channelend {
 } _channelend;
 
 static _channelend *
-_channelend_new(int64_t interpid)
-{
+_channelend_new(int64_t interpid) {
     _channelend *end = GLOBAL_MALLOC(_channelend);
     if (end == NULL) {
         PyErr_NoMemory();
@@ -853,14 +806,12 @@ _channelend_new(int64_t interpid)
 }
 
 static void
-_channelend_free(_channelend *end)
-{
+_channelend_free(_channelend *end) {
     GLOBAL_FREE(end);
 }
 
 static void
-_channelend_free_all(_channelend *end)
-{
+_channelend_free_all(_channelend *end) {
     while (end != NULL) {
         _channelend *last = end;
         end = end->next;
@@ -869,8 +820,7 @@ _channelend_free_all(_channelend *end)
 }
 
 static _channelend *
-_channelend_find(_channelend *first, int64_t interpid, _channelend **pprev)
-{
+_channelend_find(_channelend *first, int64_t interpid, _channelend **pprev) {
     _channelend *prev = NULL;
     _channelend *end = first;
     while (end != NULL) {
@@ -898,10 +848,9 @@ typedef struct _channelassociations {
 } _channelends;
 
 static _channelends *
-_channelends_new(void)
-{
+_channelends_new(void) {
     _channelends *ends = GLOBAL_MALLOC(_channelends);
-    if (ends== NULL) {
+    if (ends == NULL) {
         return NULL;
     }
     ends->numsendopen = 0;
@@ -912,8 +861,7 @@ _channelends_new(void)
 }
 
 static void
-_channelends_clear(_channelends *ends)
-{
+_channelends_clear(_channelends *ends) {
     _channelend_free_all(ends->send);
     ends->send = NULL;
     ends->numsendopen = 0;
@@ -924,16 +872,13 @@ _channelends_clear(_channelends *ends)
 }
 
 static void
-_channelends_free(_channelends *ends)
-{
+_channelends_free(_channelends *ends) {
     _channelends_clear(ends);
     GLOBAL_FREE(ends);
 }
 
 static _channelend *
-_channelends_add(_channelends *ends, _channelend *prev, int64_t interpid,
-                 int send)
-{
+_channelends_add(_channelends *ends, _channelend *prev, int64_t interpid, int send) {
     _channelend *end = _channelend_new(interpid);
     if (end == NULL) {
         return NULL;
@@ -942,29 +887,25 @@ _channelends_add(_channelends *ends, _channelend *prev, int64_t interpid,
     if (prev == NULL) {
         if (send) {
             ends->send = end;
-        }
-        else {
+        } else {
             ends->recv = end;
         }
-    }
-    else {
+    } else {
         prev->next = end;
     }
     if (send) {
         ends->numsendopen += 1;
-    }
-    else {
+    } else {
         ends->numrecvopen += 1;
     }
     return end;
 }
 
 static int
-_channelends_associate(_channelends *ends, int64_t interpid, int send)
-{
+_channelends_associate(_channelends *ends, int64_t interpid, int send) {
     _channelend *prev;
-    _channelend *end = _channelend_find(send ? ends->send : ends->recv,
-                                        interpid, &prev);
+    _channelend *end =
+        _channelend_find(send ? ends->send : ends->recv, interpid, &prev);
     if (end != NULL) {
         if (!end->open) {
             return ERR_CHANNEL_CLOSED;
@@ -979,8 +920,7 @@ _channelends_associate(_channelends *ends, int64_t interpid, int send)
 }
 
 static int
-_channelends_is_open(_channelends *ends)
-{
+_channelends_is_open(_channelends *ends) {
     if (ends->numsendopen != 0 || ends->numrecvopen != 0) {
         // At least one interpreter is still associated with the channel
         // (and hasn't been released).
@@ -995,20 +935,17 @@ _channelends_is_open(_channelends *ends)
 }
 
 static void
-_channelends_release_end(_channelends *ends, _channelend *end, int send)
-{
+_channelends_release_end(_channelends *ends, _channelend *end, int send) {
     end->open = 0;
     if (send) {
         ends->numsendopen -= 1;
-    }
-    else {
+    } else {
         ends->numrecvopen -= 1;
     }
 }
 
 static int
-_channelends_release_interpreter(_channelends *ends, int64_t interpid, int which)
-{
+_channelends_release_interpreter(_channelends *ends, int64_t interpid, int which) {
     _channelend *prev;
     _channelend *end;
     if (which >= 0) {  // send/both
@@ -1037,8 +974,7 @@ _channelends_release_interpreter(_channelends *ends, int64_t interpid, int which
 }
 
 static void
-_channelends_release_all(_channelends *ends, int which, int force)
-{
+_channelends_release_all(_channelends *ends, int which, int force) {
     // XXX Handle the ends.
     // XXX Handle force is True.
 
@@ -1055,8 +991,7 @@ _channelends_release_all(_channelends *ends, int which, int force)
 }
 
 static void
-_channelends_clear_interpreter(_channelends *ends, int64_t interpid)
-{
+_channelends_clear_interpreter(_channelends *ends, int64_t interpid) {
     // XXX Actually remove the entries?
     _channelend *end;
     end = _channelend_find(ends->send, interpid, NULL);
@@ -1069,13 +1004,14 @@ _channelends_clear_interpreter(_channelends *ends, int64_t interpid)
     }
 }
 
-
 /* each channel's state */
 
 struct _channel;
 struct _channel_closing;
-static void _channel_clear_closing(struct _channel *);
-static void _channel_finish_closing(struct _channel *);
+static void
+_channel_clear_closing(struct _channel *);
+static void
+_channel_finish_closing(struct _channel *);
 
 typedef struct _channel {
     PyThread_type_lock mutex;
@@ -1089,8 +1025,7 @@ typedef struct _channel {
 } _channel_state;
 
 static _channel_state *
-_channel_new(PyThread_type_lock mutex, int unboundop)
-{
+_channel_new(PyThread_type_lock mutex, int unboundop) {
     _channel_state *chan = GLOBAL_MALLOC(_channel_state);
     if (chan == NULL) {
         return NULL;
@@ -1114,8 +1049,7 @@ _channel_new(PyThread_type_lock mutex, int unboundop)
 }
 
 static void
-_channel_free(_channel_state *chan)
-{
+_channel_free(_channel_state *chan) {
     _channel_clear_closing(chan);
     PyThread_acquire_lock(chan->mutex, WAIT_LOCK);
     _channelqueue_free(chan->queue);
@@ -1127,10 +1061,13 @@ _channel_free(_channel_state *chan)
 }
 
 static int
-_channel_add(_channel_state *chan, int64_t interpid,
-             _PyCrossInterpreterData *data, _waiting_t *waiting,
-             int unboundop)
-{
+_channel_add(
+    _channel_state *chan,
+    int64_t interpid,
+    _PyCrossInterpreterData *data,
+    _waiting_t *waiting,
+    int unboundop
+) {
     int res = -1;
     PyThread_acquire_lock(chan->mutex, WAIT_LOCK);
 
@@ -1155,10 +1092,13 @@ done:
 }
 
 static int
-_channel_next(_channel_state *chan, int64_t interpid,
-              _PyCrossInterpreterData **p_data, _waiting_t **p_waiting,
-              int *p_unboundop)
-{
+_channel_next(
+    _channel_state *chan,
+    int64_t interpid,
+    _PyCrossInterpreterData **p_data,
+    _waiting_t **p_waiting,
+    int *p_unboundop
+) {
     int err = 0;
     PyThread_acquire_lock(chan->mutex, WAIT_LOCK);
 
@@ -1191,8 +1131,7 @@ done:
 }
 
 static void
-_channel_remove(_channel_state *chan, _channelitem_id_t itemid)
-{
+_channel_remove(_channel_state *chan, _channelitem_id_t itemid) {
     _PyCrossInterpreterData *data = NULL;
     _waiting_t *waiting = NULL;
 
@@ -1211,8 +1150,7 @@ _channel_remove(_channel_state *chan, _channelitem_id_t itemid)
 }
 
 static int
-_channel_release_interpreter(_channel_state *chan, int64_t interpid, int end)
-{
+_channel_release_interpreter(_channel_state *chan, int64_t interpid, int end) {
     PyThread_acquire_lock(chan->mutex, WAIT_LOCK);
 
     int res = -1;
@@ -1235,8 +1173,7 @@ done:
 }
 
 static int
-_channel_release_all(_channel_state *chan, int end, int force)
-{
+_channel_release_all(_channel_state *chan, int end, int force) {
     int res = -1;
     PyThread_acquire_lock(chan->mutex, WAIT_LOCK);
 
@@ -1264,8 +1201,7 @@ done:
 }
 
 static void
-_channel_clear_interpreter(_channel_state *chan, int64_t interpid)
-{
+_channel_clear_interpreter(_channel_state *chan, int64_t interpid) {
     PyThread_acquire_lock(chan->mutex, WAIT_LOCK);
 
     _channelqueue_clear_interpreter(chan->queue, interpid);
@@ -1274,7 +1210,6 @@ _channel_clear_interpreter(_channel_state *chan, int64_t interpid)
 
     PyThread_release_lock(chan->mutex);
 }
-
 
 /* the set of channels */
 
@@ -1289,8 +1224,7 @@ typedef struct _channelref {
 } _channelref;
 
 static _channelref *
-_channelref_new(int64_t cid, _channel_state *chan)
-{
+_channelref_new(int64_t cid, _channel_state *chan) {
     _channelref *ref = GLOBAL_MALLOC(_channelref);
     if (ref == NULL) {
         return NULL;
@@ -1302,18 +1236,17 @@ _channelref_new(int64_t cid, _channel_state *chan)
     return ref;
 }
 
-//static void
+// static void
 //_channelref_clear(_channelref *ref)
 //{
-//    ref->cid = -1;
-//    ref->chan = NULL;
-//    ref->next = NULL;
-//    ref->objcount = 0;
-//}
+//     ref->cid = -1;
+//     ref->chan = NULL;
+//     ref->next = NULL;
+//     ref->objcount = 0;
+// }
 
 static void
-_channelref_free(_channelref *ref)
-{
+_channelref_free(_channelref *ref) {
     if (ref->chan != NULL) {
         _channel_clear_closing(ref->chan);
     }
@@ -1322,8 +1255,7 @@ _channelref_free(_channelref *ref)
 }
 
 static _channelref *
-_channelref_find(_channelref *first, int64_t cid, _channelref **pprev)
-{
+_channelref_find(_channelref *first, int64_t cid, _channelref **pprev) {
     _channelref *prev = NULL;
     _channelref *ref = first;
     while (ref != NULL) {
@@ -1339,7 +1271,6 @@ _channelref_find(_channelref *first, int64_t cid, _channelref **pprev)
     return ref;
 }
 
-
 typedef struct _channels {
     PyThread_type_lock mutex;
     _channelref *head;
@@ -1348,8 +1279,7 @@ typedef struct _channels {
 } _channels;
 
 static void
-_channels_init(_channels *channels, PyThread_type_lock mutex)
-{
+_channels_init(_channels *channels, PyThread_type_lock mutex) {
     assert(mutex != NULL);
     assert(channels->mutex == NULL);
     *channels = (_channels){
@@ -1361,8 +1291,7 @@ _channels_init(_channels *channels, PyThread_type_lock mutex)
 }
 
 static void
-_channels_fini(_channels *channels, PyThread_type_lock *p_mutex)
-{
+_channels_fini(_channels *channels, PyThread_type_lock *p_mutex) {
     PyThread_type_lock mutex = channels->mutex;
     assert(mutex != NULL);
 
@@ -1388,9 +1317,9 @@ _channels_next_id(_channels *channels)  // needs lock
 }
 
 static int
-_channels_lookup(_channels *channels, int64_t cid, PyThread_type_lock *pmutex,
-                 _channel_state **res)
-{
+_channels_lookup(
+    _channels *channels, int64_t cid, PyThread_type_lock *pmutex, _channel_state **res
+) {
     int err = -1;
     _channel_state *chan = NULL;
     PyThread_acquire_lock(channels->mutex, WAIT_LOCK);
@@ -1425,8 +1354,7 @@ done:
 }
 
 static int64_t
-_channels_add(_channels *channels, _channel_state *chan)
-{
+_channels_add(_channels *channels, _channel_state *chan) {
     int64_t cid = -1;
     PyThread_acquire_lock(channels->mutex, WAIT_LOCK);
 
@@ -1454,12 +1382,13 @@ done:
 }
 
 /* forward */
-static int _channel_set_closing(_channelref *, PyThread_type_lock);
+static int
+_channel_set_closing(_channelref *, PyThread_type_lock);
 
 static int
-_channels_close(_channels *channels, int64_t cid, _channel_state **pchan,
-                int end, int force)
-{
+_channels_close(
+    _channels *channels, int64_t cid, _channel_state **pchan, int end, int force
+) {
     int res = -1;
     PyThread_acquire_lock(channels->mutex, WAIT_LOCK);
     if (pchan != NULL) {
@@ -1475,12 +1404,10 @@ _channels_close(_channels *channels, int64_t cid, _channel_state **pchan,
     if (ref->chan == NULL) {
         res = ERR_CHANNEL_CLOSED;
         goto done;
-    }
-    else if (!force && end == CHANNEL_SEND && ref->chan->closing != NULL) {
+    } else if (!force && end == CHANNEL_SEND && ref->chan->closing != NULL) {
         res = ERR_CHANNEL_CLOSED;
         goto done;
-    }
-    else {
+    } else {
         int err = _channel_release_all(ref->chan, end, force);
         if (err != 0) {
             if (end == CHANNEL_SEND && err == ERR_CHANNEL_NOT_EMPTY) {
@@ -1500,16 +1427,14 @@ _channels_close(_channels *channels, int64_t cid, _channel_state **pchan,
                     *pchan = ref->chan;
                 }
                 res = 0;
-            }
-            else {
+            } else {
                 res = err;
             }
             goto done;
         }
         if (pchan != NULL) {
             *pchan = ref->chan;
-        }
-        else  {
+        } else {
             _channel_free(ref->chan);
         }
         ref->chan = NULL;
@@ -1522,13 +1447,12 @@ done:
 }
 
 static void
-_channels_remove_ref(_channels *channels, _channelref *ref, _channelref *prev,
-                     _channel_state **pchan)
-{
+_channels_remove_ref(
+    _channels *channels, _channelref *ref, _channelref *prev, _channel_state **pchan
+) {
     if (ref == channels->head) {
         channels->head = ref->next;
-    }
-    else {
+    } else {
         prev->next = ref->next;
     }
     channels->numopen -= 1;
@@ -1540,8 +1464,7 @@ _channels_remove_ref(_channels *channels, _channelref *ref, _channelref *prev,
 }
 
 static int
-_channels_remove(_channels *channels, int64_t cid, _channel_state **pchan)
-{
+_channels_remove(_channels *channels, int64_t cid, _channel_state **pchan) {
     int res = -1;
     PyThread_acquire_lock(channels->mutex, WAIT_LOCK);
 
@@ -1565,8 +1488,7 @@ done:
 }
 
 static int
-_channels_add_id_object(_channels *channels, int64_t cid)
-{
+_channels_add_id_object(_channels *channels, int64_t cid) {
     int res = -1;
     PyThread_acquire_lock(channels->mutex, WAIT_LOCK);
 
@@ -1584,8 +1506,7 @@ done:
 }
 
 static void
-_channels_release_cid_object(_channels *channels, int64_t cid)
-{
+_channels_release_cid_object(_channels *channels, int64_t cid) {
     PyThread_acquire_lock(channels->mutex, WAIT_LOCK);
 
     _channelref *prev = NULL;
@@ -1615,8 +1536,7 @@ struct channel_id_and_info {
 };
 
 static struct channel_id_and_info *
-_channels_list_all(_channels *channels, int64_t *count)
-{
+_channels_list_all(_channels *channels, int64_t *count) {
     struct channel_id_and_info *cids = NULL;
     PyThread_acquire_lock(channels->mutex, WAIT_LOCK);
     struct channel_id_and_info *ids =
@@ -1625,7 +1545,7 @@ _channels_list_all(_channels *channels, int64_t *count)
         goto done;
     }
     _channelref *ref = channels->head;
-    for (int64_t i=0; ref != NULL; ref = ref->next, i++) {
+    for (int64_t i = 0; ref != NULL; ref = ref->next, i++) {
         ids[i] = (struct channel_id_and_info){
             .id = ref->cid,
             .unboundop = ref->chan->defaults.unboundop,
@@ -1640,8 +1560,7 @@ done:
 }
 
 static void
-_channels_clear_interpreter(_channels *channels, int64_t interpid)
-{
+_channels_clear_interpreter(_channels *channels, int64_t interpid) {
     PyThread_acquire_lock(channels->mutex, WAIT_LOCK);
 
     _channelref *ref = channels->head;
@@ -1653,7 +1572,6 @@ _channels_clear_interpreter(_channels *channels, int64_t interpid)
 
     PyThread_release_lock(channels->mutex);
 }
-
 
 /* support for closing non-empty channels */
 
@@ -1709,13 +1627,11 @@ _channel_finish_closing(_channel_state *chan) {
     _channel_free(chan);
 }
 
-
 /* "high"-level channel-related functions */
 
 // Create a new channel.
 static int64_t
-channel_create(_channels *channels, int unboundop)
-{
+channel_create(_channels *channels, int unboundop) {
     PyThread_type_lock mutex = PyThread_allocate_lock();
     if (mutex == NULL) {
         return ERR_CHANNEL_MUTEX_INIT;
@@ -1734,8 +1650,7 @@ channel_create(_channels *channels, int unboundop)
 
 // Completely destroy the channel.
 static int
-channel_destroy(_channels *channels, int64_t cid)
-{
+channel_destroy(_channels *channels, int64_t cid) {
     _channel_state *chan = NULL;
     int err = _channels_remove(channels, cid, &chan);
     if (err != 0) {
@@ -1751,9 +1666,9 @@ channel_destroy(_channels *channels, int64_t cid)
 // The current interpreter gets associated with the send end of the channel.
 // Optionally request to be notified when it is received.
 static int
-channel_send(_channels *channels, int64_t cid, PyObject *obj,
-             _waiting_t *waiting, int unboundop)
-{
+channel_send(
+    _channels *channels, int64_t cid, PyObject *obj, _waiting_t *waiting, int unboundop
+) {
     PyInterpreterState *interp = _get_current_interp();
     if (interp == NULL) {
         return -1;
@@ -1802,8 +1717,7 @@ channel_send(_channels *channels, int64_t cid, PyObject *obj,
 
 // Basically, un-send an object.
 static void
-channel_clear_sent(_channels *channels, int64_t cid, _waiting_t *waiting)
-{
+channel_clear_sent(_channels *channels, int64_t cid, _waiting_t *waiting) {
     // Look up the channel.
     PyThread_type_lock mutex = NULL;
     _channel_state *chan = NULL;
@@ -1824,9 +1738,9 @@ channel_clear_sent(_channels *channels, int64_t cid, _waiting_t *waiting)
 
 // Like channel_send(), but strictly wait for the object to be received.
 static int
-channel_send_wait(_channels *channels, int64_t cid, PyObject *obj,
-                  int unboundop, PY_TIMEOUT_T timeout)
-{
+channel_send_wait(
+    _channels *channels, int64_t cid, PyObject *obj, int unboundop, PY_TIMEOUT_T timeout
+) {
     // We use a stack variable here, so we must ensure that &waiting
     // is not held by any channel item at the point this function exits.
     _waiting_t waiting;
@@ -1856,8 +1770,7 @@ channel_send_wait(_channels *channels, int64_t cid, PyObject *obj,
         }
         // XXX Emit a warning if not a TimeoutError?
         PyErr_Clear();
-    }
-    else {
+    } else {
         _waiting_finish_releasing(&waiting);
         assert(waiting.status == WAITING_RELEASED);
         if (!waiting.received) {
@@ -1878,8 +1791,7 @@ finally:
 // The current interpreter gets associated with the recv end of the channel.
 // XXX Support a "wait" mutex?
 static int
-channel_recv(_channels *channels, int64_t cid, PyObject **res, int *p_unboundop)
-{
+channel_recv(_channels *channels, int64_t cid, PyObject **res, int *p_unboundop) {
     int err;
     *res = NULL;
 
@@ -1910,8 +1822,7 @@ channel_recv(_channels *channels, int64_t cid, PyObject **res, int *p_unboundop)
     PyThread_release_lock(mutex);
     if (err != 0) {
         return err;
-    }
-    else if (data == NULL) {
+    } else if (data == NULL) {
         // The item was unbound.
         assert(!PyErr_Occurred());
         *res = NULL;
@@ -1954,8 +1865,7 @@ channel_recv(_channels *channels, int64_t cid, PyObject **res, int *p_unboundop)
 // The channel is marked as closed if no other interpreters
 // are currently associated.
 static int
-channel_release(_channels *channels, int64_t cid, int send, int recv)
-{
+channel_release(_channels *channels, int64_t cid, int send, int recv) {
     PyInterpreterState *interp = _get_current_interp();
     if (interp == NULL) {
         return -1;
@@ -1972,7 +1882,7 @@ channel_release(_channels *channels, int64_t cid, int send, int recv)
     // Past this point we are responsible for releasing the mutex.
 
     // Close one or both of the two ends.
-    int res = _channel_release_interpreter(chan, interpid, send-recv);
+    int res = _channel_release_interpreter(chan, interpid, send - recv);
     PyThread_release_lock(mutex);
     return res;
 }
@@ -1981,35 +1891,30 @@ channel_release(_channels *channels, int64_t cid, int send, int recv)
 // Close immediately if it's empty.  Otherwise, disallow sending and
 // finally close once empty.  Optionally, immediately clear and close it.
 static int
-channel_close(_channels *channels, int64_t cid, int end, int force)
-{
+channel_close(_channels *channels, int64_t cid, int end, int force) {
     return _channels_close(channels, cid, NULL, end, force);
 }
 
 // Return true if the identified interpreter is associated
 // with the given end of the channel.
 static int
-channel_is_associated(_channels *channels, int64_t cid, int64_t interpid,
-                       int send)
-{
+channel_is_associated(_channels *channels, int64_t cid, int64_t interpid, int send) {
     _channel_state *chan = NULL;
     int err = _channels_lookup(channels, cid, NULL, &chan);
     if (err != 0) {
         return err;
-    }
-    else if (send && chan->closing != NULL) {
+    } else if (send && chan->closing != NULL) {
         return ERR_CHANNEL_CLOSED;
     }
 
-    _channelend *end = _channelend_find(send ? chan->ends->send : chan->ends->recv,
-                                        interpid, NULL);
+    _channelend *end =
+        _channelend_find(send ? chan->ends->send : chan->ends->recv, interpid, NULL);
 
     return (end != NULL && end->open);
 }
 
 static int
-_channel_get_count(_channels *channels, int64_t cid, Py_ssize_t *p_count)
-{
+_channel_get_count(_channels *channels, int64_t cid, Py_ssize_t *p_count) {
     PyThread_type_lock mutex = NULL;
     _channel_state *chan = NULL;
     int err = _channels_lookup(channels, cid, &mutex, &chan);
@@ -2023,7 +1928,6 @@ _channel_get_count(_channels *channels, int64_t cid, Py_ssize_t *p_count)
     *p_count = (Py_ssize_t)count;
     return 0;
 }
-
 
 /* channel info */
 
@@ -2051,8 +1955,7 @@ struct channel_info {
 };
 
 static int
-_channel_get_info(_channels *channels, int64_t cid, struct channel_info *info)
-{
+_channel_get_info(_channels *channels, int64_t cid, struct channel_info *info) {
     int err = 0;
     *info = (struct channel_info){0};
 
@@ -2087,8 +1990,7 @@ _channel_get_info(_channels *channels, int64_t cid, struct channel_info *info)
     if (chan->closing != NULL) {
         assert(chan->queue->count > 0);
         info->status.closed = -1;
-    }
-    else {
+    } else {
         info->status.closed = 0;
     }
 
@@ -2106,8 +2008,7 @@ _channel_get_info(_channels *channels, int64_t cid, struct channel_info *info)
 
         if (send->open) {
             info->status.all.nsend_only += 1;
-        }
-        else {
+        } else {
             info->status.all.nsend_only_released += 1;
         }
         send = send->next;
@@ -2129,28 +2030,23 @@ _channel_get_info(_channels *channels, int64_t cid, struct channel_info *info)
         if (send == NULL) {
             if (recv->open) {
                 info->status.all.nrecv_only += 1;
-            }
-            else {
+            } else {
                 info->status.all.nrecv_only_released += 1;
             }
-        }
-        else {
+        } else {
             if (recv->open) {
                 if (send->open) {
                     info->status.all.nboth += 1;
                     info->status.all.nsend_only -= 1;
-                }
-                else {
+                } else {
                     info->status.all.nboth_recv_released += 1;
                     info->status.all.nsend_only_released -= 1;
                 }
-            }
-            else {
+            } else {
                 if (send->open) {
                     info->status.all.nboth_send_released += 1;
                     info->status.all.nsend_only -= 1;
-                }
-                else {
+                } else {
                     info->status.all.nboth_released += 1;
                     info->status.all.nsend_only_released -= 1;
                 }
@@ -2164,10 +2060,12 @@ finally:
     return err;
 }
 
-PyDoc_STRVAR(channel_info_doc,
-"ChannelInfo\n\
+PyDoc_STRVAR(
+    channel_info_doc,
+    "ChannelInfo\n\
 \n\
-A named tuple of a channel's state.");
+A named tuple of a channel's state."
+);
 
 static PyStructSequence_Field channel_info_fields[] = {
     {"open", "both ends are open"},
@@ -2176,12 +2074,10 @@ static PyStructSequence_Field channel_info_fields[] = {
     {"count", "queued objects"},
 
     {"num_interp_send", "interpreters bound to the send end"},
-    {"num_interp_send_released",
-     "interpreters bound to the send end and released"},
+    {"num_interp_send_released", "interpreters bound to the send end and released"},
 
     {"num_interp_recv", "interpreters bound to the send end"},
-    {"num_interp_recv_released",
-     "interpreters bound to the send end and released"},
+    {"num_interp_recv_released", "interpreters bound to the send end and released"},
 
     {"num_interp_both", "interpreters bound to both ends"},
     {"num_interp_both_released",
@@ -2206,8 +2102,7 @@ static PyStructSequence_Desc channel_info_desc = {
 };
 
 static PyObject *
-new_channel_info(PyObject *mod, struct channel_info *info)
-{
+new_channel_info(PyObject *mod, struct channel_info *info) {
     module_state *state = get_module_state(mod);
     if (state == NULL) {
         return NULL;
@@ -2221,17 +2116,16 @@ new_channel_info(PyObject *mod, struct channel_info *info)
 
     int pos = 0;
 #define SET_BOOL(val) \
-    PyStructSequence_SET_ITEM(self, pos++, \
-                              Py_NewRef(val ? Py_True : Py_False))
-#define SET_COUNT(val) \
-    do { \
-        PyObject *obj = PyLong_FromLongLong(val); \
-        if (obj == NULL) { \
-            Py_CLEAR(self); \
-            return NULL; \
-        } \
+    PyStructSequence_SET_ITEM(self, pos++, Py_NewRef(val ? Py_True : Py_False))
+#define SET_COUNT(val)                               \
+    do {                                             \
+        PyObject *obj = PyLong_FromLongLong(val);    \
+        if (obj == NULL) {                           \
+            Py_CLEAR(self);                          \
+            return NULL;                             \
+        }                                            \
         PyStructSequence_SET_ITEM(self, pos++, obj); \
-    } while(0)
+    } while (0)
     SET_BOOL(info->status.closed == 0);
     SET_BOOL(info->status.closed == -1);
     SET_BOOL(info->status.closed == 1);
@@ -2254,12 +2148,10 @@ new_channel_info(PyObject *mod, struct channel_info *info)
     return self;
 }
 
-
 /* ChannelID class */
 
 typedef struct channelid {
-    PyObject_HEAD
-    int64_t cid;
+    PyObject_HEAD int64_t cid;
     int end;
     int resolve;
     _channels *channels;
@@ -2272,8 +2164,7 @@ struct channel_id_converter_data {
 };
 
 static int
-channel_id_converter(PyObject *arg, void *ptr)
-{
+channel_id_converter(PyObject *arg, void *ptr) {
     int64_t cid;
     int end = 0;
     struct channel_id_converter_data *data = ptr;
@@ -2282,22 +2173,23 @@ channel_id_converter(PyObject *arg, void *ptr)
     if (PyObject_TypeCheck(arg, state->ChannelIDType)) {
         cid = ((channelid *)arg)->cid;
         end = ((channelid *)arg)->end;
-    }
-    else if (PyIndex_Check(arg)) {
+    } else if (PyIndex_Check(arg)) {
         cid = PyLong_AsLongLong(arg);
         if (cid == -1 && PyErr_Occurred()) {
             return 0;
         }
         if (cid < 0) {
-            PyErr_Format(PyExc_ValueError,
-                        "channel ID must be a non-negative int, got %R", arg);
+            PyErr_Format(
+                PyExc_ValueError, "channel ID must be a non-negative int, got %R", arg
+            );
             return 0;
         }
-    }
-    else {
-        PyErr_Format(PyExc_TypeError,
-                     "channel ID must be an int, got %.100s",
-                     Py_TYPE(arg)->tp_name);
+    } else {
+        PyErr_Format(
+            PyExc_TypeError,
+            "channel ID must be an int, got %.100s",
+            Py_TYPE(arg)->tp_name
+        );
         return 0;
     }
     data->cid = cid;
@@ -2306,9 +2198,15 @@ channel_id_converter(PyObject *arg, void *ptr)
 }
 
 static int
-newchannelid(PyTypeObject *cls, int64_t cid, int end, _channels *channels,
-             int force, int resolve, channelid **res)
-{
+newchannelid(
+    PyTypeObject *cls,
+    int64_t cid,
+    int end,
+    _channels *channels,
+    int force,
+    int resolve,
+    channelid **res
+) {
     *res = NULL;
 
     channelid *self = PyObject_New(channelid, cls);
@@ -2324,8 +2222,7 @@ newchannelid(PyTypeObject *cls, int64_t cid, int end, _channels *channels,
     if (err != 0) {
         if (force && err == ERR_CHANNEL_NOT_FOUND) {
             assert(!PyErr_Occurred());
-        }
-        else {
+        } else {
             Py_DECREF((PyObject *)self);
             return err;
         }
@@ -2335,12 +2232,11 @@ newchannelid(PyTypeObject *cls, int64_t cid, int end, _channels *channels,
     return 0;
 }
 
-static _channels * _global_channels(void);
+static _channels *
+_global_channels(void);
 
 static PyObject *
-_channelid_new(PyObject *mod, PyTypeObject *cls,
-               PyObject *args, PyObject *kwds)
-{
+_channelid_new(PyObject *mod, PyTypeObject *cls, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"id", "send", "recv", "force", "_resolve", NULL};
     int64_t cid;
     int end;
@@ -2351,10 +2247,18 @@ _channelid_new(PyObject *mod, PyTypeObject *cls,
     int recv = -1;
     int force = 0;
     int resolve = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds,
-                                     "O&|$pppp:ChannelID.__new__", kwlist,
-                                     channel_id_converter, &cid_data,
-                                     &send, &recv, &force, &resolve)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwds,
+            "O&|$pppp:ChannelID.__new__",
+            kwlist,
+            channel_id_converter,
+            &cid_data,
+            &send,
+            &recv,
+            &force,
+            &resolve
+        )) {
         return NULL;
     }
     cid = cid_data.cid;
@@ -2362,28 +2266,24 @@ _channelid_new(PyObject *mod, PyTypeObject *cls,
 
     // Handle "send" and "recv".
     if (send == 0 && recv == 0) {
-        PyErr_SetString(PyExc_ValueError,
-                        "'send' and 'recv' cannot both be False");
+        PyErr_SetString(PyExc_ValueError, "'send' and 'recv' cannot both be False");
         return NULL;
-    }
-    else if (send == 1) {
+    } else if (send == 1) {
         if (recv == 0 || recv == -1) {
             end = CHANNEL_SEND;
-        }
-        else {
+        } else {
             assert(recv == 1);
             end = 0;
         }
-    }
-    else if (recv == 1) {
+    } else if (recv == 1) {
         assert(send == 0 || send == -1);
         end = CHANNEL_RECV;
     }
 
     PyObject *cidobj = NULL;
-    int err = newchannelid(cls, cid, end, _global_channels(),
-                           force, resolve,
-                           (channelid **)&cidobj);
+    int err = newchannelid(
+        cls, cid, end, _global_channels(), force, resolve, (channelid **)&cidobj
+    );
     if (handle_channel_error(err, mod, cid)) {
         assert(cidobj == NULL);
         return NULL;
@@ -2393,17 +2293,17 @@ _channelid_new(PyObject *mod, PyTypeObject *cls,
 }
 
 static void
-channelid_dealloc(PyObject *self)
-{
+channelid_dealloc(PyObject *self) {
     int64_t cid = ((channelid *)self)->cid;
     _channels *channels = ((channelid *)self)->channels;
 
     PyTypeObject *tp = Py_TYPE(self);
     tp->tp_free(self);
     /* "Instances of heap-allocated types hold a reference to their type."
-     * See: https://docs.python.org/3.11/howto/isolating-extensions.html#garbage-collection-protocol
+     * See:
+     * https://docs.python.org/3.11/howto/isolating-extensions.html#garbage-collection-protocol
      * See: https://docs.python.org/3.11/c-api/typeobj.html#c.PyTypeObject.tp_traverse
-    */
+     */
     // XXX Why don't we implement Py_TPFLAGS_HAVE_GC, e.g. Py_tp_traverse,
     // like we do for _abc._abc_data?
     Py_DECREF(tp);
@@ -2412,8 +2312,7 @@ channelid_dealloc(PyObject *self)
 }
 
 static PyObject *
-channelid_repr(PyObject *self)
-{
+channelid_repr(PyObject *self) {
     PyTypeObject *type = Py_TYPE(self);
     const char *name = _PyType_Name(type);
 
@@ -2421,33 +2320,28 @@ channelid_repr(PyObject *self)
     const char *fmt;
     if (cidobj->end == CHANNEL_SEND) {
         fmt = "%s(%" PRId64 ", send=True)";
-    }
-    else if (cidobj->end == CHANNEL_RECV) {
+    } else if (cidobj->end == CHANNEL_RECV) {
         fmt = "%s(%" PRId64 ", recv=True)";
-    }
-    else {
+    } else {
         fmt = "%s(%" PRId64 ")";
     }
     return PyUnicode_FromFormat(fmt, name, cidobj->cid);
 }
 
 static PyObject *
-channelid_str(PyObject *self)
-{
+channelid_str(PyObject *self) {
     channelid *cidobj = (channelid *)self;
     return PyUnicode_FromFormat("%" PRId64 "", cidobj->cid);
 }
 
 static PyObject *
-channelid_int(PyObject *self)
-{
+channelid_int(PyObject *self) {
     channelid *cidobj = (channelid *)self;
     return PyLong_FromLongLong(cidobj->cid);
 }
 
 static Py_hash_t
-channelid_hash(PyObject *self)
-{
+channelid_hash(PyObject *self) {
     channelid *cidobj = (channelid *)self;
     PyObject *pyid = PyLong_FromLongLong(cidobj->cid);
     if (pyid == NULL) {
@@ -2459,8 +2353,7 @@ channelid_hash(PyObject *self)
 }
 
 static PyObject *
-channelid_richcompare(PyObject *self, PyObject *other, int op)
-{
+channelid_richcompare(PyObject *self, PyObject *other, int op) {
     PyObject *res = NULL;
     if (op != Py_EQ && op != Py_NE) {
         Py_RETURN_NOTIMPLEMENTED;
@@ -2485,8 +2378,7 @@ channelid_richcompare(PyObject *self, PyObject *other, int op)
     if (PyObject_TypeCheck(other, state->ChannelIDType)) {
         channelid *othercidobj = (channelid *)other;
         equal = (cidobj->end == othercidobj->end) && (cidobj->cid == othercidobj->cid);
-    }
-    else if (PyLong_Check(other)) {
+    } else if (PyLong_Check(other)) {
         /* Fast path */
         int overflow;
         long long othercid = PyLong_AsLongLongAndOverflow(other, &overflow);
@@ -2494,8 +2386,7 @@ channelid_richcompare(PyObject *self, PyObject *other, int op)
             goto done;
         }
         equal = !overflow && (othercid >= 0) && (cidobj->cid == othercid);
-    }
-    else if (PyNumber_Check(other)) {
+    } else if (PyNumber_Check(other)) {
         PyObject *pyid = PyLong_FromLongLong(cidobj->cid);
         if (pyid == NULL) {
             goto done;
@@ -2503,16 +2394,14 @@ channelid_richcompare(PyObject *self, PyObject *other, int op)
         res = PyObject_RichCompare(pyid, other, op);
         Py_DECREF(pyid);
         goto done;
-    }
-    else {
+    } else {
         res = Py_NewRef(Py_NotImplemented);
         goto done;
     }
 
     if ((op == Py_EQ && equal) || (op == Py_NE && !equal)) {
         res = Py_NewRef(Py_True);
-    }
-    else {
+    } else {
         res = Py_NewRef(Py_False);
     }
 
@@ -2521,11 +2410,11 @@ done:
     return res;
 }
 
-static PyTypeObject * _get_current_channelend_type(int end);
+static PyTypeObject *
+_get_current_channelend_type(int end);
 
 static PyObject *
-_channelobj_from_cidobj(PyObject *cidobj, int end)
-{
+_channelobj_from_cidobj(PyObject *cidobj, int end) {
     PyObject *cls = (PyObject *)_get_current_channelend_type(end);
     if (cls == NULL) {
         return NULL;
@@ -2545,10 +2434,9 @@ struct _channelid_xid {
 };
 
 static PyObject *
-_channelid_from_xid(_PyCrossInterpreterData *data)
-{
-    struct _channelid_xid *xid = \
-                (struct _channelid_xid *)_PyCrossInterpreterData_DATA(data);
+_channelid_from_xid(_PyCrossInterpreterData *data) {
+    struct _channelid_xid *xid =
+        (struct _channelid_xid *)_PyCrossInterpreterData_DATA(data);
 
     // It might not be imported yet, so we can't use _get_current_module().
     PyObject *mod = PyImport_ImportModule(MODULE_NAME_STR);
@@ -2563,9 +2451,15 @@ _channelid_from_xid(_PyCrossInterpreterData *data)
 
     // Note that we do not preserve the "resolve" flag.
     PyObject *cidobj = NULL;
-    int err = newchannelid(state->ChannelIDType, xid->cid, xid->end,
-                           _global_channels(), 0, 0,
-                           (channelid **)&cidobj);
+    int err = newchannelid(
+        state->ChannelIDType,
+        xid->cid,
+        xid->end,
+        _global_channels(),
+        0,
+        0,
+        (channelid **)&cidobj
+    );
     if (err != 0) {
         assert(cidobj == NULL);
         (void)handle_channel_error(err, mod, xid->cid);
@@ -2594,18 +2488,18 @@ done:
 }
 
 static int
-_channelid_shared(PyThreadState *tstate, PyObject *obj,
-                  _PyCrossInterpreterData *data)
-{
+_channelid_shared(PyThreadState *tstate, PyObject *obj, _PyCrossInterpreterData *data) {
     if (_PyCrossInterpreterData_InitWithSize(
-            data, tstate->interp, sizeof(struct _channelid_xid), obj,
+            data,
+            tstate->interp,
+            sizeof(struct _channelid_xid),
+            obj,
             _channelid_from_xid
-            ) < 0)
-    {
+        ) < 0) {
         return -1;
     }
-    struct _channelid_xid *xid = \
-                (struct _channelid_xid *)_PyCrossInterpreterData_DATA(data);
+    struct _channelid_xid *xid =
+        (struct _channelid_xid *)_PyCrossInterpreterData_DATA(data);
     xid->cid = ((channelid *)obj)->cid;
     xid->end = ((channelid *)obj)->end;
     xid->resolve = ((channelid *)obj)->resolve;
@@ -2613,15 +2507,20 @@ _channelid_shared(PyThreadState *tstate, PyObject *obj,
 }
 
 static PyObject *
-channelid_end(PyObject *self, void *end)
-{
+channelid_end(PyObject *self, void *end) {
     int force = 1;
     channelid *cidobj = (channelid *)self;
     if (end != NULL) {
         PyObject *obj = NULL;
-        int err = newchannelid(Py_TYPE(self), cidobj->cid, *(int *)end,
-                               cidobj->channels, force, cidobj->resolve,
-                               (channelid **)&obj);
+        int err = newchannelid(
+            Py_TYPE(self),
+            cidobj->cid,
+            *(int *)end,
+            cidobj->channels,
+            force,
+            cidobj->resolve,
+            (channelid **)&obj
+        );
         if (err != 0) {
             assert(obj == NULL);
             PyObject *mod = get_module_from_type(Py_TYPE(self));
@@ -2649,17 +2548,23 @@ static int _channelid_end_send = CHANNEL_SEND;
 static int _channelid_end_recv = CHANNEL_RECV;
 
 static PyGetSetDef channelid_getsets[] = {
-    {"end", (getter)channelid_end, NULL,
-     PyDoc_STR("'send', 'recv', or 'both'")},
-    {"send", (getter)channelid_end, NULL,
-     PyDoc_STR("the 'send' end of the channel"), &_channelid_end_send},
-    {"recv", (getter)channelid_end, NULL,
-     PyDoc_STR("the 'recv' end of the channel"), &_channelid_end_recv},
+    {"end", (getter)channelid_end, NULL, PyDoc_STR("'send', 'recv', or 'both'")},
+    {"send",
+     (getter)channelid_end,
+     NULL,
+     PyDoc_STR("the 'send' end of the channel"),
+     &_channelid_end_send},
+    {"recv",
+     (getter)channelid_end,
+     NULL,
+     PyDoc_STR("the 'recv' end of the channel"),
+     &_channelid_end_recv},
     {NULL}
 };
 
-PyDoc_STRVAR(channelid_doc,
-"A channel ID identifies a channel and may be used as an int.");
+PyDoc_STRVAR(
+    channelid_doc, "A channel ID identifies a channel and may be used as an int."
+);
 
 static PyType_Slot channelid_typeslots[] = {
     {Py_tp_dealloc, (destructor)channelid_dealloc},
@@ -2671,23 +2576,23 @@ static PyType_Slot channelid_typeslots[] = {
     {Py_tp_getset, channelid_getsets},
     // number slots
     {Py_nb_int, (unaryfunc)channelid_int},
-    {Py_nb_index,  (unaryfunc)channelid_int},
+    {Py_nb_index, (unaryfunc)channelid_int},
     {0, NULL},
 };
 
 static PyType_Spec channelid_typespec = {
     .name = MODULE_NAME_STR ".ChannelID",
     .basicsize = sizeof(channelid),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-              Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_IMMUTABLETYPE),
+    .flags =
+        (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_DISALLOW_INSTANTIATION |
+         Py_TPFLAGS_IMMUTABLETYPE),
     .slots = channelid_typeslots,
 };
 
 static PyTypeObject *
-add_channelid_type(PyObject *mod)
-{
-    PyTypeObject *cls = (PyTypeObject *)PyType_FromModuleAndSpec(
-                mod, &channelid_typespec, NULL);
+add_channelid_type(PyObject *mod) {
+    PyTypeObject *cls =
+        (PyTypeObject *)PyType_FromModuleAndSpec(mod, &channelid_typespec, NULL);
     if (cls == NULL) {
         return NULL;
     }
@@ -2702,14 +2607,12 @@ add_channelid_type(PyObject *mod)
     return cls;
 }
 
-
 /* SendChannel and RecvChannel classes */
 
 // XXX Use a new __xid__ protocol instead?
 
 static PyTypeObject *
-_get_current_channelend_type(int end)
-{
+_get_current_channelend_type(int end) {
     module_state *state = _get_current_module_state();
     if (state == NULL) {
         return NULL;
@@ -2717,8 +2620,7 @@ _get_current_channelend_type(int end)
     PyTypeObject *cls;
     if (end == CHANNEL_SEND) {
         cls = state->send_channel_type;
-    }
-    else {
+    } else {
         assert(end == CHANNEL_RECV);
         cls = state->recv_channel_type;
     }
@@ -2735,8 +2637,7 @@ _get_current_channelend_type(int end)
         Py_DECREF(highlevel);
         if (end == CHANNEL_SEND) {
             cls = state->send_channel_type;
-        }
-        else {
+        } else {
             cls = state->recv_channel_type;
         }
         assert(cls != NULL);
@@ -2745,8 +2646,7 @@ _get_current_channelend_type(int end)
 }
 
 static PyObject *
-_channelend_from_xid(_PyCrossInterpreterData *data)
-{
+_channelend_from_xid(_PyCrossInterpreterData *data) {
     channelid *cidobj = (channelid *)_channelid_from_xid(data);
     if (cidobj == NULL) {
         return NULL;
@@ -2762,9 +2662,9 @@ _channelend_from_xid(_PyCrossInterpreterData *data)
 }
 
 static int
-_channelend_shared(PyThreadState *tstate, PyObject *obj,
-                    _PyCrossInterpreterData *data)
-{
+_channelend_shared(
+    PyThreadState *tstate, PyObject *obj, _PyCrossInterpreterData *data
+) {
     PyObject *cidobj = PyObject_GetAttrString(obj, "_id");
     if (cidobj == NULL) {
         return -1;
@@ -2779,8 +2679,7 @@ _channelend_shared(PyThreadState *tstate, PyObject *obj,
 }
 
 static int
-set_channelend_types(PyObject *mod, PyTypeObject *send, PyTypeObject *recv)
-{
+set_channelend_types(PyObject *mod, PyTypeObject *send, PyTypeObject *recv) {
     module_state *state = get_module_state(mod);
     if (state == NULL) {
         return -1;
@@ -2814,7 +2713,6 @@ set_channelend_types(PyObject *mod, PyTypeObject *send, PyTypeObject *recv)
     return 0;
 }
 
-
 /* module level code ********************************************************/
 
 /* globals is the process-global state for the module.  It holds all
@@ -2827,8 +2725,7 @@ static struct globals {
 } _globals = {0};
 
 static int
-_globals_init(void)
-{
+_globals_init(void) {
     PyMutex_Lock(&_globals.mutex);
     assert(_globals.module_count >= 0);
     _globals.module_count++;
@@ -2847,8 +2744,7 @@ _globals_init(void)
 }
 
 static void
-_globals_fini(void)
-{
+_globals_fini(void) {
     PyMutex_Lock(&_globals.mutex);
     assert(_globals.module_count > 0);
     _globals.module_count--;
@@ -2866,10 +2762,8 @@ _global_channels(void) {
     return &_globals.channels;
 }
 
-
 static void
-clear_interpreter(void *data)
-{
+clear_interpreter(void *data) {
     if (_globals.module_count == 0) {
         return;
     }
@@ -2879,20 +2773,15 @@ clear_interpreter(void *data)
     _channels_clear_interpreter(&_globals.channels, interpid);
 }
 
-
 static PyObject *
-channelsmod_create(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_create(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"unboundop", NULL};
     int unboundop;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i:create", kwlist,
-                                     &unboundop))
-    {
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i:create", kwlist, &unboundop)) {
         return NULL;
     }
     if (!check_unbound(unboundop)) {
-        PyErr_Format(PyExc_ValueError,
-                     "unsupported unboundop %d", unboundop);
+        PyErr_Format(PyExc_ValueError, "unsupported unboundop %d", unboundop);
         return NULL;
     }
 
@@ -2906,9 +2795,9 @@ channelsmod_create(PyObject *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
     PyObject *cidobj = NULL;
-    int err = newchannelid(state->ChannelIDType, cid, 0,
-                           &_globals.channels, 0, 0,
-                           (channelid **)&cidobj);
+    int err = newchannelid(
+        state->ChannelIDType, cid, 0, &_globals.channels, 0, 0, (channelid **)&cidobj
+    );
     if (handle_channel_error(err, self, cid)) {
         assert(cidobj == NULL);
         err = channel_destroy(&_globals.channels, cid);
@@ -2922,21 +2811,23 @@ channelsmod_create(PyObject *self, PyObject *args, PyObject *kwds)
     return cidobj;
 }
 
-PyDoc_STRVAR(channelsmod_create_doc,
-"channel_create(unboundop) -> cid\n\
+PyDoc_STRVAR(
+    channelsmod_create_doc,
+    "channel_create(unboundop) -> cid\n\
 \n\
-Create a new cross-interpreter channel and return a unique generated ID.");
+Create a new cross-interpreter channel and return a unique generated ID."
+);
 
 static PyObject *
-channelsmod_destroy(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_destroy(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"cid", NULL};
     int64_t cid;
     struct channel_id_converter_data cid_data = {
         .module = self,
     };
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&:channel_destroy", kwlist,
-                                     channel_id_converter, &cid_data)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwds, "O&:channel_destroy", kwlist, channel_id_converter, &cid_data
+        )) {
         return NULL;
     }
     cid = cid_data.cid;
@@ -2948,18 +2839,18 @@ channelsmod_destroy(PyObject *self, PyObject *args, PyObject *kwds)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(channelsmod_destroy_doc,
-"channel_destroy(cid)\n\
+PyDoc_STRVAR(
+    channelsmod_destroy_doc,
+    "channel_destroy(cid)\n\
 \n\
 Close and finalize the channel.  Afterward attempts to use the channel\n\
-will behave as though it never existed.");
+will behave as though it never existed."
+);
 
 static PyObject *
-channelsmod_list_all(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+channelsmod_list_all(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     int64_t count = 0;
-    struct channel_id_and_info *cids =
-        _channels_list_all(&_globals.channels, &count);
+    struct channel_id_and_info *cids = _channels_list_all(&_globals.channels, &count);
     if (cids == NULL) {
         if (count == 0) {
             return PyList_New(0);
@@ -2977,11 +2868,17 @@ channelsmod_list_all(PyObject *self, PyObject *Py_UNUSED(ignored))
         goto finally;
     }
     struct channel_id_and_info *cur = cids;
-    for (int64_t i=0; i < count; cur++, i++) {
+    for (int64_t i = 0; i < count; cur++, i++) {
         PyObject *cidobj = NULL;
-        int err = newchannelid(state->ChannelIDType, cur->id, 0,
-                               &_globals.channels, 0, 0,
-                               (channelid **)&cidobj);
+        int err = newchannelid(
+            state->ChannelIDType,
+            cur->id,
+            0,
+            &_globals.channels,
+            0,
+            0,
+            (channelid **)&cidobj
+        );
         if (handle_channel_error(err, self, cur->id)) {
             assert(cidobj == NULL);
             Py_SETREF(ids, NULL);
@@ -3003,27 +2900,34 @@ finally:
     return ids;
 }
 
-PyDoc_STRVAR(channelsmod_list_all_doc,
-"channel_list_all() -> [cid]\n\
+PyDoc_STRVAR(
+    channelsmod_list_all_doc,
+    "channel_list_all() -> [cid]\n\
 \n\
-Return the list of all IDs for active channels.");
+Return the list of all IDs for active channels."
+);
 
 static PyObject *
-channelsmod_list_interpreters(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_list_interpreters(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"cid", "send", NULL};
-    int64_t cid;            /* Channel ID */
+    int64_t cid; /* Channel ID */
     struct channel_id_converter_data cid_data = {
         .module = self,
     };
-    int send = 0;           /* Send or receive end? */
+    int send = 0; /* Send or receive end? */
     int64_t interpid;
     PyObject *ids, *interpid_obj;
     PyInterpreterState *interp;
 
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwds, "O&$p:channel_list_interpreters",
-            kwlist, channel_id_converter, &cid_data, &send)) {
+            args,
+            kwds,
+            "O&$p:channel_list_interpreters",
+            kwlist,
+            channel_id_converter,
+            &cid_data,
+            &send
+        )) {
         return NULL;
     }
     cid = cid_data.cid;
@@ -3065,20 +2969,19 @@ finally:
     return ids;
 }
 
-PyDoc_STRVAR(channelsmod_list_interpreters_doc,
-"channel_list_interpreters(cid, *, send) -> [id]\n\
+PyDoc_STRVAR(
+    channelsmod_list_interpreters_doc,
+    "channel_list_interpreters(cid, *, send) -> [id]\n\
 \n\
 Return the list of all interpreter IDs associated with an end of the channel.\n\
 \n\
 The 'send' argument should be a boolean indicating whether to use the send or\n\
-receive end.");
-
+receive end."
+);
 
 static PyObject *
-channelsmod_send(PyObject *self, PyObject *args, PyObject *kwds)
-{
-    static char *kwlist[] = {"cid", "obj", "unboundop", "blocking", "timeout",
-                             NULL};
+channelsmod_send(PyObject *self, PyObject *args, PyObject *kwds) {
+    static char *kwlist[] = {"cid", "obj", "unboundop", "blocking", "timeout", NULL};
     struct channel_id_converter_data cid_data = {
         .module = self,
     };
@@ -3086,15 +2989,22 @@ channelsmod_send(PyObject *self, PyObject *args, PyObject *kwds)
     int unboundop = UNBOUND_REPLACE;
     int blocking = 1;
     PyObject *timeout_obj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&O|i$pO:channel_send", kwlist,
-                                     channel_id_converter, &cid_data, &obj,
-                                     &unboundop, &blocking, &timeout_obj))
-    {
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwds,
+            "O&O|i$pO:channel_send",
+            kwlist,
+            channel_id_converter,
+            &cid_data,
+            &obj,
+            &unboundop,
+            &blocking,
+            &timeout_obj
+        )) {
         return NULL;
     }
     if (!check_unbound(unboundop)) {
-        PyErr_Format(PyExc_ValueError,
-                     "unsupported unboundop %d", unboundop);
+        PyErr_Format(PyExc_ValueError, "unsupported unboundop %d", unboundop);
         return NULL;
     }
 
@@ -3108,8 +3018,7 @@ channelsmod_send(PyObject *self, PyObject *args, PyObject *kwds)
     int err = 0;
     if (blocking) {
         err = channel_send_wait(&_globals.channels, cid, obj, unboundop, timeout);
-    }
-    else {
+    } else {
         err = channel_send(&_globals.channels, cid, obj, NULL, unboundop);
     }
     if (handle_channel_error(err, self, cid)) {
@@ -3119,17 +3028,17 @@ channelsmod_send(PyObject *self, PyObject *args, PyObject *kwds)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(channelsmod_send_doc,
-"channel_send(cid, obj, *, blocking=True, timeout=None)\n\
+PyDoc_STRVAR(
+    channelsmod_send_doc,
+    "channel_send(cid, obj, *, blocking=True, timeout=None)\n\
 \n\
 Add the object's data to the channel's queue.\n\
-By default this waits for the object to be received.");
+By default this waits for the object to be received."
+);
 
 static PyObject *
-channelsmod_send_buffer(PyObject *self, PyObject *args, PyObject *kwds)
-{
-    static char *kwlist[] = {"cid", "obj", "unboundop", "blocking", "timeout",
-                             NULL};
+channelsmod_send_buffer(PyObject *self, PyObject *args, PyObject *kwds) {
+    static char *kwlist[] = {"cid", "obj", "unboundop", "blocking", "timeout", NULL};
     struct channel_id_converter_data cid_data = {
         .module = self,
     };
@@ -3137,15 +3046,22 @@ channelsmod_send_buffer(PyObject *self, PyObject *args, PyObject *kwds)
     int unboundop = UNBOUND_REPLACE;
     int blocking = 1;
     PyObject *timeout_obj = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds,
-                                     "O&O|i$pO:channel_send_buffer", kwlist,
-                                     channel_id_converter, &cid_data, &obj,
-                                     &unboundop, &blocking, &timeout_obj)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwds,
+            "O&O|i$pO:channel_send_buffer",
+            kwlist,
+            channel_id_converter,
+            &cid_data,
+            &obj,
+            &unboundop,
+            &blocking,
+            &timeout_obj
+        )) {
         return NULL;
     }
     if (!check_unbound(unboundop)) {
-        PyErr_Format(PyExc_ValueError,
-                     "unsupported unboundop %d", unboundop);
+        PyErr_Format(PyExc_ValueError, "unsupported unboundop %d", unboundop);
         return NULL;
     }
 
@@ -3163,10 +3079,8 @@ channelsmod_send_buffer(PyObject *self, PyObject *args, PyObject *kwds)
     /* Queue up the object. */
     int err = 0;
     if (blocking) {
-        err = channel_send_wait(
-                &_globals.channels, cid, tempobj, unboundop, timeout);
-    }
-    else {
+        err = channel_send_wait(&_globals.channels, cid, tempobj, unboundop, timeout);
+    } else {
         err = channel_send(&_globals.channels, cid, tempobj, NULL, unboundop);
     }
     Py_DECREF(tempobj);
@@ -3177,23 +3091,31 @@ channelsmod_send_buffer(PyObject *self, PyObject *args, PyObject *kwds)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(channelsmod_send_buffer_doc,
-"channel_send_buffer(cid, obj, *, blocking=True, timeout=None)\n\
+PyDoc_STRVAR(
+    channelsmod_send_buffer_doc,
+    "channel_send_buffer(cid, obj, *, blocking=True, timeout=None)\n\
 \n\
 Add the object's buffer to the channel's queue.\n\
-By default this waits for the object to be received.");
+By default this waits for the object to be received."
+);
 
 static PyObject *
-channelsmod_recv(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_recv(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"cid", "default", NULL};
     int64_t cid;
     struct channel_id_converter_data cid_data = {
         .module = self,
     };
     PyObject *dflt = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O:channel_recv", kwlist,
-                                     channel_id_converter, &cid_data, &dflt)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwds,
+            "O&|O:channel_recv",
+            kwlist,
+            channel_id_converter,
+            &cid_data,
+            &dflt
+        )) {
         return NULL;
     }
     cid = cid_data.cid;
@@ -3205,11 +3127,9 @@ channelsmod_recv(PyObject *self, PyObject *args, PyObject *kwds)
         // Use the default.
         obj = Py_NewRef(dflt);
         err = 0;
-    }
-    else if (handle_channel_error(err, self, cid)) {
+    } else if (handle_channel_error(err, self, cid)) {
         return NULL;
-    }
-    else if (obj == NULL) {
+    } else if (obj == NULL) {
         // The item was unbound.
         return Py_BuildValue("Oi", Py_None, unboundop);
     }
@@ -3219,17 +3139,18 @@ channelsmod_recv(PyObject *self, PyObject *args, PyObject *kwds)
     return res;
 }
 
-PyDoc_STRVAR(channelsmod_recv_doc,
-"channel_recv(cid, [default]) -> (obj, unboundop)\n\
+PyDoc_STRVAR(
+    channelsmod_recv_doc,
+    "channel_recv(cid, [default]) -> (obj, unboundop)\n\
 \n\
 Return a new object from the data at the front of the channel's queue.\n\
 \n\
 If there is nothing to receive then raise ChannelEmptyError, unless\n\
-a default value is provided.  In that case return it.");
+a default value is provided.  In that case return it."
+);
 
 static PyObject *
-channelsmod_close(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_close(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"cid", "send", "recv", "force", NULL};
     int64_t cid;
     struct channel_id_converter_data cid_data = {
@@ -3238,23 +3159,31 @@ channelsmod_close(PyObject *self, PyObject *args, PyObject *kwds)
     int send = 0;
     int recv = 0;
     int force = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds,
-                                     "O&|$ppp:channel_close", kwlist,
-                                     channel_id_converter, &cid_data,
-                                     &send, &recv, &force)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwds,
+            "O&|$ppp:channel_close",
+            kwlist,
+            channel_id_converter,
+            &cid_data,
+            &send,
+            &recv,
+            &force
+        )) {
         return NULL;
     }
     cid = cid_data.cid;
 
-    int err = channel_close(&_globals.channels, cid, send-recv, force);
+    int err = channel_close(&_globals.channels, cid, send - recv, force);
     if (handle_channel_error(err, self, cid)) {
         return NULL;
     }
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(channelsmod_close_doc,
-"channel_close(cid, *, send=None, recv=None, force=False)\n\
+PyDoc_STRVAR(
+    channelsmod_close_doc,
+    "channel_close(cid, *, send=None, recv=None, force=False)\n\
 \n\
 Close the channel for all interpreters.\n\
 \n\
@@ -3278,11 +3207,11 @@ happens:\n\
 Closing an already closed channel results in a ChannelClosedError.\n\
 \n\
 Once the channel's ID has no more ref counts in any interpreter\n\
-the channel will be destroyed.");
+the channel will be destroyed."
+);
 
 static PyObject *
-channelsmod_release(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_release(PyObject *self, PyObject *args, PyObject *kwds) {
     // Note that only the current interpreter is affected.
     static char *kwlist[] = {"cid", "send", "recv", "force", NULL};
     int64_t cid;
@@ -3292,10 +3221,17 @@ channelsmod_release(PyObject *self, PyObject *args, PyObject *kwds)
     int send = 0;
     int recv = 0;
     int force = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds,
-                                     "O&|$ppp:channel_release", kwlist,
-                                     channel_id_converter, &cid_data,
-                                     &send, &recv, &force)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwds,
+            "O&|$ppp:channel_release",
+            kwlist,
+            channel_id_converter,
+            &cid_data,
+            &send,
+            &recv,
+            &force
+        )) {
         return NULL;
     }
     cid = cid_data.cid;
@@ -3314,23 +3250,24 @@ channelsmod_release(PyObject *self, PyObject *args, PyObject *kwds)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(channelsmod_release_doc,
-"channel_release(cid, *, send=None, recv=None, force=True)\n\
+PyDoc_STRVAR(
+    channelsmod_release_doc,
+    "channel_release(cid, *, send=None, recv=None, force=True)\n\
 \n\
 Close the channel for the current interpreter.  'send' and 'recv'\n\
 (bool) may be used to indicate the ends to close.  By default both\n\
-ends are closed.  Closing an already closed end is a noop.");
+ends are closed.  Closing an already closed end is a noop."
+);
 
 static PyObject *
-channelsmod_get_count(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_get_count(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"cid", NULL};
     struct channel_id_converter_data cid_data = {
         .module = self,
     };
-    if (!PyArg_ParseTupleAndKeywords(args, kwds,
-                                     "O&:get_count", kwlist,
-                                     channel_id_converter, &cid_data)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwds, "O&:get_count", kwlist, channel_id_converter, &cid_data
+        )) {
         return NULL;
     }
     int64_t cid = cid_data.cid;
@@ -3344,21 +3281,22 @@ channelsmod_get_count(PyObject *self, PyObject *args, PyObject *kwds)
     return PyLong_FromSsize_t(count);
 }
 
-PyDoc_STRVAR(channelsmod_get_count_doc,
-"get_count(cid)\n\
+PyDoc_STRVAR(
+    channelsmod_get_count_doc,
+    "get_count(cid)\n\
 \n\
-Return the number of items in the channel.");
+Return the number of items in the channel."
+);
 
 static PyObject *
-channelsmod_get_info(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_get_info(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"cid", NULL};
     struct channel_id_converter_data cid_data = {
         .module = self,
     };
-    if (!PyArg_ParseTupleAndKeywords(args, kwds,
-                                     "O&:_get_info", kwlist,
-                                     channel_id_converter, &cid_data)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwds, "O&:_get_info", kwlist, channel_id_converter, &cid_data
+        )) {
         return NULL;
     }
     int64_t cid = cid_data.cid;
@@ -3371,21 +3309,27 @@ channelsmod_get_info(PyObject *self, PyObject *args, PyObject *kwds)
     return new_channel_info(self, &info);
 }
 
-PyDoc_STRVAR(channelsmod_get_info_doc,
-"get_info(cid)\n\
+PyDoc_STRVAR(
+    channelsmod_get_info_doc,
+    "get_info(cid)\n\
 \n\
-Return details about the channel.");
+Return details about the channel."
+);
 
 static PyObject *
-channelsmod_get_channel_defaults(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod_get_channel_defaults(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"cid", NULL};
     struct channel_id_converter_data cid_data = {
         .module = self,
     };
-    if (!PyArg_ParseTupleAndKeywords(args, kwds,
-                                     "O&:get_channel_defaults", kwlist,
-                                     channel_id_converter, &cid_data)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args,
+            kwds,
+            "O&:get_channel_defaults",
+            kwlist,
+            channel_id_converter,
+            &cid_data
+        )) {
         return NULL;
     }
     int64_t cid = cid_data.cid;
@@ -3403,14 +3347,15 @@ channelsmod_get_channel_defaults(PyObject *self, PyObject *args, PyObject *kwds)
     return defaults;
 }
 
-PyDoc_STRVAR(channelsmod_get_channel_defaults_doc,
-"get_channel_defaults(cid)\n\
+PyDoc_STRVAR(
+    channelsmod_get_channel_defaults_doc,
+    "get_channel_defaults(cid)\n\
 \n\
-Return the channel's default values, set when it was created.");
+Return the channel's default values, set when it was created."
+);
 
 static PyObject *
-channelsmod__channel_id(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod__channel_id(PyObject *self, PyObject *args, PyObject *kwds) {
     module_state *state = get_module_state(self);
     if (state == NULL) {
         return NULL;
@@ -3425,14 +3370,13 @@ channelsmod__channel_id(PyObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
-channelsmod__register_end_types(PyObject *self, PyObject *args, PyObject *kwds)
-{
+channelsmod__register_end_types(PyObject *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {"send", "recv", NULL};
     PyObject *send;
     PyObject *recv;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds,
-                                     "OO:_register_end_types", kwlist,
-                                     &send, &recv)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwds, "OO:_register_end_types", kwlist, &send, &recv
+        )) {
         return NULL;
     }
     if (!PyType_Check(send)) {
@@ -3454,48 +3398,73 @@ channelsmod__register_end_types(PyObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMethodDef module_functions[] = {
-    {"create",                     _PyCFunction_CAST(channelsmod_create),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_create_doc},
-    {"destroy",                    _PyCFunction_CAST(channelsmod_destroy),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_destroy_doc},
-    {"list_all",                   channelsmod_list_all,
-     METH_NOARGS,                  channelsmod_list_all_doc},
-    {"list_interpreters",          _PyCFunction_CAST(channelsmod_list_interpreters),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_list_interpreters_doc},
-    {"send",                       _PyCFunction_CAST(channelsmod_send),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_send_doc},
-    {"send_buffer",                _PyCFunction_CAST(channelsmod_send_buffer),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_send_buffer_doc},
-    {"recv",                       _PyCFunction_CAST(channelsmod_recv),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_recv_doc},
-    {"close",                      _PyCFunction_CAST(channelsmod_close),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_close_doc},
-    {"release",                    _PyCFunction_CAST(channelsmod_release),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_release_doc},
-    {"get_count",                   _PyCFunction_CAST(channelsmod_get_count),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_get_count_doc},
-    {"get_info",                   _PyCFunction_CAST(channelsmod_get_info),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_get_info_doc},
-    {"get_channel_defaults",       _PyCFunction_CAST(channelsmod_get_channel_defaults),
-     METH_VARARGS | METH_KEYWORDS, channelsmod_get_channel_defaults_doc},
-    {"_channel_id",                _PyCFunction_CAST(channelsmod__channel_id),
-     METH_VARARGS | METH_KEYWORDS, NULL},
-    {"_register_end_types",        _PyCFunction_CAST(channelsmod__register_end_types),
-     METH_VARARGS | METH_KEYWORDS, NULL},
+    {"create",
+     _PyCFunction_CAST(channelsmod_create),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_create_doc},
+    {"destroy",
+     _PyCFunction_CAST(channelsmod_destroy),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_destroy_doc},
+    {"list_all", channelsmod_list_all, METH_NOARGS, channelsmod_list_all_doc},
+    {"list_interpreters",
+     _PyCFunction_CAST(channelsmod_list_interpreters),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_list_interpreters_doc},
+    {"send",
+     _PyCFunction_CAST(channelsmod_send),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_send_doc},
+    {"send_buffer",
+     _PyCFunction_CAST(channelsmod_send_buffer),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_send_buffer_doc},
+    {"recv",
+     _PyCFunction_CAST(channelsmod_recv),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_recv_doc},
+    {"close",
+     _PyCFunction_CAST(channelsmod_close),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_close_doc},
+    {"release",
+     _PyCFunction_CAST(channelsmod_release),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_release_doc},
+    {"get_count",
+     _PyCFunction_CAST(channelsmod_get_count),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_get_count_doc},
+    {"get_info",
+     _PyCFunction_CAST(channelsmod_get_info),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_get_info_doc},
+    {"get_channel_defaults",
+     _PyCFunction_CAST(channelsmod_get_channel_defaults),
+     METH_VARARGS | METH_KEYWORDS,
+     channelsmod_get_channel_defaults_doc},
+    {"_channel_id",
+     _PyCFunction_CAST(channelsmod__channel_id),
+     METH_VARARGS | METH_KEYWORDS,
+     NULL},
+    {"_register_end_types",
+     _PyCFunction_CAST(channelsmod__register_end_types),
+     METH_VARARGS | METH_KEYWORDS,
+     NULL},
 
-    {NULL,                        NULL}           /* sentinel */
+    {NULL, NULL} /* sentinel */
 };
-
 
 /* initialization function */
 
-PyDoc_STRVAR(module_doc,
-"This module provides primitive operations to manage Python interpreters.\n\
-The 'interpreters' module provides a more convenient interface.");
+PyDoc_STRVAR(
+    module_doc,
+    "This module provides primitive operations to manage Python interpreters.\n\
+The 'interpreters' module provides a more convenient interface."
+);
 
 static int
-module_exec(PyObject *mod)
-{
+module_exec(PyObject *mod) {
     int err = _globals_init();
     if (handle_channel_error(err, mod, -1)) {
         return -1;
@@ -3550,8 +3519,7 @@ static struct PyModuleDef_Slot module_slots[] = {
 };
 
 static int
-module_traverse(PyObject *mod, visitproc visit, void *arg)
-{
+module_traverse(PyObject *mod, visitproc visit, void *arg) {
     module_state *state = get_module_state(mod);
     assert(state != NULL);
     traverse_module_state(state, visit, arg);
@@ -3559,8 +3527,7 @@ module_traverse(PyObject *mod, visitproc visit, void *arg)
 }
 
 static int
-module_clear(PyObject *mod)
-{
+module_clear(PyObject *mod) {
     module_state *state = get_module_state(mod);
     assert(state != NULL);
 
@@ -3570,8 +3537,7 @@ module_clear(PyObject *mod)
 }
 
 static void
-module_free(void *mod)
-{
+module_free(void *mod) {
     module_state *state = get_module_state(mod);
     assert(state != NULL);
 
@@ -3594,7 +3560,6 @@ static struct PyModuleDef moduledef = {
 };
 
 PyMODINIT_FUNC
-MODINIT_FUNC_NAME(void)
-{
+MODINIT_FUNC_NAME(void) {
     return PyModuleDef_Init(&moduledef);
 }

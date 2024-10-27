@@ -5,15 +5,14 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-
 // Exported for the _interpchannels module.
-PyAPI_FUNC(int) _PyBuffer_ReleaseInInterpreter(
-        PyInterpreterState *interp, Py_buffer *view);
-PyAPI_FUNC(int) _PyBuffer_ReleaseInInterpreterAndRawFree(
-        PyInterpreterState *interp, Py_buffer *view);
+PyAPI_FUNC(int)
+    _PyBuffer_ReleaseInInterpreter(PyInterpreterState *interp, Py_buffer *view);
+PyAPI_FUNC(int
+) _PyBuffer_ReleaseInInterpreterAndRawFree(PyInterpreterState *interp, Py_buffer *view);
 
 #ifdef __cplusplus
 }

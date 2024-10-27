@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-
 #ifndef __internal_Hacl_Hash_Blake2s_Simd128_H
 #define __internal_Hacl_Hash_Blake2s_Simd128_H
 
@@ -41,49 +40,48 @@ extern "C" {
 #include "libintvector.h"
 
 void
-Hacl_Hash_Blake2s_Simd128_init(Lib_IntVector_Intrinsics_vec128 *hash, uint32_t kk, uint32_t nn);
+Hacl_Hash_Blake2s_Simd128_init(
+    Lib_IntVector_Intrinsics_vec128 *hash, uint32_t kk, uint32_t nn
+);
 
 void
 Hacl_Hash_Blake2s_Simd128_update_multi(
-  uint32_t len,
-  Lib_IntVector_Intrinsics_vec128 *wv,
-  Lib_IntVector_Intrinsics_vec128 *hash,
-  uint64_t prev,
-  uint8_t *blocks,
-  uint32_t nb
+    uint32_t len,
+    Lib_IntVector_Intrinsics_vec128 *wv,
+    Lib_IntVector_Intrinsics_vec128 *hash,
+    uint64_t prev,
+    uint8_t *blocks,
+    uint32_t nb
 );
 
 void
 Hacl_Hash_Blake2s_Simd128_update_last(
-  uint32_t len,
-  Lib_IntVector_Intrinsics_vec128 *wv,
-  Lib_IntVector_Intrinsics_vec128 *hash,
-  bool last_node,
-  uint64_t prev,
-  uint32_t rem,
-  uint8_t *d
+    uint32_t len,
+    Lib_IntVector_Intrinsics_vec128 *wv,
+    Lib_IntVector_Intrinsics_vec128 *hash,
+    bool last_node,
+    uint64_t prev,
+    uint32_t rem,
+    uint8_t *d
 );
 
 void
 Hacl_Hash_Blake2s_Simd128_finish(
-  uint32_t nn,
-  uint8_t *output,
-  Lib_IntVector_Intrinsics_vec128 *hash
+    uint32_t nn, uint8_t *output, Lib_IntVector_Intrinsics_vec128 *hash
 );
 
 void
 Hacl_Hash_Blake2s_Simd128_store_state128s_to_state32(
-  uint32_t *st32,
-  Lib_IntVector_Intrinsics_vec128 *st
+    uint32_t *st32, Lib_IntVector_Intrinsics_vec128 *st
 );
 
 void
 Hacl_Hash_Blake2s_Simd128_load_state128s_from_state32(
-  Lib_IntVector_Intrinsics_vec128 *st,
-  uint32_t *st32
+    Lib_IntVector_Intrinsics_vec128 *st, uint32_t *st32
 );
 
-Lib_IntVector_Intrinsics_vec128 *Hacl_Hash_Blake2s_Simd128_malloc_with_key(void);
+Lib_IntVector_Intrinsics_vec128 *
+Hacl_Hash_Blake2s_Simd128_malloc_with_key(void);
 
 #if defined(__cplusplus)
 }

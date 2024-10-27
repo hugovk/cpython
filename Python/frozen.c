@@ -67,8 +67,14 @@
 /* End includes */
 
 static const struct _frozen bootstrap_modules[] = {
-    {"_frozen_importlib", _Py_M__importlib__bootstrap, (int)sizeof(_Py_M__importlib__bootstrap), false},
-    {"_frozen_importlib_external", _Py_M__importlib__bootstrap_external, (int)sizeof(_Py_M__importlib__bootstrap_external), false},
+    {"_frozen_importlib",
+     _Py_M__importlib__bootstrap,
+     (int)sizeof(_Py_M__importlib__bootstrap),
+     false},
+    {"_frozen_importlib_external",
+     _Py_M__importlib__bootstrap_external,
+     (int)sizeof(_Py_M__importlib__bootstrap_external),
+     false},
     {"zipimport", _Py_M__zipimport, (int)sizeof(_Py_M__zipimport), false},
     {0, 0, 0} /* bootstrap sentinel */
 };
@@ -79,7 +85,10 @@ static const struct _frozen stdlib_modules[] = {
     {"io", _Py_M__io, (int)sizeof(_Py_M__io), false},
 
     /* stdlib - startup, with site */
-    {"_collections_abc", _Py_M___collections_abc, (int)sizeof(_Py_M___collections_abc), false},
+    {"_collections_abc",
+     _Py_M___collections_abc,
+     (int)sizeof(_Py_M___collections_abc),
+     false},
     {"_sitebuiltins", _Py_M___sitebuiltins, (int)sizeof(_Py_M___sitebuiltins), false},
     {"genericpath", _Py_M__genericpath, (int)sizeof(_Py_M__genericpath), false},
     {"ntpath", _Py_M__ntpath, (int)sizeof(_Py_M__ntpath), false},
@@ -90,8 +99,12 @@ static const struct _frozen stdlib_modules[] = {
     {"stat", _Py_M__stat, (int)sizeof(_Py_M__stat), false},
 
     /* runpy - run module with -m */
-    {"importlib.util", _Py_M__importlib_util, (int)sizeof(_Py_M__importlib_util), false},
-    {"importlib.machinery", _Py_M__importlib_machinery, (int)sizeof(_Py_M__importlib_machinery), false},
+    {"importlib.util", _Py_M__importlib_util, (int)sizeof(_Py_M__importlib_util), false
+    },
+    {"importlib.machinery",
+     _Py_M__importlib_machinery,
+     (int)sizeof(_Py_M__importlib_machinery),
+     false},
     {"runpy", _Py_M__runpy, (int)sizeof(_Py_M__runpy), false},
     {0, 0, 0} /* stdlib sentinel */
 };
@@ -103,9 +116,18 @@ static const struct _frozen test_modules[] = {
     {"__phello__", _Py_M____phello__, (int)sizeof(_Py_M____phello__), true},
     {"__phello__.__init__", _Py_M____phello__, (int)sizeof(_Py_M____phello__), false},
     {"__phello__.ham", _Py_M____phello___ham, (int)sizeof(_Py_M____phello___ham), true},
-    {"__phello__.ham.__init__", _Py_M____phello___ham, (int)sizeof(_Py_M____phello___ham), false},
-    {"__phello__.ham.eggs", _Py_M____phello___ham_eggs, (int)sizeof(_Py_M____phello___ham_eggs), false},
-    {"__phello__.spam", _Py_M____phello___spam, (int)sizeof(_Py_M____phello___spam), false},
+    {"__phello__.ham.__init__",
+     _Py_M____phello___ham,
+     (int)sizeof(_Py_M____phello___ham),
+     false},
+    {"__phello__.ham.eggs",
+     _Py_M____phello___ham_eggs,
+     (int)sizeof(_Py_M____phello___ham_eggs),
+     false},
+    {"__phello__.spam",
+     _Py_M____phello___spam,
+     (int)sizeof(_Py_M____phello___spam),
+     false},
     {"__hello_only__", _Py_M__frozen_only, (int)sizeof(_Py_M__frozen_only), false},
     {0, 0, 0} /* test sentinel */
 };
@@ -126,7 +148,6 @@ static const struct _module_alias aliases[] = {
     {0, 0} /* aliases sentinel */
 };
 const struct _module_alias *_PyImport_FrozenAliases = aliases;
-
 
 /* Embedding apps may change this pointer to point to their favorite
    collection of frozen modules: */

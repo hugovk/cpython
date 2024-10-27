@@ -17,7 +17,7 @@
 ***********************************************************/
 
 #include "Python.h"
-#include "pycore_fileutils.h"     // _Py_BEGIN_SUPPRESS_IPH
+#include "pycore_fileutils.h"  // _Py_BEGIN_SUPPRESS_IPH
 #include "malloc.h"
 #include <io.h>
 #include <conio.h>
@@ -130,13 +130,10 @@ msvcrt_locking_impl(PyObject *module, int fd, int mode, long nbytes)
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS
-    _Py_BEGIN_SUPPRESS_IPH
-    err = _locking(fd, mode, nbytes);
-    _Py_END_SUPPRESS_IPH
-    Py_END_ALLOW_THREADS
-    if (err != 0)
-        return PyErr_SetFromErrno(PyExc_OSError);
+    Py_BEGIN_ALLOW_THREADS _Py_BEGIN_SUPPRESS_IPH err = _locking(fd, mode, nbytes);
+    _Py_END_SUPPRESS_IPH Py_END_ALLOW_THREADS if (err != 0) return PyErr_SetFromErrno(
+        PyExc_OSError
+    );
 
     Py_RETURN_NONE;
 }
@@ -160,11 +157,8 @@ static long
 msvcrt_setmode_impl(PyObject *module, int fd, int flags)
 /*[clinic end generated code: output=24a9be5ea07ccb9b input=76e7c01f6b137f75]*/
 {
-    _Py_BEGIN_SUPPRESS_IPH
-    flags = _setmode(fd, flags);
-    _Py_END_SUPPRESS_IPH
-    if (flags == -1)
-        PyErr_SetFromErrno(PyExc_OSError);
+    _Py_BEGIN_SUPPRESS_IPH flags = _setmode(fd, flags);
+    _Py_END_SUPPRESS_IPH if (flags == -1) PyErr_SetFromErrno(PyExc_OSError);
 
     return flags;
 }
@@ -248,10 +242,8 @@ msvcrt_getch_impl(PyObject *module)
 {
     int ch;
 
-    Py_BEGIN_ALLOW_THREADS
-    ch = _getch();
-    Py_END_ALLOW_THREADS
-    return ch;
+    Py_BEGIN_ALLOW_THREADS ch = _getch();
+    Py_END_ALLOW_THREADS return ch;
 }
 
 #ifdef MS_WINDOWS_DESKTOP
@@ -268,10 +260,8 @@ msvcrt_getwch_impl(PyObject *module)
 {
     wchar_t ch;
 
-    Py_BEGIN_ALLOW_THREADS
-    ch = _getwch();
-    Py_END_ALLOW_THREADS
-    return ch;
+    Py_BEGIN_ALLOW_THREADS ch = _getwch();
+    Py_END_ALLOW_THREADS return ch;
 }
 
 #endif /* MS_WINDOWS_DESKTOP */
@@ -288,10 +278,8 @@ msvcrt_getche_impl(PyObject *module)
 {
     int ch;
 
-    Py_BEGIN_ALLOW_THREADS
-    ch = _getche();
-    Py_END_ALLOW_THREADS
-    return ch;
+    Py_BEGIN_ALLOW_THREADS ch = _getche();
+    Py_END_ALLOW_THREADS return ch;
 }
 
 #ifdef MS_WINDOWS_DESKTOP
@@ -308,10 +296,8 @@ msvcrt_getwche_impl(PyObject *module)
 {
     wchar_t ch;
 
-    Py_BEGIN_ALLOW_THREADS
-    ch = _getwche();
-    Py_END_ALLOW_THREADS
-    return ch;
+    Py_BEGIN_ALLOW_THREADS ch = _getwche();
+    Py_END_ALLOW_THREADS return ch;
 }
 
 #endif /* MS_WINDOWS_DESKTOP */
@@ -329,10 +315,8 @@ static PyObject *
 msvcrt_putch_impl(PyObject *module, char char_value)
 /*[clinic end generated code: output=92ec9b81012d8f60 input=ec078dd10cb054d6]*/
 {
-    _Py_BEGIN_SUPPRESS_IPH
-    _putch(char_value);
-    _Py_END_SUPPRESS_IPH
-    Py_RETURN_NONE;
+    _Py_BEGIN_SUPPRESS_IPH _putch(char_value);
+    _Py_END_SUPPRESS_IPH Py_RETURN_NONE;
 }
 
 #ifdef MS_WINDOWS_DESKTOP
@@ -350,11 +334,8 @@ static PyObject *
 msvcrt_putwch_impl(PyObject *module, int unicode_char)
 /*[clinic end generated code: output=a3bd1a8951d28eee input=996ccd0bbcbac4c3]*/
 {
-    _Py_BEGIN_SUPPRESS_IPH
-    _putwch(unicode_char);
-    _Py_END_SUPPRESS_IPH
-    Py_RETURN_NONE;
-
+    _Py_BEGIN_SUPPRESS_IPH _putwch(unicode_char);
+    _Py_END_SUPPRESS_IPH Py_RETURN_NONE;
 }
 
 #endif /* MS_WINDOWS_DESKTOP */
@@ -378,12 +359,10 @@ msvcrt_ungetch_impl(PyObject *module, char char_value)
 {
     int res;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    res = _ungetch(char_value);
+    _Py_BEGIN_SUPPRESS_IPH res = _ungetch(char_value);
     _Py_END_SUPPRESS_IPH
 
-    if (res == EOF)
-        return PyErr_SetFromErrno(PyExc_OSError);
+        if (res == EOF) return PyErr_SetFromErrno(PyExc_OSError);
     Py_RETURN_NONE;
 }
 
@@ -404,12 +383,10 @@ msvcrt_ungetwch_impl(PyObject *module, int unicode_char)
 {
     int res;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    res = _ungetwch(unicode_char);
+    _Py_BEGIN_SUPPRESS_IPH res = _ungetwch(unicode_char);
     _Py_END_SUPPRESS_IPH
 
-    if (res == WEOF)
-        return PyErr_SetFromErrno(PyExc_OSError);
+        if (res == WEOF) return PyErr_SetFromErrno(PyExc_OSError);
     Py_RETURN_NONE;
 }
 
@@ -434,11 +411,10 @@ msvcrt_CrtSetReportFile_impl(PyObject *module, int type, void *file)
 {
     HANDLE res;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    res = _CrtSetReportFile(type, file);
+    _Py_BEGIN_SUPPRESS_IPH res = _CrtSetReportFile(type, file);
     _Py_END_SUPPRESS_IPH
 
-    return res;
+        return res;
 }
 
 /*[clinic input]
@@ -459,11 +435,8 @@ msvcrt_CrtSetReportMode_impl(PyObject *module, int type, int mode)
 {
     int res;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    res = _CrtSetReportMode(type, mode);
-    _Py_END_SUPPRESS_IPH
-    if (res == -1)
-        PyErr_SetFromErrno(PyExc_OSError);
+    _Py_BEGIN_SUPPRESS_IPH res = _CrtSetReportMode(type, mode);
+    _Py_END_SUPPRESS_IPH if (res == -1) PyErr_SetFromErrno(PyExc_OSError);
     return res;
 }
 
@@ -484,11 +457,10 @@ msvcrt_set_error_mode_impl(PyObject *module, int mode)
 {
     long res;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    res = _set_error_mode(mode);
+    _Py_BEGIN_SUPPRESS_IPH res = _set_error_mode(mode);
     _Py_END_SUPPRESS_IPH
 
-    return res;
+        return res;
 }
 #endif /* _DEBUG */
 
@@ -506,11 +478,10 @@ msvcrt_GetErrorMode_impl(PyObject *module)
 {
     unsigned int res;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    res = GetErrorMode();
+    _Py_BEGIN_SUPPRESS_IPH res = GetErrorMode();
     _Py_END_SUPPRESS_IPH
 
-    return PyLong_FromUnsignedLong(res);
+        return PyLong_FromUnsignedLong(res);
 }
 
 #endif /* MS_WINDOWS_APP || MS_WINDOWS_SYSTEM */
@@ -530,11 +501,10 @@ msvcrt_SetErrorMode_impl(PyObject *module, unsigned int mode)
 {
     unsigned int res;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    res = SetErrorMode(mode);
+    _Py_BEGIN_SUPPRESS_IPH res = SetErrorMode(mode);
     _Py_END_SUPPRESS_IPH
 
-    return PyLong_FromUnsignedLong(res);
+        return PyLong_FromUnsignedLong(res);
 }
 
 /*[clinic input]
@@ -543,55 +513,46 @@ msvcrt_SetErrorMode_impl(PyObject *module, unsigned int mode)
 
 /* List of functions exported by this module */
 static struct PyMethodDef msvcrt_functions[] = {
-    MSVCRT_HEAPMIN_METHODDEF
-    MSVCRT_LOCKING_METHODDEF
-    MSVCRT_SETMODE_METHODDEF
-    MSVCRT_OPEN_OSFHANDLE_METHODDEF
-    MSVCRT_GET_OSFHANDLE_METHODDEF
-    MSVCRT_KBHIT_METHODDEF
-    MSVCRT_GETCH_METHODDEF
-    MSVCRT_GETCHE_METHODDEF
-    MSVCRT_PUTCH_METHODDEF
-    MSVCRT_UNGETCH_METHODDEF
-    MSVCRT_GETERRORMODE_METHODDEF
-    MSVCRT_SETERRORMODE_METHODDEF
-    MSVCRT_CRTSETREPORTFILE_METHODDEF
-    MSVCRT_CRTSETREPORTMODE_METHODDEF
-    MSVCRT_SET_ERROR_MODE_METHODDEF
-    MSVCRT_GETWCH_METHODDEF
-    MSVCRT_GETWCHE_METHODDEF
-    MSVCRT_PUTWCH_METHODDEF
-    MSVCRT_UNGETWCH_METHODDEF
-    {NULL,                      NULL}
+    MSVCRT_HEAPMIN_METHODDEF MSVCRT_LOCKING_METHODDEF MSVCRT_SETMODE_METHODDEF
+        MSVCRT_OPEN_OSFHANDLE_METHODDEF MSVCRT_GET_OSFHANDLE_METHODDEF
+            MSVCRT_KBHIT_METHODDEF MSVCRT_GETCH_METHODDEF MSVCRT_GETCHE_METHODDEF
+                MSVCRT_PUTCH_METHODDEF MSVCRT_UNGETCH_METHODDEF
+                    MSVCRT_GETERRORMODE_METHODDEF MSVCRT_SETERRORMODE_METHODDEF
+                        MSVCRT_CRTSETREPORTFILE_METHODDEF
+                            MSVCRT_CRTSETREPORTMODE_METHODDEF
+                                MSVCRT_SET_ERROR_MODE_METHODDEF MSVCRT_GETWCH_METHODDEF
+                                    MSVCRT_GETWCHE_METHODDEF MSVCRT_PUTWCH_METHODDEF
+                                        MSVCRT_UNGETWCH_METHODDEF{NULL, NULL}
 };
 
 static int
-insertptr(PyObject *mod, const char *name, void *value)
-{
+insertptr(PyObject *mod, const char *name, void *value) {
     return PyModule_Add(mod, name, PyLong_FromVoidPtr(value));
 }
 
-#define INSERTINT(MOD, NAME, VAL) do {                  \
-    if (PyModule_AddIntConstant(MOD, NAME, VAL) < 0) {  \
-        return -1;                                      \
-    }                                                   \
-} while (0)
+#define INSERTINT(MOD, NAME, VAL)                          \
+    do {                                                   \
+        if (PyModule_AddIntConstant(MOD, NAME, VAL) < 0) { \
+            return -1;                                     \
+        }                                                  \
+    } while (0)
 
-#define INSERTPTR(MOD, NAME, PTR) do {      \
-    if (insertptr(MOD, NAME, PTR) < 0) {    \
-        return -1;                          \
-    }                                       \
-} while (0)
+#define INSERTPTR(MOD, NAME, PTR)            \
+    do {                                     \
+        if (insertptr(MOD, NAME, PTR) < 0) { \
+            return -1;                       \
+        }                                    \
+    } while (0)
 
-#define INSERTSTR(MOD, NAME, CONST) do {                    \
-    if (PyModule_AddStringConstant(MOD, NAME, CONST) < 0) { \
-        return -1;                                          \
-    }                                                       \
-} while (0)
+#define INSERTSTR(MOD, NAME, CONST)                             \
+    do {                                                        \
+        if (PyModule_AddStringConstant(MOD, NAME, CONST) < 0) { \
+            return -1;                                          \
+        }                                                       \
+    } while (0)
 
 static int
-exec_module(PyObject* m)
-{
+exec_module(PyObject *m) {
     /* constants for the locking() function's mode argument */
     INSERTINT(m, "LK_LOCK", _LK_LOCK);
     INSERTINT(m, "LK_NBLCK", _LK_NBLCK);
@@ -632,19 +593,21 @@ exec_module(PyObject* m)
     INSERTSTR(m, "CRT_ASSEMBLY_VERSION", _CRT_ASSEMBLY_VERSION);
 #endif
 #ifdef __LIBRARIES_ASSEMBLY_NAME_PREFIX
-    INSERTSTR(m, "LIBRARIES_ASSEMBLY_NAME_PREFIX",
-              __LIBRARIES_ASSEMBLY_NAME_PREFIX);
+    INSERTSTR(m, "LIBRARIES_ASSEMBLY_NAME_PREFIX", __LIBRARIES_ASSEMBLY_NAME_PREFIX);
 #endif
 
 #undef INSERTSTR
 
     /* constants for the 2010 crt versions */
-#if defined(_VC_CRT_MAJOR_VERSION) && defined (_VC_CRT_MINOR_VERSION) && defined(_VC_CRT_BUILD_VERSION) && defined(_VC_CRT_RBUILD_VERSION)
-    PyObject *version = PyUnicode_FromFormat("%d.%d.%d.%d",
-                                             _VC_CRT_MAJOR_VERSION,
-                                             _VC_CRT_MINOR_VERSION,
-                                             _VC_CRT_BUILD_VERSION,
-                                             _VC_CRT_RBUILD_VERSION);
+#if defined(_VC_CRT_MAJOR_VERSION) && defined(_VC_CRT_MINOR_VERSION) && \
+    defined(_VC_CRT_BUILD_VERSION) && defined(_VC_CRT_RBUILD_VERSION)
+    PyObject *version = PyUnicode_FromFormat(
+        "%d.%d.%d.%d",
+        _VC_CRT_MAJOR_VERSION,
+        _VC_CRT_MINOR_VERSION,
+        _VC_CRT_BUILD_VERSION,
+        _VC_CRT_RBUILD_VERSION
+    );
     if (PyModule_Add(m, "CRT_ASSEMBLY_VERSION", version) < 0) {
         return -1;
     }
@@ -668,7 +631,6 @@ static struct PyModuleDef msvcrtmodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_msvcrt(void)
-{
+PyInit_msvcrt(void) {
     return PyModuleDef_Init(&msvcrtmodule);
 }

@@ -4,13 +4,14 @@
 #include "pycore_critical_section.h"
 
 #ifdef Py_GIL_DISABLED
-static_assert(_Alignof(PyCriticalSection) >= 4,
-              "critical section must be aligned to at least 4 bytes");
+static_assert(
+    _Alignof(PyCriticalSection) >= 4,
+    "critical section must be aligned to at least 4 bytes"
+);
 #endif
 
 void
-_PyCriticalSection_BeginSlow(PyCriticalSection *c, PyMutex *m)
-{
+_PyCriticalSection_BeginSlow(PyCriticalSection *c, PyMutex *m) {
 #ifdef Py_GIL_DISABLED
     PyThreadState *tstate = _PyThreadState_GET();
     c->_cs_mutex = NULL;
@@ -23,9 +24,9 @@ _PyCriticalSection_BeginSlow(PyCriticalSection *c, PyMutex *m)
 }
 
 void
-_PyCriticalSection2_BeginSlow(PyCriticalSection2 *c, PyMutex *m1, PyMutex *m2,
-                              int is_m1_locked)
-{
+_PyCriticalSection2_BeginSlow(
+    PyCriticalSection2 *c, PyMutex *m1, PyMutex *m2, int is_m1_locked
+) {
 #ifdef Py_GIL_DISABLED
     PyThreadState *tstate = _PyThreadState_GET();
     c->_cs_base._cs_mutex = NULL;
@@ -44,8 +45,7 @@ _PyCriticalSection2_BeginSlow(PyCriticalSection2 *c, PyMutex *m1, PyMutex *m2,
 
 #ifdef Py_GIL_DISABLED
 static PyCriticalSection *
-untag_critical_section(uintptr_t tag)
-{
+untag_critical_section(uintptr_t tag) {
     return (PyCriticalSection *)(tag & ~_Py_CRITICAL_SECTION_MASK);
 }
 #endif
@@ -53,8 +53,7 @@ untag_critical_section(uintptr_t tag)
 // Release all locks held by critical sections. This is called by
 // _PyThreadState_Detach.
 void
-_PyCriticalSection_SuspendAll(PyThreadState *tstate)
-{
+_PyCriticalSection_SuspendAll(PyThreadState *tstate) {
 #ifdef Py_GIL_DISABLED
     uintptr_t *tagptr = &tstate->critical_section;
     while (_PyCriticalSection_IsActive(*tagptr)) {
@@ -77,8 +76,7 @@ _PyCriticalSection_SuspendAll(PyThreadState *tstate)
 }
 
 void
-_PyCriticalSection_Resume(PyThreadState *tstate)
-{
+_PyCriticalSection_Resume(PyThreadState *tstate) {
 #ifdef Py_GIL_DISABLED
     uintptr_t p = tstate->critical_section;
     PyCriticalSection *c = untag_critical_section(p);
@@ -113,8 +111,7 @@ _PyCriticalSection_Resume(PyThreadState *tstate)
 
 #undef PyCriticalSection_Begin
 void
-PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op)
-{
+PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op) {
 #ifdef Py_GIL_DISABLED
     _PyCriticalSection_Begin(c, op);
 #endif
@@ -122,8 +119,7 @@ PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op)
 
 #undef PyCriticalSection_End
 void
-PyCriticalSection_End(PyCriticalSection *c)
-{
+PyCriticalSection_End(PyCriticalSection *c) {
 #ifdef Py_GIL_DISABLED
     _PyCriticalSection_End(c);
 #endif
@@ -131,8 +127,7 @@ PyCriticalSection_End(PyCriticalSection *c)
 
 #undef PyCriticalSection2_Begin
 void
-PyCriticalSection2_Begin(PyCriticalSection2 *c, PyObject *a, PyObject *b)
-{
+PyCriticalSection2_Begin(PyCriticalSection2 *c, PyObject *a, PyObject *b) {
 #ifdef Py_GIL_DISABLED
     _PyCriticalSection2_Begin(c, a, b);
 #endif
@@ -140,8 +135,7 @@ PyCriticalSection2_Begin(PyCriticalSection2 *c, PyObject *a, PyObject *b)
 
 #undef PyCriticalSection2_End
 void
-PyCriticalSection2_End(PyCriticalSection2 *c)
-{
+PyCriticalSection2_End(PyCriticalSection2 *c) {
 #ifdef Py_GIL_DISABLED
     _PyCriticalSection2_End(c);
 #endif

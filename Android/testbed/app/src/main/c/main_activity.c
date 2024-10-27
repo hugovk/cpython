@@ -7,14 +7,12 @@
 #include <string.h>
 #include <unistd.h>
 
-
-static void throw_runtime_exception(JNIEnv *env, const char *message) {
+static void
+throw_runtime_exception(JNIEnv *env, const char *message) {
     (*env)->ThrowNew(
-        env,
-        (*env)->FindClass(env, "java/lang/RuntimeException"),
-        message);
+        env, (*env)->FindClass(env, "java/lang/RuntimeException"), message
+    );
 }
-
 
 // --- Stdio redirection ------------------------------------------------------
 
@@ -51,8 +49,9 @@ static StreamInfo STREAMS[] = {
 // level 23 and 26), so leave some headroom.
 static const int MAX_BYTES_PER_WRITE = 4000;
 
-static void *redirection_thread(void *arg) {
-    StreamInfo *si = (StreamInfo*)arg;
+static void *
+redirection_thread(void *arg) {
+    StreamInfo *si = (StreamInfo *)arg;
     ssize_t read_size;
     char buf[MAX_BYTES_PER_WRITE];
     while ((read_size = read(si->pipe[0], buf, sizeof buf - 1)) > 0) {
@@ -62,7 +61,8 @@ static void *redirection_thread(void *arg) {
     return 0;
 }
 
-static char *redirect_stream(StreamInfo *si) {
+static char *
+redirect_stream(StreamInfo *si) {
     /* make the FILE unbuffered, to ensure messages are never lost */
     if (setvbuf(si->file, 0, _IONBF, 0)) {
         return "setvbuf";
@@ -87,7 +87,8 @@ static char *redirect_stream(StreamInfo *si) {
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_org_python_testbed_PythonTestRunner_redirectStdioToLogcat(
+JNIEXPORT void JNICALL
+Java_org_python_testbed_PythonTestRunner_redirectStdioToLogcat(
     JNIEnv *env, jobject obj
 ) {
     STREAMS[0].file = stdout;
@@ -96,31 +97,36 @@ JNIEXPORT void JNICALL Java_org_python_testbed_PythonTestRunner_redirectStdioToL
         char *error_prefix;
         if ((error_prefix = redirect_stream(si))) {
             char error_message[1024];
-            snprintf(error_message, sizeof(error_message),
-                     "%s: %s", error_prefix, strerror(errno));
+            snprintf(
+                error_message,
+                sizeof(error_message),
+                "%s: %s",
+                error_prefix,
+                strerror(errno)
+            );
             throw_runtime_exception(env, error_message);
             return;
         }
     }
 }
 
-
 // --- Python initialization ---------------------------------------------------
 
-static PyStatus set_config_string(
-    JNIEnv *env, PyConfig *config, wchar_t **config_str, jstring value
-) {
+static PyStatus
+set_config_string(JNIEnv *env, PyConfig *config, wchar_t **config_str, jstring value) {
     const char *value_utf8 = (*env)->GetStringUTFChars(env, value, NULL);
     PyStatus status = PyConfig_SetBytesString(config, config_str, value_utf8);
     (*env)->ReleaseStringUTFChars(env, value, value_utf8);
     return status;
 }
 
-static void throw_status(JNIEnv *env, PyStatus status) {
+static void
+throw_status(JNIEnv *env, PyStatus status) {
     throw_runtime_exception(env, status.err_msg ? status.err_msg : "");
 }
 
-JNIEXPORT int JNICALL Java_org_python_testbed_PythonTestRunner_runPython(
+JNIEXPORT int JNICALL
+Java_org_python_testbed_PythonTestRunner_runPython(
     JNIEnv *env, jobject obj, jstring home, jstring runModule
 ) {
     PyConfig config;

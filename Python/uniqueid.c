@@ -1,9 +1,9 @@
 #include "Python.h"
 
-#include "pycore_dict.h"        // _PyDict_UniqueId()
-#include "pycore_lock.h"        // PyMutex_LockFlags()
-#include "pycore_pystate.h"     // _PyThreadState_GET()
-#include "pycore_object.h"      // _Py_IncRefTotal
+#include "pycore_dict.h"     // _PyDict_UniqueId()
+#include "pycore_lock.h"     // PyMutex_LockFlags()
+#include "pycore_pystate.h"  // _PyThreadState_GET()
+#include "pycore_object.h"   // _Py_IncRefTotal
 #include "pycore_uniqueid.h"
 
 // This contains code for allocating unique ids for per-thread reference
@@ -21,8 +21,7 @@
 #define UNLOCK_POOL(pool) PyMutex_Unlock(&pool->mutex)
 
 static int
-resize_interp_type_id_pool(struct _Py_unique_id_pool *pool)
-{
+resize_interp_type_id_pool(struct _Py_unique_id_pool *pool) {
     if ((size_t)pool->size > PY_SSIZE_T_MAX / (2 * sizeof(*pool->table))) {
         return -1;
     }
@@ -32,8 +31,8 @@ resize_interp_type_id_pool(struct _Py_unique_id_pool *pool)
         new_size = POOL_MIN_SIZE;
     }
 
-    _Py_unique_id_entry *table = PyMem_Realloc(pool->table,
-                                               new_size * sizeof(*pool->table));
+    _Py_unique_id_entry *table =
+        PyMem_Realloc(pool->table, new_size * sizeof(*pool->table));
     if (table == NULL) {
         return -1;
     }
@@ -51,8 +50,7 @@ resize_interp_type_id_pool(struct _Py_unique_id_pool *pool)
 }
 
 static int
-resize_local_refcounts(_PyThreadStateImpl *tstate)
-{
+resize_local_refcounts(_PyThreadStateImpl *tstate) {
     if (tstate->refcounts.is_finalized) {
         return -1;
     }
@@ -60,15 +58,15 @@ resize_local_refcounts(_PyThreadStateImpl *tstate)
     struct _Py_unique_id_pool *pool = &tstate->base.interp->unique_ids;
     Py_ssize_t size = _Py_atomic_load_ssize(&pool->size);
 
-    Py_ssize_t *refcnts = PyMem_Realloc(tstate->refcounts.values,
-                                        size * sizeof(Py_ssize_t));
+    Py_ssize_t *refcnts =
+        PyMem_Realloc(tstate->refcounts.values, size * sizeof(Py_ssize_t));
     if (refcnts == NULL) {
         return -1;
     }
 
     Py_ssize_t old_size = tstate->refcounts.size;
     if (old_size < size) {
-       memset(refcnts + old_size, 0, (size - old_size) * sizeof(Py_ssize_t));
+        memset(refcnts + old_size, 0, (size - old_size) * sizeof(Py_ssize_t));
     }
 
     tstate->refcounts.values = refcnts;
@@ -77,8 +75,7 @@ resize_local_refcounts(_PyThreadStateImpl *tstate)
 }
 
 Py_ssize_t
-_PyObject_AssignUniqueId(PyObject *obj)
-{
+_PyObject_AssignUniqueId(PyObject *obj) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     struct _Py_unique_id_pool *pool = &interp->unique_ids;
 
@@ -100,8 +97,7 @@ _PyObject_AssignUniqueId(PyObject *obj)
 }
 
 void
-_PyObject_ReleaseUniqueId(Py_ssize_t unique_id)
-{
+_PyObject_ReleaseUniqueId(Py_ssize_t unique_id) {
     PyInterpreterState *interp = _PyInterpreterState_GET();
     struct _Py_unique_id_pool *pool = &interp->unique_ids;
 
@@ -114,8 +110,7 @@ _PyObject_ReleaseUniqueId(Py_ssize_t unique_id)
 }
 
 static Py_ssize_t
-clear_unique_id(PyObject *obj)
-{
+clear_unique_id(PyObject *obj) {
     Py_ssize_t id = -1;
     if (PyType_Check(obj)) {
         if (PyType_HasFeature((PyTypeObject *)obj, Py_TPFLAGS_HEAPTYPE)) {
@@ -123,13 +118,11 @@ clear_unique_id(PyObject *obj)
             id = ht->unique_id;
             ht->unique_id = -1;
         }
-    }
-    else if (PyCode_Check(obj)) {
+    } else if (PyCode_Check(obj)) {
         PyCodeObject *co = (PyCodeObject *)obj;
         id = co->_co_unique_id;
         co->_co_unique_id = -1;
-    }
-    else if (PyDict_Check(obj)) {
+    } else if (PyDict_Check(obj)) {
         PyDictObject *mp = (PyDictObject *)obj;
         id = _PyDict_UniqueId(mp);
         mp->_ma_watcher_tag &= ~(UINT64_MAX << DICT_UNIQUE_ID_SHIFT);
@@ -138,8 +131,7 @@ clear_unique_id(PyObject *obj)
 }
 
 void
-_PyObject_DisablePerThreadRefcounting(PyObject *obj)
-{
+_PyObject_DisablePerThreadRefcounting(PyObject *obj) {
     Py_ssize_t id = clear_unique_id(obj);
     if (id >= 0) {
         _PyObject_ReleaseUniqueId(id);
@@ -147,8 +139,7 @@ _PyObject_DisablePerThreadRefcounting(PyObject *obj)
 }
 
 void
-_PyObject_ThreadIncrefSlow(PyObject *obj, Py_ssize_t unique_id)
-{
+_PyObject_ThreadIncrefSlow(PyObject *obj, Py_ssize_t unique_id) {
     _PyThreadStateImpl *tstate = (_PyThreadStateImpl *)_PyThreadState_GET();
     if (unique_id < 0 || resize_local_refcounts(tstate) < 0) {
         // just incref the object directly.
@@ -165,8 +156,7 @@ _PyObject_ThreadIncrefSlow(PyObject *obj, Py_ssize_t unique_id)
 }
 
 void
-_PyObject_MergePerThreadRefcounts(_PyThreadStateImpl *tstate)
-{
+_PyObject_MergePerThreadRefcounts(_PyThreadStateImpl *tstate) {
     if (tstate->refcounts.values == NULL) {
         return;
     }
@@ -178,8 +168,7 @@ _PyObject_MergePerThreadRefcounts(_PyThreadStateImpl *tstate)
         Py_ssize_t refcnt = tstate->refcounts.values[i];
         if (refcnt != 0) {
             PyObject *obj = pool->table[i].obj;
-            _Py_atomic_add_ssize(&obj->ob_ref_shared,
-                                 refcnt << _Py_REF_SHARED_SHIFT);
+            _Py_atomic_add_ssize(&obj->ob_ref_shared, refcnt << _Py_REF_SHARED_SHIFT);
             tstate->refcounts.values[i] = 0;
         }
     }
@@ -187,8 +176,7 @@ _PyObject_MergePerThreadRefcounts(_PyThreadStateImpl *tstate)
 }
 
 void
-_PyObject_FinalizePerThreadRefcounts(_PyThreadStateImpl *tstate)
-{
+_PyObject_FinalizePerThreadRefcounts(_PyThreadStateImpl *tstate) {
     _PyObject_MergePerThreadRefcounts(tstate);
 
     PyMem_Free(tstate->refcounts.values);
@@ -198,8 +186,7 @@ _PyObject_FinalizePerThreadRefcounts(_PyThreadStateImpl *tstate)
 }
 
 void
-_PyObject_FinalizeUniqueIdPool(PyInterpreterState *interp)
-{
+_PyObject_FinalizeUniqueIdPool(PyInterpreterState *interp) {
     struct _Py_unique_id_pool *pool = &interp->unique_ids;
 
     // First, set the free-list to NULL values
@@ -226,4 +213,4 @@ _PyObject_FinalizeUniqueIdPool(PyInterpreterState *interp)
     pool->size = 0;
 }
 
-#endif   /* Py_GIL_DISABLED */
+#endif /* Py_GIL_DISABLED */

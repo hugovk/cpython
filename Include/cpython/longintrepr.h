@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-
 /* This is published for the benefit of "friends" marshal.c and _decimal.c. */
 
 /* Parameters of the integer representation.  There are two different
@@ -44,22 +43,22 @@ typedef uint32_t digit;
 typedef int32_t sdigit; /* signed variant of digit */
 typedef uint64_t twodigits;
 typedef int64_t stwodigits; /* signed variant of twodigits */
-#define PyLong_SHIFT    30
-#define _PyLong_DECIMAL_SHIFT   9 /* max(e such that 10**e fits in a digit) */
-#define _PyLong_DECIMAL_BASE    ((digit)1000000000) /* 10 ** DECIMAL_SHIFT */
+#define PyLong_SHIFT 30
+#define _PyLong_DECIMAL_SHIFT 9 /* max(e such that 10**e fits in a digit) */
+#define _PyLong_DECIMAL_BASE ((digit)1000000000) /* 10 ** DECIMAL_SHIFT */
 #elif PYLONG_BITS_IN_DIGIT == 15
 typedef unsigned short digit;
 typedef short sdigit; /* signed variant of digit */
 typedef unsigned long twodigits;
 typedef long stwodigits; /* signed variant of twodigits */
-#define PyLong_SHIFT    15
-#define _PyLong_DECIMAL_SHIFT   4 /* max(e such that 10**e fits in a digit) */
-#define _PyLong_DECIMAL_BASE    ((digit)10000) /* 10 ** DECIMAL_SHIFT */
+#define PyLong_SHIFT 15
+#define _PyLong_DECIMAL_SHIFT 4             /* max(e such that 10**e fits in a digit) */
+#define _PyLong_DECIMAL_BASE ((digit)10000) /* 10 ** DECIMAL_SHIFT */
 #else
 #error "PYLONG_BITS_IN_DIGIT should be 15 or 30"
 #endif
-#define PyLong_BASE     ((digit)1 << PyLong_SHIFT)
-#define PyLong_MASK     ((digit)(PyLong_BASE - 1))
+#define PyLong_BASE ((digit)1 << PyLong_SHIFT)
+#define PyLong_MASK ((digit)(PyLong_BASE - 1))
 
 /* Long integer representation.
 
@@ -96,20 +95,16 @@ typedef struct _PyLongValue {
 } _PyLongValue;
 
 struct _longobject {
-    PyObject_HEAD
-    _PyLongValue long_value;
+    PyObject_HEAD _PyLongValue long_value;
 };
 
-PyAPI_FUNC(PyLongObject*) _PyLong_New(Py_ssize_t);
+PyAPI_FUNC(PyLongObject *) _PyLong_New(Py_ssize_t);
 
 // Return a copy of src.
-PyAPI_FUNC(PyObject*) _PyLong_Copy(PyLongObject *src);
+PyAPI_FUNC(PyObject *) _PyLong_Copy(PyLongObject *src);
 
-PyAPI_FUNC(PyLongObject*) _PyLong_FromDigits(
-    int negative,
-    Py_ssize_t digit_count,
-    digit *digits);
-
+PyAPI_FUNC(PyLongObject *)
+    _PyLong_FromDigits(int negative, Py_ssize_t digit_count, digit *digits);
 
 /* Inline some internals for speed. These should be in pycore_long.h
  * if user code didn't need them inlined. */
@@ -117,9 +112,8 @@ PyAPI_FUNC(PyLongObject*) _PyLong_FromDigits(
 #define _PyLong_SIGN_MASK 3
 #define _PyLong_NON_SIZE_BITS 3
 
-
 static inline int
-_PyLong_IsCompact(const PyLongObject* op) {
+_PyLong_IsCompact(const PyLongObject *op) {
     assert(PyType_HasFeature(op->ob_base.ob_type, Py_TPFLAGS_LONG_SUBCLASS));
     return op->long_value.lv_tag < (2 << _PyLong_NON_SIZE_BITS);
 }
@@ -127,8 +121,7 @@ _PyLong_IsCompact(const PyLongObject* op) {
 #define PyUnstable_Long_IsCompact _PyLong_IsCompact
 
 static inline Py_ssize_t
-_PyLong_CompactValue(const PyLongObject *op)
-{
+_PyLong_CompactValue(const PyLongObject *op) {
     Py_ssize_t sign;
     assert(PyType_HasFeature(op->ob_base.ob_type, Py_TPFLAGS_LONG_SUBCLASS));
     assert(PyUnstable_Long_IsCompact(op));
@@ -137,7 +130,6 @@ _PyLong_CompactValue(const PyLongObject *op)
 }
 
 #define PyUnstable_Long_CompactValue _PyLong_CompactValue
-
 
 #ifdef __cplusplus
 }

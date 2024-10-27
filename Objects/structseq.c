@@ -8,11 +8,11 @@
 */
 
 #include "Python.h"
-#include "pycore_initconfig.h"    // _PyStatus_OK()
-#include "pycore_modsupport.h"    // _PyArg_NoPositional()
-#include "pycore_object.h"        // _PyObject_GC_TRACK()
-#include "pycore_structseq.h"     // PyStructSequence_InitType()
-#include "pycore_tuple.h"         // _PyTuple_FromArray()
+#include "pycore_initconfig.h"  // _PyStatus_OK()
+#include "pycore_modsupport.h"  // _PyArg_NoPositional()
+#include "pycore_object.h"      // _PyObject_GC_TRACK()
+#include "pycore_structseq.h"   // PyStructSequence_InitType()
+#include "pycore_tuple.h"       // _PyTuple_FromArray()
 
 static const char visible_length_key[] = "n_sequence_fields";
 static const char real_length_key[] = "n_fields";
@@ -21,35 +21,30 @@ static const char match_args_key[] = "__match_args__";
 
 /* Fields with this name have only a field index, not a field name.
    They are only allowed for indices < n_visible_fields. */
-const char * const PyStructSequence_UnnamedField = "unnamed field";
+const char *const PyStructSequence_UnnamedField = "unnamed field";
 
 static Py_ssize_t
-get_type_attr_as_size(PyTypeObject *tp, PyObject *name)
-{
+get_type_attr_as_size(PyTypeObject *tp, PyObject *name) {
     PyObject *v = PyDict_GetItemWithError(_PyType_GetDict(tp), name);
     if (v == NULL && !PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError,
-                     "Missed attribute '%U' of type %s",
-                     name, tp->tp_name);
+        PyErr_Format(
+            PyExc_TypeError, "Missed attribute '%U' of type %s", name, tp->tp_name
+        );
         return -1;
     }
     return PyLong_AsSsize_t(v);
 }
 
 #define VISIBLE_SIZE(op) Py_SIZE(op)
-#define VISIBLE_SIZE_TP(tp) \
-    get_type_attr_as_size(tp, &_Py_ID(n_sequence_fields))
-#define REAL_SIZE_TP(tp) \
-    get_type_attr_as_size(tp, &_Py_ID(n_fields))
+#define VISIBLE_SIZE_TP(tp) get_type_attr_as_size(tp, &_Py_ID(n_sequence_fields))
+#define REAL_SIZE_TP(tp) get_type_attr_as_size(tp, &_Py_ID(n_fields))
 #define REAL_SIZE(op) get_real_size((PyObject *)op)
 
-#define UNNAMED_FIELDS_TP(tp) \
-    get_type_attr_as_size(tp, &_Py_ID(n_unnamed_fields))
+#define UNNAMED_FIELDS_TP(tp) get_type_attr_as_size(tp, &_Py_ID(n_unnamed_fields))
 #define UNNAMED_FIELDS(op) UNNAMED_FIELDS_TP(Py_TYPE(op))
 
 static Py_ssize_t
-get_real_size(PyObject *op)
-{
+get_real_size(PyObject *op) {
     // Compute the real size from the visible size (i.e., Py_SIZE()) and the
     // number of non-sequence fields accounted for in tp_basicsize.
     Py_ssize_t hidden = Py_TYPE(op)->tp_basicsize - offsetof(PyStructSequence, ob_item);
@@ -57,8 +52,7 @@ get_real_size(PyObject *op)
 }
 
 PyObject *
-PyStructSequence_New(PyTypeObject *type)
-{
+PyStructSequence_New(PyTypeObject *type) {
     PyStructSequence *obj;
     Py_ssize_t size = REAL_SIZE_TP(type), i;
     if (size < 0) {
@@ -75,15 +69,13 @@ PyStructSequence_New(PyTypeObject *type)
     /* Hack the size of the variable object, so invisible fields don't appear
      to Python code. */
     Py_SET_SIZE(obj, vsize);
-    for (i = 0; i < size; i++)
-        obj->ob_item[i] = NULL;
+    for (i = 0; i < size; i++) obj->ob_item[i] = NULL;
 
-    return (PyObject*)obj;
+    return (PyObject *)obj;
 }
 
 void
-PyStructSequence_SetItem(PyObject *op, Py_ssize_t index, PyObject *value)
-{
+PyStructSequence_SetItem(PyObject *op, Py_ssize_t index, PyObject *value) {
     PyTupleObject *tuple = _PyTuple_CAST(op);
     assert(0 <= index);
 #ifndef NDEBUG
@@ -94,9 +86,8 @@ PyStructSequence_SetItem(PyObject *op, Py_ssize_t index, PyObject *value)
     tuple->ob_item[index] = value;
 }
 
-PyObject*
-PyStructSequence_GetItem(PyObject *op, Py_ssize_t index)
-{
+PyObject *
+PyStructSequence_GetItem(PyObject *op, Py_ssize_t index) {
     assert(0 <= index);
 #ifndef NDEBUG
     Py_ssize_t n_fields = REAL_SIZE(op);
@@ -106,10 +97,8 @@ PyStructSequence_GetItem(PyObject *op, Py_ssize_t index)
     return PyTuple_GET_ITEM(op, index);
 }
 
-
 static int
-structseq_traverse(PyStructSequence *obj, visitproc visit, void *arg)
-{
+structseq_traverse(PyStructSequence *obj, visitproc visit, void *arg) {
     if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_HEAPTYPE) {
         Py_VISIT(Py_TYPE(obj));
     }
@@ -122,8 +111,7 @@ structseq_traverse(PyStructSequence *obj, visitproc visit, void *arg)
 }
 
 static void
-structseq_dealloc(PyStructSequence *obj)
-{
+structseq_dealloc(PyStructSequence *obj) {
     Py_ssize_t i, size;
     PyObject_GC_UnTrack(obj);
 
@@ -182,9 +170,11 @@ structseq_new_impl(PyTypeObject *type, PyObject *arg, PyObject *dict)
     }
 
     if (dict && !PyDict_Check(dict)) {
-        PyErr_Format(PyExc_TypeError,
-                     "%.500s() takes a dict as second arg, if any",
-                     type->tp_name);
+        PyErr_Format(
+            PyExc_TypeError,
+            "%.500s() takes a dict as second arg, if any",
+            type->tp_name
+        );
         Py_DECREF(arg);
         return NULL;
     }
@@ -192,32 +182,43 @@ structseq_new_impl(PyTypeObject *type, PyObject *arg, PyObject *dict)
     len = PySequence_Fast_GET_SIZE(arg);
     if (min_len != max_len) {
         if (len < min_len) {
-            PyErr_Format(PyExc_TypeError,
+            PyErr_Format(
+                PyExc_TypeError,
                 "%.500s() takes an at least %zd-sequence (%zd-sequence given)",
-                type->tp_name, min_len, len);
+                type->tp_name,
+                min_len,
+                len
+            );
             Py_DECREF(arg);
             return NULL;
         }
 
         if (len > max_len) {
-            PyErr_Format(PyExc_TypeError,
+            PyErr_Format(
+                PyExc_TypeError,
                 "%.500s() takes an at most %zd-sequence (%zd-sequence given)",
-                type->tp_name, max_len, len);
+                type->tp_name,
+                max_len,
+                len
+            );
             Py_DECREF(arg);
             return NULL;
         }
-    }
-    else {
+    } else {
         if (len != min_len) {
-            PyErr_Format(PyExc_TypeError,
-                         "%.500s() takes a %zd-sequence (%zd-sequence given)",
-                         type->tp_name, min_len, len);
+            PyErr_Format(
+                PyExc_TypeError,
+                "%.500s() takes a %zd-sequence (%zd-sequence given)",
+                type->tp_name,
+                min_len,
+                len
+            );
             Py_DECREF(arg);
             return NULL;
         }
     }
 
-    res = (PyStructSequence*) PyStructSequence_New(type);
+    res = (PyStructSequence *)PyStructSequence_New(type);
     if (res == NULL) {
         Py_DECREF(arg);
         return NULL;
@@ -238,16 +239,17 @@ structseq_new_impl(PyTypeObject *type, PyObject *arg, PyObject *dict)
             }
             if (ob == NULL) {
                 ob = Py_NewRef(Py_None);
-            }
-            else {
+            } else {
                 ++n_found_keys;
             }
             res->ob_item[i] = ob;
         }
         if (PyDict_GET_SIZE(dict) > n_found_keys) {
-            PyErr_Format(PyExc_TypeError,
-                         "%.500s() got duplicate or unexpected field name(s)",
-                         type->tp_name);
+            PyErr_Format(
+                PyExc_TypeError,
+                "%.500s() got duplicate or unexpected field name(s)",
+                type->tp_name
+            );
             Py_DECREF(res);
             return NULL;
         }
@@ -258,19 +260,16 @@ structseq_new_impl(PyTypeObject *type, PyObject *arg, PyObject *dict)
     }
 
     _PyObject_GC_TRACK(res);
-    return (PyObject*) res;
+    return (PyObject *)res;
 }
 
-
 static PyObject *
-structseq_repr(PyStructSequence *obj)
-{
+structseq_repr(PyStructSequence *obj) {
     PyTypeObject *typ = Py_TYPE(obj);
 
     // count 5 characters per item: "x=1, "
     Py_ssize_t type_name_len = strlen(typ->tp_name);
-    Py_ssize_t prealloc = (type_name_len + 1
-                           + VISIBLE_SIZE(obj) * 5 + 1);
+    Py_ssize_t prealloc = (type_name_len + 1 + VISIBLE_SIZE(obj) * 5 + 1);
     PyUnicodeWriter *writer = PyUnicodeWriter_Create(prealloc);
     if (writer == NULL) {
         return NULL;
@@ -284,7 +283,7 @@ structseq_repr(PyStructSequence *obj)
         goto error;
     }
 
-    for (Py_ssize_t i=0; i < VISIBLE_SIZE(obj); i++) {
+    for (Py_ssize_t i = 0; i < VISIBLE_SIZE(obj); i++) {
         if (i > 0) {
             // Write ", "
             if (PyUnicodeWriter_WriteChar(writer, ',') < 0) {
@@ -298,9 +297,13 @@ structseq_repr(PyStructSequence *obj)
         // Write name
         const char *name_utf8 = typ->tp_members[i].name;
         if (name_utf8 == NULL) {
-            PyErr_Format(PyExc_SystemError,
-                         "In structseq_repr(), member %zd name is NULL"
-                         " for type %.500s", i, typ->tp_name);
+            PyErr_Format(
+                PyExc_SystemError,
+                "In structseq_repr(), member %zd name is NULL"
+                " for type %.500s",
+                i,
+                typ->tp_name
+            );
             goto error;
         }
         if (PyUnicodeWriter_WriteUTF8(writer, name_utf8, -1) < 0) {
@@ -311,7 +314,7 @@ structseq_repr(PyStructSequence *obj)
         if (PyUnicodeWriter_WriteChar(writer, '=') < 0) {
             goto error;
         }
-        PyObject *value = PyStructSequence_GetItem((PyObject*)obj, i);
+        PyObject *value = PyStructSequence_GetItem((PyObject *)obj, i);
         assert(value != NULL);
         if (PyUnicodeWriter_WriteRepr(writer, value) < 0) {
             goto error;
@@ -329,13 +332,11 @@ error:
     return NULL;
 }
 
-
 static PyObject *
-structseq_reduce(PyStructSequence* self, PyObject *Py_UNUSED(ignored))
-{
-    PyObject* tup = NULL;
-    PyObject* dict = NULL;
-    PyObject* result;
+structseq_reduce(PyStructSequence *self, PyObject *Py_UNUSED(ignored)) {
+    PyObject *tup = NULL;
+    PyObject *dict = NULL;
+    PyObject *result;
     Py_ssize_t n_fields, n_visible_fields, n_unnamed_fields, i;
 
     n_fields = REAL_SIZE(self);
@@ -356,7 +357,7 @@ structseq_reduce(PyStructSequence* self, PyObject *Py_UNUSED(ignored))
         goto error;
 
     for (i = n_visible_fields; i < n_fields; i++) {
-        const char *n = Py_TYPE(self)->tp_members[i-n_unnamed_fields].name;
+        const char *n = Py_TYPE(self)->tp_members[i - n_unnamed_fields].name;
         if (PyDict_SetItemString(dict, n, self->ob_item[i]) < 0)
             goto error;
     }
@@ -374,10 +375,8 @@ error:
     return NULL;
 }
 
-
 static PyObject *
-structseq_replace(PyStructSequence *self, PyObject *args, PyObject *kwargs)
-{
+structseq_replace(PyStructSequence *self, PyObject *args, PyObject *kwargs) {
     PyStructSequence *result = NULL;
     Py_ssize_t n_fields, n_unnamed_fields, i;
 
@@ -394,14 +393,16 @@ structseq_replace(PyStructSequence *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
     if (n_unnamed_fields > 0) {
-        PyErr_Format(PyExc_TypeError,
-                     "__replace__() is not supported for %.500s "
-                     "because it has unnamed field(s)",
-                     Py_TYPE(self)->tp_name);
+        PyErr_Format(
+            PyExc_TypeError,
+            "__replace__() is not supported for %.500s "
+            "because it has unnamed field(s)",
+            Py_TYPE(self)->tp_name
+        );
         return NULL;
     }
 
-    result = (PyStructSequence *) PyStructSequence_New(Py_TYPE(self));
+    result = (PyStructSequence *)PyStructSequence_New(Py_TYPE(self));
     if (!result) {
         return NULL;
     }
@@ -411,8 +412,7 @@ structseq_replace(PyStructSequence *self, PyObject *args, PyObject *kwargs)
         // i >= n_visible_fields case without slicing with (i - n_unnamed_fields).
         for (i = 0; i < n_fields; ++i) {
             PyObject *ob;
-            if (PyDict_PopString(kwargs, Py_TYPE(self)->tp_members[i].name,
-                                 &ob) < 0) {
+            if (PyDict_PopString(kwargs, Py_TYPE(self)->tp_members[i].name, &ob) < 0) {
                 goto error;
             }
             if (ob == NULL) {
@@ -424,14 +424,14 @@ structseq_replace(PyStructSequence *self, PyObject *args, PyObject *kwargs)
         if (PyDict_GET_SIZE(kwargs) > 0) {
             PyObject *names = PyDict_Keys(kwargs);
             if (names) {
-                PyErr_Format(PyExc_TypeError, "Got unexpected field name(s): %R", names);
+                PyErr_Format(
+                    PyExc_TypeError, "Got unexpected field name(s): %R", names
+                );
                 Py_DECREF(names);
             }
             goto error;
         }
-    }
-    else
-    {
+    } else {
         // Just create a copy of the original.
         for (i = 0; i < n_fields; ++i) {
             result->ob_item[i] = Py_NewRef(self->ob_item[i]);
@@ -447,9 +447,13 @@ error:
 
 static PyMethodDef structseq_methods[] = {
     {"__reduce__", (PyCFunction)structseq_reduce, METH_NOARGS, NULL},
-    {"__replace__", _PyCFunction_CAST(structseq_replace), METH_VARARGS | METH_KEYWORDS,
-     PyDoc_STR("__replace__($self, /, **changes)\n--\n\n"
-        "Return a copy of the structure with new values for the specified fields.")},
+    {"__replace__",
+     _PyCFunction_CAST(structseq_replace),
+     METH_VARARGS | METH_KEYWORDS,
+     PyDoc_STR(
+         "__replace__($self, /, **changes)\n--\n\n"
+         "Return a copy of the structure with new values for the specified fields."
+     )},
     {NULL, NULL}  // sentinel
 };
 
@@ -467,21 +471,25 @@ count_members(PyStructSequence_Desc *desc, Py_ssize_t *n_unnamed_members) {
 }
 
 static int
-initialize_structseq_dict(PyStructSequence_Desc *desc, PyObject* dict,
-                          Py_ssize_t n_members, Py_ssize_t n_unnamed_members) {
+initialize_structseq_dict(
+    PyStructSequence_Desc *desc,
+    PyObject *dict,
+    Py_ssize_t n_members,
+    Py_ssize_t n_unnamed_members
+) {
     PyObject *v;
 
-#define SET_DICT_FROM_SIZE(key, value)                                         \
-    do {                                                                       \
-        v = PyLong_FromSsize_t(value);                                         \
-        if (v == NULL) {                                                       \
-            return -1;                                                         \
-        }                                                                      \
-        if (PyDict_SetItemString(dict, key, v) < 0) {                          \
-            Py_DECREF(v);                                                      \
-            return -1;                                                         \
-        }                                                                      \
-        Py_DECREF(v);                                                          \
+#define SET_DICT_FROM_SIZE(key, value)                \
+    do {                                              \
+        v = PyLong_FromSsize_t(value);                \
+        if (v == NULL) {                              \
+            return -1;                                \
+        }                                             \
+        if (PyDict_SetItemString(dict, key, v) < 0) { \
+            Py_DECREF(v);                             \
+            return -1;                                \
+        }                                             \
+        Py_DECREF(v);                                 \
     } while (0)
 
     SET_DICT_FROM_SIZE(visible_length_key, desc->n_in_sequence);
@@ -490,7 +498,7 @@ initialize_structseq_dict(PyStructSequence_Desc *desc, PyObject* dict,
 
     // Prepare and set __match_args__
     Py_ssize_t i, k;
-    PyObject* keys = PyTuple_New(desc->n_in_sequence);
+    PyObject *keys = PyTuple_New(desc->n_in_sequence);
     if (keys == NULL) {
         return -1;
     }
@@ -499,7 +507,7 @@ initialize_structseq_dict(PyStructSequence_Desc *desc, PyObject* dict,
         if (desc->fields[i].name == PyStructSequence_UnnamedField) {
             continue;
         }
-        PyObject* new_member = PyUnicode_FromString(desc->fields[i].name);
+        PyObject *new_member = PyUnicode_FromString(desc->fields[i].name);
         if (new_member == NULL) {
             goto error;
         }
@@ -524,9 +532,9 @@ error:
 }
 
 static PyMemberDef *
-initialize_members(PyStructSequence_Desc *desc,
-                   Py_ssize_t n_members, Py_ssize_t n_unnamed_members)
-{
+initialize_members(
+    PyStructSequence_Desc *desc, Py_ssize_t n_members, Py_ssize_t n_unnamed_members
+) {
     PyMemberDef *members;
 
     members = PyMem_NEW(PyMemberDef, n_members - n_unnamed_members + 1);
@@ -545,8 +553,8 @@ initialize_members(PyStructSequence_Desc *desc,
         /* allocated so it is expected that they'll outlive the MemberDef */
         members[k].name = desc->fields[i].name;
         members[k].type = _Py_T_OBJECT;
-        members[k].offset = offsetof(PyStructSequence, ob_item)
-          + i * sizeof(PyObject*);
+        members[k].offset =
+            offsetof(PyStructSequence, ob_item) + i * sizeof(PyObject *);
         members[k].flags = Py_READONLY;
         members[k].doc = desc->fields[i].doc;
         k++;
@@ -556,12 +564,14 @@ initialize_members(PyStructSequence_Desc *desc,
     return members;
 }
 
-
 static void
-initialize_static_fields(PyTypeObject *type, PyStructSequence_Desc *desc,
-                         PyMemberDef *tp_members, Py_ssize_t n_members,
-                         unsigned long tp_flags)
-{
+initialize_static_fields(
+    PyTypeObject *type,
+    PyStructSequence_Desc *desc,
+    PyMemberDef *tp_members,
+    Py_ssize_t n_members,
+    unsigned long tp_flags
+) {
     type->tp_name = desc->name;
     // Account for hidden members in tp_basicsize because they are not
     // included in the variable size.
@@ -575,13 +585,17 @@ initialize_static_fields(PyTypeObject *type, PyStructSequence_Desc *desc,
     type->tp_methods = structseq_methods;
     type->tp_new = structseq_new;
     type->tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | tp_flags;
-    type->tp_traverse = (traverseproc) structseq_traverse;
+    type->tp_traverse = (traverseproc)structseq_traverse;
     type->tp_members = tp_members;
 }
 
 static int
-initialize_static_type(PyTypeObject *type, PyStructSequence_Desc *desc,
-                       Py_ssize_t n_members, Py_ssize_t n_unnamed_members) {
+initialize_static_type(
+    PyTypeObject *type,
+    PyStructSequence_Desc *desc,
+    Py_ssize_t n_members,
+    Py_ssize_t n_unnamed_members
+) {
     /* initialize_static_fields() should have been called already. */
     if (PyType_Ready(type) < 0) {
         return -1;
@@ -589,7 +603,8 @@ initialize_static_type(PyTypeObject *type, PyStructSequence_Desc *desc,
     Py_INCREF(type);
 
     if (initialize_structseq_dict(
-            desc, _PyType_GetDict(type), n_members, n_unnamed_members) < 0) {
+            desc, _PyType_GetDict(type), n_members, n_unnamed_members
+        ) < 0) {
         Py_DECREF(type);
         return -1;
     }
@@ -598,11 +613,12 @@ initialize_static_type(PyTypeObject *type, PyStructSequence_Desc *desc,
 }
 
 int
-_PyStructSequence_InitBuiltinWithFlags(PyInterpreterState *interp,
-                                       PyTypeObject *type,
-                                       PyStructSequence_Desc *desc,
-                                       unsigned long tp_flags)
-{
+_PyStructSequence_InitBuiltinWithFlags(
+    PyInterpreterState *interp,
+    PyTypeObject *type,
+    PyStructSequence_Desc *desc,
+    unsigned long tp_flags
+) {
     if (Py_TYPE(type) == NULL) {
         Py_SET_TYPE(type, &PyType_Type);
     }
@@ -635,15 +651,15 @@ _PyStructSequence_InitBuiltinWithFlags(PyInterpreterState *interp,
 #endif
 
     if (_PyStaticType_InitBuiltin(interp, type) < 0) {
-        PyErr_Format(PyExc_RuntimeError,
-                     "Can't initialize builtin type %s",
-                     desc->name);
+        PyErr_Format(
+            PyExc_RuntimeError, "Can't initialize builtin type %s", desc->name
+        );
         goto error;
     }
 
     if (initialize_structseq_dict(
-            desc, _PyType_GetDict(type), n_members, n_unnamed_members) < 0)
-    {
+            desc, _PyType_GetDict(type), n_members, n_unnamed_members
+        ) < 0) {
         goto error;
     }
 
@@ -657,8 +673,7 @@ error:
 }
 
 int
-PyStructSequence_InitType2(PyTypeObject *type, PyStructSequence_Desc *desc)
-{
+PyStructSequence_InitType2(PyTypeObject *type, PyStructSequence_Desc *desc) {
     PyMemberDef *members;
     Py_ssize_t n_members, n_unnamed_members;
 
@@ -691,19 +706,16 @@ PyStructSequence_InitType2(PyTypeObject *type, PyStructSequence_Desc *desc)
 }
 
 void
-PyStructSequence_InitType(PyTypeObject *type, PyStructSequence_Desc *desc)
-{
+PyStructSequence_InitType(PyTypeObject *type, PyStructSequence_Desc *desc) {
     (void)PyStructSequence_InitType2(type, desc);
 }
-
 
 /* This is exposed in the internal API, not the public API.
    It is only called on builtin static types, which are all
    initialized via _PyStructSequence_InitBuiltinWithFlags(). */
 
 void
-_PyStructSequence_FiniBuiltin(PyInterpreterState *interp, PyTypeObject *type)
-{
+_PyStructSequence_FiniBuiltin(PyInterpreterState *interp, PyTypeObject *type) {
     // Ensure that the type is initialized
     assert(type->tp_name != NULL);
     assert(type->tp_base == &PyTuple_Type);
@@ -727,10 +739,8 @@ _PyStructSequence_FiniBuiltin(PyInterpreterState *interp, PyTypeObject *type)
     }
 }
 
-
 PyTypeObject *
-_PyStructSequence_NewType(PyStructSequence_Desc *desc, unsigned long tp_flags)
-{
+_PyStructSequence_NewType(PyStructSequence_Desc *desc, unsigned long tp_flags) {
     PyMemberDef *members;
     PyTypeObject *type;
     PyType_Slot slots[8];
@@ -759,7 +769,8 @@ _PyStructSequence_NewType(PyStructSequence_Desc *desc, unsigned long tp_flags)
     /* expected that it'll outlive the PyType_Spec */
     spec.name = desc->name;
     Py_ssize_t hidden = n_members - desc->n_in_sequence;
-    spec.basicsize = (int)(sizeof(PyStructSequence) + (hidden - 1) * sizeof(PyObject *));
+    spec.basicsize =
+        (int)(sizeof(PyStructSequence) + (hidden - 1) * sizeof(PyObject *));
     spec.itemsize = sizeof(PyObject *);
     spec.flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | tp_flags;
     spec.slots = slots;
@@ -771,7 +782,8 @@ _PyStructSequence_NewType(PyStructSequence_Desc *desc, unsigned long tp_flags)
     }
 
     if (initialize_structseq_dict(
-            desc, _PyType_GetDict(type), n_members, n_unnamed_members) < 0) {
+            desc, _PyType_GetDict(type), n_members, n_unnamed_members
+        ) < 0) {
         Py_DECREF(type);
         return NULL;
     }
@@ -779,9 +791,7 @@ _PyStructSequence_NewType(PyStructSequence_Desc *desc, unsigned long tp_flags)
     return type;
 }
 
-
 PyTypeObject *
-PyStructSequence_NewType(PyStructSequence_Desc *desc)
-{
+PyStructSequence_NewType(PyStructSequence_Desc *desc) {
     return _PyStructSequence_NewType(desc, 0);
 }

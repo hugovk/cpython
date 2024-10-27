@@ -1,15 +1,14 @@
 #ifndef Py_CPYTHON_ABSTRACTOBJECT_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
 
 /* === Object Protocol ================================================== */
 
 /* Like PyObject_CallMethod(), but expect a _Py_Identifier*
    as the method name. */
-PyAPI_FUNC(PyObject*) _PyObject_CallMethodId(
-    PyObject *obj,
-    _Py_Identifier *name,
-    const char *format, ...);
+PyAPI_FUNC(PyObject *) _PyObject_CallMethodId(
+    PyObject *obj, _Py_Identifier *name, const char *format, ...
+);
 
 /* Convert keyword arguments from the FASTCALL (stack: C array, kwnames: tuple)
    format to a Python dictionary ("kwargs" dict).
@@ -21,8 +20,7 @@ PyAPI_FUNC(PyObject*) _PyObject_CallMethodId(
    Duplicate keys are merged using the last value. If duplicate keys must raise
    an exception, the caller is responsible to implement an explicit keys on
    kwnames. */
-PyAPI_FUNC(PyObject*) _PyStack_AsDict(PyObject *const *values, PyObject *kwnames);
-
+PyAPI_FUNC(PyObject *) _PyStack_AsDict(PyObject *const *values, PyObject *kwnames);
 
 /* === Vectorcall protocol (PEP 590) ============================= */
 
@@ -30,8 +28,7 @@ PyAPI_FUNC(PyObject*) _PyStack_AsDict(PyObject *const *values, PyObject *kwnames
 // Here (when we are not using the stable ABI), the name is overridden to
 // call a static inline function for best performance.
 static inline Py_ssize_t
-_PyVectorcall_NARGS(size_t n)
-{
+_PyVectorcall_NARGS(size_t n) {
     return n & ~PY_VECTORCALL_ARGUMENTS_OFFSET;
 }
 #define PyVectorcall_NARGS(n) _PyVectorcall_NARGS(n)
@@ -51,23 +48,19 @@ PyAPI_FUNC(vectorcallfunc) PyVectorcall_Function(PyObject *callable);
 /* Same as PyObject_Vectorcall except that keyword arguments are passed as
    dict, which may be NULL if there are no keyword arguments. */
 PyAPI_FUNC(PyObject *) PyObject_VectorcallDict(
-    PyObject *callable,
-    PyObject *const *args,
-    size_t nargsf,
-    PyObject *kwargs);
+    PyObject *callable, PyObject *const *args, size_t nargsf, PyObject *kwargs
+);
 
 PyAPI_FUNC(PyObject *) PyObject_CallOneArg(PyObject *func, PyObject *arg);
 
 static inline PyObject *
-PyObject_CallMethodNoArgs(PyObject *self, PyObject *name)
-{
+PyObject_CallMethodNoArgs(PyObject *self, PyObject *name) {
     size_t nargsf = 1 | PY_VECTORCALL_ARGUMENTS_OFFSET;
     return PyObject_VectorcallMethod(name, &self, nargsf, _Py_NULL);
 }
 
 static inline PyObject *
-PyObject_CallMethodOneArg(PyObject *self, PyObject *name, PyObject *arg)
-{
+PyObject_CallMethodOneArg(PyObject *self, PyObject *name, PyObject *arg) {
     PyObject *args[2] = {self, arg};
     size_t nargsf = 2 | PY_VECTORCALL_ARGUMENTS_OFFSET;
     assert(arg != NULL);
@@ -83,5 +76,4 @@ PyAPI_FUNC(Py_ssize_t) PyObject_LengthHint(PyObject *o, Py_ssize_t);
 
 /* Assume tp_as_sequence and sq_item exist and that 'i' does not
    need to be corrected for a negative index. */
-#define PySequence_ITEM(o, i)\
-    ( Py_TYPE(o)->tp_as_sequence->sq_item((o), (i)) )
+#define PySequence_ITEM(o, i) (Py_TYPE(o)->tp_as_sequence->sq_item((o), (i)))

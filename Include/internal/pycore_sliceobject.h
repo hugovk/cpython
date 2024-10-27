@@ -5,14 +5,12 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
-
 
 /* runtime lifecycle */
 
-PyAPI_FUNC(PyObject *)
-_PyBuildSlice_ConsumeRefs(PyObject *start, PyObject *stop);
+PyAPI_FUNC(PyObject *) _PyBuildSlice_ConsumeRefs(PyObject *start, PyObject *stop);
 
 #ifdef __cplusplus
 }

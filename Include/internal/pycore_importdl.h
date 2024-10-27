@@ -1,19 +1,17 @@
 #ifndef Py_INTERNAL_IMPORTDL_H
 #define Py_INTERNAL_IMPORTDL_H
 
-#include "patchlevel.h"           // PY_MAJOR_VERSION
+#include "patchlevel.h"  // PY_MAJOR_VERSION
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-
 extern const char *_PyImport_DynLoadFiletab[];
-
 
 typedef enum ext_module_kind {
     _Py_ext_module_kind_UNKNOWN = 0,
@@ -43,23 +41,28 @@ struct _Py_ext_module_loader_info {
     const char *hook_prefix;
     const char *newcontext;
 };
-extern void _Py_ext_module_loader_info_clear(
-    struct _Py_ext_module_loader_info *info);
-extern int _Py_ext_module_loader_info_init(
+extern void
+_Py_ext_module_loader_info_clear(struct _Py_ext_module_loader_info *info);
+extern int
+_Py_ext_module_loader_info_init(
     struct _Py_ext_module_loader_info *info,
     PyObject *name,
     PyObject *filename,
-    _Py_ext_module_origin origin);
-extern int _Py_ext_module_loader_info_init_for_core(
-    struct _Py_ext_module_loader_info *p_info,
-    PyObject *name);
-extern int _Py_ext_module_loader_info_init_for_builtin(
-    struct _Py_ext_module_loader_info *p_info,
-    PyObject *name);
+    _Py_ext_module_origin origin
+);
+extern int
+_Py_ext_module_loader_info_init_for_core(
+    struct _Py_ext_module_loader_info *p_info, PyObject *name
+);
+extern int
+_Py_ext_module_loader_info_init_for_builtin(
+    struct _Py_ext_module_loader_info *p_info, PyObject *name
+);
 #ifdef HAVE_DYNAMIC_LOADING
-extern int _Py_ext_module_loader_info_init_from_spec(
-    struct _Py_ext_module_loader_info *info,
-    PyObject *spec);
+extern int
+_Py_ext_module_loader_info_init_from_spec(
+    struct _Py_ext_module_loader_info *info, PyObject *spec
+);
 #endif
 
 /* The result from running an extension module's init function. */
@@ -81,24 +84,25 @@ struct _Py_ext_module_loader_result {
         PyObject *exc;
     } _err;
 };
-extern void _Py_ext_module_loader_result_clear(
-    struct _Py_ext_module_loader_result *res);
-extern void _Py_ext_module_loader_result_apply_error(
-    struct _Py_ext_module_loader_result *res,
-    const char *name);
+extern void
+_Py_ext_module_loader_result_clear(struct _Py_ext_module_loader_result *res);
+extern void
+_Py_ext_module_loader_result_apply_error(
+    struct _Py_ext_module_loader_result *res, const char *name
+);
 
 /* The module init function. */
 typedef PyObject *(*PyModInitFunction)(void);
 #ifdef HAVE_DYNAMIC_LOADING
-extern PyModInitFunction _PyImport_GetModInitFunc(
-    struct _Py_ext_module_loader_info *info,
-    FILE *fp);
+extern PyModInitFunction
+_PyImport_GetModInitFunc(struct _Py_ext_module_loader_info *info, FILE *fp);
 #endif
-extern int _PyImport_RunModInitFunc(
+extern int
+_PyImport_RunModInitFunc(
     PyModInitFunction p0,
     struct _Py_ext_module_loader_info *info,
-    struct _Py_ext_module_loader_result *p_res);
-
+    struct _Py_ext_module_loader_result *p_res
+);
 
 /* Max length of module suffix searched for -- accommodates "module.slb" */
 #define MAXSUFFIXSIZE 12
@@ -108,21 +112,24 @@ extern int _PyImport_RunModInitFunc(
 typedef FARPROC dl_funcptr;
 
 #ifdef _DEBUG
-#  define PYD_DEBUG_SUFFIX "_d"
+#define PYD_DEBUG_SUFFIX "_d"
 #else
-#  define PYD_DEBUG_SUFFIX ""
+#define PYD_DEBUG_SUFFIX ""
 #endif
 
 #ifdef Py_GIL_DISABLED
-#  define PYD_THREADING_TAG "t"
+#define PYD_THREADING_TAG "t"
 #else
-#  define PYD_THREADING_TAG ""
+#define PYD_THREADING_TAG ""
 #endif
 
 #ifdef PYD_PLATFORM_TAG
-#  define PYD_SOABI "cp" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) PYD_THREADING_TAG "-" PYD_PLATFORM_TAG
+#define PYD_SOABI                                                      \
+    "cp" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) \
+        PYD_THREADING_TAG "-" PYD_PLATFORM_TAG
 #else
-#  define PYD_SOABI "cp" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) PYD_THREADING_TAG
+#define PYD_SOABI \
+    "cp" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) PYD_THREADING_TAG
 #endif
 
 #define PYD_TAGGED_SUFFIX PYD_DEBUG_SUFFIX "." PYD_SOABI ".pyd"
@@ -131,7 +138,6 @@ typedef FARPROC dl_funcptr;
 #else
 typedef void (*dl_funcptr)(void);
 #endif
-
 
 #ifdef __cplusplus
 }

@@ -19,8 +19,7 @@ static struct PyModuleDef _testlimitedcapimodule = {
 };
 
 PyMODINIT_FUNC
-PyInit__testlimitedcapi(void)
-{
+PyInit__testlimitedcapi(void) {
     PyObject *mod = PyModule_Create(&_testlimitedcapimodule);
     if (mod == NULL) {
         return NULL;

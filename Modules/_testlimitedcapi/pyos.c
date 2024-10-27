@@ -1,9 +1,7 @@
 #include "parts.h"
 
-
 static PyObject *
-test_PyOS_mystrnicmp(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+test_PyOS_mystrnicmp(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     assert(PyOS_mystrnicmp("", "", 0) == 0);
     assert(PyOS_mystrnicmp("", "", 1) == 0);
 
@@ -27,8 +25,7 @@ test_PyOS_mystrnicmp(PyObject *self, PyObject *Py_UNUSED(ignored))
 }
 
 static PyObject *
-test_PyOS_mystricmp(PyObject *self, PyObject *Py_UNUSED(ignored))
-{
+test_PyOS_mystricmp(PyObject *self, PyObject *Py_UNUSED(ignored)) {
     assert(PyOS_mystricmp("", "") == 0);
     assert(PyOS_mystricmp("insert", "insert") == 0);
     assert(PyOS_mystricmp("Insert", "insert") == 0);
@@ -50,8 +47,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestLimitedCAPI_Init_PyOS(PyObject *mod)
-{
+_PyTestLimitedCAPI_Init_PyOS(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

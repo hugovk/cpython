@@ -5,15 +5,13 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_hashtable.h"     // _Py_hashtable_t
-
+#include "pycore_hashtable.h"  // _Py_hashtable_t
 
 /* Trace memory blocks allocated by PyMem_RawMalloc() */
 #define TRACE_RAW_MALLOC
-
 
 struct _PyTraceMalloc_Config {
     /* Module initialized?
@@ -33,7 +31,6 @@ struct _PyTraceMalloc_Config {
     int max_nframe;
 };
 
-
 /* Pack the frame_t structure to reduce the memory footprint on 64-bit
    architectures: 12 bytes instead of 16. */
 #if defined(_MSC_VER)
@@ -42,9 +39,9 @@ struct _PyTraceMalloc_Config {
 
 struct
 #ifdef __GNUC__
-__attribute__((packed))
+    __attribute__((packed))
 #endif
-tracemalloc_frame {
+    tracemalloc_frame {
     /* filename cannot be NULL: "<unknown>" is used if the Python frame
        filename is NULL */
     PyObject *filename;
@@ -62,7 +59,6 @@ struct tracemalloc_traceback {
     uint16_t total_nframe;
     struct tracemalloc_frame frames[1];
 };
-
 
 struct _tracemalloc_runtime_state {
     struct _PyTraceMalloc_Config config;
@@ -106,16 +102,16 @@ struct _tracemalloc_runtime_state {
     Py_tss_t reentrant_key;
 };
 
-#define _tracemalloc_runtime_state_INIT \
-    { \
-        .config = { \
-            .initialized = TRACEMALLOC_NOT_INITIALIZED, \
-            .tracing = 0, \
-            .max_nframe = 1, \
-        }, \
-        .reentrant_key = Py_tss_NEEDS_INIT, \
+#define _tracemalloc_runtime_state_INIT                     \
+    {                                                       \
+        .config =                                           \
+            {                                               \
+                .initialized = TRACEMALLOC_NOT_INITIALIZED, \
+                .tracing = 0,                               \
+                .max_nframe = 1,                            \
+            },                                              \
+        .reentrant_key = Py_tss_NEEDS_INIT,                 \
     }
-
 
 // Get the traceback where a memory block was allocated.
 //
@@ -127,42 +123,51 @@ struct _tracemalloc_runtime_state {
 // Raise an exception and return NULL on error.
 //
 // Export for '_testinternalcapi' shared extension.
-PyAPI_FUNC(PyObject*) _PyTraceMalloc_GetTraceback(
-    unsigned int domain,
-    uintptr_t ptr);
+PyAPI_FUNC(PyObject *) _PyTraceMalloc_GetTraceback(unsigned int domain, uintptr_t ptr);
 
 /* Return non-zero if tracemalloc is tracing */
-extern int _PyTraceMalloc_IsTracing(void);
+extern int
+_PyTraceMalloc_IsTracing(void);
 
 /* Clear the tracemalloc traces */
-extern void _PyTraceMalloc_ClearTraces(void);
+extern void
+_PyTraceMalloc_ClearTraces(void);
 
 /* Clear the tracemalloc traces */
-extern PyObject* _PyTraceMalloc_GetTraces(void);
+extern PyObject *
+_PyTraceMalloc_GetTraces(void);
 
 /* Clear tracemalloc traceback for an object */
-extern PyObject* _PyTraceMalloc_GetObjectTraceback(PyObject *obj);
+extern PyObject *
+_PyTraceMalloc_GetObjectTraceback(PyObject *obj);
 
 /* Initialize tracemalloc */
-extern int _PyTraceMalloc_Init(void);
+extern int
+_PyTraceMalloc_Init(void);
 
 /* Start tracemalloc */
-extern int _PyTraceMalloc_Start(int max_nframe);
+extern int
+_PyTraceMalloc_Start(int max_nframe);
 
 /* Stop tracemalloc */
-extern void _PyTraceMalloc_Stop(void);
+extern void
+_PyTraceMalloc_Stop(void);
 
 /* Get the tracemalloc traceback limit */
-extern int _PyTraceMalloc_GetTracebackLimit(void);
+extern int
+_PyTraceMalloc_GetTracebackLimit(void);
 
 /* Get the memory usage of tracemalloc in bytes */
-extern size_t _PyTraceMalloc_GetMemory(void);
+extern size_t
+_PyTraceMalloc_GetMemory(void);
 
 /* Get the current size and peak size of traced memory blocks as a 2-tuple */
-extern PyObject* _PyTraceMalloc_GetTracedMemory(void);
+extern PyObject *
+_PyTraceMalloc_GetTracedMemory(void);
 
 /* Set the peak size of traced memory blocks to the current size */
-extern void _PyTraceMalloc_ResetPeak(void);
+extern void
+_PyTraceMalloc_ResetPeak(void);
 
 #ifdef __cplusplus
 }

@@ -2,7 +2,7 @@
 
 #include "parts.h"
 #include "pycore_lock.h"
-#include "pycore_pythread.h"      // PyThread_get_thread_ident_ex()
+#include "pycore_pythread.h"  // PyThread_get_thread_ident_ex()
 
 #include "clinic/test_lock.c.h"
 
@@ -10,7 +10,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
-#include <unistd.h>         // usleep()
+#include <unistd.h>  // usleep()
 #endif
 
 /*[clinic input]
@@ -18,10 +18,8 @@ module _testinternalcapi
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=7bb583d8c9eb9a78]*/
 
-
 static void
-pysleep(int ms)
-{
+pysleep(int ms) {
 #ifdef MS_WINDOWS
     Sleep(ms);
 #else
@@ -30,8 +28,7 @@ pysleep(int ms)
 }
 
 static PyObject *
-test_lock_basic(PyObject *self, PyObject *obj)
-{
+test_lock_basic(PyObject *self, PyObject *obj) {
     PyMutex m = (PyMutex){0};
 
     // uncontended lock and unlock
@@ -50,8 +47,7 @@ struct test_lock2_data {
 };
 
 static void
-lock_thread(void *arg)
-{
+lock_thread(void *arg) {
     struct test_lock2_data *test_data = arg;
     PyMutex *m = &test_data->m;
     _Py_atomic_store_int(&test_data->started, 1);
@@ -66,8 +62,7 @@ lock_thread(void *arg)
 }
 
 static PyObject *
-test_lock_two_threads(PyObject *self, PyObject *obj)
-{
+test_lock_two_threads(PyObject *self, PyObject *obj) {
     // lock attempt by two threads
     struct test_lock2_data test_data;
     memset(&test_data, 0, sizeof(test_data));
@@ -111,8 +106,7 @@ struct thread_data_counter {
 };
 
 static void
-counter_thread(void *arg)
-{
+counter_thread(void *arg) {
     struct thread_data_counter *thread_data = arg;
     struct test_data_counter *test_data = thread_data->test_data;
 
@@ -125,8 +119,7 @@ counter_thread(void *arg)
 }
 
 static PyObject *
-test_lock_counter(PyObject *self, PyObject *obj)
-{
+test_lock_counter(PyObject *self, PyObject *obj) {
     // Test with rapidly locking and unlocking mutex
     struct test_data_counter test_data;
     memset(&test_data, 0, sizeof(test_data));
@@ -150,8 +143,7 @@ test_lock_counter(PyObject *self, PyObject *obj)
 #define SLOW_COUNTER_ITERS 100
 
 static void
-slow_counter_thread(void *arg)
-{
+slow_counter_thread(void *arg) {
     struct thread_data_counter *thread_data = arg;
     struct test_data_counter *test_data = thread_data->test_data;
 
@@ -167,8 +159,7 @@ slow_counter_thread(void *arg)
 }
 
 static PyObject *
-test_lock_counter_slow(PyObject *self, PyObject *obj)
-{
+test_lock_counter_slow(PyObject *self, PyObject *obj) {
     // Test lock/unlock with occasional "long" critical section, which will
     // trigger handoff of the lock.
     struct test_data_counter test_data;
@@ -208,8 +199,7 @@ struct bench_thread_data {
 };
 
 static void
-thread_benchmark_locks(void *arg)
-{
+thread_benchmark_locks(void *arg) {
     struct bench_thread_data *thread_data = arg;
     struct bench_data_locks *bench_data = thread_data->bench_data;
     int use_pymutex = bench_data->use_pymutex;
@@ -225,8 +215,7 @@ thread_benchmark_locks(void *arg)
                 my_value = bench_data->value;
             }
             PyMutex_Unlock(&bench_data->m);
-        }
-        else {
+        } else {
             PyThread_acquire_lock(bench_data->lock, 1);
             for (int i = 0; i < critical_section_length; i++) {
                 bench_data->value += my_value;
@@ -254,11 +243,13 @@ _testinternalcapi.benchmark_locks
 [clinic start generated code]*/
 
 static PyObject *
-_testinternalcapi_benchmark_locks_impl(PyObject *module,
-                                       Py_ssize_t num_threads,
-                                       int use_pymutex,
-                                       int critical_section_length,
-                                       int time_ms)
+_testinternalcapi_benchmark_locks_impl(
+    PyObject *module,
+    Py_ssize_t num_threads,
+    int use_pymutex,
+    int critical_section_length,
+    int time_ms
+)
 /*[clinic end generated code: output=381df8d7e9a74f18 input=f3aeaf688738c121]*/
 {
     // Run from Tools/lockbench/lockbench.py
@@ -336,11 +327,9 @@ exit:
 }
 
 static PyObject *
-test_lock_benchmark(PyObject *module, PyObject *obj)
-{
+test_lock_benchmark(PyObject *module, PyObject *obj) {
     // Just make sure the benchmark runs without crashing
-    PyObject *res = _testinternalcapi_benchmark_locks_impl(
-        module, 1, 1, 1, 100);
+    PyObject *res = _testinternalcapi_benchmark_locks_impl(module, 1, 1, 1, 100);
     if (res == NULL) {
         return NULL;
     }
@@ -349,8 +338,7 @@ test_lock_benchmark(PyObject *module, PyObject *obj)
 }
 
 static int
-init_maybe_fail(void *arg)
-{
+init_maybe_fail(void *arg) {
     int *counter = (int *)arg;
     (*counter)++;
     if (*counter < 5) {
@@ -362,16 +350,14 @@ init_maybe_fail(void *arg)
 }
 
 static PyObject *
-test_lock_once(PyObject *self, PyObject *obj)
-{
+test_lock_once(PyObject *self, PyObject *obj) {
     _PyOnceFlag once = {0};
     int counter = 0;
     for (int i = 0; i < 10; i++) {
         int res = _PyOnceFlag_CallOnce(&once, init_maybe_fail, &counter);
         if (i < 4) {
             assert(res == -1);
-        }
-        else {
+        } else {
             assert(res == 0);
             assert(counter == 5);
         }
@@ -389,8 +375,7 @@ struct test_rwlock_data {
 };
 
 static void
-rdlock_thread(void *arg)
-{
+rdlock_thread(void *arg) {
     struct test_rwlock_data *test_data = arg;
 
     // Acquire the lock in read mode
@@ -407,8 +392,7 @@ rdlock_thread(void *arg)
     }
 }
 static void
-wrlock_thread(void *arg)
-{
+wrlock_thread(void *arg) {
     struct test_rwlock_data *test_data = arg;
 
     // First acquire the lock in write mode
@@ -422,8 +406,7 @@ wrlock_thread(void *arg)
 }
 
 static void
-wait_until(uintptr_t *ptr, uintptr_t value)
-{
+wait_until(uintptr_t *ptr, uintptr_t value) {
     // wait up to two seconds for *ptr == value
     int iters = 0;
     uintptr_t bits;
@@ -435,8 +418,7 @@ wait_until(uintptr_t *ptr, uintptr_t value)
 }
 
 static PyObject *
-test_lock_rwlock(PyObject *self, PyObject *obj)
-{
+test_lock_rwlock(PyObject *self, PyObject *obj) {
     struct test_rwlock_data test_data = {.nthreads = 3};
 
     _PyRWMutex_Lock(&test_data.rw);
@@ -478,8 +460,7 @@ test_lock_rwlock(PyObject *self, PyObject *obj)
 }
 
 static PyObject *
-test_lock_recursive(PyObject *self, PyObject *obj)
-{
+test_lock_recursive(PyObject *self, PyObject *obj) {
     _PyRecursiveMutex m = (_PyRecursiveMutex){0};
     assert(!_PyRecursiveMutex_IsLockedByCurrentThread(&m));
 
@@ -505,8 +486,9 @@ static PyMethodDef test_methods[] = {
     {"test_lock_two_threads", test_lock_two_threads, METH_NOARGS},
     {"test_lock_counter", test_lock_counter, METH_NOARGS},
     {"test_lock_counter_slow", test_lock_counter_slow, METH_NOARGS},
-    _TESTINTERNALCAPI_BENCHMARK_LOCKS_METHODDEF
-    {"test_lock_benchmark", test_lock_benchmark, METH_NOARGS},
+    _TESTINTERNALCAPI_BENCHMARK_LOCKS_METHODDEF{
+        "test_lock_benchmark", test_lock_benchmark, METH_NOARGS
+    },
     {"test_lock_once", test_lock_once, METH_NOARGS},
     {"test_lock_rwlock", test_lock_rwlock, METH_NOARGS},
     {"test_lock_recursive", test_lock_recursive, METH_NOARGS},
@@ -514,8 +496,7 @@ static PyMethodDef test_methods[] = {
 };
 
 int
-_PyTestInternalCapi_Init_Lock(PyObject *mod)
-{
+_PyTestInternalCapi_Init_Lock(PyObject *mod) {
     if (PyModule_AddFunctions(mod, test_methods) < 0) {
         return -1;
     }

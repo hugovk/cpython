@@ -3,14 +3,13 @@
 
 #include "Python.h"
 #include "frameobject.h"
-#include "pycore_code.h"          // stats
+#include "pycore_code.h"  // stats
 #include "pycore_frame.h"
-#include "pycore_object.h"        // _PyObject_GC_UNTRACK()
+#include "pycore_object.h"  // _PyObject_GC_UNTRACK()
 #include "opcode.h"
 
 int
-_PyFrame_Traverse(_PyInterpreterFrame *frame, visitproc visit, void *arg)
-{
+_PyFrame_Traverse(_PyInterpreterFrame *frame, visitproc visit, void *arg) {
     Py_VISIT(frame->frame_obj);
     Py_VISIT(frame->f_locals);
     _Py_VISIT_STACKREF(frame->f_funcobj);
@@ -19,8 +18,7 @@ _PyFrame_Traverse(_PyInterpreterFrame *frame, visitproc visit, void *arg)
 }
 
 PyFrameObject *
-_PyFrame_MakeAndSetFrameObject(_PyInterpreterFrame *frame)
-{
+_PyFrame_MakeAndSetFrameObject(_PyInterpreterFrame *frame) {
     assert(frame->frame_obj == NULL);
     PyObject *exc = PyErr_GetRaisedException();
 
@@ -47,12 +45,11 @@ _PyFrame_MakeAndSetFrameObject(_PyInterpreterFrame *frame)
 }
 
 static void
-take_ownership(PyFrameObject *f, _PyInterpreterFrame *frame)
-{
+take_ownership(PyFrameObject *f, _PyInterpreterFrame *frame) {
     assert(frame->owner != FRAME_OWNED_BY_CSTACK);
     assert(frame->owner != FRAME_OWNED_BY_FRAME_OBJECT);
     assert(frame->owner != FRAME_CLEARED);
-    Py_ssize_t size = ((char*)frame->stackpointer) - (char *)frame;
+    Py_ssize_t size = ((char *)frame->stackpointer) - (char *)frame;
     memcpy((_PyInterpreterFrame *)f->_f_frame_data, frame, size);
     frame = (_PyInterpreterFrame *)f->_f_frame_data;
     frame->stackpointer = (_PyStackRef *)(((char *)frame) + size);
@@ -71,15 +68,15 @@ take_ownership(PyFrameObject *f, _PyInterpreterFrame *frame)
     frame->previous = NULL;
     if (prev) {
         assert(prev->owner != FRAME_OWNED_BY_CSTACK);
-        /* Link PyFrameObjects.f_back and remove link through _PyInterpreterFrame.previous */
+        /* Link PyFrameObjects.f_back and remove link through
+         * _PyInterpreterFrame.previous */
         PyFrameObject *back = _PyFrame_GetFrameObject(prev);
         if (back == NULL) {
             /* Memory error here. */
             assert(PyErr_ExceptionMatches(PyExc_MemoryError));
             /* Nothing we can do about it */
             PyErr_Clear();
-        }
-        else {
+        } else {
             f->f_back = (PyFrameObject *)Py_NewRef(back);
         }
     }
@@ -89,8 +86,7 @@ take_ownership(PyFrameObject *f, _PyInterpreterFrame *frame)
 }
 
 void
-_PyFrame_ClearLocals(_PyInterpreterFrame *frame)
-{
+_PyFrame_ClearLocals(_PyInterpreterFrame *frame) {
     assert(frame->stackpointer != NULL);
     _PyStackRef *sp = frame->stackpointer;
     _PyStackRef *locals = frame->localsplus;
@@ -103,12 +99,13 @@ _PyFrame_ClearLocals(_PyInterpreterFrame *frame)
 }
 
 void
-_PyFrame_ClearExceptCode(_PyInterpreterFrame *frame)
-{
+_PyFrame_ClearExceptCode(_PyInterpreterFrame *frame) {
     /* It is the responsibility of the owning generator/coroutine
      * to have cleared the enclosing generator, if any. */
-    assert(frame->owner != FRAME_OWNED_BY_GENERATOR ||
-        _PyGen_GetGeneratorFromFrame(frame)->gi_frame_state == FRAME_CLEARED);
+    assert(
+        frame->owner != FRAME_OWNED_BY_GENERATOR ||
+        _PyGen_GetGeneratorFromFrame(frame)->gi_frame_state == FRAME_CLEARED
+    );
     // GH-99729: Clearing this frame can expose the stack (via finalizers). It's
     // crucial that this frame has been unlinked, and is no longer visible:
     assert(_PyThreadState_GET()->current_frame != frame);
@@ -129,28 +126,26 @@ _PyFrame_ClearExceptCode(_PyInterpreterFrame *frame)
 /* Unstable API functions */
 
 PyObject *
-PyUnstable_InterpreterFrame_GetCode(struct _PyInterpreterFrame *frame)
-{
+PyUnstable_InterpreterFrame_GetCode(struct _PyInterpreterFrame *frame) {
     return PyStackRef_AsPyObjectNew(frame->f_executable);
 }
 
 int
-PyUnstable_InterpreterFrame_GetLasti(struct _PyInterpreterFrame *frame)
-{
+PyUnstable_InterpreterFrame_GetLasti(struct _PyInterpreterFrame *frame) {
     return _PyInterpreterFrame_LASTI(frame) * sizeof(_Py_CODEUNIT);
 }
 
 int
-PyUnstable_InterpreterFrame_GetLine(_PyInterpreterFrame *frame)
-{
+PyUnstable_InterpreterFrame_GetLine(_PyInterpreterFrame *frame) {
     int addr = _PyInterpreterFrame_LASTI(frame) * sizeof(_Py_CODEUNIT);
     return PyCode_Addr2Line(_PyFrame_GetCode(frame), addr);
 }
 
-const PyTypeObject *const PyUnstable_ExecutableKinds[PyUnstable_EXECUTABLE_KINDS+1] = {
-    [PyUnstable_EXECUTABLE_KIND_SKIP] = &_PyNone_Type,
-    [PyUnstable_EXECUTABLE_KIND_PY_FUNCTION] = &PyCode_Type,
-    [PyUnstable_EXECUTABLE_KIND_BUILTIN_FUNCTION] = &PyMethod_Type,
-    [PyUnstable_EXECUTABLE_KIND_METHOD_DESCRIPTOR] = &PyMethodDescr_Type,
-    [PyUnstable_EXECUTABLE_KINDS] = NULL,
+const PyTypeObject *const PyUnstable_ExecutableKinds[PyUnstable_EXECUTABLE_KINDS + 1] =
+    {
+        [PyUnstable_EXECUTABLE_KIND_SKIP] = &_PyNone_Type,
+        [PyUnstable_EXECUTABLE_KIND_PY_FUNCTION] = &PyCode_Type,
+        [PyUnstable_EXECUTABLE_KIND_BUILTIN_FUNCTION] = &PyMethod_Type,
+        [PyUnstable_EXECUTABLE_KIND_METHOD_DESCRIPTOR] = &PyMethodDescr_Type,
+        [PyUnstable_EXECUTABLE_KINDS] = NULL,
 };

@@ -7,12 +7,11 @@
 extern "C" {
 #endif
 
-
 /* Initialization and finalization */
 PyAPI_FUNC(void) Py_Initialize(void);
 PyAPI_FUNC(void) Py_InitializeEx(int);
 PyAPI_FUNC(void) Py_Finalize(void);
-#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03060000
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x03060000
 PyAPI_FUNC(int) Py_FinalizeEx(void);
 #endif
 PyAPI_FUNC(int) Py_IsInitialized(void);
@@ -20,7 +19,6 @@ PyAPI_FUNC(int) Py_IsInitialized(void);
 /* Subinterpreter support */
 PyAPI_FUNC(PyThreadState *) Py_NewInterpreter(void);
 PyAPI_FUNC(void) Py_EndInterpreter(PyThreadState *);
-
 
 /* Py_PyAtExit is for the atexit module, Py_AtExit is for low-level
  * exit functions.
@@ -45,7 +43,8 @@ Py_DEPRECATED(3.13) PyAPI_FUNC(wchar_t *) Py_GetPrefix(void);
 Py_DEPRECATED(3.13) PyAPI_FUNC(wchar_t *) Py_GetExecPrefix(void);
 Py_DEPRECATED(3.13) PyAPI_FUNC(wchar_t *) Py_GetPath(void);
 #ifdef MS_WINDOWS
-int _Py_CheckPython3(void);
+int
+_Py_CheckPython3(void);
 #endif
 
 /* In their own files */
@@ -60,18 +59,18 @@ typedef void (*PyOS_sighandler_t)(int);
 PyAPI_FUNC(PyOS_sighandler_t) PyOS_getsig(int);
 PyAPI_FUNC(PyOS_sighandler_t) PyOS_setsig(int, PyOS_sighandler_t);
 
-#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030B0000
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030B0000
 PyAPI_DATA(const unsigned long) Py_Version;
 #endif
 
-#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030D0000
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030D0000
 PyAPI_FUNC(int) Py_IsFinalizing(void);
 #endif
 
 #ifndef Py_LIMITED_API
-#  define Py_CPYTHON_PYLIFECYCLE_H
-#  include "cpython/pylifecycle.h"
-#  undef Py_CPYTHON_PYLIFECYCLE_H
+#define Py_CPYTHON_PYLIFECYCLE_H
+#include "cpython/pylifecycle.h"
+#undef Py_CPYTHON_PYLIFECYCLE_H
 #endif
 
 #ifdef __cplusplus

@@ -1,32 +1,31 @@
 /* Return the initial module search path. */
 
 #include "Python.h"
-#include "pycore_fileutils.h"     // _Py_abspath()
-#include "pycore_initconfig.h"    // _PyStatus_EXCEPTION()
-#include "pycore_pathconfig.h"    // _PyPathConfig_ReadGlobal()
-#include "pycore_pymem.h"         // _PyMem_RawWcsdup()
-#include "pycore_pystate.h"       // _PyThreadState_GET()
+#include "pycore_fileutils.h"   // _Py_abspath()
+#include "pycore_initconfig.h"  // _PyStatus_EXCEPTION()
+#include "pycore_pathconfig.h"  // _PyPathConfig_ReadGlobal()
+#include "pycore_pymem.h"       // _PyMem_RawWcsdup()
+#include "pycore_pystate.h"     // _PyThreadState_GET()
 
-#include "marshal.h"              // PyMarshal_ReadObjectFromString
-#include "osdefs.h"               // DELIM
+#include "marshal.h"  // PyMarshal_ReadObjectFromString
+#include "osdefs.h"   // DELIM
 #include <wchar.h>
 
 #ifdef MS_WINDOWS
-#  include <windows.h>            // GetFullPathNameW(), MAX_PATH
-#  include <pathcch.h>
+#include <windows.h>  // GetFullPathNameW(), MAX_PATH
+#include <pathcch.h>
 #endif
 
 #ifdef __APPLE__
-#  include <dlfcn.h>
-#  include <mach-o/dyld.h>
+#include <dlfcn.h>
+#include <mach-o/dyld.h>
 #endif
 
 /* Reference the precompiled getpath.py */
 #include "Python/frozen_modules/getpath.h"
 
-#if (!defined(PREFIX) || !defined(EXEC_PREFIX) \
-        || !defined(VERSION) || !defined(VPATH) \
-        || !defined(PLATLIBDIR))
+#if (!defined(PREFIX) || !defined(EXEC_PREFIX) || !defined(VERSION) || \
+     !defined(VPATH) || !defined(PLATLIBDIR))
 #error "PREFIX, EXEC_PREFIX, VERSION, VPATH and PLATLIBDIR macros must be defined"
 #endif
 
@@ -54,12 +53,10 @@
 #endif
 #endif
 
-
 /* HELPER FUNCTIONS for getpath.py */
 
 static PyObject *
-getpath_abspath(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_abspath(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *r = NULL;
     PyObject *pathobj;
     wchar_t *path;
@@ -81,10 +78,8 @@ getpath_abspath(PyObject *Py_UNUSED(self), PyObject *args)
     return r;
 }
 
-
 static PyObject *
-getpath_basename(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_basename(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *path;
     if (!PyArg_ParseTuple(args, "U", &path)) {
         return NULL;
@@ -97,10 +92,8 @@ getpath_basename(PyObject *Py_UNUSED(self), PyObject *args)
     return PyUnicode_Substring(path, pos + 1, end);
 }
 
-
 static PyObject *
-getpath_dirname(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_dirname(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *path;
     if (!PyArg_ParseTuple(args, "U", &path)) {
         return NULL;
@@ -113,10 +106,8 @@ getpath_dirname(PyObject *Py_UNUSED(self), PyObject *args)
     return PyUnicode_Substring(path, 0, pos);
 }
 
-
 static PyObject *
-getpath_isabs(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_isabs(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *r = NULL;
     PyObject *pathobj;
     const wchar_t *path;
@@ -131,10 +122,8 @@ getpath_isabs(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_XNewRef(r);
 }
 
-
 static PyObject *
-getpath_hassuffix(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_hassuffix(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *r = NULL;
     PyObject *pathobj;
     PyObject *suffixobj;
@@ -166,10 +155,8 @@ getpath_hassuffix(PyObject *Py_UNUSED(self), PyObject *args)
     return r;
 }
 
-
 static PyObject *
-getpath_isdir(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_isdir(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *r = NULL;
     PyObject *pathobj;
     const wchar_t *path;
@@ -180,8 +167,9 @@ getpath_isdir(PyObject *Py_UNUSED(self), PyObject *args)
     if (path) {
 #ifdef MS_WINDOWS
         DWORD attr = GetFileAttributesW(path);
-        r = (attr != INVALID_FILE_ATTRIBUTES) &&
-            (attr & FILE_ATTRIBUTE_DIRECTORY) ? Py_True : Py_False;
+        r = (attr != INVALID_FILE_ATTRIBUTES) && (attr & FILE_ATTRIBUTE_DIRECTORY)
+                ? Py_True
+                : Py_False;
 #else
         struct stat st;
         r = (_Py_wstat(path, &st) == 0) && S_ISDIR(st.st_mode) ? Py_True : Py_False;
@@ -191,10 +179,8 @@ getpath_isdir(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_XNewRef(r);
 }
 
-
 static PyObject *
-getpath_isfile(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_isfile(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *r = NULL;
     PyObject *pathobj;
     const wchar_t *path;
@@ -205,8 +191,9 @@ getpath_isfile(PyObject *Py_UNUSED(self), PyObject *args)
     if (path) {
 #ifdef MS_WINDOWS
         DWORD attr = GetFileAttributesW(path);
-        r = (attr != INVALID_FILE_ATTRIBUTES) &&
-            !(attr & FILE_ATTRIBUTE_DIRECTORY) ? Py_True : Py_False;
+        r = (attr != INVALID_FILE_ATTRIBUTES) && !(attr & FILE_ATTRIBUTE_DIRECTORY)
+                ? Py_True
+                : Py_False;
 #else
         struct stat st;
         r = (_Py_wstat(path, &st) == 0) && S_ISREG(st.st_mode) ? Py_True : Py_False;
@@ -216,10 +203,8 @@ getpath_isfile(PyObject *Py_UNUSED(self), PyObject *args)
     return Py_XNewRef(r);
 }
 
-
 static PyObject *
-getpath_isxfile(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_isxfile(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *r = NULL;
     PyObject *pathobj;
     const wchar_t *path;
@@ -231,27 +216,26 @@ getpath_isxfile(PyObject *Py_UNUSED(self), PyObject *args)
     if (path) {
 #ifdef MS_WINDOWS
         DWORD attr = GetFileAttributesW(path);
-        r = (attr != INVALID_FILE_ATTRIBUTES) &&
-            !(attr & FILE_ATTRIBUTE_DIRECTORY) &&
-            (cchPath >= 4) &&
-            (CompareStringOrdinal(path + cchPath - 4, -1, L".exe", -1, 1 /* ignore case */) == CSTR_EQUAL)
-            ? Py_True : Py_False;
+        r = (attr != INVALID_FILE_ATTRIBUTES) && !(attr & FILE_ATTRIBUTE_DIRECTORY) &&
+                    (cchPath >= 4) &&
+                    (CompareStringOrdinal(
+                         path + cchPath - 4, -1, L".exe", -1, 1 /* ignore case */
+                     ) == CSTR_EQUAL)
+                ? Py_True
+                : Py_False;
 #else
         struct stat st;
-        r = (_Py_wstat(path, &st) == 0) &&
-            S_ISREG(st.st_mode) &&
-            (st.st_mode & 0111)
-            ? Py_True : Py_False;
+        r = (_Py_wstat(path, &st) == 0) && S_ISREG(st.st_mode) && (st.st_mode & 0111)
+                ? Py_True
+                : Py_False;
 #endif
         PyMem_Free((void *)path);
     }
     return Py_XNewRef(r);
 }
 
-
 static PyObject *
-getpath_joinpath(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_joinpath(PyObject *Py_UNUSED(self), PyObject *args) {
     if (!PyTuple_Check(args)) {
         PyErr_SetString(PyExc_TypeError, "requires tuple of arguments");
         return NULL;
@@ -285,14 +269,17 @@ getpath_joinpath(PyObject *Py_UNUSED(self), PyObject *args)
                 first = i;
             }
         } else {
-            PyErr_SetString(PyExc_TypeError, "all arguments to joinpath() must be str or None");
+            PyErr_SetString(
+                PyExc_TypeError, "all arguments to joinpath() must be str or None"
+            );
             cchFinal = -1;
             break;
         }
         cchFinal += cch + 1;
     }
 
-    wchar_t *final = cchFinal > 0 ? (wchar_t *)PyMem_Malloc(cchFinal * sizeof(wchar_t)) : NULL;
+    wchar_t *final =
+        cchFinal > 0 ? (wchar_t *)PyMem_Malloc(cchFinal * sizeof(wchar_t)) : NULL;
     if (!final) {
         for (Py_ssize_t i = 0; i < n; ++i) {
             PyMem_Free(parts[i]);
@@ -333,10 +320,8 @@ getpath_joinpath(PyObject *Py_UNUSED(self), PyObject *args)
     return r;
 }
 
-
 static PyObject *
-getpath_readlines(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_readlines(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *r = NULL;
     PyObject *pathobj;
     const wchar_t *path;
@@ -375,8 +360,9 @@ getpath_readlines(PyObject *Py_UNUSED(self), PyObject *args)
     }
     if (cb >= MAX_FILE) {
         Py_DECREF(r);
-        PyErr_SetString(PyExc_MemoryError,
-            "cannot read file larger than 32KB during initialization");
+        PyErr_SetString(
+            PyExc_MemoryError, "cannot read file larger than 32KB during initialization"
+        );
         return NULL;
     }
     buffer[cb] = '\0';
@@ -417,10 +403,8 @@ getpath_readlines(PyObject *Py_UNUSED(self), PyObject *args)
     return r;
 }
 
-
 static PyObject *
-getpath_realpath(PyObject *Py_UNUSED(self) , PyObject *args)
-{
+getpath_realpath(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *pathobj;
     if (!PyArg_ParseTuple(args, "U", &pathobj)) {
         return NULL;
@@ -496,7 +480,7 @@ done:
         r = Py_NewRef(pathobj);
         goto done;
     }
-    wchar_t resolved[MAXPATHLEN+1];
+    wchar_t resolved[MAXPATHLEN + 1];
     if (_Py_wrealpath(path, resolved, MAXPATHLEN) == NULL) {
         PyErr_SetFromErrno(PyExc_OSError);
     } else {
@@ -508,7 +492,7 @@ done:
     return r;
 #elif defined(MS_WINDOWS)
     HANDLE hFile;
-    wchar_t resolved[MAXPATHLEN+1];
+    wchar_t resolved[MAXPATHLEN + 1];
     int len = 0, err;
     Py_ssize_t pathlen;
     PyObject *result;
@@ -522,8 +506,8 @@ done:
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS
-    hFile = CreateFileW(path, 0, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    Py_BEGIN_ALLOW_THREADS hFile =
+        CreateFileW(path, 0, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
     if (hFile != INVALID_HANDLE_VALUE) {
         len = GetFinalPathNameByHandleW(hFile, resolved, MAXPATHLEN, VOLUME_NAME_DOS);
         err = len ? 0 : GetLastError();
@@ -533,10 +517,11 @@ done:
     }
     Py_END_ALLOW_THREADS
 
-    if (err) {
+        if (err) {
         PyErr_SetFromWindowsErr(err);
         result = NULL;
-    } else if (len <= MAXPATHLEN) {
+    }
+    else if (len <= MAXPATHLEN) {
         const wchar_t *p = resolved;
         if (0 == wcsncmp(p, L"\\\\?\\", 4)) {
             if (GetFileAttributesW(&p[4]) != INVALID_FILE_ATTRIBUTES) {
@@ -549,7 +534,8 @@ done:
         } else {
             result = PyUnicode_FromWideChar(p, len);
         }
-    } else {
+    }
+    else {
         result = Py_NewRef(pathobj);
     }
     PyMem_Free(path);
@@ -558,7 +544,6 @@ done:
 
     return Py_NewRef(pathobj);
 }
-
 
 static PyMethodDef getpath_methods[] = {
     {"abspath", getpath_abspath, METH_VARARGS, NULL},
@@ -575,13 +560,11 @@ static PyMethodDef getpath_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-
 /* Two implementations of warn() to use depending on whether warnings
    are enabled or not. */
 
 static PyObject *
-getpath_warn(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_warn(PyObject *Py_UNUSED(self), PyObject *args) {
     PyObject *msgobj;
     if (!PyArg_ParseTuple(args, "U", &msgobj)) {
         return NULL;
@@ -590,21 +573,17 @@ getpath_warn(PyObject *Py_UNUSED(self), PyObject *args)
     Py_RETURN_NONE;
 }
 
-
 static PyObject *
-getpath_nowarn(PyObject *Py_UNUSED(self), PyObject *args)
-{
+getpath_nowarn(PyObject *Py_UNUSED(self), PyObject *args) {
     Py_RETURN_NONE;
 }
-
 
 static PyMethodDef getpath_warn_method = {"warn", getpath_warn, METH_VARARGS, NULL};
 static PyMethodDef getpath_nowarn_method = {"warn", getpath_nowarn, METH_VARARGS, NULL};
 
 /* Add the helper functions to the dict */
 static int
-funcs_to_dict(PyObject *dict, int warnings)
-{
+funcs_to_dict(PyObject *dict, int warnings) {
     for (PyMethodDef *m = getpath_methods; m->ml_name; ++m) {
         PyObject *f = PyCFunction_NewEx(m, NULL, NULL);
         if (!f) {
@@ -629,11 +608,9 @@ funcs_to_dict(PyObject *dict, int warnings)
     return 1;
 }
 
-
 /* Add a wide-character string constant to the dict */
 static int
-wchar_to_dict(PyObject *dict, const char *key, const wchar_t *s)
-{
+wchar_to_dict(PyObject *dict, const char *key, const wchar_t *s) {
     PyObject *u;
     int r;
     if (s && s[0]) {
@@ -649,11 +626,9 @@ wchar_to_dict(PyObject *dict, const char *key, const wchar_t *s)
     return r;
 }
 
-
 /* Add a narrow string constant to the dict, using default locale decoding */
 static int
-decode_to_dict(PyObject *dict, const char *key, const char *s)
-{
+decode_to_dict(PyObject *dict, const char *key, const char *s) {
     PyObject *u = NULL;
     int r;
     if (s && s[0]) {
@@ -676,8 +651,7 @@ decode_to_dict(PyObject *dict, const char *key, const char *s)
 
 /* Add an environment variable to the dict, optionally clearing it afterwards */
 static int
-env_to_dict(PyObject *dict, const char *key, int and_clear)
-{
+env_to_dict(PyObject *dict, const char *key, int and_clear) {
     PyObject *u = NULL;
     int r = 0;
     assert(strncmp(key, "ENV_", 4) == 0);
@@ -728,11 +702,9 @@ env_to_dict(PyObject *dict, const char *key, int and_clear)
     return r;
 }
 
-
 /* Add an integer constant to the dict */
 static int
-int_to_dict(PyObject *dict, const char *key, int v)
-{
+int_to_dict(PyObject *dict, const char *key, int v) {
     PyObject *o;
     int r;
     o = PyLong_FromLong(v);
@@ -744,14 +716,12 @@ int_to_dict(PyObject *dict, const char *key, int v)
     return r;
 }
 
-
 #ifdef MS_WINDOWS
 static int
-winmodule_to_dict(PyObject *dict, const char *key, HMODULE mod)
-{
+winmodule_to_dict(PyObject *dict, const char *key, HMODULE mod) {
     wchar_t *buffer = NULL;
     for (DWORD cch = 256; buffer == NULL && cch < (1024 * 1024); cch *= 2) {
-        buffer = (wchar_t*)PyMem_RawMalloc(cch * sizeof(wchar_t));
+        buffer = (wchar_t *)PyMem_RawMalloc(cch * sizeof(wchar_t));
         if (buffer) {
             if (GetModuleFileNameW(mod, buffer, cch) == cch) {
                 PyMem_RawFree(buffer);
@@ -765,11 +735,9 @@ winmodule_to_dict(PyObject *dict, const char *key, HMODULE mod)
 }
 #endif
 
-
 /* Add the current executable's path to the dict */
 static int
-progname_to_dict(PyObject *dict, const char *key)
-{
+progname_to_dict(PyObject *dict, const char *key) {
 #ifdef MS_WINDOWS
     return winmodule_to_dict(dict, key, NULL);
 #elif defined(__APPLE__)
@@ -798,11 +766,9 @@ progname_to_dict(PyObject *dict, const char *key)
     return PyDict_SetItemString(dict, key, Py_None) == 0;
 }
 
-
 /* Add the runtime library's path to the dict */
 static int
-library_to_dict(PyObject *dict, const char *key)
-{
+library_to_dict(PyObject *dict, const char *key) {
 #ifdef MS_WINDOWS
 #ifdef Py_ENABLE_SHARED
     extern HMODULE PyWin_DLLhModule;
@@ -836,14 +802,12 @@ library_to_dict(PyObject *dict, const char *key)
     return PyDict_SetItemString(dict, key, Py_None) == 0;
 }
 
-
 PyObject *
-_Py_Get_Getpath_CodeObject(void)
-{
+_Py_Get_Getpath_CodeObject(void) {
     return PyMarshal_ReadObjectFromString(
-        (const char*)_Py_M__getpath, sizeof(_Py_M__getpath));
+        (const char *)_Py_M__getpath, sizeof(_Py_M__getpath)
+    );
 }
-
 
 /* Perform the actual path calculation.
 
@@ -861,8 +825,7 @@ _Py_Get_Getpath_CodeObject(void)
    actually recalculate paths, you need a clean PyConfig.
 */
 PyStatus
-_PyConfig_InitPathConfig(PyConfig *config, int compute_path_config)
-{
+_PyConfig_InitPathConfig(PyConfig *config, int compute_path_config) {
     PyStatus status = _PyPathConfig_ReadGlobal(config);
 
     if (_PyStatus_EXCEPTION(status) || !compute_path_config) {

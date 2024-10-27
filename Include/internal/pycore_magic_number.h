@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
 /*
@@ -132,31 +132,28 @@ Known values:
     Python 3.8b4  3413 (Fix "break" and "continue" in "finally" #37830)
     Python 3.9a0  3420 (add LOAD_ASSERTION_ERROR #34880)
     Python 3.9a0  3421 (simplified bytecode for with blocks #32949)
-    Python 3.9a0  3422 (remove BEGIN_FINALLY, END_FINALLY, CALL_FINALLY, POP_FINALLY bytecodes #33387)
-    Python 3.9a2  3423 (add IS_OP, CONTAINS_OP and JUMP_IF_NOT_EXC_MATCH bytecodes #39156)
-    Python 3.9a2  3424 (simplify bytecodes for *value unpacking)
+    Python 3.9a0  3422 (remove BEGIN_FINALLY, END_FINALLY, CALL_FINALLY, POP_FINALLY
+bytecodes #33387) Python 3.9a2  3423 (add IS_OP, CONTAINS_OP and JUMP_IF_NOT_EXC_MATCH
+bytecodes #39156) Python 3.9a2  3424 (simplify bytecodes for *value unpacking)
     Python 3.9a2  3425 (simplify bytecodes for **value unpacking)
     Python 3.10a1 3430 (Make 'annotations' future by default)
     Python 3.10a1 3431 (New line number table format -- PEP 626)
-    Python 3.10a2 3432 (Function annotation for MAKE_FUNCTION is changed from dict to tuple bpo-42202)
-    Python 3.10a2 3433 (RERAISE restores f_lasti if oparg != 0)
+    Python 3.10a2 3432 (Function annotation for MAKE_FUNCTION is changed from dict to
+tuple bpo-42202) Python 3.10a2 3433 (RERAISE restores f_lasti if oparg != 0)
     Python 3.10a6 3434 (PEP 634: Structural Pattern Matching)
     Python 3.10a7 3435 Use instruction offsets (as opposed to byte offsets).
     Python 3.10b1 3436 (Add GEN_START bytecode #43683)
-    Python 3.10b1 3437 (Undo making 'annotations' future by default - We like to dance among core devs!)
-    Python 3.10b1 3438 Safer line number table handling.
-    Python 3.10b1 3439 (Add ROT_N)
-    Python 3.11a1 3450 Use exception table for unwinding ("zero cost" exception handling)
-    Python 3.11a1 3451 (Add CALL_METHOD_KW)
-    Python 3.11a1 3452 (drop nlocals from marshaled code objects)
-    Python 3.11a1 3453 (add co_fastlocalnames and co_fastlocalkinds)
-    Python 3.11a1 3454 (compute cell offsets relative to locals bpo-43693)
-    Python 3.11a1 3455 (add MAKE_CELL bpo-43693)
-    Python 3.11a1 3456 (interleave cell args bpo-43693)
-    Python 3.11a1 3457 (Change localsplus to a bytes object bpo-43693)
+    Python 3.10b1 3437 (Undo making 'annotations' future by default - We like to dance
+among core devs!) Python 3.10b1 3438 Safer line number table handling. Python 3.10b1
+3439 (Add ROT_N) Python 3.11a1 3450 Use exception table for unwinding ("zero cost"
+exception handling) Python 3.11a1 3451 (Add CALL_METHOD_KW) Python 3.11a1 3452 (drop
+nlocals from marshaled code objects) Python 3.11a1 3453 (add co_fastlocalnames and
+co_fastlocalkinds) Python 3.11a1 3454 (compute cell offsets relative to locals
+bpo-43693) Python 3.11a1 3455 (add MAKE_CELL bpo-43693) Python 3.11a1 3456 (interleave
+cell args bpo-43693) Python 3.11a1 3457 (Change localsplus to a bytes object bpo-43693)
     Python 3.11a1 3458 (imported objects now don't use LOAD_METHOD/CALL_METHOD)
-    Python 3.11a1 3459 (PEP 657: add end line numbers and column offsets for instructions)
-    Python 3.11a1 3460 (Add co_qualname field to PyCodeObject bpo-44530)
+    Python 3.11a1 3459 (PEP 657: add end line numbers and column offsets for
+instructions) Python 3.11a1 3460 (Add co_qualname field to PyCodeObject bpo-44530)
     Python 3.11a1 3461 (JUMP_ABSOLUTE must jump backwards)
     Python 3.11a2 3462 (bpo-44511: remove COPY_DICT_WITHOUT_KEYS, change
                         MATCH_CLASS and MATCH_KEYS, and add COPY)
@@ -211,12 +208,11 @@ Known values:
     Python 3.12a2 3510 (FOR_ITER leaves iterator on the stack)
     Python 3.12a2 3511 (Add STOPITERATION_ERROR instruction)
     Python 3.12a2 3512 (Remove all unused consts from code objects)
-    Python 3.12a4 3513 (Add CALL_INTRINSIC_1 instruction, removed STOPITERATION_ERROR, PRINT_EXPR, IMPORT_STAR)
-    Python 3.12a4 3514 (Remove ASYNC_GEN_WRAP, LIST_TO_TUPLE, and UNARY_POSITIVE)
-    Python 3.12a5 3515 (Embed jump mask in COMPARE_OP oparg)
-    Python 3.12a5 3516 (Add COMPARE_AND_BRANCH instruction)
-    Python 3.12a5 3517 (Change YIELD_VALUE oparg to exception block depth)
-    Python 3.12a6 3518 (Add RETURN_CONST instruction)
+    Python 3.12a4 3513 (Add CALL_INTRINSIC_1 instruction, removed STOPITERATION_ERROR,
+PRINT_EXPR, IMPORT_STAR) Python 3.12a4 3514 (Remove ASYNC_GEN_WRAP, LIST_TO_TUPLE, and
+UNARY_POSITIVE) Python 3.12a5 3515 (Embed jump mask in COMPARE_OP oparg) Python 3.12a5
+3516 (Add COMPARE_AND_BRANCH instruction) Python 3.12a5 3517 (Change YIELD_VALUE oparg
+to exception block depth) Python 3.12a6 3518 (Add RETURN_CONST instruction)
     Python 3.12a6 3519 (Modify SEND instruction)
     Python 3.12a6 3520 (Remove PREP_RERAISE_STAR, add CALL_INTRINSIC_2)
     Python 3.12a7 3521 (Shrink the LOAD_GLOBAL caches)
@@ -246,8 +242,8 @@ Known values:
     Python 3.13a1 3563 (Add CALL_KW and remove KW_NAMES)
     Python 3.13a1 3564 (Removed oparg from YIELD_VALUE, changed oparg values of RESUME)
     Python 3.13a1 3565 (Oparg of YIELD_VALUE indicates whether it is in a yield-from)
-    Python 3.13a1 3566 (Emit JUMP_NO_INTERRUPT instead of JUMP for non-loop no-lineno cases)
-    Python 3.13a1 3567 (Reimplement line number propagation by the compiler)
+    Python 3.13a1 3566 (Emit JUMP_NO_INTERRUPT instead of JUMP for non-loop no-lineno
+cases) Python 3.13a1 3567 (Reimplement line number propagation by the compiler)
     Python 3.13a1 3568 (Change semantics of END_FOR)
     Python 3.13a5 3569 (Specialize CONTAINS_OP)
     Python 3.13a6 3570 (Add __firstlineno__ class attribute)
@@ -278,7 +274,6 @@ PC/launcher.c must also be updated.
    (little-endian) and then appending b'\r\n'. */
 #define PYC_MAGIC_NUMBER_TOKEN \
     ((uint32_t)PYC_MAGIC_NUMBER | ((uint32_t)'\r' << 16) | ((uint32_t)'\n' << 24))
-
 
 #ifdef __cplusplus
 }

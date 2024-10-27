@@ -7,11 +7,11 @@
  * */
 
 #if defined(_MSC_VER)
-  #if defined(CONFIG_64)
-    #include <mpdecimal64vc.h>
-  #elif defined(CONFIG_32)
-    #include <mpdecimal32vc.h>
-  #else
-    #error "Unknown configuration!"
-  #endif
+#if defined(CONFIG_64)
+#include <mpdecimal64vc.h>
+#elif defined(CONFIG_32)
+#include <mpdecimal32vc.h>
+#else
+#error "Unknown configuration!"
+#endif
 #endif

@@ -7,72 +7,70 @@
 #include "pycore_runtime.h"       // _Py_ID()
 #include "pycore_time.h"          // _PyTimeFraction
 
-#include <time.h>                 // clock()
+#include <time.h>  // clock()
 #ifdef HAVE_SYS_TIMES_H
-#  include <sys/times.h>          // times()
+#include <sys/times.h>  // times()
 #endif
 #ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
+#include <sys/types.h>
 #endif
 #if defined(HAVE_SYS_RESOURCE_H)
-#  include <sys/resource.h>       // getrusage(RUSAGE_SELF)
+#include <sys/resource.h>  // getrusage(RUSAGE_SELF)
 #endif
 #ifdef QUICKWIN
-# include <io.h>
+#include <io.h>
 #endif
 #if defined(HAVE_PTHREAD_H)
-#  include <pthread.h>            // pthread_getcpuclockid()
+#include <pthread.h>  // pthread_getcpuclockid()
 #endif
 #if defined(_AIX)
-#   include <sys/thread.h>
+#include <sys/thread.h>
 #endif
 #if defined(__WATCOMC__) && !defined(__QNX__)
-#  include <i86.h>
+#include <i86.h>
 #else
-#  ifdef MS_WINDOWS
-#    ifndef WIN32_LEAN_AND_MEAN
-#      define WIN32_LEAN_AND_MEAN
-#    endif
-#    include <windows.h>
-#  endif /* MS_WINDOWS */
+#ifdef MS_WINDOWS
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif /* MS_WINDOWS */
 #endif /* !__WATCOMC__ || __QNX__ */
 
 #ifdef _Py_MEMORY_SANITIZER
-#  include <sanitizer/msan_interface.h>
+#include <sanitizer/msan_interface.h>
 #endif
 
 #ifdef _MSC_VER
-#  define _Py_timezone _timezone
-#  define _Py_daylight _daylight
-#  define _Py_tzname _tzname
+#define _Py_timezone _timezone
+#define _Py_daylight _daylight
+#define _Py_tzname _tzname
 #else
-#  define _Py_timezone timezone
-#  define _Py_daylight daylight
-#  define _Py_tzname tzname
+#define _Py_timezone timezone
+#define _Py_daylight daylight
+#define _Py_tzname tzname
 #endif
 
-#if defined(__APPLE__ ) && defined(__has_builtin)
-#  if __has_builtin(__builtin_available)
-#    define HAVE_CLOCK_GETTIME_RUNTIME __builtin_available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *)
-#  endif
+#if defined(__APPLE__) && defined(__has_builtin)
+#if __has_builtin(__builtin_available)
+#define HAVE_CLOCK_GETTIME_RUNTIME \
+    __builtin_available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *)
+#endif
 #endif
 #ifndef HAVE_CLOCK_GETTIME_RUNTIME
-#  define HAVE_CLOCK_GETTIME_RUNTIME 1
+#define HAVE_CLOCK_GETTIME_RUNTIME 1
 #endif
 
-
 #define SEC_TO_NS (1000 * 1000 * 1000)
-
 
 /*[clinic input]
 module time
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=a668a08771581f36]*/
 
-
 /* Forward declarations */
-static int pysleep(PyTime_t timeout);
-
+static int
+pysleep(PyTime_t timeout);
 
 typedef struct {
     PyTypeObject *struct_time_type;
@@ -87,26 +85,21 @@ typedef struct {
 #endif
 } time_module_state;
 
-static inline time_module_state*
-get_time_state(PyObject *module)
-{
+static inline time_module_state *
+get_time_state(PyObject *module) {
     void *state = _PyModule_GetState(module);
     assert(state != NULL);
     return (time_module_state *)state;
 }
 
-
-static PyObject*
-_PyFloat_FromPyTime(PyTime_t t)
-{
+static PyObject *
+_PyFloat_FromPyTime(PyTime_t t) {
     double d = PyTime_AsSecondsDouble(t);
     return PyFloat_FromDouble(d);
 }
 
-
 static PyObject *
-time_time(PyObject *self, PyObject *unused)
-{
+time_time(PyObject *self, PyObject *unused) {
     PyTime_t t;
     if (PyTime_Time(&t) < 0) {
         return NULL;
@@ -114,16 +107,16 @@ time_time(PyObject *self, PyObject *unused)
     return _PyFloat_FromPyTime(t);
 }
 
-
-PyDoc_STRVAR(time_doc,
-"time() -> floating-point number\n\
+PyDoc_STRVAR(
+    time_doc,
+    "time() -> floating-point number\n\
 \n\
 Return the current time in seconds since the Epoch.\n\
-Fractions of a second may be present if the system clock provides them.");
+Fractions of a second may be present if the system clock provides them."
+);
 
 static PyObject *
-time_time_ns(PyObject *self, PyObject *unused)
-{
+time_time_ns(PyObject *self, PyObject *unused) {
     PyTime_t t;
     if (PyTime_Time(&t) < 0) {
         return NULL;
@@ -131,24 +124,25 @@ time_time_ns(PyObject *self, PyObject *unused)
     return _PyTime_AsLong(t);
 }
 
-PyDoc_STRVAR(time_ns_doc,
-"time_ns() -> int\n\
+PyDoc_STRVAR(
+    time_ns_doc,
+    "time_ns() -> int\n\
 \n\
-Return the current time in nanoseconds since the Epoch.");
+Return the current time in nanoseconds since the Epoch."
+);
 
 #ifdef HAVE_CLOCK
 
 #ifndef CLOCKS_PER_SEC
-#  ifdef CLK_TCK
-#    define CLOCKS_PER_SEC CLK_TCK
-#  else
-#    define CLOCKS_PER_SEC 1000000
-#  endif
+#ifdef CLK_TCK
+#define CLOCKS_PER_SEC CLK_TCK
+#else
+#define CLOCKS_PER_SEC 1000000
+#endif
 #endif
 
 static int
-py_clock(time_module_state *state, PyTime_t *tp, _Py_clock_info_t *info)
-{
+py_clock(time_module_state *state, PyTime_t *tp, _Py_clock_info_t *info) {
     _PyTimeFraction *base = &state->clock_base;
 
     if (info) {
@@ -160,16 +154,17 @@ py_clock(time_module_state *state, PyTime_t *tp, _Py_clock_info_t *info)
 
     clock_t ticks = clock();
     if (ticks == (clock_t)-1) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "the processor time used is not available "
-                        "or its value cannot be represented");
+        PyErr_SetString(
+            PyExc_RuntimeError,
+            "the processor time used is not available "
+            "or its value cannot be represented"
+        );
         return -1;
     }
     *tp = _PyTimeFraction_Mul(ticks, base);
     return 0;
 }
 #endif /* HAVE_CLOCK */
-
 
 #ifdef HAVE_CLOCK_GETTIME
 
@@ -183,17 +178,18 @@ py_clock(time_module_state *state, PyTime_t *tp, _Py_clock_info_t *info)
 #endif
 
 static int
-time_clockid_converter(PyObject *obj, clockid_t *p)
-{
+time_clockid_converter(PyObject *obj, clockid_t *p) {
 #ifdef _AIX
     long long clk_id = PyLong_AsLongLong(obj);
 #else
     int clk_id = PyLong_AsInt(obj);
 #endif
     if (clk_id == -1 && PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError,
-                     "clk_id should be integer, not %s",
-                     _PyType_Name(Py_TYPE(obj)));
+        PyErr_Format(
+            PyExc_TypeError,
+            "clk_id should be integer, not %s",
+            _PyType_Name(Py_TYPE(obj))
+        );
         return 0;
     }
 
@@ -211,7 +207,6 @@ class clockid_t_converter(CConverter):
 
 [python start generated code]*/
 /*[python end generated code: output=da39a3ee5e6b4b0d input=53867111501f46c8]*/
-
 
 /*[clinic input]
 time.clock_gettime
@@ -261,12 +256,11 @@ time_clock_gettime_ns_impl(PyObject *module, clockid_t clk_id)
     }
     return _PyTime_AsLong(t);
 }
-#endif   /* HAVE_CLOCK_GETTIME */
+#endif /* HAVE_CLOCK_GETTIME */
 
 #ifdef HAVE_CLOCK_SETTIME
 static PyObject *
-time_clock_settime(PyObject *self, PyObject *args)
-{
+time_clock_settime(PyObject *self, PyObject *args) {
     int clk_id;
     PyObject *obj;
     PyTime_t t;
@@ -290,14 +284,15 @@ time_clock_settime(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(clock_settime_doc,
-"clock_settime(clk_id, time)\n\
+PyDoc_STRVAR(
+    clock_settime_doc,
+    "clock_settime(clk_id, time)\n\
 \n\
-Set the time of the specified clock clk_id.");
+Set the time of the specified clock clk_id."
+);
 
 static PyObject *
-time_clock_settime_ns(PyObject *self, PyObject *args)
-{
+time_clock_settime_ns(PyObject *self, PyObject *args) {
     int clk_id;
     PyObject *obj;
     PyTime_t t;
@@ -323,16 +318,17 @@ time_clock_settime_ns(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(clock_settime_ns_doc,
-"clock_settime_ns(clk_id, time)\n\
+PyDoc_STRVAR(
+    clock_settime_ns_doc,
+    "clock_settime_ns(clk_id, time)\n\
 \n\
-Set the time of the specified clock clk_id with nanoseconds.");
-#endif   /* HAVE_CLOCK_SETTIME */
+Set the time of the specified clock clk_id with nanoseconds."
+);
+#endif /* HAVE_CLOCK_SETTIME */
 
 #ifdef HAVE_CLOCK_GETRES
 static PyObject *
-time_clock_getres(PyObject *self, PyObject *args)
-{
+time_clock_getres(PyObject *self, PyObject *args) {
     int ret;
     int clk_id;
     struct timespec tp;
@@ -349,21 +345,22 @@ time_clock_getres(PyObject *self, PyObject *args)
     return PyFloat_FromDouble(tp.tv_sec + tp.tv_nsec * 1e-9);
 }
 
-PyDoc_STRVAR(clock_getres_doc,
-"clock_getres(clk_id) -> floating-point number\n\
+PyDoc_STRVAR(
+    clock_getres_doc,
+    "clock_getres(clk_id) -> floating-point number\n\
 \n\
-Return the resolution (precision) of the specified clock clk_id.");
+Return the resolution (precision) of the specified clock clk_id."
+);
 
 #ifdef __APPLE__
 #pragma clang diagnostic pop
 #endif
 
-#endif   /* HAVE_CLOCK_GETRES */
+#endif /* HAVE_CLOCK_GETRES */
 
 #ifdef HAVE_PTHREAD_GETCPUCLOCKID
 static PyObject *
-time_pthread_getcpuclockid(PyObject *self, PyObject *args)
-{
+time_pthread_getcpuclockid(PyObject *self, PyObject *args) {
     unsigned long thread_id;
     int err;
     clockid_t clk_id;
@@ -382,15 +379,16 @@ time_pthread_getcpuclockid(PyObject *self, PyObject *args)
     return PyLong_FromLong(clk_id);
 }
 
-PyDoc_STRVAR(pthread_getcpuclockid_doc,
-"pthread_getcpuclockid(thread_id) -> int\n\
+PyDoc_STRVAR(
+    pthread_getcpuclockid_doc,
+    "pthread_getcpuclockid(thread_id) -> int\n\
 \n\
-Return the clk_id of a thread's CPU time clock.");
+Return the clk_id of a thread's CPU time clock."
+);
 #endif /* HAVE_PTHREAD_GETCPUCLOCKID */
 
 static PyObject *
-time_sleep(PyObject *self, PyObject *timeout_obj)
-{
+time_sleep(PyObject *self, PyObject *timeout_obj) {
     if (PySys_Audit("time.sleep", "O", timeout_obj) < 0) {
         return NULL;
     }
@@ -399,8 +397,7 @@ time_sleep(PyObject *self, PyObject *timeout_obj)
     if (_PyTime_FromSecondsObject(&timeout, timeout_obj, _PyTime_ROUND_TIMEOUT))
         return NULL;
     if (timeout < 0) {
-        PyErr_SetString(PyExc_ValueError,
-                        "sleep length must be non-negative");
+        PyErr_SetString(PyExc_ValueError, "sleep length must be non-negative");
         return NULL;
     }
     if (pysleep(timeout) != 0) {
@@ -409,11 +406,13 @@ time_sleep(PyObject *self, PyObject *timeout_obj)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(sleep_doc,
-"sleep(seconds)\n\
+PyDoc_STRVAR(
+    sleep_doc,
+    "sleep(seconds)\n\
 \n\
 Delay execution for a given number of seconds.  The argument may be\n\
-a floating-point number for subsecond precision.");
+a floating-point number for subsecond precision."
+);
 
 static PyStructSequence_Field struct_time_type_fields[] = {
     {"tm_year", "year, for example, 1993"},
@@ -445,19 +444,22 @@ static PyStructSequence_Desc struct_time_type_desc = {
 
 #if defined(MS_WINDOWS)
 #ifndef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
-  #define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION 0x00000002
+#define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION 0x00000002
 #endif
 
 static DWORD timer_flags = (DWORD)-1;
 #endif
 
 static PyObject *
-tmtotuple(time_module_state *state, struct tm *p
+tmtotuple(
+    time_module_state *state,
+    struct tm *p
 #ifndef HAVE_STRUCT_TM_TM_ZONE
-        , const char *zone, time_t gmtoff
+    ,
+    const char *zone,
+    time_t gmtoff
 #endif
-)
-{
+) {
     PyObject *v = PyStructSequence_New(state->struct_time_type);
     if (v == NULL)
         return NULL;
@@ -472,17 +474,16 @@ tmtotuple(time_module_state *state, struct tm *p
         PyStructSequence_SET_ITEM(v, (INDEX), obj); \
     } while (0)
 
-#define SET(INDEX, VAL) \
-    SET_ITEM((INDEX), PyLong_FromLong((long) (VAL)))
+#define SET(INDEX, VAL) SET_ITEM((INDEX), PyLong_FromLong((long)(VAL)))
 
     SET(0, p->tm_year + 1900);
-    SET(1, p->tm_mon + 1);         /* Want January == 1 */
+    SET(1, p->tm_mon + 1); /* Want January == 1 */
     SET(2, p->tm_mday);
     SET(3, p->tm_hour);
     SET(4, p->tm_min);
     SET(5, p->tm_sec);
     SET(6, (p->tm_wday + 6) % 7); /* Want Monday == 0 */
-    SET(7, p->tm_yday + 1);        /* Want January, 1 == 1 */
+    SET(7, p->tm_yday + 1);       /* Want January, 1 == 1 */
     SET(8, p->tm_isdst);
 #ifdef HAVE_STRUCT_TM_TM_ZONE
     SET_ITEM(9, PyUnicode_DecodeLocale(p->tm_zone, "surrogateescape"));
@@ -503,8 +504,7 @@ tmtotuple(time_module_state *state, struct tm *p
    Returns non-zero on success (parallels PyArg_ParseTuple).
 */
 static int
-parse_time_t_args(PyObject *args, const char *format, time_t *pwhen)
-{
+parse_time_t_args(PyObject *args, const char *format, time_t *pwhen) {
     PyObject *ot = NULL;
     time_t whent;
 
@@ -512,8 +512,7 @@ parse_time_t_args(PyObject *args, const char *format, time_t *pwhen)
         return 0;
     if (ot == NULL || ot == Py_None) {
         whent = time(NULL);
-    }
-    else {
+    } else {
         if (_PyTime_ObjectToTime_t(ot, &whent, _PyTime_ROUND_FLOOR) == -1)
             return 0;
     }
@@ -522,8 +521,7 @@ parse_time_t_args(PyObject *args, const char *format, time_t *pwhen)
 }
 
 static PyObject *
-time_gmtime(PyObject *module, PyObject *args)
-{
+time_gmtime(PyObject *module, PyObject *args) {
     time_t when;
     struct tm buf;
 
@@ -544,30 +542,30 @@ time_gmtime(PyObject *module, PyObject *args)
 
 #ifndef HAVE_TIMEGM
 static time_t
-timegm(struct tm *p)
-{
+timegm(struct tm *p) {
     /* XXX: the following implementation will not work for tm_year < 1970.
        but it is likely that platforms that don't have timegm do not support
        negative timestamps anyways. */
-    return p->tm_sec + p->tm_min*60 + p->tm_hour*3600 + p->tm_yday*86400 +
-        (p->tm_year-70)*31536000 + ((p->tm_year-69)/4)*86400 -
-        ((p->tm_year-1)/100)*86400 + ((p->tm_year+299)/400)*86400;
+    return p->tm_sec + p->tm_min * 60 + p->tm_hour * 3600 + p->tm_yday * 86400 +
+           (p->tm_year - 70) * 31536000 + ((p->tm_year - 69) / 4) * 86400 -
+           ((p->tm_year - 1) / 100) * 86400 + ((p->tm_year + 299) / 400) * 86400;
 }
 #endif
 
-PyDoc_STRVAR(gmtime_doc,
-"gmtime([seconds]) -> (tm_year, tm_mon, tm_mday, tm_hour, tm_min,\n\
+PyDoc_STRVAR(
+    gmtime_doc,
+    "gmtime([seconds]) -> (tm_year, tm_mon, tm_mday, tm_hour, tm_min,\n\
                        tm_sec, tm_wday, tm_yday, tm_isdst)\n\
 \n\
 Convert seconds since the Epoch to a time tuple expressing UTC (a.k.a.\n\
 GMT).  When 'seconds' is not passed in, convert the current time instead.\n\
 \n\
 If the platform supports the tm_gmtoff and tm_zone, they are available as\n\
-attributes only.");
+attributes only."
+);
 
 static PyObject *
-time_localtime(PyObject *module, PyObject *args)
-{
+time_localtime(PyObject *module, PyObject *args) {
     time_t when;
     struct tm buf;
 
@@ -595,34 +593,42 @@ time_localtime(PyObject *module, PyObject *args)
 static const char *utc_string = NULL;
 #endif
 
-PyDoc_STRVAR(localtime_doc,
-"localtime([seconds]) -> (tm_year,tm_mon,tm_mday,tm_hour,tm_min,\n\
+PyDoc_STRVAR(
+    localtime_doc,
+    "localtime([seconds]) -> (tm_year,tm_mon,tm_mday,tm_hour,tm_min,\n\
                           tm_sec,tm_wday,tm_yday,tm_isdst)\n\
 \n\
 Convert seconds since the Epoch to a time tuple expressing local time.\n\
-When 'seconds' is not passed in, convert the current time instead.");
+When 'seconds' is not passed in, convert the current time instead."
+);
 
 /* Convert 9-item tuple to tm structure.  Return 1 on success, set
  * an exception and return 0 on error.
  */
 static int
-gettmarg(time_module_state *state, PyObject *args,
-         struct tm *p, const char *format)
-{
+gettmarg(time_module_state *state, PyObject *args, struct tm *p, const char *format) {
     int y;
 
-    memset((void *) p, '\0', sizeof(struct tm));
+    memset((void *)p, '\0', sizeof(struct tm));
 
     if (!PyTuple_Check(args)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "Tuple or struct_time argument required");
+        PyErr_SetString(PyExc_TypeError, "Tuple or struct_time argument required");
         return 0;
     }
 
-    if (!PyArg_ParseTuple(args, format,
-                          &y, &p->tm_mon, &p->tm_mday,
-                          &p->tm_hour, &p->tm_min, &p->tm_sec,
-                          &p->tm_wday, &p->tm_yday, &p->tm_isdst))
+    if (!PyArg_ParseTuple(
+            args,
+            format,
+            &y,
+            &p->tm_mon,
+            &p->tm_mday,
+            &p->tm_hour,
+            &p->tm_min,
+            &p->tm_sec,
+            &p->tm_wday,
+            &p->tm_yday,
+            &p->tm_isdst
+        ))
         return 0;
 
     if (y < INT_MIN + 1900) {
@@ -649,11 +655,9 @@ gettmarg(time_module_state *state, PyObject *args,
             // it. See issue #34672.
             if (utc_string && strcmp(p->tm_zone, utc_string) == 0) {
                 p->tm_zone = utc_string;
-            }
-            else if (tzname[0] && strcmp(p->tm_zone, tzname[0]) == 0) {
+            } else if (tzname[0] && strcmp(p->tm_zone, tzname[0]) == 0) {
                 p->tm_zone = tzname[0];
-            }
-            else if (tzname[1] && strcmp(p->tm_zone, tzname[1]) == 0) {
+            } else if (tzname[1] && strcmp(p->tm_zone, tzname[1]) == 0) {
                 p->tm_zone = tzname[1];
             }
 #endif
@@ -674,8 +678,7 @@ gettmarg(time_module_state *state, PyObject *args,
  * and returns 0.
  */
 static int
-checktm(struct tm* buf)
-{
+checktm(struct tm *buf) {
     /* Checks added to make sure strftime() and asctime() does not crash Python by
        indexing blindly into some array for a textual representation
        by some bad index (fixes bug #897625 and #6608).
@@ -740,7 +743,7 @@ checktm(struct tm* buf)
 }
 
 #define STRFTIME_FORMAT_CODES \
-"Commonly used format codes:\n\
+    "Commonly used format codes:\n\
 \n\
 %Y  Year with century as a decimal number.\n\
 %m  Month as a decimal number [01,12].\n\
@@ -772,39 +775,32 @@ the C library strftime function.\n"
 #endif
 
 static PyObject *
-time_strftime1(time_char **outbuf, size_t *bufsize,
-               time_char *format, size_t fmtlen,
-               struct tm *tm)
-{
+time_strftime1(
+    time_char **outbuf, size_t *bufsize, time_char *format, size_t fmtlen, struct tm *tm
+) {
     size_t buflen;
 #if defined(MS_WINDOWS) && !defined(HAVE_WCSFTIME)
     /* check that the format string contains only valid directives */
-    for (const time_char *f = strchr(format, '%');
-        f != NULL;
-        f = strchr(f + 2, '%'))
-    {
+    for (const time_char *f = strchr(format, '%'); f != NULL; f = strchr(f + 2, '%')) {
         if (f[1] == '#')
             ++f; /* not documented by python, */
         if (f[1] == '\0')
             break;
         if ((f[1] == 'y') && tm->tm_year < 0) {
-            PyErr_SetString(PyExc_ValueError,
-                            "format %y requires year >= 1900 on Windows");
+            PyErr_SetString(
+                PyExc_ValueError, "format %y requires year >= 1900 on Windows"
+            );
             return NULL;
         }
     }
 #elif (defined(_AIX) || (defined(__sun) && defined(__SVR4))) && defined(HAVE_WCSFTIME)
-    for (const time_char *f = wcschr(format, '%');
-        f != NULL;
-        f = wcschr(f + 2, '%'))
-    {
+    for (const time_char *f = wcschr(format, '%'); f != NULL; f = wcschr(f + 2, '%')) {
         if (f[1] == L'\0')
             break;
         /* Issue #19634: On AIX, wcsftime("y", (1899, 1, 1, 0, 0, 0, 0, 0, 0))
            returns "0/" instead of "99" */
         if (f[1] == L'y' && tm->tm_year < 0) {
-            PyErr_SetString(PyExc_ValueError,
-                            "format %y requires year >= 1900 on AIX");
+            PyErr_SetString(PyExc_ValueError, "format %y requires year >= 1900 on AIX");
             return NULL;
         }
     }
@@ -814,12 +810,11 @@ time_strftime1(time_char **outbuf, size_t *bufsize,
      * will be ahead of time...
      */
     while (1) {
-        if (*bufsize > PY_SSIZE_T_MAX/sizeof(time_char)) {
+        if (*bufsize > PY_SSIZE_T_MAX / sizeof(time_char)) {
             PyErr_NoMemory();
             return NULL;
         }
-        *outbuf = (time_char *)PyMem_Realloc(*outbuf,
-                                             *bufsize*sizeof(time_char));
+        *outbuf = (time_char *)PyMem_Realloc(*outbuf, *bufsize * sizeof(time_char));
         if (*outbuf == NULL) {
             PyErr_NoMemory();
             return NULL;
@@ -827,12 +822,11 @@ time_strftime1(time_char **outbuf, size_t *bufsize,
 #if defined _MSC_VER && _MSC_VER >= 1400 && defined(__STDC_SECURE_LIB__)
         errno = 0;
 #endif
-        _Py_BEGIN_SUPPRESS_IPH
-        buflen = format_time(*outbuf, *bufsize, format, tm);
+        _Py_BEGIN_SUPPRESS_IPH buflen = format_time(*outbuf, *bufsize, format, tm);
         _Py_END_SUPPRESS_IPH
 #if defined _MSC_VER && _MSC_VER >= 1400 && defined(__STDC_SECURE_LIB__)
-        /* VisualStudio .NET 2005 does this properly */
-        if (buflen == 0 && errno == EINVAL) {
+            /* VisualStudio .NET 2005 does this properly */
+            if (buflen == 0 && errno == EINVAL) {
             PyErr_SetString(PyExc_ValueError, "Invalid format string");
             return NULL;
         }
@@ -855,8 +849,7 @@ time_strftime1(time_char **outbuf, size_t *bufsize,
 }
 
 static PyObject *
-time_strftime(PyObject *module, PyObject *args)
-{
+time_strftime(PyObject *module, PyObject *args) {
     PyObject *tup = NULL;
     struct tm buf;
     PyObject *format_arg;
@@ -864,7 +857,7 @@ time_strftime(PyObject *module, PyObject *args)
     time_char *format, *outbuf = NULL;
     size_t fmtlen, bufsize = 1024;
 
-    memset((void *) &buf, '\0', sizeof(buf));
+    memset((void *)&buf, '\0', sizeof(buf));
 
     if (!PyArg_ParseTuple(args, "U|O:strftime", &format_arg, &tup))
         return NULL;
@@ -874,11 +867,10 @@ time_strftime(PyObject *module, PyObject *args)
         time_t tt = time(NULL);
         if (_PyTime_localtime(tt, &buf) != 0)
             return NULL;
-    }
-    else if (!gettmarg(state, tup, &buf,
-                       "iiiiiiiii;strftime(): illegal time tuple argument") ||
-             !checktm(&buf))
-    {
+    } else if (!gettmarg(
+                   state, tup, &buf, "iiiiiiiii;strftime(): illegal time tuple argument"
+               ) ||
+               !checktm(&buf)) {
         return NULL;
     }
 
@@ -886,11 +878,10 @@ time_strftime(PyObject *module, PyObject *args)
 //
 // Android works with negative years on the emulator, but fails on some
 // physical devices (#123017).
-#if defined(_MSC_VER) || (defined(__sun) && defined(__SVR4)) || defined(_AIX) \
-    || defined(__VXWORKS__) || defined(__ANDROID__)
+#if defined(_MSC_VER) || (defined(__sun) && defined(__SVR4)) || defined(_AIX) || \
+    defined(__VXWORKS__) || defined(__ANDROID__)
     if (buf.tm_year + 1900 < 1 || 9999 < buf.tm_year + 1900) {
-        PyErr_SetString(PyExc_ValueError,
-                        "strftime() requires year in [1; 9999]");
+        PyErr_SetString(PyExc_ValueError, "strftime() requires year in [1; 9999]");
         return NULL;
     }
 #endif
@@ -904,11 +895,11 @@ time_strftime(PyObject *module, PyObject *args)
         buf.tm_isdst = 1;
 
     format_size = PyUnicode_GET_LENGTH(format_arg);
-    if ((size_t)format_size > PY_SSIZE_T_MAX/sizeof(time_char) - 1) {
+    if ((size_t)format_size > PY_SSIZE_T_MAX / sizeof(time_char) - 1) {
         PyErr_NoMemory();
         return NULL;
     }
-    format = PyMem_Malloc((format_size + 1)*sizeof(time_char));
+    format = PyMem_Malloc((format_size + 1) * sizeof(time_char));
     if (format == NULL) {
         PyErr_NoMemory();
         return NULL;
@@ -928,8 +919,7 @@ time_strftime(PyObject *module, PyObject *args)
         }
         if (fmtlen) {
             format[fmtlen] = 0;
-            PyObject *unicode = time_strftime1(&outbuf, &bufsize,
-                                               format, fmtlen, &buf);
+            PyObject *unicode = time_strftime1(&outbuf, &bufsize, format, fmtlen, &buf);
             if (unicode == NULL) {
                 goto error;
             }
@@ -964,18 +954,19 @@ error:
 
 #undef time_char
 #undef format_time
-PyDoc_STRVAR(strftime_doc,
-"strftime(format[, tuple]) -> string\n\
+PyDoc_STRVAR(
+    strftime_doc,
+    "strftime(format[, tuple]) -> string\n\
 \n\
 Convert a time tuple to a string according to a format specification.\n\
 See the library reference manual for formatting codes. When the time tuple\n\
 is not present, current time as returned by localtime() is used.\n\
-\n" STRFTIME_FORMAT_CODES);
+\n" STRFTIME_FORMAT_CODES
+);
 #endif /* HAVE_STRFTIME */
 
 static PyObject *
-time_strptime(PyObject *self, PyObject *args)
-{
+time_strptime(PyObject *self, PyObject *args) {
     PyObject *func, *result;
 
     func = _PyImport_GetModuleAttrString("_strptime", "_strptime_time");
@@ -988,39 +979,51 @@ time_strptime(PyObject *self, PyObject *args)
     return result;
 }
 
-
-PyDoc_STRVAR(strptime_doc,
-"strptime(string, format) -> struct_time\n\
+PyDoc_STRVAR(
+    strptime_doc,
+    "strptime(string, format) -> struct_time\n\
 \n\
 Parse a string to a time tuple according to a format specification.\n\
 See the library reference manual for formatting codes (same as\n\
 strftime()).\n\
-\n" STRFTIME_FORMAT_CODES);
+\n" STRFTIME_FORMAT_CODES
+);
 
 static PyObject *
-_asctime(struct tm *timeptr)
-{
+_asctime(struct tm *timeptr) {
     /* Inspired by Open Group reference implementation available at
      * http://pubs.opengroup.org/onlinepubs/009695399/functions/asctime.html */
     static const char wday_name[7][4] = {
         "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
     };
     static const char mon_name[12][4] = {
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
     };
     return PyUnicode_FromFormat(
         "%s %s%3d %.2d:%.2d:%.2d %d",
         wday_name[timeptr->tm_wday],
         mon_name[timeptr->tm_mon],
-        timeptr->tm_mday, timeptr->tm_hour,
-        timeptr->tm_min, timeptr->tm_sec,
-        1900 + timeptr->tm_year);
+        timeptr->tm_mday,
+        timeptr->tm_hour,
+        timeptr->tm_min,
+        timeptr->tm_sec,
+        1900 + timeptr->tm_year
+    );
 }
 
 static PyObject *
-time_asctime(PyObject *module, PyObject *args)
-{
+time_asctime(PyObject *module, PyObject *args) {
     PyObject *tup = NULL;
     struct tm buf;
 
@@ -1032,26 +1035,26 @@ time_asctime(PyObject *module, PyObject *args)
         time_t tt = time(NULL);
         if (_PyTime_localtime(tt, &buf) != 0)
             return NULL;
-    }
-    else if (!gettmarg(state, tup, &buf,
-                       "iiiiiiiii;asctime(): illegal time tuple argument") ||
-             !checktm(&buf))
-    {
+    } else if (!gettmarg(
+                   state, tup, &buf, "iiiiiiiii;asctime(): illegal time tuple argument"
+               ) ||
+               !checktm(&buf)) {
         return NULL;
     }
     return _asctime(&buf);
 }
 
-PyDoc_STRVAR(asctime_doc,
-"asctime([tuple]) -> string\n\
+PyDoc_STRVAR(
+    asctime_doc,
+    "asctime([tuple]) -> string\n\
 \n\
 Convert a time tuple to a string, e.g. 'Sat Jun 06 16:26:11 1998'.\n\
 When the time tuple is not present, current time as returned by localtime()\n\
-is used.");
+is used."
+);
 
 static PyObject *
-time_ctime(PyObject *self, PyObject *args)
-{
+time_ctime(PyObject *self, PyObject *args) {
     time_t tt;
     struct tm buf;
     if (!parse_time_t_args(args, "|O:ctime", &tt))
@@ -1061,24 +1064,25 @@ time_ctime(PyObject *self, PyObject *args)
     return _asctime(&buf);
 }
 
-PyDoc_STRVAR(ctime_doc,
-"ctime(seconds) -> string\n\
+PyDoc_STRVAR(
+    ctime_doc,
+    "ctime(seconds) -> string\n\
 \n\
 Convert a time in seconds since the Epoch to a string in local time.\n\
 This is equivalent to asctime(localtime(seconds)). When the time tuple is\n\
-not present, current time as returned by localtime() is used.");
+not present, current time as returned by localtime() is used."
+);
 
 #ifdef HAVE_MKTIME
 static PyObject *
-time_mktime(PyObject *module, PyObject *tm_tuple)
-{
+time_mktime(PyObject *module, PyObject *tm_tuple) {
     struct tm tm;
     time_t tt;
 
     time_module_state *state = get_time_state(module);
-    if (!gettmarg(state, tm_tuple, &tm,
-                  "iiiiiiiii;mktime(): illegal time tuple argument"))
-    {
+    if (!gettmarg(
+            state, tm_tuple, &tm, "iiiiiiiii;mktime(): illegal time tuple argument"
+        )) {
         return NULL;
     }
 
@@ -1090,8 +1094,7 @@ time_mktime(PyObject *module, PyObject *tm_tuple)
         /* bpo-19748: On AIX, mktime() does not report overflow error
            for timestamp < -2^31 or timestamp > 2**31-1. VxWorks has the
            same issue when working in 32 bit mode. */
-        PyErr_SetString(PyExc_OverflowError,
-                        "mktime argument out of range");
+        PyErr_SetString(PyExc_OverflowError, "mktime argument out of range");
         return NULL;
     }
 #endif
@@ -1111,7 +1114,7 @@ time_mktime(PyObject *module, PyObject *tm_tuple)
     }
 #endif
 
-    tm.tm_wday = -1;  /* sentinel; original value ignored */
+    tm.tm_wday = -1; /* sentinel; original value ignored */
     tt = mktime(&tm);
 
     /* Return value of -1 does not necessarily mean an error, but tm_wday
@@ -1119,10 +1122,8 @@ time_mktime(PyObject *module, PyObject *tm_tuple)
     if (tt == (time_t)(-1)
         /* Return value of -1 does not necessarily mean an error, but
          * tm_wday cannot remain set to -1 if mktime succeeded. */
-        && tm.tm_wday == -1)
-    {
-        PyErr_SetString(PyExc_OverflowError,
-                        "mktime argument out of range");
+        && tm.tm_wday == -1) {
+        PyErr_SetString(PyExc_OverflowError, "mktime argument out of range");
         return NULL;
     }
 
@@ -1139,22 +1140,24 @@ time_mktime(PyObject *module, PyObject *tm_tuple)
     return PyFloat_FromDouble((double)tt);
 }
 
-PyDoc_STRVAR(mktime_doc,
-"mktime(tuple) -> floating-point number\n\
+PyDoc_STRVAR(
+    mktime_doc,
+    "mktime(tuple) -> floating-point number\n\
 \n\
 Convert a time tuple in local time to seconds since the Epoch.\n\
 Note that mktime(gmtime(0)) will not generally return zero for most\n\
 time zones; instead the returned value will either be equal to that\n\
-of the timezone or altzone attributes on the time module.");
+of the timezone or altzone attributes on the time module."
+);
 #endif /* HAVE_MKTIME */
 
 #ifdef HAVE_WORKING_TZSET
-static int init_timezone(PyObject *module);
+static int
+init_timezone(PyObject *module);
 
 static PyObject *
-time_tzset(PyObject *self, PyObject *unused)
-{
-    PyObject* m;
+time_tzset(PyObject *self, PyObject *unused) {
+    PyObject *m;
 
     m = PyImport_ImportModule("time");
     if (m == NULL) {
@@ -1167,7 +1170,7 @@ time_tzset(PyObject *self, PyObject *unused)
 
     /* Reset timezone, altzone, daylight and tzname */
     if (init_timezone(m) < 0) {
-         return NULL;
+        return NULL;
     }
     Py_DECREF(m);
     if (PyErr_Occurred())
@@ -1176,8 +1179,9 @@ time_tzset(PyObject *self, PyObject *unused)
     Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(tzset_doc,
-"tzset()\n\
+PyDoc_STRVAR(
+    tzset_doc,
+    "tzset()\n\
 \n\
 Initialize, or reinitialize, the local timezone to the value stored in\n\
 os.environ['TZ']. The TZ environment variable should be specified in\n\
@@ -1187,13 +1191,12 @@ fall back to UTC. If the TZ environment variable is not set, the local\n\
 timezone is set to the systems best guess of wallclock time.\n\
 Changing the TZ environment variable without calling tzset *may* change\n\
 the local timezone used by methods such as localtime, but this behaviour\n\
-should not be relied on.");
+should not be relied on."
+);
 #endif /* HAVE_WORKING_TZSET */
 
-
 static PyObject *
-time_monotonic(PyObject *self, PyObject *unused)
-{
+time_monotonic(PyObject *self, PyObject *unused) {
     PyTime_t t;
     if (PyTime_Monotonic(&t) < 0) {
         return NULL;
@@ -1201,14 +1204,15 @@ time_monotonic(PyObject *self, PyObject *unused)
     return _PyFloat_FromPyTime(t);
 }
 
-PyDoc_STRVAR(monotonic_doc,
-"monotonic() -> float\n\
+PyDoc_STRVAR(
+    monotonic_doc,
+    "monotonic() -> float\n\
 \n\
-Monotonic clock, cannot go backward.");
+Monotonic clock, cannot go backward."
+);
 
 static PyObject *
-time_monotonic_ns(PyObject *self, PyObject *unused)
-{
+time_monotonic_ns(PyObject *self, PyObject *unused) {
     PyTime_t t;
     if (PyTime_Monotonic(&t) < 0) {
         return NULL;
@@ -1216,15 +1220,15 @@ time_monotonic_ns(PyObject *self, PyObject *unused)
     return _PyTime_AsLong(t);
 }
 
-PyDoc_STRVAR(monotonic_ns_doc,
-"monotonic_ns() -> int\n\
+PyDoc_STRVAR(
+    monotonic_ns_doc,
+    "monotonic_ns() -> int\n\
 \n\
-Monotonic clock, cannot go backward, as nanoseconds.");
-
+Monotonic clock, cannot go backward, as nanoseconds."
+);
 
 static PyObject *
-time_perf_counter(PyObject *self, PyObject *unused)
-{
+time_perf_counter(PyObject *self, PyObject *unused) {
     PyTime_t t;
     if (PyTime_PerfCounter(&t) < 0) {
         return NULL;
@@ -1232,15 +1236,15 @@ time_perf_counter(PyObject *self, PyObject *unused)
     return _PyFloat_FromPyTime(t);
 }
 
-PyDoc_STRVAR(perf_counter_doc,
-"perf_counter() -> float\n\
+PyDoc_STRVAR(
+    perf_counter_doc,
+    "perf_counter() -> float\n\
 \n\
-Performance counter for benchmarking.");
-
+Performance counter for benchmarking."
+);
 
 static PyObject *
-time_perf_counter_ns(PyObject *self, PyObject *unused)
-{
+time_perf_counter_ns(PyObject *self, PyObject *unused) {
     PyTime_t t;
     if (PyTime_PerfCounter(&t) < 0) {
         return NULL;
@@ -1248,18 +1252,17 @@ time_perf_counter_ns(PyObject *self, PyObject *unused)
     return _PyTime_AsLong(t);
 }
 
-PyDoc_STRVAR(perf_counter_ns_doc,
-"perf_counter_ns() -> int\n\
+PyDoc_STRVAR(
+    perf_counter_ns_doc,
+    "perf_counter_ns() -> int\n\
 \n\
-Performance counter for benchmarking as nanoseconds.");
-
+Performance counter for benchmarking as nanoseconds."
+);
 
 // gh-115714: Don't use times() on WASI.
 #if defined(HAVE_TIMES) && !defined(__wasi__)
 static int
-process_time_times(time_module_state *state, PyTime_t *tp,
-                   _Py_clock_info_t *info)
-{
+process_time_times(time_module_state *state, PyTime_t *tp, _Py_clock_info_t *info) {
     _PyTimeFraction *base = &state->times_base;
 
     struct tms process;
@@ -1282,11 +1285,8 @@ process_time_times(time_module_state *state, PyTime_t *tp,
 }
 #endif
 
-
 static int
-py_process_time(time_module_state *state, PyTime_t *tp,
-                _Py_clock_info_t *info)
-{
+py_process_time(time_module_state *state, PyTime_t *tp, _Py_clock_info_t *info) {
 #if defined(MS_WINDOWS)
     HANDLE process;
     FILETIME creation_time, exit_time, kernel_time, user_time;
@@ -1295,8 +1295,7 @@ py_process_time(time_module_state *state, PyTime_t *tp,
     BOOL ok;
 
     process = GetCurrentProcess();
-    ok = GetProcessTimes(process, &creation_time, &exit_time,
-                         &kernel_time, &user_time);
+    ok = GetProcessTimes(process, &creation_time, &exit_time, &kernel_time, &user_time);
     if (!ok) {
         PyErr_SetFromWindowsErr(0);
         return -1;
@@ -1328,10 +1327,9 @@ py_process_time(time_module_state *state, PyTime_t *tp,
  * CLOCK_PROCESS_CPUTIME_ID is broken on NetBSD for the same reason as
  * CLOCK_THREAD_CPUTIME_ID (see comment below).
  */
-#if defined(HAVE_CLOCK_GETTIME) \
-    && (defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_PROF)) \
-    && !defined(__wasi__) \
-    && !defined(__NetBSD__)
+#if defined(HAVE_CLOCK_GETTIME) &&                                \
+    (defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_PROF)) && \
+    !defined(__wasi__) && !defined(__NetBSD__)
     struct timespec ts;
 
     if (HAVE_CLOCK_GETTIME_RUNTIME) {
@@ -1411,8 +1409,7 @@ py_process_time(time_module_state *state, PyTime_t *tp,
 }
 
 static PyObject *
-time_process_time(PyObject *module, PyObject *unused)
-{
+time_process_time(PyObject *module, PyObject *unused) {
     time_module_state *state = get_time_state(module);
     PyTime_t t;
     if (py_process_time(state, &t, NULL) < 0) {
@@ -1421,14 +1418,15 @@ time_process_time(PyObject *module, PyObject *unused)
     return _PyFloat_FromPyTime(t);
 }
 
-PyDoc_STRVAR(process_time_doc,
-"process_time() -> float\n\
+PyDoc_STRVAR(
+    process_time_doc,
+    "process_time() -> float\n\
 \n\
-Process time for profiling: sum of the kernel and user-space CPU time.");
+Process time for profiling: sum of the kernel and user-space CPU time."
+);
 
 static PyObject *
-time_process_time_ns(PyObject *module, PyObject *unused)
-{
+time_process_time_ns(PyObject *module, PyObject *unused) {
     time_module_state *state = get_time_state(module);
     PyTime_t t;
     if (py_process_time(state, &t, NULL) < 0) {
@@ -1437,27 +1435,26 @@ time_process_time_ns(PyObject *module, PyObject *unused)
     return _PyTime_AsLong(t);
 }
 
-PyDoc_STRVAR(process_time_ns_doc,
-"process_time() -> int\n\
+PyDoc_STRVAR(
+    process_time_ns_doc,
+    "process_time() -> int\n\
 \n\
 Process time for profiling as nanoseconds:\n\
-sum of the kernel and user-space CPU time.");
-
+sum of the kernel and user-space CPU time."
+);
 
 #if defined(MS_WINDOWS)
 #define HAVE_THREAD_TIME
 static int
-_PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
-{
+_PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info) {
     HANDLE thread;
     FILETIME creation_time, exit_time, kernel_time, user_time;
     ULARGE_INTEGER large;
     PyTime_t ktime, utime;
     BOOL ok;
 
-    thread =  GetCurrentThread();
-    ok = GetThreadTimes(thread, &creation_time, &exit_time,
-                        &kernel_time, &user_time);
+    thread = GetCurrentThread();
+    ok = GetThreadTimes(thread, &creation_time, &exit_time, &kernel_time, &user_time);
     if (!ok) {
         PyErr_SetFromWindowsErr(0);
         return -1;
@@ -1486,8 +1483,7 @@ _PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
 #elif defined(_AIX)
 #define HAVE_THREAD_TIME
 static int
-_PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
-{
+_PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info) {
     /* bpo-40192: On AIX, thread_cputime() is preferred: it has nanosecond
        resolution, whereas clock_gettime(CLOCK_THREAD_CPUTIME_ID)
        has a resolution of 10 ms. */
@@ -1510,8 +1506,7 @@ _PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
 #elif defined(__sun) && defined(__SVR4)
 #define HAVE_THREAD_TIME
 static int
-_PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
-{
+_PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info) {
     /* bpo-35455: On Solaris, CLOCK_THREAD_CPUTIME_ID clock is not always
        available; use gethrvtime() to substitute this functionality. */
     if (info) {
@@ -1530,24 +1525,21 @@ _PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
  * https://github.com/python/cpython/issues/123978
  * https://gnats.netbsd.org/57512
  */
-#elif defined(HAVE_CLOCK_GETTIME) && \
-      defined(CLOCK_THREAD_CPUTIME_ID) && \
-      !defined(__EMSCRIPTEN__) && !defined(__wasi__) && \
-      !defined(__NetBSD__)
+#elif defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_THREAD_CPUTIME_ID) && \
+    !defined(__EMSCRIPTEN__) && !defined(__wasi__) && !defined(__NetBSD__)
 #define HAVE_THREAD_TIME
 
 #if defined(__APPLE__) && _Py__has_attribute(availability)
 static int
 _PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
-     __attribute__((availability(macos, introduced=10.12)))
-     __attribute__((availability(ios, introduced=10.0)))
-     __attribute__((availability(tvos, introduced=10.0)))
-     __attribute__((availability(watchos, introduced=3.0)));
+    __attribute__((availability(macos, introduced = 10.12)))
+    __attribute__((availability(ios, introduced = 10.0)))
+    __attribute__((availability(tvos, introduced = 10.0)))
+    __attribute__((availability(watchos, introduced = 3.0)));
 #endif
 
 static int
-_PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
-{
+_PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info) {
     struct timespec ts;
     const clockid_t clk_id = CLOCK_THREAD_CPUTIME_ID;
     const char *function = "clock_gettime(CLOCK_THREAD_CPUTIME_ID)";
@@ -1586,8 +1578,7 @@ _PyTime_GetThreadTimeWithInfo(PyTime_t *tp, _Py_clock_info_t *info)
 #endif
 
 static PyObject *
-time_thread_time(PyObject *self, PyObject *unused)
-{
+time_thread_time(PyObject *self, PyObject *unused) {
     PyTime_t t;
     if (_PyTime_GetThreadTimeWithInfo(&t, NULL) < 0) {
         return NULL;
@@ -1595,14 +1586,15 @@ time_thread_time(PyObject *self, PyObject *unused)
     return _PyFloat_FromPyTime(t);
 }
 
-PyDoc_STRVAR(thread_time_doc,
-"thread_time() -> float\n\
+PyDoc_STRVAR(
+    thread_time_doc,
+    "thread_time() -> float\n\
 \n\
-Thread time for profiling: sum of the kernel and user-space CPU time.");
+Thread time for profiling: sum of the kernel and user-space CPU time."
+);
 
 static PyObject *
-time_thread_time_ns(PyObject *self, PyObject *unused)
-{
+time_thread_time_ns(PyObject *self, PyObject *unused) {
     PyTime_t t;
     if (_PyTime_GetThreadTimeWithInfo(&t, NULL) < 0) {
         return NULL;
@@ -1610,11 +1602,13 @@ time_thread_time_ns(PyObject *self, PyObject *unused)
     return _PyTime_AsLong(t);
 }
 
-PyDoc_STRVAR(thread_time_ns_doc,
-"thread_time() -> int\n\
+PyDoc_STRVAR(
+    thread_time_ns_doc,
+    "thread_time() -> int\n\
 \n\
 Thread time for profiling as nanoseconds:\n\
-sum of the kernel and user-space CPU time.");
+sum of the kernel and user-space CPU time."
+);
 
 #ifdef __APPLE__
 #pragma clang diagnostic pop
@@ -1622,10 +1616,8 @@ sum of the kernel and user-space CPU time.");
 
 #endif
 
-
 static PyObject *
-time_get_clock_info(PyObject *module, PyObject *args)
-{
+time_get_clock_info(PyObject *module, PyObject *args) {
     char *name;
     _Py_clock_info_t info;
     PyObject *obj = NULL, *dict, *ns;
@@ -1651,18 +1643,15 @@ time_get_clock_info(PyObject *module, PyObject *args)
         if (_PyTime_TimeWithInfo(&t, &info) < 0) {
             return NULL;
         }
-    }
-    else if (strcmp(name, "monotonic") == 0) {
+    } else if (strcmp(name, "monotonic") == 0) {
         if (_PyTime_MonotonicWithInfo(&t, &info) < 0) {
             return NULL;
         }
-    }
-    else if (strcmp(name, "perf_counter") == 0) {
+    } else if (strcmp(name, "perf_counter") == 0) {
         if (_PyTime_PerfCounterWithInfo(&t, &info) < 0) {
             return NULL;
         }
-    }
-    else if (strcmp(name, "process_time") == 0) {
+    } else if (strcmp(name, "process_time") == 0) {
         time_module_state *state = get_time_state(module);
         if (py_process_time(state, &t, &info) < 0) {
             return NULL;
@@ -1746,15 +1735,16 @@ error:
     return NULL;
 }
 
-PyDoc_STRVAR(get_clock_info_doc,
-"get_clock_info(name: str) -> dict\n\
+PyDoc_STRVAR(
+    get_clock_info_doc,
+    "get_clock_info(name: str) -> dict\n\
 \n\
-Get information of the specified clock.");
+Get information of the specified clock."
+);
 
 #ifndef HAVE_DECL_TZNAME
 static void
-get_zone(char *zone, int n, struct tm *p)
-{
+get_zone(char *zone, int n, struct tm *p) {
 #ifdef HAVE_STRUCT_TM_TM_ZONE
     strncpy(zone, p->tm_zone ? p->tm_zone : "   ", n);
 #else
@@ -1764,24 +1754,23 @@ get_zone(char *zone, int n, struct tm *p)
 }
 
 static time_t
-get_gmtoff(time_t t, struct tm *p)
-{
+get_gmtoff(time_t t, struct tm *p) {
 #ifdef HAVE_STRUCT_TM_TM_ZONE
     return p->tm_gmtoff;
 #else
     return timegm(p) - t;
 #endif
 }
-#endif // !HAVE_DECL_TZNAME
+#endif  // !HAVE_DECL_TZNAME
 
 static int
-init_timezone(PyObject *m)
-{
-#define ADD_INT(NAME, VALUE) do {                       \
-    if (PyModule_AddIntConstant(m, NAME, VALUE) < 0) {  \
-        return -1;                                      \
-    }                                                   \
-} while (0)
+init_timezone(PyObject *m) {
+#define ADD_INT(NAME, VALUE)                               \
+    do {                                                   \
+        if (PyModule_AddIntConstant(m, NAME, VALUE) < 0) { \
+            return -1;                                     \
+        }                                                  \
+    } while (0)
 
     assert(!PyErr_Occurred());
 
@@ -1810,7 +1799,7 @@ init_timezone(PyObject *m)
 #ifdef HAVE_ALTZONE
     ADD_INT("altzone", altzone);
 #else
-    ADD_INT("altzone", _Py_timezone-3600);
+    ADD_INT("altzone", _Py_timezone - 3600);
 #endif
     ADD_INT("daylight", _Py_daylight);
 #ifdef MS_WINDOWS
@@ -1835,11 +1824,11 @@ init_timezone(PyObject *m)
         Py_DECREF(otz0);
         return -1;
     }
-#endif // MS_WINDOWS
+#endif  // MS_WINDOWS
     if (PyModule_Add(m, "tzname", Py_BuildValue("(NN)", otz0, otz1)) < 0) {
         return -1;
     }
-#else // !HAVE_DECL_TZNAME
+#else  // !HAVE_DECL_TZNAME
     static const time_t YEAR = (365 * 24 + 6) * 3600;
     time_t t;
     struct tm p;
@@ -1850,7 +1839,7 @@ init_timezone(PyObject *m)
     get_zone(janname, 9, &p);
     janzone_t = -get_gmtoff(t, &p);
     janname[9] = '\0';
-    t += YEAR/2;
+    t += YEAR / 2;
     _PyTime_localtime(t, &p);
     get_zone(julyname, 9, &p);
     julyzone_t = -get_gmtoff(t, &p);
@@ -1859,9 +1848,8 @@ init_timezone(PyObject *m)
     /* Sanity check, don't check for the validity of timezones.
        In practice, it should be more in range -12 hours .. +14 hours. */
 #define MAX_TIMEZONE (48 * 3600)
-    if (janzone_t < -MAX_TIMEZONE || janzone_t > MAX_TIMEZONE
-        || julyzone_t < -MAX_TIMEZONE || julyzone_t > MAX_TIMEZONE)
-    {
+    if (janzone_t < -MAX_TIMEZONE || janzone_t > MAX_TIMEZONE ||
+        julyzone_t < -MAX_TIMEZONE || julyzone_t > MAX_TIMEZONE) {
         PyErr_SetString(PyExc_RuntimeError, "invalid GMT offset");
         return -1;
     }
@@ -1884,7 +1872,7 @@ init_timezone(PyObject *m)
     if (PyModule_Add(m, "tzname", tzname_obj) < 0) {
         return -1;
     }
-#endif // !HAVE_DECL_TZNAME
+#endif  // !HAVE_DECL_TZNAME
 #undef ADD_INT
 
     if (PyErr_Occurred()) {
@@ -1893,60 +1881,61 @@ init_timezone(PyObject *m)
     return 0;
 }
 
-
 // Include Argument Clinic code after defining converters such as
 // time_clockid_converter().
 #include "clinic/timemodule.c.h"
 
 static PyMethodDef time_methods[] = {
-    {"time",            time_time, METH_NOARGS, time_doc},
-    {"time_ns",         time_time_ns, METH_NOARGS, time_ns_doc},
+    {"time", time_time, METH_NOARGS, time_doc},
+    {"time_ns", time_time_ns, METH_NOARGS, time_ns_doc},
 #ifdef HAVE_CLOCK_GETTIME
-    TIME_CLOCK_GETTIME_METHODDEF
-    TIME_CLOCK_GETTIME_NS_METHODDEF
+    TIME_CLOCK_GETTIME_METHODDEF TIME_CLOCK_GETTIME_NS_METHODDEF
 #endif
 #ifdef HAVE_CLOCK_SETTIME
-    {"clock_settime",   time_clock_settime, METH_VARARGS, clock_settime_doc},
-    {"clock_settime_ns",time_clock_settime_ns, METH_VARARGS, clock_settime_ns_doc},
+    {"clock_settime", time_clock_settime, METH_VARARGS, clock_settime_doc},
+    {"clock_settime_ns", time_clock_settime_ns, METH_VARARGS, clock_settime_ns_doc},
 #endif
 #ifdef HAVE_CLOCK_GETRES
-    {"clock_getres",    time_clock_getres, METH_VARARGS, clock_getres_doc},
+    {"clock_getres", time_clock_getres, METH_VARARGS, clock_getres_doc},
 #endif
 #ifdef HAVE_PTHREAD_GETCPUCLOCKID
-    {"pthread_getcpuclockid", time_pthread_getcpuclockid, METH_VARARGS, pthread_getcpuclockid_doc},
+    {"pthread_getcpuclockid",
+     time_pthread_getcpuclockid,
+     METH_VARARGS,
+     pthread_getcpuclockid_doc},
 #endif
-    {"sleep",           time_sleep, METH_O, sleep_doc},
-    {"gmtime",          time_gmtime, METH_VARARGS, gmtime_doc},
-    {"localtime",       time_localtime, METH_VARARGS, localtime_doc},
-    {"asctime",         time_asctime, METH_VARARGS, asctime_doc},
-    {"ctime",           time_ctime, METH_VARARGS, ctime_doc},
+    {"sleep", time_sleep, METH_O, sleep_doc},
+    {"gmtime", time_gmtime, METH_VARARGS, gmtime_doc},
+    {"localtime", time_localtime, METH_VARARGS, localtime_doc},
+    {"asctime", time_asctime, METH_VARARGS, asctime_doc},
+    {"ctime", time_ctime, METH_VARARGS, ctime_doc},
 #ifdef HAVE_MKTIME
-    {"mktime",          time_mktime, METH_O, mktime_doc},
+    {"mktime", time_mktime, METH_O, mktime_doc},
 #endif
 #ifdef HAVE_STRFTIME
-    {"strftime",        time_strftime, METH_VARARGS, strftime_doc},
+    {"strftime", time_strftime, METH_VARARGS, strftime_doc},
 #endif
-    {"strptime",        time_strptime, METH_VARARGS, strptime_doc},
+    {"strptime", time_strptime, METH_VARARGS, strptime_doc},
 #ifdef HAVE_WORKING_TZSET
-    {"tzset",           time_tzset, METH_NOARGS, tzset_doc},
+    {"tzset", time_tzset, METH_NOARGS, tzset_doc},
 #endif
-    {"monotonic",       time_monotonic, METH_NOARGS, monotonic_doc},
-    {"monotonic_ns",    time_monotonic_ns, METH_NOARGS, monotonic_ns_doc},
-    {"process_time",    time_process_time, METH_NOARGS, process_time_doc},
+    {"monotonic", time_monotonic, METH_NOARGS, monotonic_doc},
+    {"monotonic_ns", time_monotonic_ns, METH_NOARGS, monotonic_ns_doc},
+    {"process_time", time_process_time, METH_NOARGS, process_time_doc},
     {"process_time_ns", time_process_time_ns, METH_NOARGS, process_time_ns_doc},
 #ifdef HAVE_THREAD_TIME
-    {"thread_time",     time_thread_time, METH_NOARGS, thread_time_doc},
-    {"thread_time_ns",  time_thread_time_ns, METH_NOARGS, thread_time_ns_doc},
+    {"thread_time", time_thread_time, METH_NOARGS, thread_time_doc},
+    {"thread_time_ns", time_thread_time_ns, METH_NOARGS, thread_time_ns_doc},
 #endif
-    {"perf_counter",    time_perf_counter, METH_NOARGS, perf_counter_doc},
+    {"perf_counter", time_perf_counter, METH_NOARGS, perf_counter_doc},
     {"perf_counter_ns", time_perf_counter_ns, METH_NOARGS, perf_counter_ns_doc},
-    {"get_clock_info",  time_get_clock_info, METH_VARARGS, get_clock_info_doc},
-    {NULL,              NULL}           /* sentinel */
+    {"get_clock_info", time_get_clock_info, METH_VARARGS, get_clock_info_doc},
+    {NULL, NULL} /* sentinel */
 };
 
-
-PyDoc_STRVAR(module_doc,
-"This module provides various functions to manipulate time values.\n\
+PyDoc_STRVAR(
+    module_doc,
+    "This module provides various functions to manipulate time values.\n\
 \n\
 There are two standard representations of time.  One is the number\n\
 of seconds since the Epoch, in UTC (a.k.a. GMT).  It may be an integer\n\
@@ -1967,18 +1956,17 @@ The tuple items are:\n\
   DST (Daylight Savings Time) flag (-1, 0 or 1)\n\
 If the DST flag is 0, the time is given in the regular time zone;\n\
 if it is 1, the time is given in the DST time zone;\n\
-if it is -1, mktime() should guess based on the date and time.\n");
-
+if it is -1, mktime() should guess based on the date and time.\n"
+);
 
 static int
-time_exec(PyObject *module)
-{
+time_exec(PyObject *module) {
     time_module_state *state = get_time_state(module);
 #if defined(__APPLE__) && defined(HAVE_CLOCK_GETTIME)
     if (HAVE_CLOCK_GETTIME_RUNTIME) {
         /* pass: ^^^ cannot use '!' here */
     } else {
-        PyObject* dct = PyModule_GetDict(module);
+        PyObject *dct = PyModule_GetDict(module);
         if (dct == NULL) {
             return -1;
         }
@@ -2004,7 +1992,7 @@ time_exec(PyObject *module)
     if (HAVE_CLOCK_GETTIME_RUNTIME) {
         /* pass: ^^^ cannot use '!' here */
     } else {
-        PyObject* dct = PyModule_GetDict(module);
+        PyObject *dct = PyModule_GetDict(module);
 
         if (PyDict_PopString(dct, "thread_time", NULL) < 0) {
             return -1;
@@ -2019,9 +2007,9 @@ time_exec(PyObject *module)
         return -1;
     }
 
-#if defined(HAVE_CLOCK_GETTIME) || defined(HAVE_CLOCK_SETTIME) || defined(HAVE_CLOCK_GETRES)
+#if defined(HAVE_CLOCK_GETTIME) || defined(HAVE_CLOCK_SETTIME) || \
+    defined(HAVE_CLOCK_GETRES)
     if (HAVE_CLOCK_GETTIME_RUNTIME) {
-
 #ifdef CLOCK_REALTIME
         if (PyModule_AddIntMacro(module, CLOCK_REALTIME) < 0) {
             return -1;
@@ -2089,7 +2077,8 @@ time_exec(PyObject *module)
 #endif
     }
 
-#endif  /* defined(HAVE_CLOCK_GETTIME) || defined(HAVE_CLOCK_SETTIME) || defined(HAVE_CLOCK_GETRES) */
+#endif /* defined(HAVE_CLOCK_GETTIME) || defined(HAVE_CLOCK_SETTIME) || \
+          defined(HAVE_CLOCK_GETRES) */
 
     if (PyModule_AddIntConstant(module, "_STRUCT_TM_ITEMS", 11)) {
         return -1;
@@ -2114,13 +2103,11 @@ time_exec(PyObject *module)
 #if defined(MS_WINDOWS)
     if (timer_flags == (DWORD)-1) {
         DWORD test_flags = CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
-        HANDLE timer = CreateWaitableTimerExW(NULL, NULL, test_flags,
-                                              TIMER_ALL_ACCESS);
+        HANDLE timer = CreateWaitableTimerExW(NULL, NULL, test_flags, TIMER_ALL_ACCESS);
         if (timer == NULL) {
             // CREATE_WAITABLE_TIMER_HIGH_RESOLUTION is not supported.
             timer_flags = 0;
-        }
-        else {
+        } else {
             // CREATE_WAITABLE_TIMER_HIGH_RESOLUTION is supported.
             timer_flags = CREATE_WAITABLE_TIMER_HIGH_RESOLUTION;
             CloseHandle(timer);
@@ -2132,20 +2119,17 @@ time_exec(PyObject *module)
 #if defined(HAVE_TIMES) && !defined(__wasi__)
     long ticks_per_second;
     if (_Py_GetTicksPerSecond(&ticks_per_second) < 0) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "cannot read ticks_per_second");
+        PyErr_SetString(PyExc_RuntimeError, "cannot read ticks_per_second");
         return -1;
     }
-    if (_PyTimeFraction_Set(&state->times_base, SEC_TO_NS,
-                            ticks_per_second) < 0) {
+    if (_PyTimeFraction_Set(&state->times_base, SEC_TO_NS, ticks_per_second) < 0) {
         PyErr_Format(PyExc_OverflowError, "ticks_per_second is too large");
         return -1;
     }
 #endif
 
 #ifdef HAVE_CLOCK
-    if (_PyTimeFraction_Set(&state->clock_base, SEC_TO_NS,
-                            CLOCKS_PER_SEC) < 0) {
+    if (_PyTimeFraction_Set(&state->clock_base, SEC_TO_NS, CLOCKS_PER_SEC) < 0) {
         PyErr_Format(PyExc_OverflowError, "CLOCKS_PER_SEC is too large");
         return -1;
     }
@@ -2154,31 +2138,24 @@ time_exec(PyObject *module)
     return 0;
 }
 
-
 static int
-time_module_traverse(PyObject *module, visitproc visit, void *arg)
-{
+time_module_traverse(PyObject *module, visitproc visit, void *arg) {
     time_module_state *state = get_time_state(module);
     Py_VISIT(state->struct_time_type);
     return 0;
 }
 
-
 static int
-time_module_clear(PyObject *module)
-{
+time_module_clear(PyObject *module) {
     time_module_state *state = get_time_state(module);
     Py_CLEAR(state->struct_time_type);
     return 0;
 }
 
-
 static void
-time_module_free(void *module)
-{
+time_module_free(void *module) {
     time_module_clear((PyObject *)module);
 }
-
 
 static struct PyModuleDef_Slot time_slots[] = {
     {Py_mod_exec, time_exec},
@@ -2200,18 +2177,15 @@ static struct PyModuleDef timemodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_time(void)
-{
+PyInit_time(void) {
     return PyModuleDef_Init(&timemodule);
 }
-
 
 // time.sleep() implementation.
 // On error, raise an exception and return -1.
 // On success, return 0.
 static int
-pysleep(PyTime_t timeout)
-{
+pysleep(PyTime_t timeout) {
     assert(timeout >= 0);
 
 #ifndef MS_WINDOWS
@@ -2251,18 +2225,18 @@ pysleep(PyTime_t timeout)
         int ret;
         Py_BEGIN_ALLOW_THREADS
 #ifdef HAVE_CLOCK_NANOSLEEP
-        ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &timeout_abs, NULL);
+            ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &timeout_abs, NULL);
         err = ret;
 #elif defined(HAVE_NANOSLEEP)
-        ret = nanosleep(&timeout_ts, NULL);
+            ret = nanosleep(&timeout_ts, NULL);
         err = errno;
 #else
-        ret = select(0, (fd_set *)0, (fd_set *)0, (fd_set *)0, &timeout_tv);
+            ret = select(0, (fd_set *)0, (fd_set *)0, (fd_set *)0, &timeout_tv);
         err = errno;
 #endif
         Py_END_ALLOW_THREADS
 
-        if (ret == 0) {
+            if (ret == 0) {
             break;
         }
 
@@ -2291,19 +2265,17 @@ pysleep(PyTime_t timeout)
 
     return 0;
 #else  // MS_WINDOWS
-    PyTime_t timeout_100ns = _PyTime_As100Nanoseconds(timeout,
-                                                       _PyTime_ROUND_CEILING);
+    PyTime_t timeout_100ns = _PyTime_As100Nanoseconds(timeout, _PyTime_ROUND_CEILING);
 
     // Maintain Windows Sleep() semantics for time.sleep(0)
     if (timeout_100ns == 0) {
         Py_BEGIN_ALLOW_THREADS
-        // A value of zero causes the thread to relinquish the remainder of its
-        // time slice to any other thread that is ready to run. If there are no
-        // other threads ready to run, the function returns immediately, and
-        // the thread continues execution.
-        Sleep(0);
-        Py_END_ALLOW_THREADS
-        return 0;
+            // A value of zero causes the thread to relinquish the remainder of its
+            // time slice to any other thread that is ready to run. If there are no
+            // other threads ready to run, the function returns immediately, and
+            // the thread continues execution.
+            Sleep(0);
+        Py_END_ALLOW_THREADS return 0;
     }
 
     LARGE_INTEGER relative_timeout;
@@ -2312,18 +2284,21 @@ pysleep(PyTime_t timeout)
     // SetWaitableTimer(): a negative due time indicates relative time
     relative_timeout.QuadPart = -timeout_100ns;
 
-    HANDLE timer = CreateWaitableTimerExW(NULL, NULL, timer_flags,
-                                          TIMER_ALL_ACCESS);
+    HANDLE timer = CreateWaitableTimerExW(NULL, NULL, timer_flags, TIMER_ALL_ACCESS);
     if (timer == NULL) {
         PyErr_SetFromWindowsErr(0);
         return -1;
     }
 
-    if (!SetWaitableTimerEx(timer, &relative_timeout,
-                            0, // no period; the timer is signaled once
-                            NULL, NULL, // no completion routine
-                            NULL,  // no wake context; do not resume from suspend
-                            0)) // no tolerable delay for timer coalescing
+    if (!SetWaitableTimerEx(
+            timer,
+            &relative_timeout,
+            0,  // no period; the timer is signaled once
+            NULL,
+            NULL,  // no completion routine
+            NULL,  // no wake context; do not resume from suspend
+            0
+        ))  // no tolerable delay for timer coalescing
     {
         PyErr_SetFromWindowsErr(0);
         goto error;
@@ -2344,15 +2319,17 @@ pysleep(PyTime_t timeout)
             HANDLE events[] = {timer, sigint_event};
             DWORD rc;
 
-            Py_BEGIN_ALLOW_THREADS
-            rc = WaitForMultipleObjects(Py_ARRAY_LENGTH(events), events,
-                                        // bWaitAll
-                                        FALSE,
-                                        // No wait timeout
-                                        INFINITE);
+            Py_BEGIN_ALLOW_THREADS rc = WaitForMultipleObjects(
+                Py_ARRAY_LENGTH(events),
+                events,
+                // bWaitAll
+                FALSE,
+                // No wait timeout
+                INFINITE
+            );
             Py_END_ALLOW_THREADS
 
-            if (rc == WAIT_FAILED) {
+                if (rc == WAIT_FAILED) {
                 PyErr_SetFromWindowsErr(0);
                 goto error;
             }
@@ -2365,15 +2342,13 @@ pysleep(PyTime_t timeout)
             assert(rc == (WAIT_OBJECT_0 + 1));
             // The sleep was interrupted by SIGINT: restart sleeping
         }
-    }
-    else {
+    } else {
         DWORD rc;
 
-        Py_BEGIN_ALLOW_THREADS
-        rc = WaitForSingleObject(timer, INFINITE);
+        Py_BEGIN_ALLOW_THREADS rc = WaitForSingleObject(timer, INFINITE);
         Py_END_ALLOW_THREADS
 
-        if (rc == WAIT_FAILED) {
+            if (rc == WAIT_FAILED) {
             PyErr_SetFromWindowsErr(0);
             goto error;
         }

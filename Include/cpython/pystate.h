@@ -1,7 +1,6 @@
 #ifndef Py_CPYTHON_PYSTATE_H
-#  error "this header file must not be included directly"
+#error "this header file must not be included directly"
 #endif
-
 
 /* private interpreter helpers */
 
@@ -53,7 +52,7 @@ typedef struct _stack_chunk {
     struct _stack_chunk *previous;
     size_t size;
     size_t top;
-    PyObject * data[1]; /* Variable sized */
+    PyObject *data[1]; /* Variable sized */
 } _PyStackChunk;
 
 struct _ts {
@@ -73,35 +72,35 @@ struct _ts {
 
            In order to be effective, this must be set to 0 during or right
            after allocation. */
-        unsigned int initialized:1;
+        unsigned int initialized : 1;
 
         /* Has been bound to an OS thread. */
-        unsigned int bound:1;
+        unsigned int bound : 1;
         /* Has been unbound from its OS thread. */
-        unsigned int unbound:1;
+        unsigned int unbound : 1;
         /* Has been bound aa current for the GILState API. */
-        unsigned int bound_gilstate:1;
+        unsigned int bound_gilstate : 1;
         /* Currently in use (maybe holds the GIL). */
-        unsigned int active:1;
+        unsigned int active : 1;
         /* Currently holds the GIL. */
-        unsigned int holds_gil:1;
+        unsigned int holds_gil : 1;
 
         /* various stages of finalization */
-        unsigned int finalizing:1;
-        unsigned int cleared:1;
-        unsigned int finalized:1;
+        unsigned int finalizing : 1;
+        unsigned int cleared : 1;
+        unsigned int finalized : 1;
 
         /* padding to align to 4 bytes */
-        unsigned int :23;
+        unsigned int : 23;
     } _status;
 #ifdef Py_BUILD_CORE
-#  define _PyThreadState_WHENCE_NOTSET -1
-#  define _PyThreadState_WHENCE_UNKNOWN 0
-#  define _PyThreadState_WHENCE_INIT 1
-#  define _PyThreadState_WHENCE_FINI 2
-#  define _PyThreadState_WHENCE_THREADING 3
-#  define _PyThreadState_WHENCE_GILSTATE 4
-#  define _PyThreadState_WHENCE_EXEC 5
+#define _PyThreadState_WHENCE_NOTSET -1
+#define _PyThreadState_WHENCE_UNKNOWN 0
+#define _PyThreadState_WHENCE_INIT 1
+#define _PyThreadState_WHENCE_FINI 2
+#define _PyThreadState_WHENCE_THREADING 3
+#define _PyThreadState_WHENCE_GILSTATE 4
+#define _PyThreadState_WHENCE_EXEC 5
 #endif
     int _whence;
 
@@ -137,11 +136,11 @@ struct _ts {
      * This is never NULL. */
     _PyErr_StackItem *exc_info;
 
-    PyObject *dict;  /* Stores per-thread state */
+    PyObject *dict; /* Stores per-thread state */
 
     int gilstate_counter;
 
-    PyObject *async_exc; /* Asynchronous exception to raise */
+    PyObject *async_exc;     /* Asynchronous exception to raise */
     unsigned long thread_id; /* Thread id where this tstate was created */
 
     /* Native thread id where this tstate was created. This will be 0 except on
@@ -183,8 +182,8 @@ struct _ts {
        All other PyInterpreterState pointer fields are populated when
        needed and default to NULL.
        */
-       // Note some fields do not have a leading underscore for backward
-       // compatibility.  See https://bugs.python.org/issue45953#msg412046.
+    // Note some fields do not have a leading underscore for backward
+    // compatibility.  See https://bugs.python.org/issue45953#msg412046.
 
     /* The thread's exception stack entry.  (Always the last entry.) */
     _PyErr_StackItem exc_state;
@@ -203,35 +202,34 @@ struct _ts {
 };
 
 #ifdef Py_DEBUG
-   // A debug build is likely built with low optimization level which implies
-   // higher stack memory usage than a release build: use a lower limit.
-#  define Py_C_RECURSION_LIMIT 500
+// A debug build is likely built with low optimization level which implies
+// higher stack memory usage than a release build: use a lower limit.
+#define Py_C_RECURSION_LIMIT 500
 #elif defined(__s390x__)
-#  define Py_C_RECURSION_LIMIT 800
+#define Py_C_RECURSION_LIMIT 800
 #elif defined(_WIN32) && defined(_M_ARM64)
-#  define Py_C_RECURSION_LIMIT 1000
+#define Py_C_RECURSION_LIMIT 1000
 #elif defined(_WIN32)
-#  define Py_C_RECURSION_LIMIT 3000
+#define Py_C_RECURSION_LIMIT 3000
 #elif defined(__ANDROID__)
-   // On an ARM64 emulator, API level 34 was OK with 10000, but API level 21
-   // crashed in test_compiler_recursion_limit.
-#  define Py_C_RECURSION_LIMIT 3000
+// On an ARM64 emulator, API level 34 was OK with 10000, but API level 21
+// crashed in test_compiler_recursion_limit.
+#define Py_C_RECURSION_LIMIT 3000
 #elif defined(_Py_ADDRESS_SANITIZER)
-#  define Py_C_RECURSION_LIMIT 4000
+#define Py_C_RECURSION_LIMIT 4000
 #elif defined(__sparc__)
-   // test_descr crashed on sparc64 with >7000 but let's keep a margin of error.
-#  define Py_C_RECURSION_LIMIT 4000
+// test_descr crashed on sparc64 with >7000 but let's keep a margin of error.
+#define Py_C_RECURSION_LIMIT 4000
 #elif defined(__wasi__)
-   // Based on wasmtime 16.
-#  define Py_C_RECURSION_LIMIT 5000
+// Based on wasmtime 16.
+#define Py_C_RECURSION_LIMIT 5000
 #elif defined(__hppa__) || defined(__powerpc64__)
-   // test_descr crashed with >8000 but let's keep a margin of error.
-#  define Py_C_RECURSION_LIMIT 5000
+// test_descr crashed with >8000 but let's keep a margin of error.
+#define Py_C_RECURSION_LIMIT 5000
 #else
-   // This value is duplicated in Lib/test/support/__init__.py
-#  define Py_C_RECURSION_LIMIT 10000
+// This value is duplicated in Lib/test/support/__init__.py
+#define Py_C_RECURSION_LIMIT 10000
 #endif
-
 
 /* other API */
 
@@ -241,7 +239,6 @@ PyAPI_FUNC(PyThreadState *) PyThreadState_GetUnchecked(void);
 
 // Alias kept for backward compatibility
 #define _PyThreadState_UncheckedGet PyThreadState_GetUnchecked
-
 
 // Disable tracing and profiling.
 PyAPI_FUNC(void) PyThreadState_EnterTracing(PyThreadState *tstate);
@@ -261,7 +258,7 @@ PyAPI_FUNC(int) PyGILState_Check(void);
 /* The implementation of sys._current_frames()  Returns a dict mapping
    thread id to that thread's current frame.
 */
-PyAPI_FUNC(PyObject*) _PyThread_CurrentFrames(void);
+PyAPI_FUNC(PyObject *) _PyThread_CurrentFrames(void);
 
 /* Routines for advanced debuggers, requested by David Beazley.
    Don't use unless you know what you are doing! */
@@ -274,10 +271,12 @@ PyAPI_FUNC(void) PyThreadState_DeleteCurrent(void);
 
 /* Frame evaluation API */
 
-typedef PyObject* (*_PyFrameEvalFunction)(PyThreadState *tstate, struct _PyInterpreterFrame *, int);
+typedef PyObject *(*_PyFrameEvalFunction)(
+    PyThreadState *tstate, struct _PyInterpreterFrame *, int
+);
 
-PyAPI_FUNC(_PyFrameEvalFunction) _PyInterpreterState_GetEvalFrameFunc(
-    PyInterpreterState *interp);
+PyAPI_FUNC(_PyFrameEvalFunction)
+    _PyInterpreterState_GetEvalFrameFunc(PyInterpreterState *interp);
 PyAPI_FUNC(void) _PyInterpreterState_SetEvalFrameFunc(
-    PyInterpreterState *interp,
-    _PyFrameEvalFunction eval_frame);
+    PyInterpreterState *interp, _PyFrameEvalFunction eval_frame
+);

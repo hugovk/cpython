@@ -5,10 +5,10 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
-#  error "this header requires Py_BUILD_CORE define"
+#error "this header requires Py_BUILD_CORE define"
 #endif
 
-#include "pycore_lock.h"            // PyMutex
+#include "pycore_lock.h"  // PyMutex
 #include "pycore_pyerrors.h"
 
 /**************/
@@ -18,21 +18,17 @@ extern "C" {
 PyAPI_DATA(PyObject *) PyExc_InterpreterError;
 PyAPI_DATA(PyObject *) PyExc_InterpreterNotFoundError;
 
-
 /***************************/
 /* cross-interpreter calls */
 /***************************/
 
 typedef int (*_Py_simple_func)(void *);
-extern int _Py_CallInInterpreter(
-    PyInterpreterState *interp,
-    _Py_simple_func func,
-    void *arg);
-extern int _Py_CallInInterpreterAndRawFree(
-    PyInterpreterState *interp,
-    _Py_simple_func func,
-    void *arg);
-
+extern int
+_Py_CallInInterpreter(PyInterpreterState *interp, _Py_simple_func func, void *arg);
+extern int
+_Py_CallInInterpreterAndRawFree(
+    PyInterpreterState *interp, _Py_simple_func func, void *arg
+);
 
 /**************************/
 /* cross-interpreter data */
@@ -92,26 +88,31 @@ PyAPI_FUNC(void) _PyCrossInterpreterData_Free(_PyCrossInterpreterData *data);
 #define _PyCrossInterpreterData_INTERPID(DATA) ((DATA)->interpid)
 // Users should not need getters for "new_object" or "free".
 
-
 /* defining cross-interpreter data */
 
 PyAPI_FUNC(void) _PyCrossInterpreterData_Init(
-        _PyCrossInterpreterData *data,
-        PyInterpreterState *interp, void *shared, PyObject *obj,
-        xid_newobjectfunc new_object);
+    _PyCrossInterpreterData *data,
+    PyInterpreterState *interp,
+    void *shared,
+    PyObject *obj,
+    xid_newobjectfunc new_object
+);
 PyAPI_FUNC(int) _PyCrossInterpreterData_InitWithSize(
-        _PyCrossInterpreterData *,
-        PyInterpreterState *interp, const size_t, PyObject *,
-        xid_newobjectfunc);
-PyAPI_FUNC(void) _PyCrossInterpreterData_Clear(
-        PyInterpreterState *, _PyCrossInterpreterData *);
+    _PyCrossInterpreterData *,
+    PyInterpreterState *interp,
+    const size_t,
+    PyObject *,
+    xid_newobjectfunc
+);
+PyAPI_FUNC(void)
+    _PyCrossInterpreterData_Clear(PyInterpreterState *, _PyCrossInterpreterData *);
 
 // Normally the Init* functions are sufficient.  The only time
 // additional initialization might be needed is to set the "free" func,
 // though that should be infrequent.
 #define _PyCrossInterpreterData_SET_FREE(DATA, FUNC) \
-    do { \
-        (DATA)->free = (FUNC); \
+    do {                                             \
+        (DATA)->free = (FUNC);                       \
     } while (0)
 // Additionally, some shareable types are essentially light wrappers
 // around other shareable types.  The crossinterpdatafunc of the wrapper
@@ -121,19 +122,18 @@ PyAPI_FUNC(void) _PyCrossInterpreterData_Clear(
 // but might be better to have a function like
 // _PyCrossInterpreterData_AdaptToWrapper() instead.
 #define _PyCrossInterpreterData_SET_NEW_OBJECT(DATA, FUNC) \
-    do { \
-        (DATA)->new_object = (FUNC); \
+    do {                                                   \
+        (DATA)->new_object = (FUNC);                       \
     } while (0)
-
 
 /* using cross-interpreter data */
 
 PyAPI_FUNC(int) _PyObject_CheckCrossInterpreterData(PyObject *);
-PyAPI_FUNC(int) _PyObject_GetCrossInterpreterData(PyObject *, _PyCrossInterpreterData *);
+PyAPI_FUNC(int)
+    _PyObject_GetCrossInterpreterData(PyObject *, _PyCrossInterpreterData *);
 PyAPI_FUNC(PyObject *) _PyCrossInterpreterData_NewObject(_PyCrossInterpreterData *);
 PyAPI_FUNC(int) _PyCrossInterpreterData_Release(_PyCrossInterpreterData *);
 PyAPI_FUNC(int) _PyCrossInterpreterData_ReleaseAndRawFree(_PyCrossInterpreterData *);
-
 
 /* cross-interpreter data registry */
 
@@ -141,8 +141,7 @@ PyAPI_FUNC(int) _PyCrossInterpreterData_ReleaseAndRawFree(_PyCrossInterpreterDat
 // alternative would be to add a tp_* slot for a class's
 // crossinterpdatafunc. It would be simpler and more efficient.
 
-typedef int (*crossinterpdatafunc)(PyThreadState *tstate, PyObject *,
-                                   _PyCrossInterpreterData *);
+typedef int (*crossinterpdatafunc)(PyThreadState *tstate, PyObject *, _PyCrossInterpreterData *);
 
 struct _xidregitem;
 
@@ -158,16 +157,16 @@ struct _xidregitem {
 };
 
 struct _xidregistry {
-    int global;  /* builtin types or heap types */
+    int global; /* builtin types or heap types */
     int initialized;
     PyMutex mutex;
     struct _xidregitem *head;
 };
 
-PyAPI_FUNC(int) _PyCrossInterpreterData_RegisterClass(PyTypeObject *, crossinterpdatafunc);
+PyAPI_FUNC(int)
+    _PyCrossInterpreterData_RegisterClass(PyTypeObject *, crossinterpdatafunc);
 PyAPI_FUNC(int) _PyCrossInterpreterData_UnregisterClass(PyTypeObject *);
 PyAPI_FUNC(crossinterpdatafunc) _PyCrossInterpreterData_Lookup(PyObject *);
-
 
 /*****************************/
 /* runtime state & lifecycle */
@@ -188,14 +187,17 @@ struct _xi_state {
     PyObject *PyExc_NotShareableError;
 };
 
-extern PyStatus _PyXI_Init(PyInterpreterState *interp);
-extern void _PyXI_Fini(PyInterpreterState *interp);
+extern PyStatus
+_PyXI_Init(PyInterpreterState *interp);
+extern void
+_PyXI_Fini(PyInterpreterState *interp);
 
-extern PyStatus _PyXI_InitTypes(PyInterpreterState *interp);
-extern void _PyXI_FiniTypes(PyInterpreterState *interp);
+extern PyStatus
+_PyXI_InitTypes(PyInterpreterState *interp);
+extern void
+_PyXI_FiniTypes(PyInterpreterState *interp);
 
 #define _PyInterpreterState_GetXIState(interp) (&(interp)->xi)
-
 
 /***************************/
 /* short-term data sharing */
@@ -222,7 +224,6 @@ PyAPI_FUNC(PyObject *) _PyXI_FormatExcInfo(_PyXI_excinfo *info);
 PyAPI_FUNC(PyObject *) _PyXI_ExcInfoAsObject(_PyXI_excinfo *info);
 PyAPI_FUNC(void) _PyXI_ClearExcInfo(_PyXI_excinfo *info);
 
-
 typedef enum error_code {
     _PyXI_ERR_NO_ERROR = 0,
     _PyXI_ERR_UNCAUGHT_EXCEPTION = -1,
@@ -233,7 +234,6 @@ typedef enum error_code {
     _PyXI_ERR_APPLY_NS_FAILURE = -6,
     _PyXI_ERR_NOT_SHAREABLE = -7,
 } _PyXI_errcode;
-
 
 typedef struct _sharedexception {
     // The originating interpreter.
@@ -248,21 +248,16 @@ typedef struct _sharedexception {
 
 PyAPI_FUNC(PyObject *) _PyXI_ApplyError(_PyXI_error *err);
 
-
 typedef struct xi_session _PyXI_session;
 typedef struct _sharedns _PyXI_namespace;
 
 PyAPI_FUNC(void) _PyXI_FreeNamespace(_PyXI_namespace *ns);
 PyAPI_FUNC(_PyXI_namespace *) _PyXI_NamespaceFromNames(PyObject *names);
 PyAPI_FUNC(int) _PyXI_FillNamespaceFromDict(
-    _PyXI_namespace *ns,
-    PyObject *nsobj,
-    _PyXI_session *session);
-PyAPI_FUNC(int) _PyXI_ApplyNamespace(
-    _PyXI_namespace *ns,
-    PyObject *nsobj,
-    PyObject *dflt);
-
+    _PyXI_namespace *ns, PyObject *nsobj, _PyXI_session *session
+);
+PyAPI_FUNC(int)
+    _PyXI_ApplyNamespace(_PyXI_namespace *ns, PyObject *nsobj, PyObject *dflt);
 
 // A cross-interpreter session involves entering an interpreter
 // (_PyXI_Enter()), doing some work with it, and finally exiting
@@ -308,15 +303,12 @@ struct xi_session {
     _PyXI_errcode _error_override;
 };
 
-PyAPI_FUNC(int) _PyXI_Enter(
-    _PyXI_session *session,
-    PyInterpreterState *interp,
-    PyObject *nsupdates);
+PyAPI_FUNC(int
+) _PyXI_Enter(_PyXI_session *session, PyInterpreterState *interp, PyObject *nsupdates);
 PyAPI_FUNC(void) _PyXI_Exit(_PyXI_session *session);
 
 PyAPI_FUNC(PyObject *) _PyXI_ApplyCapturedException(_PyXI_session *session);
 PyAPI_FUNC(int) _PyXI_HasCapturedException(_PyXI_session *session);
-
 
 /*************/
 /* other API */
@@ -327,12 +319,11 @@ PyAPI_FUNC(PyInterpreterState *) _PyXI_NewInterpreter(
     PyInterpreterConfig *config,
     long *maybe_whence,
     PyThreadState **p_tstate,
-    PyThreadState **p_save_tstate);
+    PyThreadState **p_save_tstate
+);
 PyAPI_FUNC(void) _PyXI_EndInterpreter(
-    PyInterpreterState *interp,
-    PyThreadState *tstate,
-    PyThreadState **p_save_tstate);
-
+    PyInterpreterState *interp, PyThreadState *tstate, PyThreadState **p_save_tstate
+);
 
 #ifdef __cplusplus
 }

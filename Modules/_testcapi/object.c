@@ -2,16 +2,16 @@
 #include "util.h"
 
 static PyObject *
-call_pyobject_print(PyObject *self, PyObject * args)
-{
+call_pyobject_print(PyObject *self, PyObject *args) {
     PyObject *object;
     PyObject *filename;
     PyObject *print_raw;
     FILE *fp;
     int flags = 0;
 
-    if (!PyArg_UnpackTuple(args, "call_pyobject_print", 3, 3,
-                           &object, &filename, &print_raw)) {
+    if (!PyArg_UnpackTuple(
+            args, "call_pyobject_print", 3, 3, &object, &filename, &print_raw
+        )) {
         return NULL;
     }
 
@@ -32,8 +32,7 @@ call_pyobject_print(PyObject *self, PyObject * args)
 }
 
 static PyObject *
-pyobject_print_null(PyObject *self, PyObject *args)
-{
+pyobject_print_null(PyObject *self, PyObject *args) {
     PyObject *filename;
     FILE *fp;
 
@@ -54,8 +53,7 @@ pyobject_print_null(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-pyobject_print_noref_object(PyObject *self, PyObject *args)
-{
+pyobject_print_noref_object(PyObject *self, PyObject *args) {
     PyObject *test_string;
     PyObject *filename;
     FILE *fp;
@@ -65,8 +63,13 @@ pyobject_print_noref_object(PyObject *self, PyObject *args)
 
     Py_SET_REFCNT(test_string, 0);
 
-    PyOS_snprintf(correct_string, 100, "<refcnt %zd at %p>",
-                  Py_REFCNT(test_string), (void *)test_string);
+    PyOS_snprintf(
+        correct_string,
+        100,
+        "<refcnt %zd at %p>",
+        Py_REFCNT(test_string),
+        (void *)test_string
+    );
 
     if (!PyArg_UnpackTuple(args, "call_pyobject_print", 1, 1, &filename)) {
         return NULL;
@@ -74,7 +77,7 @@ pyobject_print_noref_object(PyObject *self, PyObject *args)
 
     fp = _Py_fopen_obj(filename, "w+");
 
-    if (PyObject_Print(test_string, fp, 0) < 0){
+    if (PyObject_Print(test_string, fp, 0) < 0) {
         fclose(fp);
         Py_SET_REFCNT(test_string, 1);
         Py_DECREF(test_string);
@@ -90,8 +93,7 @@ pyobject_print_noref_object(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-pyobject_print_os_error(PyObject *self, PyObject *args)
-{
+pyobject_print_os_error(PyObject *self, PyObject *args) {
     PyObject *test_string;
     PyObject *filename;
     FILE *fp;
@@ -118,8 +120,7 @@ pyobject_print_os_error(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-pyobject_clear_weakrefs_no_callbacks(PyObject *self, PyObject *obj)
-{
+pyobject_clear_weakrefs_no_callbacks(PyObject *self, PyObject *obj) {
     PyUnstable_Object_ClearWeakRefsNoCallbacks(obj);
     Py_RETURN_NONE;
 }
@@ -129,14 +130,15 @@ static PyMethodDef test_methods[] = {
     {"pyobject_print_null", pyobject_print_null, METH_VARARGS},
     {"pyobject_print_noref_object", pyobject_print_noref_object, METH_VARARGS},
     {"pyobject_print_os_error", pyobject_print_os_error, METH_VARARGS},
-    {"pyobject_clear_weakrefs_no_callbacks", pyobject_clear_weakrefs_no_callbacks, METH_O},
+    {"pyobject_clear_weakrefs_no_callbacks",
+     pyobject_clear_weakrefs_no_callbacks,
+     METH_O},
 
     {NULL},
 };
 
 int
-_PyTestCapi_Init_Object(PyObject *m)
-{
+_PyTestCapi_Init_Object(PyObject *m) {
     if (PyModule_AddFunctions(m, test_methods) < 0) {
         return -1;
     }
