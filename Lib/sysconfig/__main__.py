@@ -5,6 +5,7 @@ from sysconfig import (
     _PYTHON_BUILD,
     _get_sysconfigdata_name,
     get_config_h_filename,
+    get_config_var,
     get_config_vars,
     get_default_scheme,
     get_makefile_filename,
@@ -204,7 +205,7 @@ def _generate_posix_vars():
         sys.modules[name] = module
 
     pybuilddir = f'build/lib.{get_platform()}-{get_python_version()}'
-    if hasattr(sys, "gettotalrefcount"):
+    if get_config_var('Py_DEBUG') == '1':
         pybuilddir += '-pydebug'
     os.makedirs(pybuilddir, exist_ok=True)
     destfile = os.path.join(pybuilddir, name + '.py')
@@ -214,6 +215,8 @@ def _generate_posix_vars():
                 ' the sysconfig module\n')
         f.write('build_time_vars = ')
         _print_config_dict(vars, stream=f)
+
+    print(f'Written {destfile}')
 
     # Create file used for sys.path fixup -- see Modules/getpath.c
     with open('pybuilddir.txt', 'w', encoding='utf8') as f:
