@@ -24,4 +24,4 @@ jobs:
       with:
         persist-credentials: false
     - name: Build CPython installer
-      run: echo "${ARCH}" && .\Tools\msi\build.bat --doc -"${ARCH}"
+      run: echo 123 "${ARCH}" 456 && .\Tools\msi\build.bat --doc -"${ARCH}"
