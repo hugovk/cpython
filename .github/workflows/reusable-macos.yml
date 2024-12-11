@@ -7,6 +7,7 @@ on:
         required: true
         type: string
       free-threading:
+        description: Whether to use free-threaded mode
         required: false
         type: boolean
         default: false
@@ -14,6 +15,9 @@ on:
         description: OS to run the job
         required: true
         type: string
+
+env:
+  FORCE_COLOR: 1
 
 jobs:
   build_macos:
