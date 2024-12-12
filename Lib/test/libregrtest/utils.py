@@ -682,6 +682,25 @@ def display_header(use_resources: tuple[str, ...],
         print("== resources: all test resources are disabled, "
               "use -u option to unskip tests")
 
+    import _colorize
+    print(f"== _colorize.can_colorize(): {_colorize.can_colorize()}")
+    if sys.platform == "win32":
+        try:
+            import nt
+
+            print(f"== _supports_virtual_terminal(): {nt._supports_virtual_terminal()}")
+        except (ImportError, AttributeError):
+            pass
+    print(f"== sys.flags.ignore_environment: {sys.flags.ignore_environment}")
+    print(f"== PYTHON_COLORS: {os.environ.get('PYTHON_COLORS')}")
+    print(f"== NO_COLOR: {os.environ.get('NO_COLOR')}")
+    print(f"== FORCE_COLOR: {os.environ.get('FORCE_COLOR')}")
+    print(f"== TERM: {os.environ.get('TERM')}")
+    print(f"== hasattr(sys.stderr, 'fileno'): {hasattr(sys.stderr, 'fileno')}")
+    if hasattr(sys.stderr, 'fileno'):
+        print(f"== sys.stderr.fileno(): {sys.stderr.fileno()}")
+    print(f"== sys.stderr.isatty(): {sys.stderr.isatty()}")
+
     cross_compile = is_cross_compiled()
     if cross_compile:
         print("== cross compiled: Yes")
