@@ -41,11 +41,10 @@ def can_colorize() -> bool:
             return False
     if not COLORIZE:
         return False
-    if not sys.flags.ignore_environment:
-        if "FORCE_COLOR" in os.environ:
-            return True
-        if os.environ.get("TERM") == "dumb":
-            return False
+    if "FORCE_COLOR" in os.environ:
+        return True
+    if os.environ.get("TERM") == "dumb":
+        return False
 
     if not hasattr(sys.stderr, "fileno"):
         return False
