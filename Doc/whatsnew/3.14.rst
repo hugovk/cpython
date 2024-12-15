@@ -67,6 +67,7 @@ Summary -- release highlights
 
 * :ref:`PEP 649: deferred evaluation of annotations <whatsnew314-pep649>`
 * :ref:`PEP 741: Python Configuration C API <whatsnew314-pep741>`
+* :ref:`PEP 761: Discontinuation of PGP signatures <whatsnew314-pep761>`
 
 
 New features
@@ -910,6 +911,8 @@ Changes in the Python API
 
 Build changes
 =============
+
+.. _whatsnew314-pep761:
 
 PEP 761: Discontinuation of PGP signatures
 ------------------------------------------
