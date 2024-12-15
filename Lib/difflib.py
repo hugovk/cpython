@@ -855,15 +855,17 @@ class Differ:
         + tree
         + emu
         """
+        from _colorize import ANSIColors
 
+        green, red = ANSIColors.GREEN, ANSIColors.RED
         cruncher = SequenceMatcher(self.linejunk, a, b)
         for tag, alo, ahi, blo, bhi in cruncher.get_opcodes():
             if tag == 'replace':
                 g = self._fancy_replace(a, alo, ahi, b, blo, bhi)
             elif tag == 'delete':
-                g = self._dump('-', a, alo, ahi)
+                g = self._dump('-', a, alo, ahi, red)
             elif tag == 'insert':
-                g = self._dump('+', b, blo, bhi)
+                g = self._dump('+', b, blo, bhi, green)
             elif tag == 'equal':
                 g = self._dump(' ', a, alo, ahi)
             else:
@@ -871,21 +873,31 @@ class Differ:
 
             yield from g
 
-    def _dump(self, tag, x, lo, hi):
+    def _dump(self, tag, x, lo, hi, color=None):
         """Generate comparison results for a same-tagged range."""
-        for i in range(lo, hi):
-            yield '%s %s' % (tag, x[i])
+
+        if color:
+            from _colorize import ANSIColors
+
+            for i in range(lo, hi):
+                yield f'{color}{tag} {x[i]}{ANSIColors.RESET}'
+        else:
+            for i in range(lo, hi):
+                yield '%s %s' % (tag, x[i])
 
     def _plain_replace(self, a, alo, ahi, b, blo, bhi):
         assert alo < ahi and blo < bhi
+        from _colorize import ANSIColors
+
+        green, red, reset = ANSIColors.GREEN, ANSIColors.RED, ANSIColors.RESET
         # dump the shorter block first -- reduces the burden on short-term
         # memory if the blocks are of very different sizes
         if bhi - blo < ahi - alo:
             first  = self._dump('+', b, blo, bhi)
             second = self._dump('-', a, alo, ahi)
         else:
-            first  = self._dump('-', a, alo, ahi)
-            second = self._dump('+', b, blo, bhi)
+            first  = self._dump(f'-', a, alo, ahi, red)
+            second = self._dump('+', b, blo, bhi, green)
 
         for g in first, second:
             yield from g
@@ -983,14 +995,17 @@ class Differ:
                                       b, dump_j, bhi)
 
     def _fancy_helper(self, a, alo, ahi, b, blo, bhi):
+        from _colorize import ANSIColors
+
+        green, red = ANSIColors.GREEN, ANSIColors.RED
         g = []
         if alo < ahi:
             if blo < bhi:
                 g = self._plain_replace(a, alo, ahi, b, blo, bhi)
             else:
-                g = self._dump('-', a, alo, ahi)
+                g = self._dump('-', a, alo, ahi, red)
         elif blo < bhi:
-            g = self._dump('+', b, blo, bhi)
+            g = self._dump('+', b, blo, bhi, green)
 
         yield from g
 
@@ -1010,16 +1025,19 @@ class Differ:
         '+ \tabcdefGhijkl\n'
         '? \t ^ ^  ^\n'
         """
+        from _colorize import ANSIColors
+
+        green, red, reset = ANSIColors.GREEN, ANSIColors.RED, ANSIColors.RESET
         atags = _keep_original_ws(aline, atags).rstrip()
         btags = _keep_original_ws(bline, btags).rstrip()
 
-        yield "- " + aline
+        yield f"{red}- {aline}{reset}"
         if atags:
-            yield f"? {atags}\n"
+            yield f"{red}? {atags}{reset}\n"
 
-        yield "+ " + bline
+        yield f"{green}+ {bline}{reset}"
         if btags:
-            yield f"? {btags}\n"
+            yield f"{green}? {btags}{reset}\n"
 
 # With respect to junk, an earlier version of ndiff simply refused to
 # *start* a match with a junk element.  The result was cases like this:
@@ -1135,14 +1153,17 @@ def unified_diff(a, b, fromfile='', tofile='', fromfiledate='',
     """
 
     _check_types(a, b, fromfile, tofile, fromfiledate, tofiledate, lineterm)
+    from _colorize import ANSIColors
+
+    green, red, reset = ANSIColors.GREEN, ANSIColors.RED, ANSIColors.RESET
     started = False
     for group in SequenceMatcher(None,a,b).get_grouped_opcodes(n):
         if not started:
             started = True
             fromdate = '\t{}'.format(fromfiledate) if fromfiledate else ''
             todate = '\t{}'.format(tofiledate) if tofiledate else ''
-            yield '--- {}{}{}'.format(fromfile, fromdate, lineterm)
-            yield '+++ {}{}{}'.format(tofile, todate, lineterm)
+            yield f'{red}--- {fromfile}{fromdate}{lineterm}{reset}'
+            yield f'{green}+++ {tofile}{todate}{lineterm}{reset}'
 
         first, last = group[0], group[-1]
         file1_range = _format_range_unified(first[1], last[2])
@@ -1156,10 +1177,10 @@ def unified_diff(a, b, fromfile='', tofile='', fromfiledate='',
                 continue
             if tag in {'replace', 'delete'}:
                 for line in a[i1:i2]:
-                    yield '-' + line
+                    yield f'{red}-{line}{reset}'
             if tag in {'replace', 'insert'}:
                 for line in b[j1:j2]:
-                    yield '+' + line
+                    yield f'{green}+{line}{reset}'
 
 
 ########################################################################
@@ -1224,14 +1245,17 @@ def context_diff(a, b, fromfile='', tofile='',
 
     _check_types(a, b, fromfile, tofile, fromfiledate, tofiledate, lineterm)
     prefix = dict(insert='+ ', delete='- ', replace='! ', equal='  ')
+    from _colorize import ANSIColors
+
+    green, red, reset = ANSIColors.GREEN, ANSIColors.RED, ANSIColors.RESET
     started = False
     for group in SequenceMatcher(None,a,b).get_grouped_opcodes(n):
         if not started:
             started = True
             fromdate = '\t{}'.format(fromfiledate) if fromfiledate else ''
             todate = '\t{}'.format(tofiledate) if tofiledate else ''
-            yield '*** {}{}{}'.format(fromfile, fromdate, lineterm)
-            yield '--- {}{}{}'.format(tofile, todate, lineterm)
+            yield f'{red}*** {fromfile}{fromdate}{reset}{lineterm}'
+            yield f'{green}--- {tofile}{todate}{reset}{lineterm}'
 
         first, last = group[0], group[-1]
         yield '***************' + lineterm
@@ -1243,7 +1267,10 @@ def context_diff(a, b, fromfile='', tofile='',
             for tag, i1, i2, _, _ in group:
                 if tag != 'insert':
                     for line in a[i1:i2]:
-                        yield prefix[tag] + line
+                        if tag in {'replace', 'delete'}:
+                            yield f'{red}{prefix[tag]}{line}{reset}'
+                        else:
+                            yield prefix[tag] + line
 
         file2_range = _format_range_context(first[3], last[4])
         yield '--- {} ----{}'.format(file2_range, lineterm)
@@ -1252,7 +1279,10 @@ def context_diff(a, b, fromfile='', tofile='',
             for tag, _, _, j1, j2 in group:
                 if tag != 'delete':
                     for line in b[j1:j2]:
-                        yield prefix[tag] + line
+                        if tag in {'replace', 'insert'}:
+                            yield f'{green}{prefix[tag]}{line}{reset}'
+                        else:
+                            yield prefix[tag] + line
 
 def _check_types(a, b, *args):
     # Checking types is weird, but the alternative is garbled output when
