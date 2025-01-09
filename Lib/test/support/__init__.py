@@ -2846,7 +2846,7 @@ def _disable_terminal_color() -> Callable[[], bool]:
     for key in variables:
         variables[key] = os.environ.pop(key, None)
     os.environ["NO_COLOR"] = "1"
-    _colorize.can_colorize = lambda: False
+    _colorize.can_colorize = lambda *args, **kwargs: False
     return original_fn, variables
 
 
