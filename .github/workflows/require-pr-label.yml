@@ -12,7 +12,7 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    timeout-minutes: 10
+    # timeout-minutes: 10
 
     steps:
       - name: Check there's no DO-NOT-MERGE
@@ -30,7 +30,7 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    timeout-minutes: 10
+    # timeout-minutes: 10
 
     steps:
       # Check that the PR is not awaiting changes from the author due to previous review.

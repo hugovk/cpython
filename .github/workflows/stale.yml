@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-    timeout-minutes: 10
+    # timeout-minutes: 10
 
     steps:
     - name: "Check PRs"

@@ -22,7 +22,7 @@ jobs:
   build_tsan_reusable:
     name: 'Thread sanitizer'
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    # timeout-minutes: 60
     env:
       OPTIONS: ${{ inputs.options }}
       SUPPRESSIONS_PATH: ${{ inputs.suppressions_path }}

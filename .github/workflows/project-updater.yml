@@ -13,7 +13,7 @@ jobs:
   add-to-project:
     name: Add issues to projects
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # timeout-minutes: 10
     strategy:
       matrix:
         include:

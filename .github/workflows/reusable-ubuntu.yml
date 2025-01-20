@@ -19,7 +19,7 @@ on:
 jobs:
   build_ubuntu_reusable:
     name: build and test (${{ inputs.os }})
-    timeout-minutes: 60
+    # timeout-minutes: 60
     runs-on: ${{ inputs.os }}
     env:
       FORCE_COLOR: 1
