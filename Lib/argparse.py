@@ -227,13 +227,13 @@ class HelpFormatter(object):
                 from _colorize import get_colors
 
                 ansi = get_colors()
-                bold_green, reset = ansi.BOLD_GREEN, ansi.RESET
+                bold_blue, reset = ansi.BOLD_BLUE, ansi.RESET
 
                 current_indent = self.formatter._current_indent
                 heading_text = _('%(heading)s:') % dict(heading=self.heading)
                 heading = (
                     f'{" " * current_indent}'
-                    f'{bold_green}{heading_text}{reset}\n'
+                    f'{bold_blue}{heading_text}{reset}\n'
                 )
             else:
                 heading = ''
@@ -306,9 +306,9 @@ class HelpFormatter(object):
         from _colorize import get_colors
 
         ansi = get_colors()
-        bold_cyan = ansi.BOLD_CYAN
-        bold_green = ansi.BOLD_GREEN
-        cyan = ansi.CYAN
+        bold_magenta = ansi.BOLD_MAGENTA
+        bold_blue = ansi.BOLD_BLUE
+        magenta = ansi.MAGENTA
         reset = ansi.RESET
 
         if prefix is None:
@@ -317,14 +317,14 @@ class HelpFormatter(object):
         # if usage is specified, use that
         if usage is not None:
             usage = (
-                cyan
-                + usage % dict(prog=f"{bold_cyan}{self._prog}{reset}{cyan}")
+                magenta
+                + usage % dict(prog=f"{bold_magenta}{self._prog}{reset}{magenta}")
                 + reset
             )
 
         # if no optionals or positionals are available, usage is just prog
         elif usage is None and not actions:
-            usage = f"{bold_cyan}{self._prog}{reset}"
+            usage = f"{bold_magenta}{self._prog}{reset}"
 
         # if optionals and positionals are available, calculate usage
         elif usage is None:
@@ -400,10 +400,10 @@ class HelpFormatter(object):
                 usage = '\n'.join(lines)
 
             usage = usage.removeprefix(prog)
-            usage = f"{bold_cyan}{prog}{reset}{cyan}{usage}{reset}"
+            usage = f"{bold_magenta}{prog}{reset}{magenta}{usage}{reset}"
 
         # prefix with 'usage:'
-        return f'{bold_green}{prefix}{reset}{usage}\n\n'
+        return f'{bold_blue}{prefix}{reset}{usage}\n\n'
 
     def _format_actions_usage(self, actions, groups):
         return ' '.join(self._get_actions_usage_parts(actions, groups))
@@ -562,14 +562,16 @@ class HelpFormatter(object):
             from _colorize import get_colors
 
             ansi = get_colors()
-            bold_cyan, cyan, reset = ansi.BOLD_CYAN, ansi.CYAN, ansi.RESET
+            bold_magenta = ansi.BOLD_MAGENTA
+            magenta = ansi.MAGENTA
+            reset = ansi.RESET
         else:
-            bold_cyan = cyan = reset = ""
+            bold_magenta = magenta = reset = ""
 
         if not action.option_strings:
             default = self._get_default_metavar_for_positional(action)
             return (
-                bold_cyan
+                bold_magenta
                 + ' '.join(self._metavar_formatter(action, default)(1))
                 + reset
             )
@@ -579,17 +581,17 @@ class HelpFormatter(object):
             # if the Optional doesn't take a value, format is:
             #    -s, --long
             if action.nargs == 0:
-                return bold_cyan + ', '.join(action.option_strings) + reset
+                return bold_magenta + ', '.join(action.option_strings) + reset
 
             # if the Optional takes a value, format is:
             #    -s, --long ARGS
             else:
                 default = self._get_default_metavar_for_optional(action)
                 args_string = (
-                    f"{cyan}{self._format_args(action, default)}{reset}"
+                    f"{magenta}{self._format_args(action, default)}{reset}"
                 )
                 return (
-                    bold_cyan
+                    bold_magenta
                     + ', '.join(action.option_strings)
                     + reset
                     + ' '
