@@ -390,6 +390,7 @@ class MiscTestCase(unittest.TestCase):
         support.check__all__(self, mimetypes)
 
 
+@support.force_not_colorized
 class MimetypesCliTestCase(unittest.TestCase):
 
     def mimetypes_cmd(cls, *args, **kwargs):
