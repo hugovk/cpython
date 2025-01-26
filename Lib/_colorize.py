@@ -7,9 +7,11 @@ COLORIZE = True
 
 class ANSIColors:
     BACKGROUND_YELLOW = "\x1b[43m"
+    BOLD_CYAN = "\x1b[1;36m"
     BOLD_GREEN = "\x1b[1;32m"
     BOLD_MAGENTA = "\x1b[1;35m"
     BOLD_RED = "\x1b[1;31m"
+    CYAN = "\x1b[36m"
     BLACK = "\x1b[30m"
     GREEN = "\x1b[32m"
     GREY = "\x1b[90m"

@@ -224,9 +224,17 @@ class HelpFormatter(object):
 
             # add the heading if the section was non-empty
             if self.heading is not SUPPRESS and self.heading is not None:
+                from _colorize import get_colors
+
+                ansi = get_colors()
+                bold_green, reset = ansi.BOLD_GREEN, ansi.RESET
+
                 current_indent = self.formatter._current_indent
                 heading_text = _('%(heading)s:') % dict(heading=self.heading)
-                heading = '%*s%s\n' % (current_indent, '', heading_text)
+                heading = (
+                    f'{" " * current_indent}'
+                    f'{bold_green}{heading_text}{reset}\n'
+                )
             else:
                 heading = ''
 
@@ -295,16 +303,28 @@ class HelpFormatter(object):
                         if part and part is not SUPPRESS])
 
     def _format_usage(self, usage, actions, groups, prefix):
+        from _colorize import get_colors
+
+        ansi = get_colors()
+        bold_cyan = ansi.BOLD_CYAN
+        bold_green = ansi.BOLD_GREEN
+        cyan = ansi.CYAN
+        reset = ansi.RESET
+
         if prefix is None:
             prefix = _('usage: ')
 
         # if usage is specified, use that
         if usage is not None:
-            usage = usage % dict(prog=self._prog)
+            usage = (
+                cyan
+                + usage % dict(prog=f"{bold_cyan}{self._prog}{reset}{cyan}")
+                + reset
+            )
 
         # if no optionals or positionals are available, usage is just prog
         elif usage is None and not actions:
-            usage = '%(prog)s' % dict(prog=self._prog)
+            usage = f"{bold_cyan}{self._prog}{reset}"
 
         # if optionals and positionals are available, calculate usage
         elif usage is None:
@@ -379,8 +399,11 @@ class HelpFormatter(object):
                 # join lines into usage
                 usage = '\n'.join(lines)
 
+            usage = usage.removeprefix(prog)
+            usage = f"{bold_cyan}{prog}{reset}{cyan}{usage}{reset}"
+
         # prefix with 'usage:'
-        return '%s%s\n\n' % (prefix, usage)
+        return f'{bold_green}{prefix}{reset}{usage}\n\n'
 
     def _format_actions_usage(self, actions, groups):
         return ' '.join(self._get_actions_usage_parts(actions, groups))
@@ -484,7 +507,13 @@ class HelpFormatter(object):
                             self._max_help_position)
         help_width = max(self._width - help_position, 11)
         action_width = help_position - self._current_indent - 2
+        # use uncolored for calculating widths,
+        # then swap in the colored version at the end
         action_header = self._format_action_invocation(action)
+        action_header_no_color = action_header
+        action_header_color = self._format_action_invocation(
+            action, colorize=True
+        )
 
         # no help; start on same line and add a final newline
         if not action.help:
@@ -504,7 +533,9 @@ class HelpFormatter(object):
             indent_first = help_position
 
         # collect the pieces of the action help
-        parts = [action_header]
+        parts = [
+            action_header.replace(action_header_no_color, action_header_color)
+        ]
 
         # if there was help for the action, add lines of help text
         if action.help and action.help.strip():
@@ -526,24 +557,44 @@ class HelpFormatter(object):
         # return a single string
         return self._join_parts(parts)
 
-    def _format_action_invocation(self, action):
+    def _format_action_invocation(self, action, *, colorize=False):
+        if colorize:
+            from _colorize import get_colors
+
+            ansi = get_colors()
+            bold_cyan, cyan, reset = ansi.BOLD_CYAN, ansi.CYAN, ansi.RESET
+        else:
+            bold_cyan = cyan = reset = ""
+
         if not action.option_strings:
             default = self._get_default_metavar_for_positional(action)
-            return ' '.join(self._metavar_formatter(action, default)(1))
+            return (
+                bold_cyan
+                + ' '.join(self._metavar_formatter(action, default)(1))
+                + reset
+            )
 
         else:
 
             # if the Optional doesn't take a value, format is:
             #    -s, --long
             if action.nargs == 0:
-                return ', '.join(action.option_strings)
+                return bold_cyan + ', '.join(action.option_strings) + reset
 
             # if the Optional takes a value, format is:
             #    -s, --long ARGS
             else:
                 default = self._get_default_metavar_for_optional(action)
-                args_string = self._format_args(action, default)
-                return ', '.join(action.option_strings) + ' ' + args_string
+                args_string = (
+                    f"{cyan}{self._format_args(action, default)}{reset}"
+                )
+                return (
+                    bold_cyan
+                    + ', '.join(action.option_strings)
+                    + reset
+                    + ' '
+                    + args_string
+                )
 
     def _metavar_formatter(self, action, default_metavar):
         if action.metavar is not None:
