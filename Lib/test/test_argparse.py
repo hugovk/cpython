@@ -21,6 +21,7 @@ from test.support import captured_stderr
 from test.support import import_helper
 from test.support import os_helper
 from test.support import script_helper
+from test.support import force_not_colorized, force_not_colorized_test_class
 from test.support.i18n_helper import TestTranslationsBase, update_translation_snapshots
 from unittest import mock
 
@@ -994,6 +995,7 @@ class TestDisallowLongAbbreviationAllowsShortGroupingPrefix(ParserTestCase):
     ]
 
 
+@force_not_colorized_test_class
 class TestStrEnumChoices(TestCase):
     class Color(StrEnum):
         RED = "red"
@@ -2402,6 +2404,7 @@ class TestInvalidAction(TestCase):
 # Subparsers tests
 # ================
 
+@force_not_colorized_test_class
 class TestAddSubparsers(TestCase):
     """Test the add_subparsers method"""
 
@@ -3008,6 +3011,7 @@ class TestGroupConstructor(TestCase):
 # Parent parser tests
 # ===================
 
+@force_not_colorized_test_class
 class TestParentParsers(TestCase):
     """Tests that parsers can be created with parent parsers"""
 
@@ -3215,6 +3219,7 @@ class TestParentParsers(TestCase):
 # Mutually exclusive group tests
 # ==============================
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveGroupErrors(TestCase):
 
     def test_invalid_add_argument_group(self):
@@ -3364,6 +3369,7 @@ class MEMixin(object):
         self.assertEqual(format_help(), textwrap.dedent(help))
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveSimple(MEMixin, TestCase):
 
     def get_parser(self, required=None):
@@ -3399,6 +3405,7 @@ class TestMutuallyExclusiveSimple(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveLong(MEMixin, TestCase):
 
     def get_parser(self, required=None):
@@ -3442,6 +3449,7 @@ class TestMutuallyExclusiveLong(MEMixin, TestCase):
     '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveFirstSuppressed(MEMixin, TestCase):
 
     def get_parser(self, required):
@@ -3475,6 +3483,7 @@ class TestMutuallyExclusiveFirstSuppressed(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveManySuppressed(MEMixin, TestCase):
 
     def get_parser(self, required):
@@ -3511,6 +3520,7 @@ class TestMutuallyExclusiveManySuppressed(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveOptionalAndPositional(MEMixin, TestCase):
 
     def get_parser(self, required):
@@ -3556,6 +3566,7 @@ class TestMutuallyExclusiveOptionalAndPositional(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveOptionalsMixed(MEMixin, TestCase):
 
     def get_parser(self, required):
@@ -3598,6 +3609,7 @@ class TestMutuallyExclusiveOptionalsMixed(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveInGroup(MEMixin, TestCase):
 
     def get_parser(self, required=None):
@@ -3638,6 +3650,7 @@ class TestMutuallyExclusiveInGroup(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveOptionalsAndPositionalsMixed(MEMixin, TestCase):
 
     def get_parser(self, required):
@@ -3680,6 +3693,7 @@ class TestMutuallyExclusiveOptionalsAndPositionalsMixed(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveOptionalOptional(MEMixin, TestCase):
     def get_parser(self, required=None):
         parser = ErrorRaisingArgumentParser(prog='PROG')
@@ -3715,6 +3729,7 @@ class TestMutuallyExclusiveOptionalOptional(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusiveOptionalWithDefault(MEMixin, TestCase):
     def get_parser(self, required=None):
         parser = ErrorRaisingArgumentParser(prog='PROG')
@@ -3750,6 +3765,7 @@ class TestMutuallyExclusiveOptionalWithDefault(MEMixin, TestCase):
         '''
 
 
+@force_not_colorized_test_class
 class TestMutuallyExclusivePositionalWithDefault(MEMixin, TestCase):
     def get_parser(self, required=None):
         parser = ErrorRaisingArgumentParser(prog='PROG')
@@ -4029,11 +4045,13 @@ class TestHelpFormattingMetaclass(type):
                 tester.maxDiff = None
                 tester.assertEqual(expected_text, parser_text)
 
+            @force_not_colorized
             def test_format(self, tester):
                 parser = self._get_parser(tester)
                 format = getattr(parser, 'format_%s' % self.func_suffix)
                 self._test(tester, format())
 
+            @force_not_colorized
             def test_print(self, tester):
                 parser = self._get_parser(tester)
                 print_ = getattr(parser, 'print_%s' % self.func_suffix)
@@ -4046,6 +4064,7 @@ class TestHelpFormattingMetaclass(type):
                     setattr(sys, self.std_name, old_stream)
                 self._test(tester, parser_text)
 
+            @force_not_colorized
             def test_print_file(self, tester):
                 parser = self._get_parser(tester)
                 print_ = getattr(parser, 'print_%s' % self.func_suffix)
@@ -4787,6 +4806,7 @@ class TestHelpUsageMetavarsSpacesParentheses(HelpTestCase):
     version = ''
 
 
+@force_not_colorized_test_class
 class TestHelpUsageNoWhitespaceCrash(TestCase):
 
     def test_all_suppressed_mutex_followed_by_long_arg(self):
@@ -5468,6 +5488,7 @@ class TestHelpMetavarTypeFormatter(HelpTestCase):
     version = ''
 
 
+@force_not_colorized_test_class
 class TestHelpUsageLongSubparserCommand(TestCase):
     """Test that subparser commands are formatted correctly in help"""
     maxDiff = None
@@ -5700,6 +5721,7 @@ class TestActionsReturned(TestCase):
 # Argument conflict handling tests
 # ================================
 
+@force_not_colorized_test_class
 class TestConflictHandling(TestCase):
 
     def test_bad_type(self):
@@ -5762,6 +5784,7 @@ class TestConflictHandling(TestCase):
 # Help and Version option tests
 # =============================
 
+@force_not_colorized_test_class
 class TestOptionalsHelpVersionActions(TestCase):
     """Test the help and version actions"""
 
@@ -5979,6 +6002,7 @@ class TestArgumentError(TestCase):
 # ArgumentTypeError tests
 # =======================
 
+@force_not_colorized_test_class
 class TestArgumentTypeError(TestCase):
 
     def test_argument_type_error(self):
@@ -6767,6 +6791,7 @@ class TestImportStar(TestCase):
         self.assertEqual(sorted(items), sorted(argparse.__all__))
 
 
+@force_not_colorized_test_class
 class TestWrappingMetavar(TestCase):
 
     def setUp(self):
@@ -6944,6 +6969,7 @@ class TestExitOnError(TestCase):
                                self.parser.parse_args, ['@no-such-file'])
 
 
+@force_not_colorized_test_class
 class TestProgName(TestCase):
     source = textwrap.dedent('''\
         import argparse
