@@ -166,6 +166,9 @@ class HelpFormatter(object):
                  indent_increment=2,
                  max_help_position=24,
                  width=None):
+        from _colorize import get_colors
+
+        self._ansi = get_colors()
 
         # default setting for width
         if width is None:
@@ -224,9 +227,7 @@ class HelpFormatter(object):
 
             # add the heading if the section was non-empty
             if self.heading is not SUPPRESS and self.heading is not None:
-                from _colorize import get_colors
-
-                ansi = get_colors()
+                ansi = self.formatter._ansi
                 bold_blue, reset = ansi.BOLD_BLUE, ansi.RESET
 
                 current_indent = self.formatter._current_indent
@@ -303,13 +304,10 @@ class HelpFormatter(object):
                         if part and part is not SUPPRESS])
 
     def _format_usage(self, usage, actions, groups, prefix):
-        from _colorize import get_colors
-
-        ansi = get_colors()
-        bold_magenta = ansi.BOLD_MAGENTA
-        bold_blue = ansi.BOLD_BLUE
-        magenta = ansi.MAGENTA
-        reset = ansi.RESET
+        bold_magenta = self._ansi.BOLD_MAGENTA
+        bold_blue = self._ansi.BOLD_BLUE
+        magenta = self._ansi.MAGENTA
+        reset = self._ansi.RESET
 
         if prefix is None:
             prefix = _('usage: ')
@@ -559,12 +557,9 @@ class HelpFormatter(object):
 
     def _format_action_invocation(self, action, *, colorize=False):
         if colorize:
-            from _colorize import get_colors
-
-            ansi = get_colors()
-            bold_magenta = ansi.BOLD_MAGENTA
-            magenta = ansi.MAGENTA
-            reset = ansi.RESET
+            bold_magenta = self._ansi.BOLD_MAGENTA
+            magenta = self._ansi.MAGENTA
+            reset = self._ansi.RESET
         else:
             bold_magenta = magenta = reset = ""
 
