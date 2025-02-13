@@ -161,20 +161,30 @@ class HelpFormatter(object):
     provided by the class are considered an implementation detail.
     """
 
-    def __init__(self,
-                 prog,
-                 indent_increment=2,
-                 max_help_position=24,
-                 width=None):
-        from _colorize import get_colors
-
-        self._ansi = get_colors()
-
+    def __init__(
+        self,
+        prog,
+        indent_increment=2,
+        max_help_position=24,
+        width=None,
+        colorize=True,
+    ):
         # default setting for width
         if width is None:
             import shutil
             width = shutil.get_terminal_size().columns
             width -= 2
+
+        self._prefix_chars = prefix_chars
+
+        from _colorize import ANSIColors, NoColors, can_colorize, decolor
+
+        if colorize and can_colorize():
+            self._ansi = ANSIColors()
+            self._decolor = decolor
+        else:
+            self._ansi = NoColors
+            self._decolor = lambda text: text
 
         self._prog = prog
         self._indent_increment = indent_increment
@@ -227,8 +237,8 @@ class HelpFormatter(object):
 
             # add the heading if the section was non-empty
             if self.heading is not SUPPRESS and self.heading is not None:
-                ansi = self.formatter._ansi
-                bold_blue, reset = ansi.BOLD_BLUE, ansi.RESET
+                bold_blue = self.formatter._ansi.BOLD_BLUE
+                reset = self.formatter._ansi.RESET
 
                 current_indent = self.formatter._current_indent
                 heading_text = _('%(heading)s:') % dict(heading=self.heading)
@@ -304,8 +314,8 @@ class HelpFormatter(object):
                         if part and part is not SUPPRESS])
 
     def _format_usage(self, usage, actions, groups, prefix):
-        bold_magenta = self._ansi.BOLD_MAGENTA
         bold_blue = self._ansi.BOLD_BLUE
+        bold_magenta = self._ansi.BOLD_MAGENTA
         magenta = self._ansi.MAGENTA
         reset = self._ansi.RESET
 
@@ -316,7 +326,8 @@ class HelpFormatter(object):
         if usage is not None:
             usage = (
                 magenta
-                + usage % dict(prog=f"{bold_magenta}{self._prog}{reset}{magenta}")
+                + usage
+                % {"prog": f"{bold_magenta}{self._prog}{reset}{magenta}"}
                 + reset
             )
 
@@ -344,7 +355,7 @@ class HelpFormatter(object):
 
             # wrap the usage parts if it's too long
             text_width = self._width - self._current_indent
-            if len(prefix) + len(usage) > text_width:
+            if len(prefix) + len(self._decolor(usage)) > text_width:
 
                 # break usage into wrappable parts
                 opt_parts = self._get_actions_usage_parts(optionals, groups)
@@ -360,12 +371,13 @@ class HelpFormatter(object):
                     else:
                         line_len = indent_length - 1
                     for part in parts:
-                        if line_len + 1 + len(part) > text_width and line:
+                        part_len = len(self._decolor(part))
+                        if line_len + 1 + part_len > text_width and line:
                             lines.append(indent + ' '.join(line))
                             line = []
                             line_len = indent_length - 1
                         line.append(part)
-                        line_len += len(part) + 1
+                        line_len += part_len + 1
                     if line:
                         lines.append(indent + ' '.join(line))
                     if prefix is not None:
@@ -373,8 +385,9 @@ class HelpFormatter(object):
                     return lines
 
                 # if prog is short, follow it with optionals or positionals
-                if len(prefix) + len(prog) <= 0.75 * text_width:
-                    indent = ' ' * (len(prefix) + len(prog) + 1)
+                prog_len = len(self._decolor(prog))
+                if len(prefix) + prog_len <= 0.75 * text_width:
+                    indent = ' ' * (len(prefix) + prog_len + 1)
                     if opt_parts:
                         lines = get_lines([prog] + opt_parts, indent, prefix)
                         lines.extend(get_lines(pos_parts, indent))
@@ -398,13 +411,23 @@ class HelpFormatter(object):
                 usage = '\n'.join(lines)
 
             usage = usage.removeprefix(prog)
-            usage = f"{bold_magenta}{prog}{reset}{magenta}{usage}{reset}"
+            usage = f"{bold_magenta}{prog}{reset}{usage}"
 
         # prefix with 'usage:'
         return f'{bold_blue}{prefix}{reset}{usage}\n\n'
 
     def _format_actions_usage(self, actions, groups):
         return ' '.join(self._get_actions_usage_parts(actions, groups))
+
+    def _is_long_option(self, string):
+        return len(string) >= 2 and string[1] in self._prefix_chars
+
+    def _is_short_option(self, string):
+        return (
+            not self._is_long_option(string)
+            and len(string) >= 1
+            and string[0] in self._prefix_chars
+        )
 
     def _get_actions_usage_parts(self, actions, groups):
         # find group indices and identify actions in groups
@@ -429,6 +452,10 @@ class HelpFormatter(object):
 
         # collect all actions format strings
         parts = []
+        cyan = self._ansi.CYAN
+        green = self._ansi.GREEN
+        yellow = self._ansi.YELLOW
+        reset = self._ansi.RESET
         for action in actions:
 
             # suppressed arguments are marked with None
@@ -438,7 +465,7 @@ class HelpFormatter(object):
             # produce all arg strings
             elif not action.option_strings:
                 default = self._get_default_metavar_for_positional(action)
-                part = self._format_args(action, default)
+                part = green + self._format_args(action, default) + reset
 
                 # if it's in a group, strip the outer []
                 if action in group_actions:
@@ -453,13 +480,21 @@ class HelpFormatter(object):
                 #    -s or --long
                 if action.nargs == 0:
                     part = action.format_usage()
+                    if self._is_long_option(part):
+                        part = f"{cyan}{part}{reset}"
+                    elif self._is_short_option(part):
+                        part = f"{green}{part}{reset}"
 
                 # if the Optional takes a value, format is:
                 #    -s ARGS or --long ARGS
                 else:
                     default = self._get_default_metavar_for_optional(action)
                     args_string = self._format_args(action, default)
-                    part = '%s %s' % (option_string, args_string)
+                    if self._is_long_option(option_string):
+                        option_string = f"{cyan}{option_string}"
+                    elif self._is_short_option(option_string):
+                        option_string = f"{green}{option_string}"
+                    part = f"{option_string} {yellow}{args_string}{reset}"
 
                 # make it look optional if it's not required or in a group
                 if not action.required and action not in group_actions:
@@ -505,7 +540,7 @@ class HelpFormatter(object):
                             self._max_help_position)
         help_width = max(self._width - help_position, 11)
         action_width = help_position - self._current_indent - 2
-        # use uncolored for calculating widths,
+        # use uncolored header for calculating widths,
         # then swap in the colored version at the end
         action_header = self._format_action_invocation(action)
         action_header_no_color = action_header
@@ -557,41 +592,49 @@ class HelpFormatter(object):
 
     def _format_action_invocation(self, action, *, colorize=False):
         if colorize:
-            bold_magenta = self._ansi.BOLD_MAGENTA
-            magenta = self._ansi.MAGENTA
+            bold_green = self._ansi.BOLD_GREEN
+            bold_cyan = self._ansi.BOLD_CYAN
+            bold_yellow = self._ansi.BOLD_YELLOW
             reset = self._ansi.RESET
         else:
-            bold_magenta = magenta = reset = ""
+            bold_cyan = bold_green = bold_yellow = reset = ""
 
         if not action.option_strings:
             default = self._get_default_metavar_for_positional(action)
             return (
-                bold_magenta
+                bold_green
                 + ' '.join(self._metavar_formatter(action, default)(1))
                 + reset
             )
 
         else:
 
+            def color_option_strings(strings):
+                parts = []
+                for s in strings:
+                    if self._is_long_option(s):
+                        parts.append(f"{bold_cyan}{s}{reset}")
+                    elif self._is_short_option(s):
+                        parts.append(f"{bold_green}{s}{reset}")
+                    else:
+                        parts.append(s)
+                return parts
+
             # if the Optional doesn't take a value, format is:
             #    -s, --long
             if action.nargs == 0:
-                return bold_magenta + ', '.join(action.option_strings) + reset
+                option_strings = color_option_strings(action.option_strings)
+                return ', '.join(option_strings)
 
             # if the Optional takes a value, format is:
             #    -s, --long ARGS
             else:
                 default = self._get_default_metavar_for_optional(action)
+                option_strings = color_option_strings(action.option_strings)
                 args_string = (
-                    f"{magenta}{self._format_args(action, default)}{reset}"
+                    f"{bold_yellow}{self._format_args(action, default)}{reset}"
                 )
-                return (
-                    bold_magenta
-                    + ', '.join(action.option_strings)
-                    + reset
-                    + ' '
-                    + args_string
-                )
+                return ', '.join(option_strings) + ' ' + args_string
 
     def _metavar_formatter(self, action, default_metavar):
         if action.metavar is not None:
@@ -1205,6 +1248,7 @@ class _SubParsersAction(Action):
         self._name_parser_map = {}
         self._choices_actions = []
         self._deprecated = set()
+        self._color = False
 
         super(_SubParsersAction, self).__init__(
             option_strings=option_strings,
@@ -1219,6 +1263,10 @@ class _SubParsersAction(Action):
         # set prog from the existing prefix
         if kwargs.get('prog') is None:
             kwargs['prog'] = '%s %s' % (self._prog_prefix, name)
+
+        # set color
+        if kwargs.get('color') is None:
+            kwargs['color'] = self._color
 
         aliases = kwargs.pop('aliases', ())
 
@@ -1824,7 +1872,8 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         - exit_on_error -- Determines whether or not ArgumentParser exits with
             error info when an error occurs
         - suggest_on_error - Enables suggestions for mistyped argument choices
-            and subparser names. (default: ``False``)
+            and subparser names (default: ``False``)
+        - color - Allow color output in help messages (default: ``False``)
     """
 
     def __init__(self,
@@ -1920,7 +1969,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         # prog defaults to the usage message of this parser, skipping
         # optional arguments and with no "usage:" prefix
         if kwargs.get('prog') is None:
-            formatter = self._get_formatter()
+            formatter = self._get_formatter(colorize=False)
             positionals = self._get_positional_actions()
             groups = self._mutually_exclusive_groups
             formatter.add_usage(None, positionals, groups, '')
@@ -1929,6 +1978,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         # create the parsers action and add it to the positionals list
         parsers_class = self._pop_action_class(kwargs, 'parsers')
         action = parsers_class(option_strings=[], **kwargs)
+        action._color = self.color
         self._check_help(action)
         self._subparsers._add_action(action)
 
@@ -2677,8 +2727,11 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         # determine help from format above
         return formatter.format_help()
 
-    def _get_formatter(self):
-        return self.formatter_class(prog=self.prog)
+    def _get_formatter(self, colorize=True):
+        if isinstance(self.formatter_class, HelpFormatter):
+            return self.formatter_class(prog=self.prog, colorize=colorize)
+        else:
+            return self.formatter_class(prog=self.prog)
 
     # =====================
     # Help-printing methods
