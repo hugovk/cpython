@@ -8,10 +8,13 @@ COLORIZE = True
 class ANSIColors:
     BACKGROUND_YELLOW = "\x1b[43m"
     BOLD_BLUE = "\x1b[1;34m"
+    BOLD_CYAN = "\x1b[1;36m"
     BOLD_GREEN = "\x1b[1;32m"
     BOLD_MAGENTA = "\x1b[1;35m"
     BOLD_RED = "\x1b[1;31m"
+    BOLD_YELLOW = "\x1b[1;33m"
     BLACK = "\x1b[30m"
+    CYAN = "\x1b[36m"
     GREEN = "\x1b[32m"
     GREY = "\x1b[90m"
     MAGENTA = "\x1b[35m"
@@ -21,9 +24,11 @@ class ANSIColors:
 
 
 NoColors = ANSIColors()
+ColorCodes = set()
 
-for attr in dir(NoColors):
+for attr, code in ANSIColors.__dict__.items():
     if not attr.startswith("__"):
+        ColorCodes.add(code)
         setattr(NoColors, attr, "")
 
 
@@ -32,6 +37,13 @@ def get_colors(colorize: bool = False, *, file=None) -> ANSIColors:
         return ANSIColors()
     else:
         return NoColors
+
+
+def decolor(text: str) -> str:
+    """Remove ANSI color codes from a string."""
+    for code in ColorCodes:
+        text = text.replace(code, "")
+    return text
 
 
 def can_colorize(*, file=None) -> bool:
