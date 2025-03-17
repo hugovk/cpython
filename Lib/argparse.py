@@ -167,7 +167,8 @@ class HelpFormatter(object):
         indent_increment=2,
         max_help_position=24,
         width=None,
-        colorize=True,
+        prefix_chars='-',
+        color=False,
     ):
         # default setting for width
         if width is None:
@@ -180,7 +181,7 @@ class HelpFormatter(object):
 
         from _colorize import ANSIColors, NoColors, can_colorize, decolor
 
-        if colorize and can_colorize():
+        if color and can_colorize():
             self._ansi = ANSIColors()
             self._decolor = decolor
         else:
@@ -543,11 +544,9 @@ class HelpFormatter(object):
         action_width = help_position - self._current_indent - 2
         # use uncolored header for calculating widths,
         # then swap in the colored version at the end
-        action_header = self._format_action_invocation(action)
-        action_header_no_color = action_header
-        action_header_color = self._format_action_invocation(
-            action, colorize=True
-        )
+        action_header_color = self._format_action_invocation(action)
+        action_header_no_color = self._decolor(action_header_color)
+        action_header = action_header_no_color
 
         # no help; start on same line and add a final newline
         if not action.help:
@@ -591,14 +590,11 @@ class HelpFormatter(object):
         # return a single string
         return self._join_parts(parts)
 
-    def _format_action_invocation(self, action, *, colorize=False):
-        if colorize:
-            bold_green = self._ansi.BOLD_GREEN
-            bold_cyan = self._ansi.BOLD_CYAN
-            bold_yellow = self._ansi.BOLD_YELLOW
-            reset = self._ansi.RESET
-        else:
-            bold_cyan = bold_green = bold_yellow = reset = ""
+    def _format_action_invocation(self, action):
+        bold_green = self._ansi.BOLD_GREEN
+        bold_cyan = self._ansi.BOLD_CYAN
+        bold_yellow = self._ansi.BOLD_YELLOW
+        reset = self._ansi.RESET
 
         if not action.option_strings:
             default = self._get_default_metavar_for_positional(action)
@@ -1891,8 +1887,9 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
                  add_help=True,
                  allow_abbrev=True,
                  exit_on_error=True,
-                 suggest_on_error=False):
-
+                 suggest_on_error=False,
+                 color=False,
+                 ):
         superinit = super(ArgumentParser, self).__init__
         superinit(description=description,
                   prefix_chars=prefix_chars,
@@ -1908,6 +1905,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         self.allow_abbrev = allow_abbrev
         self.exit_on_error = exit_on_error
         self.suggest_on_error = suggest_on_error
+        self.color = color
 
         add_group = self.add_argument_group
         self._positionals = add_group(_('positional arguments'))
@@ -1970,7 +1968,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         # prog defaults to the usage message of this parser, skipping
         # optional arguments and with no "usage:" prefix
         if kwargs.get('prog') is None:
-            formatter = self._get_formatter(colorize=False)
+            formatter = self._get_formatter()
             positionals = self._get_positional_actions()
             groups = self._mutually_exclusive_groups
             formatter.add_usage(None, positionals, groups, '')
@@ -2728,9 +2726,15 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         # determine help from format above
         return formatter.format_help()
 
-    def _get_formatter(self, colorize=True):
-        if isinstance(self.formatter_class, HelpFormatter):
-            return self.formatter_class(prog=self.prog, colorize=colorize)
+    def _get_formatter(self):
+        if isinstance(self.formatter_class, type) and issubclass(
+            self.formatter_class, HelpFormatter
+        ):
+            return self.formatter_class(
+                prog=self.prog,
+                prefix_chars=self.prefix_chars,
+                color=self.color,
+            )
         else:
             return self.formatter_class(prog=self.prog)
 
