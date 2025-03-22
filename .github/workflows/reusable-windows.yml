@@ -37,7 +37,7 @@ jobs:
     - name: Build CPython
       run: >-
         .\\PCbuild\\build.bat
-        -e -d -v
+        -E -d -v
         -p ${{ inputs.arch }}
         ${{ fromJSON(inputs.free-threading) && '--disable-gil' || '' }}
       shell: cmd
