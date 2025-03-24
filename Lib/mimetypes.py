@@ -669,9 +669,7 @@ def _default_mime_types():
 _default_mime_types()
 
 
-def _main(args=None):
-    """Run the mimetypes command-line interface."""
-    import sys
+def _parse_args(arg_list: list[str] | None):
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description='map filename extensions to MIME types')
@@ -686,25 +684,33 @@ def _main(args=None):
         help='additionally search for common but non-standard types'
     )
     parser.add_argument('type', nargs='+', help='a type to search')
-    args = parser.parse_args(args)
+    args = parser.parse_args(arg_list)
+    return args, parser.format_help()
+
+
+def _main(arg_list: list[str] | None = None) -> int | str:
+    """Run the mimetypes command-line interface."""
+    import sys
+
+    args, help_text = _parse_args(arg_list)
 
     if args.extension:
         for gtype in args.type:
             guess = guess_extension(gtype, not args.lenient)
             if guess:
-                print(guess)
+                return guess
             else:
-                print(f"error: unknown type {gtype}", file=sys.stderr)
-                sys.exit(1)
+                sys.exit(f"error: unknown type {gtype}")
     else:
         for gtype in args.type:
             guess, encoding = guess_type(gtype, not args.lenient)
             if guess:
-                print('type:', guess, 'encoding:', encoding)
+                return f"type: {guess} encoding: {encoding}"
             else:
-                print(f"error: media type unknown for {gtype}", file=sys.stderr)
-                sys.exit(1)
+                sys.exit(f"error: media type unknown for {gtype}")
+
+    return help_text
 
 
 if __name__ == '__main__':
-    _main()
+    print(_main())
