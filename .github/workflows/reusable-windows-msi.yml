@@ -25,11 +25,12 @@ jobs:
     timeout-minutes: 60
     env:
       IncludeFreethreaded: true
+      ARCH: ${{ inputs.arch }}
     steps:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
     - name: Build CPython installer
-      shell: pwsh
-      run: ./Tools/msi/build.bat --doc -${{ inputs.arch }}
+      shell: powershell
+      run: ./Tools/msi/build.bat --doc -${env:ARCH}
 
