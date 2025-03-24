@@ -40,7 +40,7 @@ jobs:
         -e -d -v
         -p ${{ inputs.arch }}
         ${{ fromJSON(inputs.free-threading) && '--disable-gil' || '' }}
-      shell: cmd
+      shell: pwsh
     - name: Display build info
       run: .\\python.bat -m test.pythoninfo
     - name: Tests
@@ -49,4 +49,4 @@ jobs:
         -p ${{ inputs.arch }}
         -d -q --fast-ci
         ${{ fromJSON(inputs.free-threading) && '--disable-gil' || '' }}
-      shell: cmd
+      shell: pwsh
