@@ -36,6 +36,8 @@ jobs:
     - name: Register MSVC problem matcher
       if: inputs.arch != 'Win32'
       run: echo "::add-matcher::.github/problem-matchers/msvc.json"
+    - name: Print PATH
+      run: echo ${env:PATH}
     - name: Build CPython
       run: >-
         .\\PCbuild\\build.bat
