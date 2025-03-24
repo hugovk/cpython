@@ -40,7 +40,7 @@ jobs:
       run: >-
         .\\PCbuild\\build.bat
         -e -d -v
-        -p ${env:ARCH}
+        -p "${env:ARCH}"
         ${{ fromJSON(inputs.free-threading) && '--disable-gil' || '' }}
       shell: powershell
     - name: Display build info
@@ -48,7 +48,7 @@ jobs:
     - name: Tests
       run: >-
         .\\PCbuild\\rt.bat
-        -p ${env:ARCH}
+        -p "${env:ARCH}"
         -d -q --fast-ci
         ${{ fromJSON(inputs.free-threading) && '--disable-gil' || '' }}
       shell: powershell
