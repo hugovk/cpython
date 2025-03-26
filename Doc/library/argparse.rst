@@ -74,7 +74,7 @@ ArgumentParser objects
                           prefix_chars='-', fromfile_prefix_chars=None, \
                           argument_default=None, conflict_handler='error', \
                           add_help=True, allow_abbrev=True, exit_on_error=True, \
-                          suggest_on_error=False, color=False)
+                          suggest_on_error=False)
 
    Create a new :class:`ArgumentParser` object. All parameters should be passed
    as keyword arguments. Each parameter has its own more detailed description
@@ -119,8 +119,6 @@ ArgumentParser objects
    * suggest_on_error_ - Enables suggestions for mistyped argument choices
      and subparser names (default: ``False``)
 
-   * color_ - Allow color output (default: ``False``)
-
    .. versionchanged:: 3.5
       *allow_abbrev* parameter was added.
 
@@ -132,7 +130,7 @@ ArgumentParser objects
       *exit_on_error* parameter was added.
 
    .. versionchanged:: 3.14
-      *suggest_on_error* and *color* parameters were added.
+      *suggest_on_error* parameter was added.
 
 The following sections describe how each of these are used.
 
@@ -396,6 +394,20 @@ as the regular formatter does)::
      --foo int
 
 
+.. class:: ColorHelpFormatter
+           ColorArgumentDefaultsHelpFormatter
+           ColorRawDescriptionHelpFormatter
+           ColorRawTextHelpFormatter
+           ColorMetavarTypeHelpFormatter
+
+By default, the help message is printed in monochrome text. If you want to
+allow the use of color in help messages, use the equivalent color formatters.
+Even if a CLI author has used one of these, it can be
+:ref:`controlled using environment variables <using-on-controlling-color>`.
+
+.. versionadded:: 3.14
+   Color formatters.
+
 prefix_chars
 ^^^^^^^^^^^^
 
@@ -612,34 +624,6 @@ keyword argument::
 
    >>> parser = argparse.ArgumentParser(description='Process some integers.')
    >>> parser.suggest_on_error = True
-
-.. versionadded:: 3.14
-
-
-color
-^^^^^
-
-By default, the help message is printed in plain text. If you want to allow the
-use of color in argparse help messages, you can enable it by setting ``color``
-to True::
-
-   >>> parser = argparse.ArgumentParser(description='Process some integers.',
-   ...                                  color=True)
-   >>> parser.add_argument('--action', choices=['sum', 'max'])
-   >>> parser.add_argument('integers', metavar='N', type=int, nargs='+',
-   ...                     help='an integer for the accumulator')
-   >>> parser.parse_args(['--help'])
-
-Even if a CLI author has enabled color, it can be
-:ref:`controlled using environment variables <using-on-controlling-color>`.
-
-If you're writing code that needs to be compatible with older Python versions
-and want to opportunistically use ``color`` when it's available, you
-can set it as an attribute after initializing the parser instead of using the
-keyword argument::
-
-   >>> parser = argparse.ArgumentParser(description='Process some integers.')
-   >>> parser.color = True
 
 .. versionadded:: 3.14
 

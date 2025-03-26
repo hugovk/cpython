@@ -76,6 +76,11 @@ __all__ = [
     'RawDescriptionHelpFormatter',
     'RawTextHelpFormatter',
     'MetavarTypeHelpFormatter',
+    'ColorHelpFormatter',
+    'ColorArgumentDefaultsHelpFormatter',
+    'ColorRawDescriptionHelpFormatter',
+    'ColorRawTextHelpFormatter',
+    'ColorMetavarTypeHelpFormatter',
     'Namespace',
     'Action',
     'ONE_OR_MORE',
@@ -3008,7 +3013,14 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         return formatter.format_help()
 
     def _get_formatter(self):
-        return self.formatter_class(prog=self.prog)
+        if isinstance(self.formatter_class, type) and issubclass(
+            self.formatter_class, ColorHelpFormatter
+        ):
+            return self.formatter_class(
+                prog=self.prog, prefix_chars=self.prefix_chars
+            )
+        else:
+            return self.formatter_class(prog=self.prog)
 
     # =====================
     # Help-printing methods
