@@ -649,17 +649,18 @@ class ColorHelpFormatter(HelpFormatter):
     provided by the class are considered an implementation detail.
     """
 
+    def __new__(cls, *args, **kwargs):
+        from _colorize import can_colorize
+
+        if can_colorize():
+            return super(ColorHelpFormatter, cls).__new__(cls)
+        else:
+            kwargs.pop("prefix_chars")
+            return HelpFormatter(*args, **kwargs)
+
     def __init__(self, prefix_chars="-", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._prefix_chars = prefix_chars
-        from _colorize import ANSIColors, NoColors, can_colorize, decolor
-
-        if can_colorize():
-            self._ansi = ANSIColors()
-            self._decolor = decolor
-        else:
-            self._ansi = NoColors
-            self._decolor = lambda text: text
 
     # ===============================
     # Section and indentation methods
@@ -687,14 +688,12 @@ class ColorHelpFormatter(HelpFormatter):
 
             # add the heading if the section was non-empty
             if self.heading is not SUPPRESS and self.heading is not None:
-                bold_blue = self.formatter._ansi.BOLD_BLUE
-                reset = self.formatter._ansi.RESET
-
+                from _colorize import ANSIColors
                 current_indent = self.formatter._current_indent
                 heading_text = _('%(heading)s:') % dict(heading=self.heading)
                 heading = (
-                    f'{" " * current_indent}'
-                    f'{bold_blue}{heading_text}{reset}\n'
+                    f'{" " * current_indent}{ANSIColors.BOLD_BLUE}'
+                    f'{heading_text}{ANSIColors.RESET}\n'
                 )
             else:
                 heading = ''
@@ -706,10 +705,12 @@ class ColorHelpFormatter(HelpFormatter):
     # Help-formatting methods
     # =======================
     def _format_usage(self, usage, actions, groups, prefix):
-        bold_blue = self._ansi.BOLD_BLUE
-        bold_magenta = self._ansi.BOLD_MAGENTA
-        magenta = self._ansi.MAGENTA
-        reset = self._ansi.RESET
+        from _colorize import ANSIColors, decolor
+
+        bold_blue = ANSIColors.BOLD_BLUE
+        bold_magenta = ANSIColors.BOLD_MAGENTA
+        magenta = ANSIColors.MAGENTA
+        reset = ANSIColors.RESET
 
         if prefix is None:
             prefix = _('usage: ')
@@ -747,7 +748,7 @@ class ColorHelpFormatter(HelpFormatter):
 
             # wrap the usage parts if it's too long
             text_width = self._width - self._current_indent
-            if len(prefix) + len(self._decolor(usage)) > text_width:
+            if len(prefix) + len(decolor(usage)) > text_width:
 
                 # break usage into wrappable parts
                 opt_parts = self._get_actions_usage_parts(optionals, groups)
@@ -763,7 +764,7 @@ class ColorHelpFormatter(HelpFormatter):
                     else:
                         line_len = indent_length - 1
                     for part in parts:
-                        part_len = len(self._decolor(part))
+                        part_len = len(decolor(part))
                         if line_len + 1 + part_len > text_width and line:
                             lines.append(indent + ' '.join(line))
                             line = []
@@ -777,7 +778,7 @@ class ColorHelpFormatter(HelpFormatter):
                     return lines
 
                 # if prog is short, follow it with optionals or positionals
-                prog_len = len(self._decolor(prog))
+                prog_len = len(decolor(prog))
                 if len(prefix) + prog_len <= 0.75 * text_width:
                     indent = ' ' * (len(prefix) + prog_len + 1)
                     if opt_parts:
@@ -841,10 +842,11 @@ class ColorHelpFormatter(HelpFormatter):
 
         # collect all actions format strings
         parts = []
-        cyan = self._ansi.CYAN
-        green = self._ansi.GREEN
-        yellow = self._ansi.YELLOW
-        reset = self._ansi.RESET
+        from _colorize import ANSIColors
+        cyan = ANSIColors.CYAN
+        green = ANSIColors.GREEN
+        yellow = ANSIColors.YELLOW
+        reset = ANSIColors.RESET
         for action in actions:
 
             # suppressed arguments are marked with None
@@ -917,6 +919,8 @@ class ColorHelpFormatter(HelpFormatter):
         return [item for item in parts if item is not None]
 
     def _format_action(self, action):
+        from _colorize import decolor
+
         # determine the required width and the entry label
         help_position = min(self._action_max_length + 2,
                             self._max_help_position)
@@ -925,7 +929,7 @@ class ColorHelpFormatter(HelpFormatter):
         # use uncolored header for calculating widths,
         # then swap in the colored version at the end
         action_header_color = self._format_action_invocation(action)
-        action_header_no_color = self._decolor(action_header_color)
+        action_header_no_color = decolor(action_header_color)
         action_header = action_header_no_color
 
         # no help; start on same line and add a final newline
@@ -971,10 +975,12 @@ class ColorHelpFormatter(HelpFormatter):
         return self._join_parts(parts)
 
     def _format_action_invocation(self, action):
-        bold_green = self._ansi.BOLD_GREEN
-        bold_cyan = self._ansi.BOLD_CYAN
-        bold_yellow = self._ansi.BOLD_YELLOW
-        reset = self._ansi.RESET
+        from _colorize import ANSIColors
+
+        bold_green = ANSIColors.BOLD_GREEN
+        bold_cyan = ANSIColors.BOLD_CYAN
+        bold_yellow = ANSIColors.BOLD_YELLOW
+        reset = ANSIColors.RESET
 
         if not action.option_strings:
             default = self._get_default_metavar_for_positional(action)
