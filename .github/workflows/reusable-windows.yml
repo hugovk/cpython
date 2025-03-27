@@ -50,7 +50,7 @@ jobs:
     - name: Tests
       run: >-
         .\\PCbuild\\rt.bat
-        -p "${env:ARCH}"
+        -p "${ARCH}"
         -d -q --fast-ci
         ${{ fromJSON(inputs.free-threading) && '--disable-gil' || '' }}
       shell: bash
