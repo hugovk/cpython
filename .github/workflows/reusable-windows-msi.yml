@@ -33,4 +33,3 @@ jobs:
     - name: Build CPython installer
       run: ./Tools/msi/build.bat --doc -"${ARCH}"
       shell: bash
-
