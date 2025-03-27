@@ -163,17 +163,15 @@ jobs:
         free-threading:
           - false
           - true
-        is-fork:  # only used for the exclusion trick
-        - ${{ github.repository_owner != 'python' }}
         include:
-          - os: windows-aarch64
+          # Forks don't have access to Windows on Arm runners. These jobs are skipped below:
+          - os: ${{ github.repository_owner == 'python' && 'windows-aarch64' || 'windows-latest' }}
             arch: arm64
             free-threading: false
-            is-fork: false
-          - os: windows-aarch64
+          # Forks don't have access to Windows on Arm runners. These jobs are skipped below:
+          - os: ${{ github.repository_owner == 'python' && 'windows-aarch64' || 'windows-latest' }}
             arch: arm64
             free-threading: true
-            is-fork: false
           - os: windows-latest
             arch: Win32
             free-threading: false
@@ -196,12 +194,10 @@ jobs:
         arch:
           - x86
           - x64
-        is-fork:  # only used for the exclusion trick
-        - ${{ github.repository_owner != 'python' }}
         include:
-          - os: windows-aarch64
+          # Forks don't have access to Windows on Arm runners. These jobs are skipped below:
+          - os: ${{ github.repository_owner == 'python' && 'windows-aarch64' || 'windows-latest' }}
             arch: arm64
-            is-fork: false
     uses: ./.github/workflows/reusable-windows-msi.yml
     with:
       os: ${{ matrix.os }}

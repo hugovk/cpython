@@ -24,6 +24,8 @@ env:
 
 jobs:
   build:
+    # Forks don't have access to Windows on Arm runners. Skip those:
+    if: inputs.arch != 'ARM64' || github.repository_owner == 'python'
     name: Build and test (${{ inputs.arch }})
     runs-on: ${{ inputs.os }}
     timeout-minutes: 60

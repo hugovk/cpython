@@ -20,6 +20,7 @@ env:
 
 jobs:
   build:
+    if: inputs.arch != 'ARM64' || github.repository_owner == 'python'
     name: installer for ${{ inputs.arch }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 60
