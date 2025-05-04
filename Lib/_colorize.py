@@ -109,6 +109,22 @@ class ThemeSection(Mapping[str, str]):
 
 
 @dataclass(frozen=True)
+class Argparse(ThemeSection):
+    usage: str = ANSIColors.BOLD_BLUE
+    prog: str = ANSIColors.BOLD_MAGENTA
+    prog_extra: str = ANSIColors.MAGENTA
+    heading: str = ANSIColors.BOLD_BLUE
+    summary_long_option: str = ANSIColors.CYAN
+    summary_short_option: str = ANSIColors.GREEN
+    summary_label: str = ANSIColors.YELLOW
+    long_option: str = ANSIColors.BOLD_CYAN
+    short_option: str = ANSIColors.BOLD_GREEN
+    label: str = ANSIColors.BOLD_YELLOW
+    action: str = ANSIColors.BOLD_GREEN
+    reset: str = ANSIColors.RESET
+
+
+@dataclass(frozen=True)
 class REPL(ThemeSection):
     prompt: str = ANSIColors.BOLD_MAGENTA
     keyword: str = ANSIColors.BOLD_BLUE
@@ -145,6 +161,7 @@ class Unittest(ThemeSection):
 
 @dataclass(frozen=True)
 class Theme:
+    argparse: Argparse = field(default_factory=Argparse)
     repl: REPL = field(default_factory=REPL)
     traceback: Traceback = field(default_factory=Traceback)
     unittest: Unittest = field(default_factory=Unittest)
@@ -152,11 +169,13 @@ class Theme:
     def copy_with(
         self,
         *,
+        argparse: Argparse | None = None,
         repl: REPL | None = None,
         traceback: Traceback | None = None,
         unittest: Unittest | None = None,
     ) -> Self:
         return type(self)(
+            argparse=argparse or self.argparse,
             repl=repl or self.repl,
             traceback=traceback or self.traceback,
             unittest=unittest or self.unittest,
@@ -164,6 +183,7 @@ class Theme:
 
     def no_colors(self) -> Self:
         return type(self)(
+            argparse=self.argparse.no_colors(),
             repl=self.repl.no_colors(),
             traceback=self.traceback.no_colors(),
             unittest=self.unittest.no_colors(),
