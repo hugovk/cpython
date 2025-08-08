@@ -81,6 +81,11 @@ html: BUILDER = html
 html: build
 	@echo "Build finished. The HTML pages are in build/html."
 
+.PHONY: singlehtml
+singlehtml: BUILDER = singlehtml
+singlehtml: build
+	@echo "Build finished. The HTML page is in build/html."
+
 .PHONY: htmlhelp
 htmlhelp: BUILDER = htmlhelp
 htmlhelp: build
