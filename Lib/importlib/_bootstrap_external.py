@@ -969,9 +969,9 @@ class SourceFileLoader(FileLoader, SourceLoader):
                 return
 
             if part == _PYCACHE:
-                # Don't create in site-packages as these are managed
-                # by package installers, not Git
-                if 'site-packages' not in parent:
+                # Don't create .gitignore in site-packages/dist-packages
+                # as these are managed by package installers, not Git
+                if 'site-packages' not in parent and 'dist-packages' not in parent:
                     gitignore = _path_join(parent, '.gitignore')
                     try:
                         _path_stat(gitignore)

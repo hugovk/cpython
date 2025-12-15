@@ -10,6 +10,7 @@ import importlib.util
 import os
 import os.path
 import sys
+import sysconfig
 import traceback
 
 __all__ = ["compile", "main", "PyCompileError", "PycInvalidationMode"]
@@ -156,9 +157,15 @@ def compile(file, cfile=None, dfile=None, doraise=False, optimize=-1,
         if dirname:
             os.makedirs(dirname)
             if os.path.basename(dirname) == '__pycache__':
-                # Don't create in site-packages as these are managed
-                # by package installers, not Git
-                if 'site-packages' not in dirname:
+                # Don't create .gitignore in site-packages (purelib/platlib)
+                # as these are managed by package installers, not Git
+                in_site_packages = False
+                for name in ('purelib', 'platlib'):
+                    site_path = sysconfig.get_path(name)
+                    if site_path and dirname.startswith(site_path + os.sep):
+                        in_site_packages = True
+                        break
+                if not in_site_packages:
                     gitignore = os.path.join(dirname, '.gitignore')
                     if not os.path.exists(gitignore):
                         try:
