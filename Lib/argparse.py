@@ -2514,10 +2514,6 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
             if not self._has_negative_number_optionals:
                 return None
 
-        # if it contains a space, it was meant to be a positional
-        if ' ' in arg_string:
-            return None
-
         # it was meant to be an optional but there is no such option
         # in this parser (though it might be a valid option in a subparser)
         return [(None, arg_string, None, None)]
