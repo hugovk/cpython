@@ -77,9 +77,8 @@ build:
 	@echo
 
 .PHONY: html
-html: BUILDER = html
+html: BUILDER = dirhtml
 html: build
-	@echo "Build finished. The HTML pages are in build/html."
 
 .PHONY: htmlhelp
 htmlhelp: BUILDER = htmlhelp
