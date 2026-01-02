@@ -31,4 +31,4 @@ build:
     - asdf global uv latest
     - make -C Doc venv html
     - mkdir _readthedocs
-    - mv Doc/build/html _readthedocs/html
+    - mv Doc/build/dirhtml _readthedocs/html
