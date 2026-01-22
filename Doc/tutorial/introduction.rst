@@ -1,3 +1,9 @@
+.. only:: html
+
+   .. raw:: html
+
+      <script src="../_static/pyrepl.js"></script>
+
 .. _tut-informal:
 
 **********************************
@@ -27,7 +33,10 @@ literal.  A hash character within a string literal is just a hash character.
 Since comments are to clarify code and are not interpreted by Python, they may
 be omitted when typing in examples.
 
-Some examples::
+Some examples:
+
+.. code-block:: python
+   :class: pyrepl
 
    # this is the first comment
    spam = 1  # and this is the second comment
@@ -53,7 +62,10 @@ The interpreter acts as a simple calculator: you can type an expression into it
 and it will write the value.  Expression syntax is straightforward: the
 operators ``+``, ``-``, ``*`` and ``/`` can be used to perform
 arithmetic; parentheses (``()``) can be used for grouping.
-For example::
+For example:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> 2 + 2
    4
@@ -70,7 +82,10 @@ the ones with a fractional part (e.g. ``5.0``, ``1.6``) have type
 
 Division (``/``) always returns a float.  To do :term:`floor division` and
 get an integer result you can use the ``//`` operator; to calculate
-the remainder you can use ``%``::
+the remainder you can use ``%``:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> 17 / 3  # classic division returns a float
    5.666666666666667
@@ -82,7 +97,10 @@ the remainder you can use ``%``::
    >>> 5 * 3 + 2  # floored quotient * divisor + remainder
    17
 
-With Python, it is possible to use the ``**`` operator to calculate powers [#]_::
+With Python, it is possible to use the ``**`` operator to calculate powers [#]_:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> 5 ** 2  # 5 squared
    25
@@ -90,7 +108,10 @@ With Python, it is possible to use the ``**`` operator to calculate powers [#]_:
    128
 
 The equal sign (``=``) is used to assign a value to a variable. Afterwards, no
-result is displayed before the next interactive prompt::
+result is displayed before the next interactive prompt:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> width = 20
    >>> height = 5 * 9
@@ -98,7 +119,10 @@ result is displayed before the next interactive prompt::
    900
 
 If a variable is not "defined" (assigned a value), trying to use it will
-give you an error::
+give you an error:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> n  # try to access an undefined variable
    Traceback (most recent call last):
@@ -106,14 +130,20 @@ give you an error::
    NameError: name 'n' is not defined
 
 There is full support for floating point; operators with mixed type operands
-convert the integer operand to floating point::
+convert the integer operand to floating point:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> 4 * 3.75 - 1
    14.0
 
 In interactive mode, the last printed expression is assigned to the variable
 ``_``.  This means that when you are using Python as a desk calculator, it is
-somewhat easier to continue calculations, for example::
+somewhat easier to continue calculations, for example:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> tax = 12.5 / 100
    >>> price = 100.50
@@ -147,6 +177,7 @@ Python can manipulate text (represented by type :class:`str`, so-called
 quotes (``"..."``) with the same result [#]_.
 
 .. code-block:: pycon
+   :class: pyrepl
 
    >>> 'spam eggs'  # single quotes
    'spam eggs'
@@ -156,7 +187,10 @@ quotes (``"..."``) with the same result [#]_.
    '1975'
 
 To quote a quote, we need to "escape" it, by preceding it with ``\``.
-Alternatively, we can use the other type of quotation marks::
+Alternatively, we can use the other type of quotation marks:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> 'doesn\'t'  # use \' to escape the single quote...
    "doesn't"
@@ -171,7 +205,10 @@ Alternatively, we can use the other type of quotation marks::
 
 In the Python shell, the string definition and output string can look
 different.  The :func:`print` function produces a more readable output, by
-omitting the enclosing quotes and by printing escaped and special characters::
+omitting the enclosing quotes and by printing escaped and special characters:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> s = 'First line.\nSecond line.'  # \n means newline
    >>> s  # without print(), special characters are included in the string
@@ -182,7 +219,10 @@ omitting the enclosing quotes and by printing escaped and special characters::
 
 If you don't want characters prefaced by ``\`` to be interpreted as
 special characters, you can use *raw strings* by adding an ``r`` before
-the first quote::
+the first quote:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> print('C:\some\name')  # here \n means newline!
    C:\some
@@ -199,7 +239,10 @@ String literals can span multiple lines.  One way is using triple-quotes:
 ``"""..."""`` or ``'''...'''``.  End-of-line characters are automatically
 included in the string, but it's possible to prevent this by adding a ``\`` at
 the end of the line.  In the following example, the initial newline is not
-included::
+included:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> print("""\
    ... Usage: thingy [OPTIONS]
@@ -213,26 +256,38 @@ included::
    >>>
 
 Strings can be concatenated (glued together) with the ``+`` operator, and
-repeated with ``*``::
+repeated with ``*``:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> # 3 times 'un', followed by 'ium'
    >>> 3 * 'un' + 'ium'
    'unununium'
 
 Two or more *string literals* (i.e. the ones enclosed between quotes) next
-to each other are automatically concatenated. ::
+to each other are automatically concatenated. :
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> 'Py' 'thon'
    'Python'
 
-This feature is particularly useful when you want to break long strings::
+This feature is particularly useful when you want to break long strings:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> text = ('Put several strings within parentheses '
    ...         'to have them joined together.')
    >>> text
    'Put several strings within parentheses to have them joined together.'
 
-This only works with two literals though, not with variables or expressions::
+This only works with two literals though, not with variables or expressions:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> prefix = 'Py'
    >>> prefix 'thon'  # can't concatenate a variable and a string literal
@@ -246,14 +301,20 @@ This only works with two literals though, not with variables or expressions::
                   ^^^^^
    SyntaxError: invalid syntax
 
-If you want to concatenate variables or a variable and a literal, use ``+``::
+If you want to concatenate variables or a variable and a literal, use ``+``:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> prefix + 'thon'
    'Python'
 
 Strings can be *indexed* (subscripted), with the first character having index 0.
 There is no separate character type; a character is simply a string of size
-one::
+one:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> word = 'Python'
    >>> word[0]  # character in position 0
@@ -261,7 +322,10 @@ one::
    >>> word[5]  # character in position 5
    'n'
 
-Indices may also be negative numbers, to start counting from the right::
+Indices may also be negative numbers, to start counting from the right:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> word[-1]  # last character
    'n'
@@ -273,7 +337,10 @@ Indices may also be negative numbers, to start counting from the right::
 Note that since -0 is the same as 0, negative indices start from -1.
 
 In addition to indexing, *slicing* is also supported.  While indexing is used
-to obtain individual characters, *slicing* allows you to obtain a substring::
+to obtain individual characters, *slicing* allows you to obtain a substring:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> word[0:2]  # characters from position 0 (included) to 2 (excluded)
    'Py'
@@ -281,7 +348,10 @@ to obtain individual characters, *slicing* allows you to obtain a substring::
    'tho'
 
 Slice indices have useful defaults; an omitted first index defaults to zero, an
-omitted second index defaults to the size of the string being sliced. ::
+omitted second index defaults to the size of the string being sliced.
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> word[:2]   # character from the beginning to position 2 (excluded)
    'Py'
@@ -291,7 +361,10 @@ omitted second index defaults to the size of the string being sliced. ::
    'on'
 
 Note how the start is always included, and the end always excluded.  This
-makes sure that ``s[:i] + s[i:]`` is always equal to ``s``::
+makes sure that ``s[:i] + s[i:]`` is always equal to ``s``:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> word[:2] + word[2:]
    'Python'
@@ -318,7 +391,10 @@ For non-negative indices, the length of a slice is the difference of the
 indices, if both are within bounds.  For example, the length of ``word[1:3]`` is
 2.
 
-Attempting to use an index that is too large will result in an error::
+Attempting to use an index that is too large will result in an error:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> word[42]  # the word only has 6 characters
    Traceback (most recent call last):
@@ -326,7 +402,10 @@ Attempting to use an index that is too large will result in an error::
    IndexError: string index out of range
 
 However, out of range slice indexes are handled gracefully when used for
-slicing::
+slicing:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> word[4:42]
    'on'
@@ -334,7 +413,10 @@ slicing::
    ''
 
 Python strings cannot be changed --- they are :term:`immutable`.
-Therefore, assigning to an indexed position in the string results in an error::
+Therefore, assigning to an indexed position in the string results in an error:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> word[0] = 'J'
    Traceback (most recent call last):
@@ -345,14 +427,20 @@ Therefore, assigning to an indexed position in the string results in an error::
      File "<stdin>", line 1, in <module>
    TypeError: 'str' object does not support item assignment
 
-If you need a different string, you should create a new one::
+If you need a different string, you should create a new one:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> 'J' + word[1:]
    'Jython'
    >>> word[:2] + 'py'
    'Pypy'
 
-The built-in function :func:`len` returns the length of a string::
+The built-in function :func:`len` returns the length of a string:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> s = 'supercalifragilisticexpialidocious'
    >>> len(s)
@@ -388,14 +476,20 @@ Lists
 Python knows a number of *compound* data types, used to group together other
 values.  The most versatile is the *list*, which can be written as a list of
 comma-separated values (items) between square brackets.  Lists might contain
-items of different types, but usually the items all have the same type. ::
+items of different types, but usually the items all have the same type.
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> squares = [1, 4, 9, 16, 25]
    >>> squares
    [1, 4, 9, 16, 25]
 
 Like strings (and all other built-in :term:`sequence` types), lists can be
-indexed and sliced::
+indexed and sliced:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> squares[0]  # indexing returns the item
    1
@@ -404,13 +498,19 @@ indexed and sliced::
    >>> squares[-3:]  # slicing returns a new list
    [9, 16, 25]
 
-Lists also support operations like concatenation::
+Lists also support operations like concatenation:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> squares + [36, 49, 64, 81, 100]
    [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
 
 Unlike strings, which are :term:`immutable`, lists are a :term:`mutable`
-type, i.e. it is possible to change their content::
+type, i.e. it is possible to change their content:
+
+.. code-block:: pycon
+   :class: pyrepl
 
     >>> cubes = [1, 8, 27, 65, 125]  # something's wrong here
     >>> 4 ** 3  # the cube of 4 is 64, not 65!
@@ -420,7 +520,10 @@ type, i.e. it is possible to change their content::
     [1, 8, 27, 64, 125]
 
 You can also add new items at the end of the list, by using
-the :meth:`list.append` *method* (we will see more about methods later)::
+the :meth:`list.append` *method* (we will see more about methods later):
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> cubes.append(216)  # add the cube of 6
    >>> cubes.append(7 ** 3)  # and the cube of 7
@@ -430,7 +533,10 @@ the :meth:`list.append` *method* (we will see more about methods later)::
 Simple assignment in Python never copies data. When you assign a list
 to a variable, the variable refers to the *existing list*.
 Any changes you make to the list through one variable will be seen
-through all other variables that refer to it.::
+through all other variables that refer to it.:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> rgb = ["Red", "Green", "Blue"]
    >>> rgba = rgb
@@ -442,7 +548,10 @@ through all other variables that refer to it.::
 
 All slice operations return a new list containing the requested elements.  This
 means that the following slice returns a
-:ref:`shallow copy <shallow_vs_deep_copy>` of the list::
+:ref:`shallow copy <shallow_vs_deep_copy>` of the list:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> correct_rgba = rgba[:]
    >>> correct_rgba[-1] = "Alpha"
@@ -452,7 +561,10 @@ means that the following slice returns a
    ["Red", "Green", "Blue", "Alph"]
 
 Assignment to slices is also possible, and this can even change the size of the
-list or clear it entirely::
+list or clear it entirely:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
    >>> letters
@@ -470,14 +582,20 @@ list or clear it entirely::
    >>> letters
    []
 
-The built-in function :func:`len` also applies to lists::
+The built-in function :func:`len` also applies to lists:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> letters = ['a', 'b', 'c', 'd']
    >>> len(letters)
    4
 
 It is possible to nest lists (create lists containing other lists), for
-example::
+example:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> a = ['a', 'b', 'c']
    >>> n = [1, 2, 3]
@@ -497,7 +615,10 @@ First Steps Towards Programming
 Of course, we can use Python for more complicated tasks than adding two and two
 together.  For instance, we can write an initial sub-sequence of the
 `Fibonacci series <https://en.wikipedia.org/wiki/Fibonacci_sequence>`_
-as follows::
+as follows:
+
+.. code-block:: pycon
+   :class: pyrepl
 
    >>> # Fibonacci series:
    >>> # the sum of two elements defines the next
@@ -545,14 +666,20 @@ This example introduces several new features.
   earlier in the calculator examples) in the way it handles multiple arguments,
   floating-point quantities, and strings.  Strings are printed without quotes,
   and a space is inserted between items, so you can format things nicely, like
-  this::
+  this:
+
+.. code-block:: pycon
+   :class: pyrepl
 
      >>> i = 256*256
      >>> print('The value of i is', i)
      The value of i is 65536
 
   The keyword argument *end* can be used to avoid the newline after the output,
-  or end the output with a different string::
+  or end the output with a different string:
+
+.. code-block:: pycon
+   :class: pyrepl
 
      >>> a, b = 0, 1
      >>> while a < 1000:
