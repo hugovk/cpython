@@ -668,25 +668,25 @@ This example introduces several new features.
   and a space is inserted between items, so you can format things nicely, like
   this:
 
-.. code-block:: pycon
-   :class: pyrepl
+  .. code-block:: pycon
+     :class: pyrepl
 
-   >>> i = 256*256
-   >>> print('The value of i is', i)
-   The value of i is 65536
+     >>> i = 256*256
+     >>> print('The value of i is', i)
+     The value of i is 65536
 
   The keyword argument *end* can be used to avoid the newline after the output,
   or end the output with a different string:
 
-.. code-block:: pycon
-   :class: pyrepl
+  .. code-block:: pycon
+     :class: pyrepl
 
-   >>> a, b = 0, 1
-   >>> while a < 1000:
-   ...     print(a, end=',')
-   ...     a, b = b, a+b
-   ...
-   0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,
+     >>> a, b = 0, 1
+     >>> while a < 1000:
+     ...     print(a, end=',')
+     ...     a, b = b, a+b
+     ...
+     0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,
 
 
 .. rubric:: Footnotes
