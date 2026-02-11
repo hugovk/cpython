@@ -117,6 +117,7 @@ def setup_tests(runtests: RunTests) -> None:
     support.suppress_msvcrt_asserts(runtests.verbose >= 2)
 
     support.use_resources = runtests.use_resources
+    support.only_resources = runtests.only_resources
 
     timeout = runtests.timeout
     if timeout is not None:

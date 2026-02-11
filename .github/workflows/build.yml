@@ -248,6 +248,16 @@ jobs:
       free-threading: ${{ matrix.free-threading }}
       os: ${{ matrix.os }}
 
+  build-ubuntu-cpu-only:
+    name: >-
+      Ubuntu (CPU-only tests)
+    needs: build-context
+    if: needs.build-context.outputs.run-ubuntu == 'true'
+    uses: ./.github/workflows/reusable-ubuntu.yml
+    with:
+      os: ubuntu-24.04
+      test-opts: '--only-resource cpu'
+
   build-ubuntu-ssltests-openssl:
     name: 'Ubuntu SSL tests with OpenSSL'
     runs-on: ${{ matrix.os }}

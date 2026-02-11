@@ -188,6 +188,7 @@ def get_attribute(obj, name):
 
 verbose = 1              # Flag set to 0 by regrtest.py
 use_resources = None     # Flag set to {} by regrtest.py
+only_resources = None    # Flag set to frozenset or None by regrtest.py
 max_memuse = 0           # Disable bigmem tests (they will still be run with
                          # small sizes, to make sure they work.)
 real_max_memuse = 0
@@ -1337,10 +1338,19 @@ def _id(obj):
 def requires_resource(resource):
     if resource == 'gui' and not _is_gui_available():
         return unittest.skip(_is_gui_available.reason)
-    if is_resource_enabled(resource):
-        return _id
-    else:
-        return unittest.skip("resource {0!r} is not enabled".format(resource))
+
+    def decorator(obj):
+        tags = getattr(obj, "_resource_tags", None)
+        if tags is None:
+            obj._resource_tags = {resource}
+        else:
+            tags.add(resource)
+
+        if not is_resource_enabled(resource):
+            obj = unittest.skip(f"resource {resource!r} is not enabled")(obj)
+        return obj
+
+    return decorator
 
 def cpython_only(test):
     """

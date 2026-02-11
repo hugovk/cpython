@@ -193,6 +193,7 @@ class Namespace(argparse.Namespace):
         self.tempdir = None
         self._add_python_opts = True
         self.xmlpath = None
+        self.only_resources: list[str] | None = None
         self.single_process = False
 
         super().__init__(**kwargs)
@@ -315,6 +316,10 @@ def _create_parser():
                        action='extend', type=resources_list,
                        help='specify which special resource intensive tests '
                             'to run.' + more_details)
+    group.add_argument('--only-resource', metavar='RESOURCE',
+                       action='append', dest='only_resources',
+                       help='run only tests that require RESOURCE '
+                            '(may be repeated)')
     group.add_argument('-M', '--memlimit', metavar='LIMIT',
                        help='run very large memory-consuming tests.' +
                             more_details)
@@ -552,6 +557,12 @@ def _parse_args(args, **kwargs):
                 ns.use_resources.pop(r, None)
             else:
                 ns.use_resources[r] = v
+    if ns.only_resources is not None:
+        for r in ns.only_resources:
+            if r not in RESOURCE_NAMES:
+                parser.error(f'invalid resource for --only-resource: {r}')
+            # Auto-enable the resource so is_resource_enabled() passes
+            ns.use_resources.setdefault(r, None)
     if ns.random_seed is not None:
         ns.randomize = True
     if ns.no_randomize:

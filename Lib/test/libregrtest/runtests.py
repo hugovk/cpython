@@ -101,6 +101,7 @@ class RunTests:
     randomize: bool
     random_seed: int | str
     parallel_threads: int | None
+    only_resources: frozenset[str] | None
 
     def copy(self, **override) -> 'RunTests':
         state = dataclasses.asdict(self)
@@ -194,6 +195,9 @@ class RunTests:
             args.append(f"--randomize")
         if self.parallel_threads:
             args.append(f"--parallel-threads={self.parallel_threads}")
+        if self.only_resources:
+            for resource in sorted(self.only_resources):
+                args.extend(("--only-resource", resource))
         args.append(f"--randseed={self.random_seed}")
         return args
 
@@ -211,11 +215,13 @@ class WorkerRunTests(RunTests):
 
 
 class _EncodeRunTests(json.JSONEncoder):
-    def default(self, o: Any) -> dict[str, Any]:
+    def default(self, o: Any) -> dict[str, Any] | list:
         if isinstance(o, WorkerRunTests):
             result = dataclasses.asdict(o)
             result["__runtests__"] = True
             return result
+        elif isinstance(o, frozenset):
+            return sorted(o)
         else:
             return super().default(o)
 
@@ -227,6 +233,8 @@ def _decode_runtests(data: dict[str, Any]) -> RunTests | dict[str, Any]:
             data['hunt_refleak'] = HuntRefleak(**data['hunt_refleak'])
         if data['json_file']:
             data['json_file'] = JsonFile(**data['json_file'])
+        if data.get('only_resources') is not None:
+            data['only_resources'] = frozenset(data['only_resources'])
         return WorkerRunTests(**data)
     else:
         return data

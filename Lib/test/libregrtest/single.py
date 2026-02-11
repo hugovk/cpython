@@ -28,6 +28,25 @@ from .utils import (
 PROGRESS_MIN_TIME = 30.0   # seconds
 
 
+def _resource_filter(test):
+    """Filter out tests that don't require any of the --only-resource resources."""
+    if support.only_resources is None:
+        return True
+
+    method = getattr(test, test._testMethodName, None)
+    if method is not None:
+        tags = getattr(method, "_resource_tags", None)
+        if tags and tags & support.only_resources:
+            return True
+
+    cls = type(test)
+    tags = getattr(cls, "_resource_tags", None)
+    if tags and tags & support.only_resources:
+        return True
+
+    return False
+
+
 def run_unittest(test_mod, runtests: RunTests):
     loader = unittest.TestLoader()
     tests = loader.loadTestsFromModule(test_mod)
@@ -37,6 +56,7 @@ def run_unittest(test_mod, runtests: RunTests):
     if loader.errors:
         raise Exception("errors while loading tests")
     _filter_suite(tests, match_test)
+    _filter_suite(tests, _resource_filter)
     if runtests.parallel_threads:
         _parallelize_tests(tests, runtests.parallel_threads)
     return _run_suite(tests)

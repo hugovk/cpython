@@ -119,6 +119,12 @@ class Regrtest:
         self.memory_limit: str | None = ns.memlimit
         self.gc_threshold: int | None = ns.threshold
         self.use_resources: dict[str, str | None] = dict(ns.use_resources)
+        if ns.only_resources is not None:
+            self.only_resources: frozenset[str] | None = frozenset(
+                ns.only_resources
+            )
+        else:
+            self.only_resources = None
         if ns.python:
             self.python_cmd: tuple[str, ...] | None = tuple(ns.python)
         else:
@@ -519,6 +525,7 @@ class Regrtest:
             randomize=self.randomize,
             random_seed=self.random_seed,
             parallel_threads=self.parallel_threads,
+            only_resources=self.only_resources,
         )
 
     def _run_tests(self, selected: TestTuple, tests: TestList | None) -> int:
