@@ -221,6 +221,7 @@ jobs:
       Ubuntu
       ${{ fromJSON(matrix.free-threading) && '(free-threading)' || '' }}
       ${{ fromJSON(matrix.bolt) && '(bolt)' || '' }}
+      ${{ matrix.cpu-mode && format('({0})', matrix.cpu-mode) || '' }}
     needs: build-context
     if: needs.build-context.outputs.run-ubuntu == 'true'
     strategy:
@@ -235,6 +236,8 @@ jobs:
         os:
         - ubuntu-24.04
         - ubuntu-24.04-arm
+        cpu-mode:
+        - ''
         exclude:
         # Do not test BOLT with free-threading, to conserve resources
         - bolt: true
@@ -242,43 +245,33 @@ jobs:
         # BOLT currently crashes during instrumentation on aarch64
         - os: ubuntu-24.04-arm
           bolt: true
+        include:
+        - os: ubuntu-24.04
+          bolt: false
+          free-threading: false
+          cpu-mode: CPU-only tests
+          test-opts: '--only-resource cpu'
+        - os: ubuntu-24.04-arm
+          bolt: false
+          free-threading: false
+          cpu-mode: CPU-only tests
+          test-opts: '--only-resource cpu'
+        - os: ubuntu-24.04
+          bolt: false
+          free-threading: false
+          cpu-mode: base + CPU tests
+          test-opts: '-u cpu'
+        - os: ubuntu-24.04-arm
+          bolt: false
+          free-threading: false
+          cpu-mode: base + CPU tests
+          test-opts: '-u cpu'
     uses: ./.github/workflows/reusable-ubuntu.yml
     with:
       bolt-optimizations: ${{ matrix.bolt }}
       free-threading: ${{ matrix.free-threading }}
       os: ${{ matrix.os }}
-
-  build-ubuntu-cpu-only:
-    name: >-
-      Ubuntu (CPU-only tests)
-    needs: build-context
-    if: needs.build-context.outputs.run-ubuntu == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-        - ubuntu-24.04
-        - ubuntu-24.04-arm
-    uses: ./.github/workflows/reusable-ubuntu.yml
-    with:
-      os: ${{ matrix.os }}
-      test-opts: '--only-resource cpu'
-
-  build-ubuntu-with-cpu:
-    name: >-
-      Ubuntu (base + CPU tests)
-    needs: build-context
-    if: needs.build-context.outputs.run-ubuntu == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-        - ubuntu-24.04
-        - ubuntu-24.04-arm
-    uses: ./.github/workflows/reusable-ubuntu.yml
-    with:
-      os: ${{ matrix.os }}
-      test-opts: '-u cpu'
+      test-opts: ${{ matrix.test-opts || '' }}
 
   build-ubuntu-ssltests-openssl:
     name: 'Ubuntu SSL tests with OpenSSL'
