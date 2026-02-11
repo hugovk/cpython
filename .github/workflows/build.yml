@@ -253,9 +253,15 @@ jobs:
       Ubuntu (CPU-only tests)
     needs: build-context
     if: needs.build-context.outputs.run-ubuntu == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-24.04
+        - ubuntu-24.04-arm
     uses: ./.github/workflows/reusable-ubuntu.yml
     with:
-      os: ubuntu-24.04
+      os: ${{ matrix.os }}
       test-opts: '--only-resource cpu'
 
   build-ubuntu-with-cpu:
@@ -263,9 +269,15 @@ jobs:
       Ubuntu (base + CPU tests)
     needs: build-context
     if: needs.build-context.outputs.run-ubuntu == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-24.04
+        - ubuntu-24.04-arm
     uses: ./.github/workflows/reusable-ubuntu.yml
     with:
-      os: ubuntu-24.04
+      os: ${{ matrix.os }}
       test-opts: '-u cpu'
 
   build-ubuntu-ssltests-openssl:
