@@ -56,7 +56,7 @@ jobs:
         if: matrix.run_tests
         shell: pwsh
         run: |
-          ./PCbuild/rt.bat -p ${{ matrix.architecture }} -q --multiprocess 0 --timeout 4500 --verbose2 --verbose3
+          ./PCbuild/rt.bat -p ${{ matrix.architecture }} -q --multiprocess 0 --timeout 4500 --verbose2 --verbose3 ${{ matrix.build_flags }}
 
   macos:
     name: ${{ matrix.target }}
