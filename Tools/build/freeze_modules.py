@@ -58,6 +58,7 @@ FROZEN = [
         ]),
     ('stdlib - startup, with site', [
         '_collections_abc',
+        '_colorize',
         '_sitebuiltins',
         'genericpath',
         'ntpath',

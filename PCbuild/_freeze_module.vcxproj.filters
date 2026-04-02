@@ -543,6 +543,9 @@
     <None Include="..\Lib\_collections_abc.py">
       <Filter>Python Files</Filter>
     </None>
+    <None Include="..\Lib\_colorize.py">
+      <Filter>Python Files</Filter>
+    </None>
     <None Include="..\Lib\_sitebuiltins.py">
       <Filter>Python Files</Filter>
     </None>

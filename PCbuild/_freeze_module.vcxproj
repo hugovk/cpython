@@ -320,6 +320,11 @@
       <IntFile>$(IntDir)_collections_abc.g.h</IntFile>
       <OutFile>$(GeneratedFrozenModulesDir)Python\frozen_modules\_collections_abc.h</OutFile>
     </None>
+    <None Include="..\Lib\_colorize.py">
+      <ModName>_colorize</ModName>
+      <IntFile>$(IntDir)_colorize.g.h</IntFile>
+      <OutFile>$(GeneratedFrozenModulesDir)Python\frozen_modules\_colorize.h</OutFile>
+    </None>
     <None Include="..\Lib\_sitebuiltins.py">
       <ModName>_sitebuiltins</ModName>
       <IntFile>$(IntDir)_sitebuiltins.g.h</IntFile>

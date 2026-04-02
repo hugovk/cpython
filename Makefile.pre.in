@@ -1731,6 +1731,7 @@ FROZEN_FILES_IN = \
 		Lib/codecs.py \
 		Lib/io.py \
 		Lib/_collections_abc.py \
+		Lib/_colorize.py \
 		Lib/_sitebuiltins.py \
 		Lib/genericpath.py \
 		Lib/ntpath.py \
@@ -1756,6 +1757,7 @@ FROZEN_FILES_OUT = \
 		Python/frozen_modules/codecs.h \
 		Python/frozen_modules/io.h \
 		Python/frozen_modules/_collections_abc.h \
+		Python/frozen_modules/_colorize.h \
 		Python/frozen_modules/_sitebuiltins.h \
 		Python/frozen_modules/genericpath.h \
 		Python/frozen_modules/ntpath.h \
@@ -1807,6 +1809,9 @@ Python/frozen_modules/io.h: Lib/io.py $(FREEZE_MODULE_DEPS)
 
 Python/frozen_modules/_collections_abc.h: Lib/_collections_abc.py $(FREEZE_MODULE_DEPS)
 	$(FREEZE_MODULE) _collections_abc $(srcdir)/Lib/_collections_abc.py Python/frozen_modules/_collections_abc.h
+
+Python/frozen_modules/_colorize.h: Lib/_colorize.py $(FREEZE_MODULE_DEPS)
+	$(FREEZE_MODULE) _colorize $(srcdir)/Lib/_colorize.py Python/frozen_modules/_colorize.h
 
 Python/frozen_modules/_sitebuiltins.h: Lib/_sitebuiltins.py $(FREEZE_MODULE_DEPS)
 	$(FREEZE_MODULE) _sitebuiltins $(srcdir)/Lib/_sitebuiltins.py Python/frozen_modules/_sitebuiltins.h
