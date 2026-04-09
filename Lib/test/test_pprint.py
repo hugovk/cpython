@@ -155,7 +155,8 @@ class QueryTestCase(unittest.TestCase):
     def test_init(self):
         pp = pprint.PrettyPrinter()
         pp = pprint.PrettyPrinter(indent=4, width=40, depth=5,
-                                  stream=io.StringIO(), compact=True)
+                                  stream=io.StringIO(), compact=True,
+                                  expand=False)
         pp = pprint.PrettyPrinter(4, 40, 5, io.StringIO())
         pp = pprint.PrettyPrinter(sort_dicts=False)
         with self.assertRaises(TypeError):
@@ -285,7 +286,8 @@ class QueryTestCase(unittest.TestCase):
                       ):
             native = repr(simple)
             self.assertEqual(pprint.pformat(simple), native)
-            self.assertEqual(pprint.pformat(simple, width=1, indent=0)
+            self.assertEqual(pprint.pformat(simple, width=1, indent=0,
+                                           expand=False)
                              .replace('\n', ' '), native)
             self.assertEqual(pprint.pformat(simple, underscore_numbers=True), native)
             self.assertEqual(pprint.saferepr(simple), native)
@@ -1157,7 +1159,7 @@ frozenset2({0,
   14, 15],
  [], [0], [0, 1], [0, 1, 2], [0, 1, 2, 3],
  [0, 1, 2, 3, 4]]"""
-        self.assertEqual(pprint.pformat(o, width=47, compact=True), expected)
+        self.assertEqual(pprint.pformat(o, width=47, compact=True, expand=False), expected)
 
     def test_compact_width(self):
         levels = 20
@@ -1166,7 +1168,7 @@ frozenset2({0,
         for i in range(levels - 1):
             o = [o]
         for w in range(levels * 2 + 1, levels + 3 * number - 1):
-            lines = pprint.pformat(o, width=w, compact=True).splitlines()
+            lines = pprint.pformat(o, width=w, compact=True, expand=False).splitlines()
             maxwidth = max(map(len, lines))
             self.assertLessEqual(maxwidth, w)
             self.assertGreater(maxwidth, w - 3)
