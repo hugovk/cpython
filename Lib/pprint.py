@@ -44,7 +44,7 @@ __all__ = ["pprint","pformat","isreadable","isrecursive","saferepr",
 
 
 def pprint(object, stream=None, indent=1, width=80, depth=None, *,
-           compact=False, expand=False, sort_dicts=True,
+           compact=False, expand=True, sort_dicts=True,
            underscore_numbers=False):
     """Pretty-print a Python object to a stream [default is sys.stdout]."""
     printer = PrettyPrinter(
@@ -55,7 +55,7 @@ def pprint(object, stream=None, indent=1, width=80, depth=None, *,
 
 
 def pformat(object, indent=1, width=80, depth=None, *,
-            compact=False, expand=False, sort_dicts=True,
+            compact=False, expand=True, sort_dicts=True,
             underscore_numbers=False):
     """Format a Python object into a pretty-printed representation."""
     return PrettyPrinter(indent=indent, width=width, depth=depth,
@@ -113,7 +113,7 @@ def _safe_tuple(t):
 
 class PrettyPrinter:
     def __init__(self, indent=1, width=80, depth=None, stream=None, *,
-                 compact=False, expand=False, sort_dicts=True,
+                 compact=False, expand=True, sort_dicts=True,
                  underscore_numbers=False):
         """Handle pretty printing operations onto a stream using a set of
         configured parameters.
