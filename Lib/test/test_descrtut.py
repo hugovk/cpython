@@ -168,7 +168,8 @@ You can get the information from the list type:
 
     >>> import pprint
     >>> pprint.pprint(dir(list))    # like list.__dict__.keys(), but sorted
-    ['__add__',
+    [
+     '__add__',
      '__class__',
      '__class_getitem__',
      '__contains__',
@@ -215,7 +216,8 @@ You can get the information from the list type:
      'pop',
      'remove',
      'reverse',
-     'sort']
+     'sort',
+    ]
 
 The new introspection API gives more information than the old one:  in
 addition to the regular methods, it also shows the methods that are
