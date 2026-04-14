@@ -1323,7 +1323,10 @@ frozenset2({
   14, 15],
  [], [0], [0, 1], [0, 1, 2], [0, 1, 2, 3],
  [0, 1, 2, 3, 4]]"""
-        self.assertEqual(pprint.pformat(o, width=47, compact=True, expand=False), expected)
+        self.assertEqual(
+            pprint.pformat(o, width=47, indent=1, compact=True, expand=False),
+            expected,
+        )
 
     def test_compact_width(self):
         levels = 20
@@ -1332,7 +1335,9 @@ frozenset2({
         for i in range(levels - 1):
             o = [o]
         for w in range(levels * 2 + 1, levels + 3 * number - 1):
-            lines = pprint.pformat(o, width=w, compact=True, expand=False).splitlines()
+            lines = pprint.pformat(
+                o, width=w, indent=1, compact=True, expand=False
+            ).splitlines()
             maxwidth = max(map(len, lines))
             self.assertLessEqual(maxwidth, w)
             self.assertGreater(maxwidth, w - 3)
