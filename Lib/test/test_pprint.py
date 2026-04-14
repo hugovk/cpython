@@ -344,7 +344,7 @@ class QueryTestCase(unittest.TestCase):
  'write_io_runtime_us': 43690,
 }"""
         for type in [dict, dict2]:
-            self.assertEqual(pprint.pformat(type(o)), exp)
+            self.assertEqual(pprint.pformat(type(o), indent=1), exp)
 
         exp = """\
 frozendict({
@@ -356,7 +356,7 @@ frozendict({
  'read_io_runtime_us': 0,
  'write_io_runtime_us': 43690,
 })"""
-        self.assertEqual(pprint.pformat(frozendict(o)), exp)
+        self.assertEqual(pprint.pformat(frozendict(o), indent=1), exp)
         exp = """\
 frozendict2({
  'RPM_cal': 0,
@@ -367,73 +367,73 @@ frozendict2({
  'read_io_runtime_us': 0,
  'write_io_runtime_us': 43690,
 })"""
-        self.assertEqual(pprint.pformat(frozendict2(o)), exp)
+        self.assertEqual(pprint.pformat(frozendict2(o), indent=1), exp)
 
         o = range(100)
         exp = 'dict_keys([\n %s,\n])' % ',\n '.join(map(str, o))
         keys = dict.fromkeys(o).keys()
-        self.assertEqual(pprint.pformat(keys), exp)
+        self.assertEqual(pprint.pformat(keys, indent=1), exp)
         keys = frozendict.fromkeys(o).keys()
-        self.assertEqual(pprint.pformat(keys), exp)
+        self.assertEqual(pprint.pformat(keys, indent=1), exp)
 
         o = range(100)
         exp = 'dict_values([\n %s,\n])' % ',\n '.join(map(str, o))
         values = {v: v for v in o}.values()
-        self.assertEqual(pprint.pformat(values), exp)
+        self.assertEqual(pprint.pformat(values, indent=1), exp)
         values = frozendict({v: v for v in o}).values()
-        self.assertEqual(pprint.pformat(values), exp)
+        self.assertEqual(pprint.pformat(values, indent=1), exp)
 
         o = range(100)
         exp = 'dict_items([\n %s,\n])' % ',\n '.join("(%s, %s)" % (i, i) for i in o)
         items = {v: v for v in o}.items()
-        self.assertEqual(pprint.pformat(items), exp)
+        self.assertEqual(pprint.pformat(items, indent=1), exp)
         items = frozendict({v: v for v in o}).items()
-        self.assertEqual(pprint.pformat(items), exp)
+        self.assertEqual(pprint.pformat(items, indent=1), exp)
 
         o = range(100)
         exp = 'odict_keys([\n %s,\n])' % ',\n '.join(map(str, o))
         keys = collections.OrderedDict.fromkeys(o).keys()
-        self.assertEqual(pprint.pformat(keys), exp)
+        self.assertEqual(pprint.pformat(keys, indent=1), exp)
 
         o = range(100)
         exp = 'odict_values([\n %s,\n])' % ',\n '.join(map(str, o))
         values = collections.OrderedDict({v: v for v in o}).values()
-        self.assertEqual(pprint.pformat(values), exp)
+        self.assertEqual(pprint.pformat(values, indent=1), exp)
 
         o = range(100)
         exp = 'odict_items([\n %s,\n])' % ',\n '.join("(%s, %s)" % (i, i) for i in o)
         items = collections.OrderedDict({v: v for v in o}).items()
-        self.assertEqual(pprint.pformat(items), exp)
+        self.assertEqual(pprint.pformat(items, indent=1), exp)
 
         o = range(100)
         exp = 'KeysView({\n ' + ': None,\n '.join(map(str, o)) + ': None,\n})'
         keys_view = KeysView(dict.fromkeys(o))
-        self.assertEqual(pprint.pformat(keys_view), exp)
+        self.assertEqual(pprint.pformat(keys_view, indent=1), exp)
 
         o = range(100)
         exp = 'ItemsView({\n ' + ': None,\n '.join(map(str, o)) + ': None,\n})'
         items_view = ItemsView(dict.fromkeys(o))
-        self.assertEqual(pprint.pformat(items_view), exp)
+        self.assertEqual(pprint.pformat(items_view, indent=1), exp)
 
         o = range(100)
         exp = 'MappingView({\n ' + ': None,\n '.join(map(str, o)) + ': None,\n})'
         mapping_view = MappingView(dict.fromkeys(o))
-        self.assertEqual(pprint.pformat(mapping_view), exp)
+        self.assertEqual(pprint.pformat(mapping_view, indent=1), exp)
 
         o = range(100)
         exp = 'ValuesView({\n ' + ': None,\n '.join(map(str, o)) + ': None,\n})'
         values_view = ValuesView(dict.fromkeys(o))
-        self.assertEqual(pprint.pformat(values_view), exp)
+        self.assertEqual(pprint.pformat(values_view, indent=1), exp)
 
         o = range(100)
         exp = '[\n %s,\n]' % ',\n '.join(map(str, o))
         for type in [list, list2]:
-            self.assertEqual(pprint.pformat(type(o)), exp)
+            self.assertEqual(pprint.pformat(type(o), indent=1), exp)
 
         o = tuple(range(100))
         exp = '(\n %s,\n)' % ',\n '.join(map(str, o))
         for type in [tuple, tuple2]:
-            self.assertEqual(pprint.pformat(type(o)), exp)
+            self.assertEqual(pprint.pformat(type(o), indent=1), exp)
 
         # indent parameter
         o = range(100)
@@ -494,10 +494,10 @@ frozendict2({
   ],
  ],
 ]"""
-        self.assertEqual(pprint.pformat(o, width=15), expected)
-        self.assertEqual(pprint.pformat(o, width=16), expected)
-        self.assertEqual(pprint.pformat(o, width=25), expected)
-        self.assertEqual(pprint.pformat(o, width=14), """\
+        self.assertEqual(pprint.pformat(o, width=15, indent=1), expected)
+        self.assertEqual(pprint.pformat(o, width=16, indent=1), expected)
+        self.assertEqual(pprint.pformat(o, width=25, indent=1), expected)
+        self.assertEqual(pprint.pformat(o, width=14, indent=1), """\
 [
  [
   [
@@ -582,12 +582,12 @@ frozendict2({
 
     def test_ordered_dict(self):
         d = collections.OrderedDict()
-        self.assertEqual(pprint.pformat(d, width=1), 'OrderedDict()')
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), 'OrderedDict()')
         d = collections.OrderedDict([])
-        self.assertEqual(pprint.pformat(d, width=1), 'OrderedDict()')
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), 'OrderedDict()')
         words = 'the quick brown fox jumped over a lazy dog'.split()
         d = collections.OrderedDict(zip(words, itertools.count()))
-        self.assertEqual(pprint.pformat(d),
+        self.assertEqual(pprint.pformat(d, indent=1),
 """\
 OrderedDict([
  ('the', 0),
@@ -600,7 +600,7 @@ OrderedDict([
  ('lazy', 7),
  ('dog', 8),
 ])""")
-        self.assertEqual(pprint.pformat(d.keys(), sort_dicts=False),
+        self.assertEqual(pprint.pformat(d.keys(), sort_dicts=False, indent=1),
 """\
 odict_keys([
  'the',
@@ -613,7 +613,7 @@ odict_keys([
  'lazy',
  'dog',
 ])""")
-        self.assertEqual(pprint.pformat(d.items(), sort_dicts=False),
+        self.assertEqual(pprint.pformat(d.items(), sort_dicts=False, indent=1),
 """\
 odict_items([
  ('the', 0),
@@ -626,14 +626,14 @@ odict_items([
  ('lazy', 7),
  ('dog', 8),
 ])""")
-        self.assertEqual(pprint.pformat(d.values(), sort_dicts=False),
+        self.assertEqual(pprint.pformat(d.values(), sort_dicts=False, indent=1),
                          "odict_values([0, 1, 2, 3, 4, 5, 6, 7, 8])")
 
     def test_mapping_proxy(self):
         words = 'the quick brown fox jumped over a lazy dog'.split()
         d = dict(zip(words, itertools.count()))
         m = types.MappingProxyType(d)
-        self.assertEqual(pprint.pformat(m), """\
+        self.assertEqual(pprint.pformat(m, indent=1), """\
 mappingproxy({
  'a': 6,
  'brown': 2,
@@ -647,7 +647,7 @@ mappingproxy({
 })""")
         d = collections.OrderedDict(zip(words, itertools.count()))
         m = types.MappingProxyType(d)
-        self.assertEqual(pprint.pformat(m), """\
+        self.assertEqual(pprint.pformat(m, indent=1), """\
 mappingproxy(OrderedDict([
  ('the', 0),
  ('quick', 1),
@@ -675,22 +675,22 @@ mappingproxy(OrderedDict([
                     k = d.keys()
                     v = d.values()
                     i = d.items()
-                    self.assertEqual(pprint.pformat(k, sort_dicts=True),
+                    self.assertEqual(pprint.pformat(k, sort_dicts=True, indent=1),
                                      fmt % (prefix + "_keys",
                                      joiner.join(repr(key) for key in sorted(k))))
-                    self.assertEqual(pprint.pformat(v, sort_dicts=True),
+                    self.assertEqual(pprint.pformat(v, sort_dicts=True, indent=1),
                                      fmt % (prefix + "_values",
                                      joiner.join(repr(val) for val in sorted(v))))
-                    self.assertEqual(pprint.pformat(i, sort_dicts=True),
+                    self.assertEqual(pprint.pformat(i, sort_dicts=True, indent=1),
                                      fmt % (prefix + "_items",
                                      joiner.join(repr(item) for item in sorted(i))))
-                    self.assertEqual(pprint.pformat(k, sort_dicts=False),
+                    self.assertEqual(pprint.pformat(k, sort_dicts=False, indent=1),
                                      fmt % (prefix + "_keys",
                                      joiner.join(repr(key) for key in k)))
-                    self.assertEqual(pprint.pformat(v, sort_dicts=False),
+                    self.assertEqual(pprint.pformat(v, sort_dicts=False, indent=1),
                                      fmt % (prefix + "_values",
                                      joiner.join(repr(val) for val in v)))
-                    self.assertEqual(pprint.pformat(i, sort_dicts=False),
+                    self.assertEqual(pprint.pformat(i, sort_dicts=False, indent=1),
                                      fmt % (prefix + "_items",
                                      joiner.join(repr(item) for item in i)))
 
@@ -711,25 +711,25 @@ mappingproxy(OrderedDict([
                 s = sorted(i)
                 joined_items = fmt % joiner.join(["%r: %r" % (k, v) for (k, v) in i])
                 sorted_items = fmt % joiner.join(["%r: %r" % (k, v) for (k, v) in s])
-                self.assertEqual(pprint.pformat(KeysView(d), sort_dicts=True),
+                self.assertEqual(pprint.pformat(KeysView(d), sort_dicts=True, indent=1),
                                  KeysView.__name__ + sorted_items)
-                self.assertEqual(pprint.pformat(ItemsView(d), sort_dicts=True),
+                self.assertEqual(pprint.pformat(ItemsView(d), sort_dicts=True, indent=1),
                                  ItemsView.__name__ + sorted_items)
-                self.assertEqual(pprint.pformat(MappingView(d), sort_dicts=True),
+                self.assertEqual(pprint.pformat(MappingView(d), sort_dicts=True, indent=1),
                                  MappingView.__name__ + sorted_items)
-                self.assertEqual(pprint.pformat(MV(d), sort_dicts=True),
+                self.assertEqual(pprint.pformat(MV(d), sort_dicts=True, indent=1),
                                  MV.__name__ + sorted_items)
-                self.assertEqual(pprint.pformat(ValuesView(d), sort_dicts=True),
+                self.assertEqual(pprint.pformat(ValuesView(d), sort_dicts=True, indent=1),
                                  ValuesView.__name__ + sorted_items)
-                self.assertEqual(pprint.pformat(KeysView(d), sort_dicts=False),
+                self.assertEqual(pprint.pformat(KeysView(d), sort_dicts=False, indent=1),
                                  KeysView.__name__ + joined_items)
-                self.assertEqual(pprint.pformat(ItemsView(d), sort_dicts=False),
+                self.assertEqual(pprint.pformat(ItemsView(d), sort_dicts=False, indent=1),
                                  ItemsView.__name__ + joined_items)
-                self.assertEqual(pprint.pformat(MappingView(d), sort_dicts=False),
+                self.assertEqual(pprint.pformat(MappingView(d), sort_dicts=False, indent=1),
                                  MappingView.__name__ + joined_items)
-                self.assertEqual(pprint.pformat(MV(d), sort_dicts=False),
+                self.assertEqual(pprint.pformat(MV(d), sort_dicts=False, indent=1),
                                  MV.__name__ + joined_items)
-                self.assertEqual(pprint.pformat(ValuesView(d), sort_dicts=False),
+                self.assertEqual(pprint.pformat(ValuesView(d), sort_dicts=False, indent=1),
                                  ValuesView.__name__ + joined_items)
 
     def test_nested_views(self):
@@ -857,7 +857,7 @@ namespace(
             lazy=7,
             dog=8,
         )
-        formatted = pprint.pformat(ns, width=60)
+        formatted = pprint.pformat(ns, width=60, indent=1)
         self.assertEqual(formatted, """\
 AdvancedNamespace(
  the=0,
@@ -914,7 +914,7 @@ AdvancedNamespace(
     def test_recursive_dataclass(self):
         dc = dataclass4(None)
         dc.a = dc
-        formatted = pprint.pformat(dc, width=10)
+        formatted = pprint.pformat(dc, width=10, indent=1)
         self.assertEqual(formatted, """\
 dataclass4(
  a=...,
@@ -926,7 +926,7 @@ dataclass4(
         dc6 = dataclass6(None)
         dc5.a = dc6
         dc6.c = dc5
-        formatted = pprint.pformat(dc5, width=10)
+        formatted = pprint.pformat(dc5, width=10, indent=1)
         self.assertEqual(formatted, """\
 dataclass5(
  a=dataclass6(
@@ -946,7 +946,7 @@ dataclass5(
  others.should.not.be: like.this,
 }"""
 
-        dotted_printer = DottedPrettyPrinter()
+        dotted_printer = DottedPrettyPrinter(indent=1)
         self.assertEqual(dotted_printer.pformat(o), exp)
 
         # length(repr(obj)) < width
@@ -958,9 +958,9 @@ dataclass5(
         self.assertEqual(dotted_printer.pformat(o2), exp2)
 
     def test_set_reprs(self):
-        self.assertEqual(pprint.pformat(set()), 'set()')
-        self.assertEqual(pprint.pformat(set(range(3))), '{0, 1, 2}')
-        self.assertEqual(pprint.pformat(set(range(7)), width=20), '''\
+        self.assertEqual(pprint.pformat(set(), indent=1), 'set()')
+        self.assertEqual(pprint.pformat(set(range(3)), indent=1), '{0, 1, 2}')
+        self.assertEqual(pprint.pformat(set(range(7)), width=20, indent=1), '''\
 {
  0,
  1,
@@ -970,7 +970,7 @@ dataclass5(
  5,
  6,
 }''')
-        self.assertEqual(pprint.pformat(set2(range(7)), width=20), '''\
+        self.assertEqual(pprint.pformat(set2(range(7)), width=20, indent=1), '''\
 set2({
  0,
  1,
@@ -980,13 +980,13 @@ set2({
  5,
  6,
 })''')
-        self.assertEqual(pprint.pformat(set3(range(7)), width=20),
+        self.assertEqual(pprint.pformat(set3(range(7)), width=20, indent=1),
                          'set3({0, 1, 2, 3, 4, 5, 6})')
 
-        self.assertEqual(pprint.pformat(frozenset()), 'frozenset()')
-        self.assertEqual(pprint.pformat(frozenset(range(3))),
+        self.assertEqual(pprint.pformat(frozenset(), indent=1), 'frozenset()')
+        self.assertEqual(pprint.pformat(frozenset(range(3)), indent=1),
                          'frozenset({0, 1, 2})')
-        self.assertEqual(pprint.pformat(frozenset(range(7)), width=20), '''\
+        self.assertEqual(pprint.pformat(frozenset(range(7)), width=20, indent=1), '''\
 frozenset({
  0,
  1,
@@ -996,7 +996,7 @@ frozenset({
  5,
  6,
 })''')
-        self.assertEqual(pprint.pformat(frozenset2(range(7)), width=20), '''\
+        self.assertEqual(pprint.pformat(frozenset2(range(7)), width=20, indent=1), '''\
 frozenset2({
  0,
  1,
@@ -1006,7 +1006,7 @@ frozenset2({
  5,
  6,
 })''')
-        self.assertEqual(pprint.pformat(frozenset3(range(7)), width=20),
+        self.assertEqual(pprint.pformat(frozenset3(range(7)), width=20, indent=1),
                          'frozenset3({0, 1, 2, 3, 4, 5, 6})')
 
     def test_set_of_sets_reprs(self):
@@ -1038,21 +1038,21 @@ frozenset2({
         fs0 = frozenset()
         fs1 = frozenset(('abc', 'xyz'))
         data = frozenset((fs0, fs1))
-        self.assertEqual(pprint.pformat(data),
+        self.assertEqual(pprint.pformat(data, indent=1),
                          'frozenset({%r, %r})' % (fs0, fs1))
-        self.assertEqual(pprint.pformat(data), repr(data))
+        self.assertEqual(pprint.pformat(data, indent=1), repr(data))
 
         fs2 = frozenset(('one', 'two'))
         data = {fs2: frozenset((fs0, fs1))}
-        self.assertEqual(pprint.pformat(data),
+        self.assertEqual(pprint.pformat(data, indent=1),
                          "{%r: frozenset({%r, %r})}" % (fs2, fs0, fs1))
-        self.assertEqual(pprint.pformat(data), repr(data))
+        self.assertEqual(pprint.pformat(data, indent=1), repr(data))
 
         # Single-line, unordered:
         fs1 = frozenset(("xyz", "qwerty"))
         fs2 = frozenset(("abcd", "spam"))
         fs = frozenset((fs1, fs2))
-        self.assertEqual(pprint.pformat(fs), repr(fs))
+        self.assertEqual(pprint.pformat(fs, indent=1), repr(fs))
 
         # Multiline, unordered:
         def check(res, invariants):
@@ -1062,7 +1062,7 @@ frozenset2({
         fs1 = frozenset(('regular string', 'other string'))
         fs2 = frozenset(('third string', 'one more string'))
         check(
-            pprint.pformat(frozenset((fs1, fs2))),
+            pprint.pformat(frozenset((fs1, fs2)), indent=1),
             [
                 """
                 frozenset({
@@ -1092,7 +1092,7 @@ frozenset2({
                         "spam is not so long",
                     )),
                 )),
-            ),
+            indent=1),
             [
                 """
                 frozenset({
@@ -1205,27 +1205,27 @@ frozenset2({
         self.assertEqual(sorted([b, a]), [a, b])
         self.assertEqual(sorted([a, b]), [a, b])
         # set
-        self.assertEqual(pprint.pformat(set([b, a]), width=1),
+        self.assertEqual(pprint.pformat(set([b, a]), width=1, indent=1),
                          '{\n %r,\n %r,\n}' % (a, b))
-        self.assertEqual(pprint.pformat(set([a, b]), width=1),
+        self.assertEqual(pprint.pformat(set([a, b]), width=1, indent=1),
                          '{\n %r,\n %r,\n}' % (a, b))
         # dict
-        self.assertEqual(pprint.pformat(dict.fromkeys([b, a]), width=1),
+        self.assertEqual(pprint.pformat(dict.fromkeys([b, a]), width=1, indent=1),
                          '{\n %r: None,\n %r: None,\n}' % (a, b))
-        self.assertEqual(pprint.pformat(dict.fromkeys([a, b]), width=1),
+        self.assertEqual(pprint.pformat(dict.fromkeys([a, b]), width=1, indent=1),
                          '{\n %r: None,\n %r: None,\n}' % (a, b))
 
     def test_str_wrap(self):
         # pprint tries to wrap strings intelligently
         fox = 'the quick brown fox jumped over a lazy dog'
-        self.assertEqual(pprint.pformat(fox, width=19), """\
+        self.assertEqual(pprint.pformat(fox, width=19, indent=1), """\
 (
  'the quick brown '
  'fox jumped over '
  'a lazy dog'
 )""")
         self.assertEqual(pprint.pformat({'a': 1, 'b': fox, 'c': 2},
-                                        width=25), """\
+                                        width=25, indent=1), """\
 {
  'a': 1,
  'b': 'the quick brown fox '
@@ -1239,14 +1239,14 @@ frozenset2({
         # - non-ASCII is allowed
         # - an apostrophe doesn't disrupt the pprint
         special = "Portons dix bons \"whiskys\"\nà l'avocat goujat\t qui fumait au zoo"
-        self.assertEqual(pprint.pformat(special, width=68), repr(special))
-        self.assertEqual(pprint.pformat(special, width=31), """\
+        self.assertEqual(pprint.pformat(special, width=68, indent=1), repr(special))
+        self.assertEqual(pprint.pformat(special, width=31, indent=1), """\
 (
  'Portons dix bons "whiskys"\\n'
  "à l'avocat goujat\\t qui "
  'fumait au zoo'
 )""")
-        self.assertEqual(pprint.pformat(special, width=20), """\
+        self.assertEqual(pprint.pformat(special, width=20, indent=1), """\
 (
  'Portons dix bons '
  '"whiskys"\\n'
@@ -1254,7 +1254,7 @@ frozenset2({
  'goujat\\t qui '
  'fumait au zoo'
 )""")
-        self.assertEqual(pprint.pformat([[[[[special]]]]], width=35), """\
+        self.assertEqual(pprint.pformat([[[[[special]]]]], width=35, indent=1), """\
 [
  [
   [
@@ -1268,7 +1268,7 @@ frozenset2({
   ],
  ],
 ]""")
-        self.assertEqual(pprint.pformat([[[[[special]]]]], width=25), """\
+        self.assertEqual(pprint.pformat([[[[[special]]]]], width=25, indent=1), """\
 [
  [
   [
@@ -1284,7 +1284,7 @@ frozenset2({
   ],
  ],
 ]""")
-        self.assertEqual(pprint.pformat([[[[[special]]]]], width=23), """\
+        self.assertEqual(pprint.pformat([[[[[special]]]]], width=23, indent=1), """\
 [
  [
   [
@@ -1303,14 +1303,14 @@ frozenset2({
 ]""")
         # An unwrappable string is formatted as its repr
         unwrappable = "x" * 100
-        self.assertEqual(pprint.pformat(unwrappable, width=80), repr(unwrappable))
-        self.assertEqual(pprint.pformat(''), "''")
+        self.assertEqual(pprint.pformat(unwrappable, width=80, indent=1), repr(unwrappable))
+        self.assertEqual(pprint.pformat('', indent=1), "''")
         # Check that the pprint is a usable repr
         special *= 10
         for width in range(3, 40):
-            formatted = pprint.pformat(special, width=width)
+            formatted = pprint.pformat(special, width=width, indent=1)
             self.assertEqual(eval(formatted), special)
-            formatted = pprint.pformat([special] * 2, width=width)
+            formatted = pprint.pformat([special] * 2, width=width, indent=1)
             self.assertEqual(eval(formatted), [special] * 2)
 
     def test_compact(self):
@@ -1343,41 +1343,41 @@ frozenset2({
             self.assertGreater(maxwidth, w - 3)
 
     def test_bytes_wrap(self):
-        self.assertEqual(pprint.pformat(b'', width=1), "b''")
-        self.assertEqual(pprint.pformat(b'abcd', width=1), "b'abcd'")
+        self.assertEqual(pprint.pformat(b'', width=1, indent=1), "b''")
+        self.assertEqual(pprint.pformat(b'abcd', width=1, indent=1), "b'abcd'")
         letters = b'abcdefghijklmnopqrstuvwxyz'
-        self.assertEqual(pprint.pformat(letters, width=29), repr(letters))
-        self.assertEqual(pprint.pformat(letters, width=19), """\
+        self.assertEqual(pprint.pformat(letters, width=29, indent=1), repr(letters))
+        self.assertEqual(pprint.pformat(letters, width=19, indent=1), """\
 (
  b'abcdefghijkl'
  b'mnopqrstuvwxyz'
 )""")
-        self.assertEqual(pprint.pformat(letters, width=18), """\
+        self.assertEqual(pprint.pformat(letters, width=18, indent=1), """\
 (
  b'abcdefghijkl'
  b'mnopqrstuvwx'
  b'yz'
 )""")
-        self.assertEqual(pprint.pformat(letters, width=16), """\
+        self.assertEqual(pprint.pformat(letters, width=16, indent=1), """\
 (
  b'abcdefghijkl'
  b'mnopqrstuvwx'
  b'yz'
 )""")
         special = bytes(range(16))
-        self.assertEqual(pprint.pformat(special, width=61), repr(special))
-        self.assertEqual(pprint.pformat(special, width=48), """\
+        self.assertEqual(pprint.pformat(special, width=61, indent=1), repr(special))
+        self.assertEqual(pprint.pformat(special, width=48, indent=1), """\
 (
  b'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b'
  b'\\x0c\\r\\x0e\\x0f'
 )""")
-        self.assertEqual(pprint.pformat(special, width=32), """\
+        self.assertEqual(pprint.pformat(special, width=32, indent=1), """\
 (
  b'\\x00\\x01\\x02\\x03'
  b'\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b'
  b'\\x0c\\r\\x0e\\x0f'
 )""")
-        self.assertEqual(pprint.pformat(special, width=1), """\
+        self.assertEqual(pprint.pformat(special, width=1, indent=1), """\
 (
  b'\\x00\\x01\\x02\\x03'
  b'\\x04\\x05\\x06\\x07'
@@ -1385,7 +1385,7 @@ frozenset2({
  b'\\x0c\\r\\x0e\\x0f'
 )""")
         self.assertEqual(pprint.pformat({'a': 1, 'b': letters, 'c': 2},
-                                        width=21), """\
+                                        width=21, indent=1), """\
 {
  'a': 1,
  'b': b'abcdefghijklmnop'
@@ -1393,14 +1393,14 @@ frozenset2({
  'c': 2,
 }""")
         self.assertEqual(pprint.pformat({'a': 1, 'b': letters, 'c': 2},
-                                        width=20), """\
+                                        width=20, indent=1), """\
 {
  'a': 1,
  'b': b'abcdefghijklmnop'
  b'qrstuvwxyz',
  'c': 2,
 }""")
-        self.assertEqual(pprint.pformat([[[[[[letters]]]]]], width=25), """\
+        self.assertEqual(pprint.pformat([[[[[[letters]]]]]], width=25, indent=1), """\
 [
  [
   [
@@ -1415,7 +1415,7 @@ frozenset2({
   ],
  ],
 ]""")
-        self.assertEqual(pprint.pformat([[[[[[special]]]]]], width=41), """\
+        self.assertEqual(pprint.pformat([[[[[[special]]]]]], width=41, indent=1), """\
 [
  [
   [
@@ -1432,45 +1432,45 @@ frozenset2({
 ]""")
         # Check that the pprint is a usable repr
         for width in range(1, 64):
-            formatted = pprint.pformat(special, width=width)
+            formatted = pprint.pformat(special, width=width, indent=1)
             self.assertEqual(eval(formatted), special)
-            formatted = pprint.pformat([special] * 2, width=width)
+            formatted = pprint.pformat([special] * 2, width=width, indent=1)
             self.assertEqual(eval(formatted), [special] * 2)
 
     def test_bytearray_wrap(self):
-        self.assertEqual(pprint.pformat(bytearray(), width=1), """bytearray(
+        self.assertEqual(pprint.pformat(bytearray(), width=1, indent=1), """bytearray(
  b''
 )""")
         letters = bytearray(b'abcdefghijklmnopqrstuvwxyz')
-        self.assertEqual(pprint.pformat(letters, width=40), repr(letters))
-        self.assertEqual(pprint.pformat(letters, width=28), """\
+        self.assertEqual(pprint.pformat(letters, width=40, indent=1), repr(letters))
+        self.assertEqual(pprint.pformat(letters, width=28, indent=1), """\
 bytearray(
  b'abcdefghijklmnopqrstuvwx'
  b'yz'
 )""")
-        self.assertEqual(pprint.pformat(letters, width=27), """\
+        self.assertEqual(pprint.pformat(letters, width=27, indent=1), """\
 bytearray(
  b'abcdefghijklmnopqrst'
  b'uvwxyz'
 )""")
-        self.assertEqual(pprint.pformat(letters, width=25), """\
+        self.assertEqual(pprint.pformat(letters, width=25, indent=1), """\
 bytearray(
  b'abcdefghijklmnopqrst'
  b'uvwxyz'
 )""")
         special = bytearray(range(16))
-        self.assertEqual(pprint.pformat(special, width=72), repr(special))
-        self.assertEqual(pprint.pformat(special, width=57), """\
+        self.assertEqual(pprint.pformat(special, width=72, indent=1), repr(special))
+        self.assertEqual(pprint.pformat(special, width=57, indent=1), """\
 bytearray(
  b'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b'
  b'\\x0c\\r\\x0e\\x0f'
 )""")
-        self.assertEqual(pprint.pformat(special, width=41), """\
+        self.assertEqual(pprint.pformat(special, width=41, indent=1), """\
 bytearray(
  b'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07'
  b'\\x08\\t\\n\\x0b\\x0c\\r\\x0e\\x0f'
 )""")
-        self.assertEqual(pprint.pformat(special, width=1), """\
+        self.assertEqual(pprint.pformat(special, width=1, indent=1), """\
 bytearray(
  b'\\x00\\x01\\x02\\x03'
  b'\\x04\\x05\\x06\\x07'
@@ -1478,7 +1478,7 @@ bytearray(
  b'\\x0c\\r\\x0e\\x0f'
 )""")
         self.assertEqual(pprint.pformat({'a': 1, 'b': letters, 'c': 2},
-                                        width=31), """\
+                                        width=31, indent=1), """\
 {
  'a': 1,
  'b': bytearray(
@@ -1487,7 +1487,7 @@ bytearray(
  ),
  'c': 2,
 }""")
-        self.assertEqual(pprint.pformat([[[[[letters]]]]], width=37), """\
+        self.assertEqual(pprint.pformat([[[[[letters]]]]], width=37, indent=1), """\
 [
  [
   [
@@ -1502,7 +1502,7 @@ bytearray(
   ],
  ],
 ]""")
-        self.assertEqual(pprint.pformat([[[[[special]]]]], width=50), """\
+        self.assertEqual(pprint.pformat([[[[[special]]]]], width=50, indent=1), """\
 [
  [
   [
@@ -1520,10 +1520,10 @@ bytearray(
 
     def test_default_dict(self):
         d = collections.defaultdict(int)
-        self.assertEqual(pprint.pformat(d, width=1), "defaultdict(<class 'int'>, {})")
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), "defaultdict(<class 'int'>, {})")
         words = 'the quick brown fox jumped over a lazy dog'.split()
         d = collections.defaultdict(int, zip(words, itertools.count()))
-        self.assertEqual(pprint.pformat(d),
+        self.assertEqual(pprint.pformat(d, indent=1),
 """\
 defaultdict(<class 'int'>, {
  'a': 6,
@@ -1539,9 +1539,9 @@ defaultdict(<class 'int'>, {
 
     def test_counter(self):
         d = collections.Counter()
-        self.assertEqual(pprint.pformat(d, width=1), "Counter()")
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), "Counter()")
         d = collections.Counter('senselessness')
-        self.assertEqual(pprint.pformat(d, width=40),
+        self.assertEqual(pprint.pformat(d, width=40, indent=1),
 """\
 Counter({
  's': 6,
@@ -1560,12 +1560,12 @@ Counter({
 
     def test_chainmap(self):
         d = collections.ChainMap()
-        self.assertEqual(pprint.pformat(d, width=1),
+        self.assertEqual(pprint.pformat(d, width=1, indent=1),
                          "ChainMap(\n {\n  \n },\n)")
         words = 'the quick brown fox jumped over a lazy dog'.split()
         items = list(zip(words, itertools.count()))
         d = collections.ChainMap(dict(items))
-        self.assertEqual(pprint.pformat(d),
+        self.assertEqual(pprint.pformat(d, indent=1),
 """\
 ChainMap(
  {
@@ -1581,7 +1581,7 @@ ChainMap(
  },
 )""")
         d = collections.ChainMap(dict(items), collections.OrderedDict(items))
-        self.assertEqual(pprint.pformat(d),
+        self.assertEqual(pprint.pformat(d, indent=1),
 """\
 ChainMap(
  {
@@ -1607,7 +1607,7 @@ ChainMap(
   ('dog', 8),
  ]),
 )""")
-        self.assertEqual(pprint.pformat(d.keys()),
+        self.assertEqual(pprint.pformat(d.keys(), indent=1),
 """\
 KeysView(ChainMap(
  {
@@ -1633,7 +1633,7 @@ KeysView(ChainMap(
   ('dog', 8),
  ]),
 ))""")
-        self.assertEqual(pprint.pformat(d.items()),
+        self.assertEqual(pprint.pformat(d.items(), indent=1),
 """\
 ItemsView(ChainMap(
  {
@@ -1659,7 +1659,7 @@ ItemsView(ChainMap(
   ('dog', 8),
  ]),
 ))""")
-        self.assertEqual(pprint.pformat(d.values()),
+        self.assertEqual(pprint.pformat(d.values(), indent=1),
 """\
 ValuesView(ChainMap(
  {
@@ -1688,12 +1688,12 @@ ValuesView(ChainMap(
 
     def test_deque(self):
         d = collections.deque()
-        self.assertEqual(pprint.pformat(d, width=1), "deque([])")
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), "deque([])")
         d = collections.deque(maxlen=7)
-        self.assertEqual(pprint.pformat(d, width=1), "deque([], maxlen=7)")
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), "deque([], maxlen=7)")
         words = 'the quick brown fox jumped over a lazy dog'.split()
         d = collections.deque(zip(words, itertools.count()))
-        self.assertEqual(pprint.pformat(d),
+        self.assertEqual(pprint.pformat(d, indent=1),
 """\
 deque([
  ('the', 0),
@@ -1707,7 +1707,7 @@ deque([
  ('dog', 8),
 ])""")
         d = collections.deque(zip(words, itertools.count()), maxlen=7)
-        self.assertEqual(pprint.pformat(d),
+        self.assertEqual(pprint.pformat(d, indent=1),
 """\
 deque([
  ('brown', 2),
@@ -1721,10 +1721,10 @@ deque([
 
     def test_user_dict(self):
         d = collections.UserDict()
-        self.assertEqual(pprint.pformat(d, width=1), "{\n \n}")
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), "{\n \n}")
         words = 'the quick brown fox jumped over a lazy dog'.split()
         d = collections.UserDict(zip(words, itertools.count()))
-        self.assertEqual(pprint.pformat(d),
+        self.assertEqual(pprint.pformat(d, indent=1),
 """\
 {
  'a': 6,
@@ -1737,7 +1737,7 @@ deque([
  'quick': 1,
  'the': 0,
 }""")
-        self.assertEqual(pprint.pformat(d.keys()), """\
+        self.assertEqual(pprint.pformat(d.keys(), indent=1), """\
 KeysView({
  'a': 6,
  'brown': 2,
@@ -1749,7 +1749,7 @@ KeysView({
  'quick': 1,
  'the': 0,
 })""")
-        self.assertEqual(pprint.pformat(d.items()), """\
+        self.assertEqual(pprint.pformat(d.items(), indent=1), """\
 ItemsView({
  'a': 6,
  'brown': 2,
@@ -1761,7 +1761,7 @@ ItemsView({
  'quick': 1,
  'the': 0,
 })""")
-        self.assertEqual(pprint.pformat(d.values()), """\
+        self.assertEqual(pprint.pformat(d.values(), indent=1), """\
 ValuesView({
  'a': 6,
  'brown': 2,
@@ -1776,10 +1776,10 @@ ValuesView({
 
     def test_user_list(self):
         d = collections.UserList()
-        self.assertEqual(pprint.pformat(d, width=1), "[\n \n]")
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), "[\n \n]")
         words = 'the quick brown fox jumped over a lazy dog'.split()
         d = collections.UserList(zip(words, itertools.count()))
-        self.assertEqual(pprint.pformat(d),
+        self.assertEqual(pprint.pformat(d, indent=1),
 """\
 [
  ('the', 0),
@@ -1795,16 +1795,16 @@ ValuesView({
 
     def test_user_string(self):
         d = collections.UserString('')
-        self.assertEqual(pprint.pformat(d, width=1), "''")
+        self.assertEqual(pprint.pformat(d, width=1, indent=1), "''")
         d = collections.UserString('the quick brown fox jumped over a lazy dog')
-        self.assertEqual(pprint.pformat(d, width=20),
+        self.assertEqual(pprint.pformat(d, width=20, indent=1),
 """\
 (
  'the quick brown '
  'fox jumped over '
  'a lazy dog'
 )""")
-        self.assertEqual(pprint.pformat({1: d}, width=20),
+        self.assertEqual(pprint.pformat({1: d}, width=20, indent=1),
 """\
 {
  1: 'the quick brown '
