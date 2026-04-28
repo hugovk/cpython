@@ -1,6 +1,7 @@
 # These libraries in the stdlib can be type-checked.
 
 _colorize.py
+_colorize_theme.py
 _pyrepl
 token.py
 tomllib

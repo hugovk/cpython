@@ -2,11 +2,13 @@ import contextlib
 import dataclasses
 import io
 import sys
+import textwrap
 import unittest
 import unittest.mock
 import _colorize
 from test.support import cpython_only, import_helper
 from test.support.os_helper import EnvironmentVarGuard
+from test.support.script_helper import assert_python_ok
 
 
 @contextlib.contextmanager
@@ -27,9 +29,65 @@ class TestImportTime(unittest.TestCase):
 
     @cpython_only
     def test_lazy_import(self):
+        # The theme machinery (and therefore `dataclasses`) must not be pulled
+        # in by `import _colorize`; doing so would noticeably slow down
+        # `import traceback` for every Python program.
         import_helper.ensure_lazy_imports(
-            "_colorize", {"copy", "re", "inspect"}
+            "_colorize",
+            {"copy", "re", "inspect", "dataclasses", "_colorize_theme"},
         )
+
+    @cpython_only
+    def test_theme_module_loaded_on_demand(self):
+        # Sanity check that the lazy boundary actually fires: importing
+        # `_colorize` is cheap, but calling `get_theme()` loads the theme
+        # module and `dataclasses`.
+        script = textwrap.dedent("""
+            import sys
+            import _colorize
+            assert "_colorize_theme" not in sys.modules
+            assert "dataclasses" not in sys.modules
+            theme = _colorize.get_theme(force_no_color=True)
+            assert "_colorize_theme" in sys.modules
+            assert "dataclasses" in sys.modules
+            assert isinstance(theme, _colorize.Theme), type(theme)
+        """)
+        assert_python_ok("-S", "-c", script)
+
+    @cpython_only
+    def test_pep810_lazy_from_import(self):
+        # `lazy from _colorize import get_theme` bypasses module `__getattr__`,
+        # so `get_theme` and `set_theme` must be real module attributes.
+        # See `Lib/ast.py` for an in-tree user of this pattern.
+        script = textwrap.dedent("""
+            lazy from _colorize import get_theme, set_theme
+            theme = get_theme(force_no_color=True)
+            assert theme.traceback.message == ""
+        """)
+        assert_python_ok("-S", "-c", script)
+
+    def test_shutdown_fallback(self):
+        # During late interpreter shutdown the import system can be torn down,
+        # so `_load_theme_module()` may fail with ImportError. In that case
+        # `get_theme()` must still return an object that behaves as empty
+        # strings in the contexts traceback formatting uses (f-strings,
+        # concatenation), so that tracebacks formatted from `__del__` keep
+        # working (see test_traceback.test_print_traceback_at_exit).
+        script = textwrap.dedent("""
+            import sys
+            import _colorize
+            # Block `import _colorize_theme` exactly as Python's late
+            # shutdown does (after _colorize is already loaded).
+            sys.modules["_colorize_theme"] = None
+            theme = _colorize.get_theme(force_no_color=True)
+            section = theme.traceback
+            assert f"{section.frame}body{section.reset}" == "body"
+            assert "x" + section.message == "x"
+            assert section.message + "x" == "x"
+            assert str(section.frame) == ""
+            assert section["any_field"] == ""
+        """)
+        assert_python_ok("-S", "-c", script)
 
 
 class TestTheme(unittest.TestCase):
