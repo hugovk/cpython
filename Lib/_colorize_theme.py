@@ -372,7 +372,7 @@ class Theme:
             f.name: sections.get(f.name, getattr(self, f.name))
             for f in fields(self)
         }
-        return type(self)(**new)  # type: ignore[arg-type]
+        return type(self)(**new)
 
     @classmethod
     def no_colors(cls) -> Self:
