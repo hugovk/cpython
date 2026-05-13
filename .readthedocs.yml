@@ -53,6 +53,6 @@ build:
       - asdf global uv latest
     build:
       html:
-        - make -C Doc venv html
+        - make -C Doc venv html REQUIREMENTS=requirements.txt
         - mkdir -p "$READTHEDOCS_OUTPUT"
         - mv Doc/build/html "$READTHEDOCS_OUTPUT/"
