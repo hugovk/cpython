@@ -3,6 +3,7 @@
 #include "Python.h"
 #include "pycore_audit.h"         // _PySys_Audit()
 #include "pycore_ceval.h"
+#include "pycore_colorize.h"      // _Py_can_colorize()
 #include "pycore_critical_section.h"  // Py_BEGIN_CRITICAL_SECTION()
 #include "pycore_dict.h"          // _PyDict_Contains_KnownHash()
 #include "pycore_hashtable.h"     // _Py_hashtable_new_full()
@@ -136,8 +137,14 @@ static struct _inittab *inittab_copy = NULL;
 #define _IMPORT_TIME_HEADER(interp)                                           \
     do {                                                                      \
         if (FIND_AND_LOAD((interp)).header) {                                 \
-            fputs("import time: self [us] | cumulative | imported package\n", \
-                  stderr);                                                    \
+            int color = _Py_can_colorize(stderr);                             \
+            FIND_AND_LOAD((interp)).colorize = color;                         \
+            fprintf(stderr,                                                   \
+                    "%simport time:%s %sself [us] | cumulative | imported package%s\n", \
+                    color ? _PY_ANSI_GREY : "",                               \
+                    color ? _PY_ANSI_RESET : "",                              \
+                    color ? _PY_ANSI_BOLD : "",                               \
+                    color ? _PY_ANSI_RESET : "");                             \
             FIND_AND_LOAD((interp)).header = 0;                               \
         }                                                                     \
     } while (0)
@@ -325,7 +332,15 @@ done:
     if (_PyInterpreterState_GetConfig(interp)->import_time == 2) {
         _IMPORT_TIME_HEADER(interp);
 #define import_level FIND_AND_LOAD(interp).import_level
-        fprintf(stderr, "import time: cached    | cached     | %*s\n",
+        int color = FIND_AND_LOAD(interp).colorize;
+        fprintf(stderr,
+                "%simport time:%s %scached%s    | %scached%s     | %*s\n",
+                color ? _PY_ANSI_GREY : "",
+                color ? _PY_ANSI_RESET : "",
+                color ? _PY_ANSI_YELLOW : "",
+                color ? _PY_ANSI_RESET : "",
+                color ? _PY_ANSI_YELLOW : "",
+                color ? _PY_ANSI_RESET : "",
                 import_level*2, PyUnicode_AsUTF8(name));
 #undef import_level
     }
@@ -4146,10 +4161,20 @@ import_find_and_load(PyThreadState *tstate, PyObject *abs_name)
         PyTime_t cum = t2 - t1;
 
         import_level--;
-        fprintf(stderr, "import time: %9ld | %10ld | %*s%s\n",
+        int color = FIND_AND_LOAD(interp).colorize;
+        fprintf(stderr,
+                "%simport time:%s %s%9ld%s | %s%10ld%s | %*s%s\n",
+                color ? _PY_ANSI_GREY : "",
+                color ? _PY_ANSI_RESET : "",
+                color ? _PY_ANSI_CYAN : "",
                 (long)_PyTime_AsMicroseconds(cum - accumulated, _PyTime_ROUND_CEILING),
+                color ? _PY_ANSI_RESET : "",
+                color ? _PY_ANSI_CYAN : "",
                 (long)_PyTime_AsMicroseconds(cum, _PyTime_ROUND_CEILING),
-                import_level*2, "", PyUnicode_AsUTF8(abs_name));
+                color ? _PY_ANSI_RESET : "",
+                import_level*2,
+                "",
+                PyUnicode_AsUTF8(abs_name));
 
         accumulated = accumulated_copy + cum;
     }

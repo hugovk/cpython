@@ -234,6 +234,7 @@
     <ClInclude Include="..\Include\internal\pycore_ceval_state.h" />
     <ClInclude Include="..\Include\internal\pycore_code.h" />
     <ClInclude Include="..\Include\internal\pycore_codecs.h" />
+    <ClInclude Include="..\Include\internal\pycore_colorize.h" />
     <ClInclude Include="..\Include\internal\pycore_compile.h" />
     <ClInclude Include="..\Include\internal\pycore_complexobject.h" />
     <ClInclude Include="..\Include\internal\pycore_condvar.h" />
@@ -644,6 +645,7 @@
     <ClCompile Include="..\Python\getplatform.c" />
     <ClCompile Include="..\Python\getversion.c" />
     <ClCompile Include="..\Python\ceval_gil.c" />
+    <ClCompile Include="..\Python\colorize.c" />
     <ClCompile Include="..\Python\hamt.c" />
     <ClCompile Include="..\Python\hashtable.c" />
     <ClCompile Include="..\Python\import.c" />

@@ -606,6 +606,9 @@
     <ClInclude Include="..\Include\internal\pycore_codecs.h">
       <Filter>Include\internal</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\internal\pycore_colorize.h">
+      <Filter>Include\internal</Filter>
+    </ClInclude>
     <ClInclude Include="..\Include\internal\pycore_compile.h">
       <Filter>Include\internal</Filter>
     </ClInclude>
@@ -1461,6 +1464,9 @@
       <Filter>Python</Filter>
     </ClCompile>
     <ClCompile Include="..\Python\ceval_gil.c">
+      <Filter>Python</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Python\colorize.c">
       <Filter>Python</Filter>
     </ClCompile>
     <ClCompile Include="..\Python\hashtable.c">

@@ -368,6 +368,7 @@ struct _import_state {
         int import_level;
         PyTime_t accumulated;
         int header;
+        int colorize;
     } find_and_load;
 };
 

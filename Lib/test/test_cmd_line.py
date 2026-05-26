@@ -1230,6 +1230,7 @@ class CmdLineTest(unittest.TestCase):
         res = assert_python_ok('-c', code, PYTHON_CPU_COUNT='default')
         self.assertEqual(self.res2int(res), (os.cpu_count(), os.process_cpu_count()))
 
+    @support.force_not_colorized
     def test_import_time(self):
         # os is not imported at startup
         code = 'import os; import os'

@@ -1,4 +1,5 @@
 #include "Python.h"
+#include "pycore_colorize.h"      // _Py_can_colorize()
 #include "pycore_fileutils.h"     // _Py_HasFileSystemDefaultEncodeErrors
 #include "pycore_getopt.h"        // _PyOS_GetOpt()
 #include "pycore_initconfig.h"    // _PyStatus_OK()
@@ -277,48 +278,6 @@ static void initconfig_free_config(const PyConfig *config);
 #else
 #  define PYTHONHOMEHELP "<prefix>/lib/pythonX.X"
 #endif
-
-/* Determine if we can emit ANSI color codes on the given stream.
- * Logic mirrors Lib/_colorize.py:can_colorize(). */
-static int
-_Py_can_colorize(FILE *f)
-{
-    const char *env;
-
-    env = Py_GETENV("PYTHON_COLORS");
-    if (env) {
-        if (strcmp(env, "0") == 0) {
-            return 0;
-        }
-        if (strcmp(env, "1") == 0) {
-            return 1;
-        }
-    }
-    if (getenv("NO_COLOR")) {
-        return 0;
-    }
-    if (getenv("FORCE_COLOR")) {
-        return 1;
-    }
-    env = getenv("TERM");
-    if (env && strcmp(env, "dumb") == 0) {
-        return 0;
-    }
-#if defined(MS_WINDOWS) && defined(HAVE_WINDOWS_CONSOLE_IO)
-    {
-        DWORD mode = 0;
-        DWORD nStdHandle = (f == stderr) ? STD_ERROR_HANDLE
-                                         : STD_OUTPUT_HANDLE;
-        HANDLE handle = GetStdHandle(nStdHandle);
-        if (!GetConsoleMode(handle, &mode)
-            || !(mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING))
-        {
-            return 0;
-        }
-    }
-#endif
-    return isatty(fileno(f));
-}
 
 /* Walk help text, expanding markup:
  *   #X{...}  color span (only emitted when colorize=1; '}' resets).
