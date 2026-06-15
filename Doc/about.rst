@@ -2,6 +2,7 @@
 About this documentation
 ========================
 
+Hi!
 
 Python's documentation is generated from `reStructuredText`_ sources
 using `Sphinx`_, a documentation generator originally created for Python
