@@ -10,7 +10,12 @@ try:
     import profiling.sampling.sample
     from profiling.sampling.pstats_collector import PstatsCollector
     from profiling.sampling.cli import main, _parse_mode
-    from profiling.sampling.constants import PROFILING_MODE_EXCEPTION
+    from profiling.sampling.constants import (
+        PROFILING_MODE_CPU,
+        PROFILING_MODE_EXCEPTION,
+        PROFILING_MODE_GIL,
+        PROFILING_MODE_WALL,
+    )
     from _remote_debugging import (
         THREAD_STATUS_HAS_GIL,
         THREAD_STATUS_ON_CPU,
@@ -392,9 +397,9 @@ cpu_thread.join()
 
     def test_mode_constants_are_defined(self):
         """Test that all profiling mode constants are properly defined."""
-        self.assertEqual(profiling.sampling.sample.PROFILING_MODE_WALL, 0)
-        self.assertEqual(profiling.sampling.sample.PROFILING_MODE_CPU, 1)
-        self.assertEqual(profiling.sampling.sample.PROFILING_MODE_GIL, 2)
+        self.assertEqual(PROFILING_MODE_WALL, 0)
+        self.assertEqual(PROFILING_MODE_CPU, 1)
+        self.assertEqual(PROFILING_MODE_GIL, 2)
 
     def test_parse_mode_function(self):
         """Test the _parse_mode function with all valid modes."""

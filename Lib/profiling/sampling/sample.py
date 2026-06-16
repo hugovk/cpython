@@ -26,10 +26,7 @@ def _pause_threads(unwinder, blocking):
 
 from .constants import (
     PROFILING_MODE_WALL,
-    PROFILING_MODE_CPU,
-    PROFILING_MODE_GIL,
     PROFILING_MODE_ALL,
-    PROFILING_MODE_EXCEPTION,
 )
 from ._format_utils import fmt
 try:
