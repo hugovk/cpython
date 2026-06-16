@@ -256,16 +256,3 @@ def _get_preprocessor(tool):
     if preprocess is None:
         raise ValueError(f'unsupported tool {tool}')
     return preprocess
-
-
-##################################
-# aliases
-
-from .errors import (
-    PreprocessorError,
-    PreprocessorFailure,
-    ErrorDirectiveError,
-    MissingDependenciesError,
-    OSMismatchError,
-)
-from .common import FileInfo, SourceLine

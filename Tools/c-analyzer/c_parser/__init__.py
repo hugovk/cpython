@@ -70,7 +70,3 @@ def _resolve_max_size(filename, maxsizes):
 
 def parse_signature(text):
     raise NotImplementedError
-
-
-# aliases
-from .info import resolve_parsed
