@@ -1,5 +1,5 @@
 """Subset of importlib.abc used to reduce importlib.util imports."""
-from . import _bootstrap
+from . import _bootstrap  # noqa: F401
 import abc
 
 

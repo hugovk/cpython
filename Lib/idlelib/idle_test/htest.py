@@ -63,7 +63,7 @@ TODO test these modules and classes:
   pyshell.PyShellEditorWindow
 """
 
-import idlelib.pyshell  # Set Windows DPI awareness before Tk().
+import idlelib.pyshell  # Set Windows DPI awareness before Tk().  # noqa: F401
 from importlib import import_module
 import textwrap
 import tkinter as tk

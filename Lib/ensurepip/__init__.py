@@ -133,7 +133,7 @@ def _bootstrap(*, root=None, upgrade=False, user=False,
     """
 
     try:
-        import zlib
+        import zlib  # noqa: F401
     except ImportError:
         raise ModuleNotFoundError(
             "ensurepip requires the standard library module 'zlib' "

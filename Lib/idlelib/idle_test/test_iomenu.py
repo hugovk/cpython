@@ -11,7 +11,7 @@ from idlelib.idle_test.mock_idle import Func
 # Fail if either tokenize.open and t.detect_encoding does not exist.
 # These are used in loadfile and encode.
 # Also used in pyshell.MI.execfile and runscript.tabnanny.
-from tokenize import open, detect_encoding
+from tokenize import open, detect_encoding  # noqa: F401
 # Remove when we have proper tests that use both.
 
 
