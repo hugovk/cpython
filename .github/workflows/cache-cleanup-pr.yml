@@ -1,0 +1,28 @@
+name: Clean up PR caches
+
+# A PR's caches are scoped to refs/pull/<n>/merge and can't be reused by any
+# other branch or PR, so once it closes they just waste the repo's shared
+# 10 GB budget until eviction. Delete on close to free space.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions: {}
+
+jobs:
+  cleanup:
+    name: Delete caches for the closed PR
+    runs-on: ubuntu-slim
+    permissions:
+      actions: write  # Required to delete Actions caches
+    env:
+      GH_FORCE_TTY: "120"
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      PR_REF: refs/pull/${{ github.event.pull_request.number }}/merge
+    steps:
+      - name: List caches scoped to this PR
+        run: gh cache list --ref "${PR_REF}"
+      - name: Delete caches scoped to this PR
+        run: gh cache delete --all --ref "${PR_REF}" --succeed-on-no-caches
