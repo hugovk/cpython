@@ -5,3 +5,5 @@ paths:
      ignore:
      - 1st argument of function call is not assignable
      - SC2(015|038|086|091|097|098|129|155)
+     # TEMP disable
+     - constant expression "false" in condition

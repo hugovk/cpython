@@ -46,14 +46,14 @@ jobs:
   check-docs:
     name: Docs
     needs: build-context
-    if: fromJSON(needs.build-context.outputs.run-docs)
+    if: false  # TEMP disable
     uses: ./.github/workflows/reusable-docs.yml
 
   check-abi:
     name: 'Check if the ABI has changed'
     runs-on: ubuntu-22.04  # 24.04 causes spurious errors
     needs: build-context
-    if: needs.build-context.outputs.run-tests == 'true'
+    if: false  # TEMP disable
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -105,7 +105,7 @@ jobs:
       image: ghcr.io/python/autoconf:2025.01.02.12581854023
     timeout-minutes: 60
     needs: build-context
-    if: needs.build-context.outputs.run-tests == 'true'
+    if: false  # TEMP disable
     steps:
       - name: Install Git
         run: |
@@ -146,7 +146,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     needs: build-context
-    if: needs.build-context.outputs.run-tests == 'true'
+    if: false  # TEMP disable
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -196,7 +196,7 @@ jobs:
       Windows
       ${{ fromJSON(matrix.free-threading) && '(free-threading)' || '' }}
     needs: build-context
-    if: fromJSON(needs.build-context.outputs.run-windows-tests)
+    if: false  # TEMP disable
     strategy:
       fail-fast: false
       matrix:
@@ -219,7 +219,7 @@ jobs:
     # ${{ '' } is a hack to nest jobs under the same sidebar category.
     name: Windows MSI${{ '' }}  # zizmor: ignore[obfuscation]
     needs: build-context
-    if: fromJSON(needs.build-context.outputs.run-windows-msi)
+    if: false  # TEMP disable
     strategy:
       fail-fast: false
       matrix:
@@ -235,22 +235,22 @@ jobs:
     name: >-
       macOS
       ${{ fromJSON(matrix.free-threading) && '(free-threading)' || '' }}
+      run ${{ matrix.run }}
     needs: build-context
     if: needs.build-context.outputs.run-macos == 'true'
     strategy:
       fail-fast: false
       matrix:
-        # macos-26 is Apple Silicon, macos-26-intel is Intel.
-        # macos-26-intel only runs tests against the GIL-enabled CPython.
+        # Temporarily only macos-26-intel, repeated: testing gh-146531.
         os:
-        - macos-26
         - macos-26-intel
         free-threading:
         - false
-        - true
-        exclude:
-        - os: macos-26-intel
-          free-threading: true
+        run:
+        - 1
+        - 2
+        - 3
+        - 4
     uses: ./.github/workflows/reusable-macos.yml
     with:
       free-threading: ${{ matrix.free-threading }}
@@ -262,7 +262,7 @@ jobs:
       ${{ fromJSON(matrix.free-threading) && '(free-threading)' || '' }}
       ${{ fromJSON(matrix.bolt) && '(bolt)' || '' }}
     needs: build-context
-    if: needs.build-context.outputs.run-ubuntu == 'true'
+    if: false  # TEMP disable
     strategy:
       fail-fast: false
       matrix:
@@ -293,7 +293,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     needs: build-context
-    if: needs.build-context.outputs.run-ubuntu == 'true'
+    if: false  # TEMP disable
     strategy:
       fail-fast: false
       matrix:
@@ -361,7 +361,7 @@ jobs:
   build-android:
     name: Android (${{ matrix.arch }})
     needs: build-context
-    if: needs.build-context.outputs.run-android == 'true'
+    if: false  # TEMP disable
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -383,7 +383,7 @@ jobs:
   build-ios:
     name: iOS
     needs: build-context
-    if: needs.build-context.outputs.run-ios == 'true'
+    if: false  # TEMP disable
     timeout-minutes: 60
     runs-on: macos-14
     steps:
@@ -406,13 +406,13 @@ jobs:
   build-emscripten:
     name: 'Emscripten'
     needs: build-context
-    if: needs.build-context.outputs.run-emscripten == 'true'
+    if: false  # TEMP disable
     uses: ./.github/workflows/reusable-emscripten.yml
 
   build-wasi:
     name: 'WASI'
     needs: build-context
-    if: needs.build-context.outputs.run-wasi == 'true'
+    if: false  # TEMP disable
     uses: ./.github/workflows/reusable-wasi.yml
 
   test-hypothesis:
@@ -420,7 +420,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     needs: build-context
-    if: needs.build-context.outputs.run-ubuntu == 'true'
+    if: false  # TEMP disable
     env:
       OPENSSL_VER: 3.5.7
       PYTHONSTRICTEXTENSIONBUILD: 1
@@ -524,7 +524,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     needs: build-context
-    if: needs.build-context.outputs.run-ubuntu == 'true'
+    if: false  # TEMP disable
     strategy:
       fail-fast: false
       matrix:
@@ -570,7 +570,7 @@ jobs:
     # ${{ '' } is a hack to nest jobs under the same sidebar category.
     name: Sanitizers${{ '' }}  # zizmor: ignore[obfuscation]
     needs: build-context
-    if: needs.build-context.outputs.run-ubuntu == 'true'
+    if: false  # TEMP disable
     strategy:
       fail-fast: false
       matrix:
@@ -595,7 +595,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     needs: build-context
-    if: needs.build-context.outputs.run-ubuntu == 'true'
+    if: false  # TEMP disable
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -632,9 +632,7 @@ jobs:
     # ${{ '' } is a hack to nest jobs under the same sidebar category.
     name: CIFuzz${{ '' }}  # zizmor: ignore[obfuscation]
     needs: build-context
-    if: >-
-      needs.build-context.outputs.run-ci-fuzz == 'true'
-      || needs.build-context.outputs.run-ci-fuzz-stdlib == 'true'
+    if: false  # TEMP disable
     permissions:
       contents: read
       security-events: write
@@ -694,7 +692,7 @@ jobs:
     - build-san
     - cross-build-linux
     - cifuzz
-    if: always()
+    if: false  # TEMP disable
 
     steps:
     - name: Check whether the needed jobs succeeded or failed
