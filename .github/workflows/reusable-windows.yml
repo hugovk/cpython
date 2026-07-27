@@ -53,7 +53,7 @@ jobs:
       run: >-
         .\\PCbuild\\rt.bat
         -p "${ARCH}"
-        -q --fast-ci
+        -q --slow-ci
         ${{ inputs.interpreter == 'switch-case' && '-d' || '' }}
         ${{ fromJSON(inputs.free-threading) && '--disable-gil' || '' }}
       shell: bash

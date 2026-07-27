@@ -116,6 +116,7 @@ jobs:
       run: sudo mount "$CPYTHON_RO_SRCDIR" -oremount,rw
     - name: Tests
       working-directory: ${{ env.CPYTHON_BUILDDIR }}
-      run: xvfb-run make ci EXTRATESTOPTS="${TEST_OPTS}"
+      # --slow-ci takes priority over the ci target's --fast-ci
+      run: xvfb-run make ci EXTRATESTOPTS="--slow-ci ${TEST_OPTS}"
       env:
         TEST_OPTS: ${{ inputs.test-opts }}

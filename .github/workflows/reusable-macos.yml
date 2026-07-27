@@ -72,4 +72,5 @@ jobs:
         --fail-on-improvement
         --path-prefix="./"
     - name: Tests
-      run: make ci
+      # --slow-ci takes priority over the ci target's --fast-ci
+      run: make ci EXTRATESTOPTS="--slow-ci"
