@@ -1,7 +1,7 @@
 .. _tut-io:
 
 ****************
-Input and Output
+Input and output
 ****************
 
 There are several ways to present the output of a program; data can be printed
@@ -11,7 +11,7 @@ discuss some of the possibilities.
 
 .. _tut-formatting:
 
-Fancier Output Formatting
+Fancier output formatting
 =========================
 
 So far we've encountered two ways of writing values: *expression statements* and
@@ -111,7 +111,7 @@ This syntax is easy to use, although it offers much less control for formatting.
 
 .. _tut-f-strings:
 
-Formatted String Literals
+Formatted string literals
 -------------------------
 
 :ref:`Formatted string literals <f-strings>` (also called f-strings for
@@ -163,7 +163,7 @@ the reference guide for the :ref:`formatspec`.
 
 .. _tut-string-format:
 
-The String format() Method
+The string format() method
 --------------------------
 
 Basic usage of the :meth:`str.format` method looks like this::
@@ -240,7 +240,7 @@ For a complete overview of string formatting with :meth:`str.format`, see
 :ref:`formatstrings`.
 
 
-Manual String Formatting
+Manual string formatting
 ------------------------
 
 Here's the same table of squares and cubes, formatted manually::
@@ -303,7 +303,7 @@ More information can be found in the :ref:`old-string-formatting` section.
 
 .. _tut-files:
 
-Reading and Writing Files
+Reading and writing files
 =========================
 
 .. index::
@@ -385,7 +385,7 @@ automatically fail. ::
 
 .. _tut-filemethods:
 
-Methods of File Objects
+Methods of file objects
 -----------------------
 
 The rest of the examples in this section will assume that a file object called

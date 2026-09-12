@@ -115,7 +115,7 @@ The raw stream API is described in detail in the docs of :class:`RawIOBase`.
 
 .. _io-text-encoding:
 
-Text Encoding
+Text encoding
 -------------
 
 The default encoding of :class:`TextIOWrapper` and :func:`open` is UTF-8.
@@ -152,7 +152,7 @@ please consider using UTF-8 by default (i.e. ``encoding="utf-8"``) for
 new APIs.
 
 
-High-level Module Interface
+High-level module interface
 ---------------------------
 
 .. data:: DEFAULT_BUFFER_SIZE
@@ -302,7 +302,7 @@ ABC                        Inherits            Stub Methods              Mixin M
 =========================  ==================  ========================  ==================================================
 
 
-I/O Base Classes
+I/O base classes
 ^^^^^^^^^^^^^^^^
 
 .. class:: IOBase
@@ -647,7 +647,7 @@ I/O Base Classes
       so the implementation should only access *b* during the method call.
 
 
-Raw File I/O
+Raw file I/O
 ^^^^^^^^^^^^
 
 .. class:: FileIO(name, mode='r', closefd=True, opener=None)
@@ -715,7 +715,7 @@ Raw File I/O
       given in the constructor.
 
 
-Buffered Streams
+Buffered streams
 ^^^^^^^^^^^^^^^^
 
 Buffered I/O streams provide a higher-level interface to an I/O device
@@ -1174,7 +1174,7 @@ Text I/O
    It inherits from :class:`codecs.IncrementalDecoder`.
 
 
-Static Typing
+Static typing
 -------------
 
 The following protocols can be used for annotating function and method

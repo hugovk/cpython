@@ -1,4 +1,4 @@
-:mod:`!csv` --- CSV File Reading and Writing
+:mod:`!csv` --- CSV file reading and writing
 ============================================
 
 .. module:: csv
@@ -42,7 +42,7 @@ using the :class:`DictReader` and :class:`DictWriter` classes.
 
 .. _csv-contents:
 
-Module Contents
+Module contents
 ---------------
 
 The :mod:`!csv` module defines the following functions:
@@ -451,7 +451,7 @@ The :mod:`!csv` module defines the following exception:
 
 .. _csv-fmt-params:
 
-Dialects and Formatting Parameters
+Dialects and formatting parameters
 ----------------------------------
 
 To make it easier to specify the format of input and output records, specific
@@ -557,7 +557,7 @@ with the specified formatting parameters replaced.
 
 .. _reader-objects:
 
-Reader Objects
+Reader objects
 --------------
 
 Reader objects (:class:`DictReader` instances and objects returned by the
@@ -594,7 +594,7 @@ DictReader objects have the following public attribute:
 
 
 
-Writer Objects
+Writer objects
 --------------
 
 :class:`writer` objects (:class:`DictWriter` instances and objects returned by
