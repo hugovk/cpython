@@ -40,7 +40,7 @@ import types as _types
 from io import StringIO as _StringIO
 
 __all__ = ["pprint","pformat","isreadable","isrecursive","saferepr",
-           "PrettyPrinter", "pp"]
+           "PrettyPrinter", "pp", "print"]
 
 
 def pprint(object, stream=None, indent=1, width=80, depth=None, *,
@@ -66,6 +66,25 @@ def pformat(object, indent=1, width=80, depth=None, *,
 def pp(object, *args, sort_dicts=False, **kwargs):
     """Pretty-print a Python object"""
     pprint(object, *args, sort_dicts=sort_dicts, **kwargs)
+
+
+_MISSING = sentinel("MISSING")
+
+def print(object=_MISSING, stream=None, indent=4, width=88, depth=None, *,
+          compact=False, expand=True, sort_dicts=True,
+          underscore_numbers=False):
+    """Pretty-print a Python object to a stream with modern defaults.
+
+    This is intended for debugging and the defaults may change
+    in future releases without warning.
+    """
+    if object is _MISSING:
+        (stream if stream is not None else _sys.stdout).write("\n")
+        return
+
+    pprint(object, stream=stream, indent=indent, width=width, depth=depth,
+           compact=compact, expand=expand, sort_dicts=sort_dicts,
+           underscore_numbers=underscore_numbers)
 
 
 def saferepr(object):
