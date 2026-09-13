@@ -62,6 +62,17 @@ Summary -- Release highlights
 .. This section singles out the most important changes in Python 3.15.
    Brevity is key.
 
+Python 3.15 will be the latest stable release of the Python programming
+language, with a mix of changes to the language, the implementation,
+and the standard library.
+The biggest changes include
+:ref:`lazy imports <whatsnew315-lazy-imports>`,
+:ref:`frozendict <whatsnew315-frozendict>` and
+:ref:`sentinel <whatsnew315-sentinel>` builtins,
+TODO
+:ref:`deferred evaluation of annotations <whatsnew314-deferred-annotations>`,
+and support for :ref:`subinterpreters <whatsnew314-multiple-interpreters>` in
+the standard library.
 
 .. PEP-sized items next.
 
